@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: 16 185 129; /* emerald-500 */
+}
+
+/* Enable dark mode */
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Dashboard cards */
+.dashboard-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Green buttons */
+.btn-green {
+  background-color: rgb(16 185 129);
+  color: white;
+}
+
+.btn-green:hover {
+  background-color: rgb(5 150 105);
+}
+
+/* Utility for better dark mode contrast */
+.text-zinc-300 { color: rgb(212 212 216); }
+.text-zinc-400 { color: rgb(161 161 170); }

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan make:request Admin/ImportBlocRequest)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
