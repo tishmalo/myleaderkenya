@@ -1,26 +1,27 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\GroupController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\GroupController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\BlocController;
 use App\Http\Controllers\Admin\CountyController;
 use App\Http\Controllers\Admin\ConstituencyController;
 use App\Http\Controllers\Admin\WardController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\DonorController;
-use App\Http\Controllers\PaymentMethodController;
-use App\Http\Controllers\PositionController;
-use App\Http\Controllers\CandidateController;
-use App\Http\Controllers\NewsArticleController;
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\Admin\TagController;
+use App\Http\Controllers\Admin\DonorController;
+use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\PositionController;
+use App\Http\Controllers\Admin\CandidateController;
+use App\Http\Controllers\Admin\NewsArticleController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Web\LandingController;
 use Illuminate\Support\Facades\Route;
 
 // ====================== PUBLIC ROUTES ======================
-Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+Route::get('/', [LandingController::class, 'index'])->name('landing');
 
 Route::get('/privacy', function () {
     return view('privacy');
@@ -54,6 +55,8 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods');
     Route::resource('donors', DonorController::class)->names('donors');
+    
+    // Dashboard actions were in root DashboardController, now moved to Admin\DashboardController
     Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->name('dashboard.donors');
 
     Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);

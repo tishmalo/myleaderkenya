@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CandidateStoreRequest;
 use App\Http\Requests\Admin\CandidateUpdateRequest;
 use App\Models\Candidate;
 use App\Services\Admin\CandidateService;
+use Illuminate\Http\Request;
 
 class CandidateController extends Controller
 {
@@ -21,37 +23,35 @@ class CandidateController extends Controller
 
     public function create()
     {
-        ['positions' => $positions, 'blocs' => $blocs] = $this->candidateService->getFormData();
-        return view('candidates.create', compact('positions', 'blocs'));
+        return view('candidates.create');
     }
 
     public function store(CandidateStoreRequest $request)
     {
         $this->candidateService->createCandidate(
-            $request->except('profile_picture'),
-            $request->file('profile_picture')
+            $request->validated(),
+            $request->file('image')
         );
 
         return redirect()->route('candidates.index')
-                         ->with('success', 'Candidate added successfully!');
+                         ->with('success', 'Aspirant added successfully.');
     }
 
     public function edit(Candidate $candidate)
     {
-        ['positions' => $positions, 'blocs' => $blocs] = $this->candidateService->getFormData();
-        return view('candidates.edit', compact('candidate', 'positions', 'blocs'));
+        return view('candidates.edit', compact('candidate'));
     }
 
     public function update(CandidateUpdateRequest $request, Candidate $candidate)
     {
         $this->candidateService->updateCandidate(
             $candidate,
-            $request->except('profile_picture'),
-            $request->file('profile_picture')
+            $request->validated(),
+            $request->file('image')
         );
 
         return redirect()->route('candidates.index')
-                         ->with('success', 'Candidate updated successfully!');
+                         ->with('success', 'Aspirant updated successfully.');
     }
 
     public function destroy(Candidate $candidate)
@@ -60,25 +60,18 @@ class CandidateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Candidate deleted successfully.',
+            'message' => 'Aspirant deleted successfully.'
         ]);
     }
 
     public function publicIndex()
     {
-        $filters = request()->only(['search', 'county', 'position']);
-
-        ['candidates' => $candidates, 'positions' => $positions, 'counties' => $counties]
-            = $this->candidateService->getPublicIndex($filters);
-
-        return view('aspirants.public.index', compact('candidates', 'positions', 'counties'));
+        $candidates = $this->candidateService->getPaginatedCandidates(12);
+        return view('candidates.public.index', compact('candidates'));
     }
 
     public function publicShow(Candidate $candidate)
     {
-        $candidate    = $this->candidateService->getPublicShow($candidate);
-        $relatedArticles = $candidate->relatedArticles;
-
-        return view('aspirants.public.show', compact('candidate', 'relatedArticles'));
+        return view('candidates.public.show', compact('candidate'));
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StorePaymentMethodRequest;
+use App\Http\Requests\Admin\PaymentMethodStoreRequest;
+use App\Http\Requests\Admin\PaymentMethodUpdateRequest;
 use App\Models\PaymentMethod;
 use App\Services\Admin\PaymentMethodService;
-use Illuminate\Http\Request;
 
 class PaymentMethodController extends Controller
 {
@@ -14,24 +14,44 @@ class PaymentMethodController extends Controller
         private PaymentMethodService $paymentMethodService
     ) {}
 
-    public function store(StorePaymentMethodRequest $request)
+    public function index()
+    {
+        $paymentMethods = $this->paymentMethodService->getAllPaymentMethods();
+
+        return view('payment-methods.index', compact('paymentMethods'));
+    }
+
+    public function create()
+    {
+        return view('payment-methods.create');
+    }
+
+    public function store(PaymentMethodStoreRequest $request)
     {
         $this->paymentMethodService->createPaymentMethod($request->validated());
 
-        return redirect()->back()->with('success', 'Payment method added successfully.');
+        return redirect()->route('payment-methods.index')
+                         ->with('success', 'Payment method added successfully.');
     }
 
-    public function update(StorePaymentMethodRequest $request, PaymentMethod $paymentMethod)
+    public function edit(PaymentMethod $paymentMethod)
+    {
+        return view('payment-methods.edit', compact('paymentMethod'));
+    }
+
+    public function update(PaymentMethodUpdateRequest $request, PaymentMethod $paymentMethod)
     {
         $this->paymentMethodService->updatePaymentMethod($paymentMethod, $request->validated());
 
-        return redirect()->back()->with('success', 'Payment method updated successfully.');
+        return redirect()->route('payment-methods.index')
+                         ->with('success', 'Payment method updated successfully.');
     }
 
     public function destroy(PaymentMethod $paymentMethod)
     {
         $this->paymentMethodService->deletePaymentMethod($paymentMethod);
 
-        return redirect()->back()->with('success', 'Payment method deleted successfully.');
+        return redirect()->route('payment-methods.index')
+                         ->with('success', 'Payment method deleted successfully.');
     }
 }

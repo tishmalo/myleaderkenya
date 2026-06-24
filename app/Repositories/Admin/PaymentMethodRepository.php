@@ -10,12 +10,17 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
 {
     public function all(): Collection
     {
-        return PaymentMethod::orderBy('id', 'desc')->get();
+        return PaymentMethod::orderBy('sort_order', 'asc')
+                            ->orderBy('name', 'asc')
+                            ->get();
     }
 
     public function getActive(): Collection
     {
-        return PaymentMethod::where('is_active', true)->orderBy('id', 'asc')->get();
+        return PaymentMethod::where('is_active', true)
+                            ->orderBy('sort_order', 'asc')
+                            ->orderBy('name', 'asc')
+                            ->get();
     }
 
     public function create(array $data): PaymentMethod

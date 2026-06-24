@@ -1,15 +1,22 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\PositionStoreRequest;
+use App\Http\Requests\Admin\PositionUpdateRequest;
 use App\Models\Position;
-use Illuminate\Http\Request;
+use App\Services\Admin\PositionService;
 
 class PositionController extends Controller
 {
+    public function __construct(
+        private PositionService $positionService
+    ) {}
+
     public function index()
     {
-        $positions = Position::latest()->paginate(15);
+        $positions = $this->positionService->getPaginatedPositions();
         return view('positions.index', compact('positions'));
     }
 
@@ -18,14 +25,9 @@ class PositionController extends Controller
         return view('positions.create');
     }
 
-    public function store(Request $request)
+    public function store(PositionStoreRequest $request)
     {
-        $request->validate([
-            'name'        => 'required|string|max:255|unique:positions,name',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
-        Position::create($request->only(['name', 'description']));
+        $this->positionService->createPosition($request->validated());
 
         return redirect()->route('positions.index')
                          ->with('success', 'Position created successfully!');
@@ -36,14 +38,9 @@ class PositionController extends Controller
         return view('positions.edit', compact('position'));
     }
 
-    public function update(Request $request, Position $position)
+    public function update(PositionUpdateRequest $request, Position $position)
     {
-        $request->validate([
-            'name'        => 'required|string|max:255|unique:positions,name,' . $position->id,
-            'description' => 'nullable|string|max:1000',
-        ]);
-
-        $position->update($request->only(['name', 'description']));
+        $this->positionService->updatePosition($position, $request->validated());
 
         return redirect()->route('positions.index')
                          ->with('success', 'Position updated successfully!');
@@ -51,7 +48,7 @@ class PositionController extends Controller
 
     public function destroy(Position $position)
     {
-        $position->delete();
+        $this->positionService->deletePosition($position);
 
         return response()->json([
             'success' => true,

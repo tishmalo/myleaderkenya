@@ -14,6 +14,7 @@ interface DashboardRepositoryInterface
     public function getMessagesAndGroups($user): array;
     public function getStationsAndBlocs(): array;
     public function createPollingStation(array $data);
+    public function importStations(array $stations): int;
     public function getCountiesByBloc($blocId);
     public function getCountiesByName($name);
     public function getConstituenciesByCounty($countyName);

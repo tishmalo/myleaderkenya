@@ -6,7 +6,6 @@ use App\Contracts\Repositories\Web\LandingRepositoryInterface;
 use App\Models\User;
 use App\Models\Message;
 use App\Models\Station;
-use App\Models\Group;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -20,38 +19,25 @@ class LandingRepository implements LandingRepositoryInterface
     public function getLandingStats(): array
     {
         // Check which columns actually exist before querying
-        $hasIsRegistered    = Schema::hasColumn('users', 'is_registered');
-        $hasYearOfBirth     = Schema::hasColumn('users', 'year_of_birth');
+        $hasVoterRegistered = Schema::hasColumn('users', 'voter_registered');
+        $hasDob             = Schema::hasColumn('users', 'dob');
         $hasCounty          = Schema::hasColumn('users', 'county');
         $hasGender          = Schema::hasColumn('users', 'gender');
 
-        $registeredVoters = $hasIsRegistered
-            ? User::where('is_voter', true)->count()
-            : 0;
-
-        // Calculate average age from year_of_birth
-        $avgAge = null;
-        if ($hasYearOfBirth) {
-            $avgYearOfBirth = User::whereNotNull('year_of_birth')
-                ->where('year_of_birth', '>', 1900)
-                ->avg('year_of_birth');
-
-            if ($avgYearOfBirth) {
-                $avgAge = date('Y') - round($avgYearOfBirth);
-            }
-        }
-
         $voterStats = [
-            'confirmedVoters' => $registeredVoters,
-            'avgAge' => $avgAge,
+            'confirmedVoters' => $hasVoterRegistered
+                ? User::where('voter_registered', true)->count()
+                : User::count(), // fallback: total users
+
+            'avgAge' => $hasDob
+                ? round(User::whereNotNull('dob')->avg(DB::raw('TIMESTAMPDIFF(YEAR, dob, CURDATE())')))
+                : null,
 
             'byCounty' => $hasCounty
                 ? User::select('county', DB::raw('count(*) as count'))
                     ->whereNotNull('county')
-                    ->where('county', '!=', '')
                     ->groupBy('county')
                     ->orderByDesc('count')
-                    ->limit(10)
                     ->get()
                 : collect(),
         ];
@@ -60,9 +46,8 @@ class LandingRepository implements LandingRepositoryInterface
 
         return [
             'totalUsers'     => User::count(),
-            'totalMessages'  => class_exists(Message::class) ? Message::count() : 0,
-            'stationsCount'  => class_exists(Station::class) ? Station::count() : 0,
-            'totalGroups'    => class_exists(Group::class) ? Group::count() : 0,
+            'totalMessages'  => class_exists(\App\Models\Message::class) ? Message::count() : 0,
+            'stationsCount'  => class_exists(\App\Models\Station::class) ? Station::count() : 0,
             'voterStats'     => $voterStats,
             'countyLabels'   => $countyCollection->pluck('county'),
             'countyData'     => $countyCollection->pluck('count'),

@@ -91,6 +91,25 @@ class DashboardRepository implements DashboardRepositoryInterface
         return PollingStation::create($data);
     }
 
+    public function importStations(array $stations): int
+    {
+        $importedCount = 0;
+        foreach ($stations as $station) {
+            PollingStation::create([
+                'county'             => $station['county'],
+                'constituency'       => $station['constituency'],
+                'office'             => $station['office'],
+                'near_landmark'      => $station['near_landmark'] ?? null,
+                'distance_to_office' => $station['distance_to_office'] ?? 0,
+                'lat'                => $station['lat'],
+                'lon'                => $station['lon'],
+                'is_user_added'      => false,
+            ]);
+            $importedCount++;
+        }
+        return $importedCount;
+    }
+
     public function getCountiesByBloc($blocId)
     {
         return County::where('bloc_id', $blocId)->orderBy('name')->pluck('name');

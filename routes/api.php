@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\PaymentMethodController;
-use App\Http\Controllers\LocationController;
+use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\DonorController;
+use Illuminate\Support\Facades\DB;
 
 // ====================== PUBLIC ROUTES (No Login Required) ======================
 
@@ -89,6 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload_location', [LocationController::class, 'upload']);
 
     // Donors
-    Route::get('/donors', [\App\Http\Controllers\Api\DonorController::class, 'index']);
-    Route::post('/donors', [\App\Http\Controllers\Api\DonorController::class, 'store']);
+    Route::get('/donors', [DonorController::class, 'index']);
+    Route::post('/donors', [DonorController::class, 'store']);
 });

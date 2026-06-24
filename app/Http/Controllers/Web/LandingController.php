@@ -13,6 +13,8 @@ class LandingController extends Controller
 
     public function index()
     {
-        return view('landing', $this->landingService->getLandingData());
+        $landingData = $this->landingService->getLandingData();
+
+        return view('landing', $landingData);
     }
 }

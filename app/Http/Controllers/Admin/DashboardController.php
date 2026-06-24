@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\ImportPollingStationsRequest;
+use App\Http\Requests\Admin\StorePollingStationRequest;
 use App\Services\Admin\DashboardService;
-use App\Http\Requests\Admin\StoreStationRequest;
-use App\Http\Requests\Admin\ImportStationsRequest;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -21,101 +21,97 @@ class DashboardController extends Controller
 
     public function messages()
     {
-        $data = $this->dashboardService->getMessagesAndGroups(auth()->user());
+        ['messages' => $messages, 'groups' => $groups]
+            = $this->dashboardService->getMessagesAndGroups(auth()->user());
 
-        return view('messages.index', [
-            'messages' => $data['messages'],
-            'groups'   => $data['groups']
-        ]);
+        return view('messages.index', compact('messages', 'groups'));
     }
 
     public function stats()
     {
-        $stats = $this->dashboardService->getVoterStats();
-        
-        return view('voters.stats', [
-            'totalVoters' => $stats['totalVoters'], 
-            'voterStats'  => $stats['voterStats']
-        ]);
+        ['totalVoters' => $totalVoters, 'voterStats' => $voterStats]
+            = $this->dashboardService->getVoterStats();
+
+        return view('voters.stats', compact('totalVoters', 'voterStats'));
     }
 
     public function stations()
     {
-        $data = $this->dashboardService->getStationsAndBlocs();
+        ['stations' => $stations, 'blocs' => $blocs]
+            = $this->dashboardService->getStationsAndBlocs();
 
-        return view('stations.index', [
-            'stations' => $data['stations'],
-            'blocs'    => $data['blocs']
-        ]);
+        return view('stations.index', compact('stations', 'blocs'));
     }
 
-    public function storeStation(StoreStationRequest $request)
+    public function storeStation(StorePollingStationRequest $request)
     {
         $this->dashboardService->createPollingStation($request->validated());
 
         return response()->json(['message' => 'Polling station added successfully']);
     }
 
-    // Get Counties by Bloc
+    public function importStations(ImportPollingStationsRequest $request)
+    {
+        $imported = $this->dashboardService->importStations($request->validated('stations'));
+
+        return response()->json([
+            'message'  => 'Import successful',
+            'imported' => $imported,
+        ]);
+    }
+
     public function getCountiesByBloc($blocId)
     {
-        return response()->json($this->dashboardService->getCountiesByBloc($blocId));
+        return response()->json(
+            $this->dashboardService->getCountiesByBloc($blocId)
+        );
     }
 
     public function getCounties($name)
     {
-        return response()->json($this->dashboardService->getCountiesByName($name));
+        return response()->json(
+            $this->dashboardService->getCountiesByName($name)
+        );
     }
 
-    // Get Constituencies by County Name → Use county_id
     public function getConstituenciesByCounty(Request $request)
     {
-        $countyName = $request->query('county');
-
-        if (!$countyName) {
+        if (!$countyName = $request->query('county')) {
             return response()->json([]);
         }
 
-        return response()->json($this->dashboardService->getConstituenciesByCounty($countyName));
+        return response()->json(
+            $this->dashboardService->getConstituenciesByCounty($countyName)
+        );
     }
 
-    // Get Wards by Constituency Name → Use constituency_id
     public function getWardsByConstituency(Request $request)
     {
-        $constituencyName = $request->query('constituency');
-
-        if (!$constituencyName) {
+        if (!$constituencyName = $request->query('constituency')) {
             return response()->json([]);
         }
 
-        return response()->json($this->dashboardService->getWardsByConstituency($constituencyName));
-    }
-
-    public function importStations(ImportStationsRequest $request)
-    {
-        $importedCount = $this->dashboardService->importStations($request->stations);
-
-        return response()->json([
-            'message'  => 'Import successful',
-            'imported' => $importedCount
-        ]);
+        return response()->json(
+            $this->dashboardService->getWardsByConstituency($constituencyName)
+        );
     }
 
     public function getPollingStations($type, $id)
     {
-        return response()->json($this->dashboardService->getPollingStationsFiltered($type, $id));
+        return response()->json(
+            $this->dashboardService->getPollingStationsFiltered($type, $id)
+        );
     }
 
-    // Get Polling Stations by Ward Name
     public function getPollingStationsByWard(Request $request)
     {
-        $wardName = $request->query('ward');
-
-        if (!$wardName) {
+        if (!$wardName = $request->query('ward')) {
             return response()->json([]);
         }
 
-        return response()->json($this->dashboardService->getPollingStationsByWard($wardName));
+        return response()->json(
+            $this->dashboardService->getPollingStationsByWard($wardName)
+        );
     }
 
     public function tags()
