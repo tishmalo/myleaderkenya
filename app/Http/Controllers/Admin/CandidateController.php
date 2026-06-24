@@ -64,14 +64,15 @@ class CandidateController extends Controller
         ]);
     }
 
-    public function publicIndex()
+    public function publicIndex(Request $request)
     {
-        $candidates = $this->candidateService->getPaginatedCandidates(12);
-        return view('aspirants.public.index', compact('candidates'));
+        $data = $this->candidateService->getPublicIndex($request->only(['search', 'county', 'position']), 12);
+        return view('aspirants.public.index', $data);
     }
 
     public function publicShow(Candidate $candidate)
     {
+        $candidate = $this->candidateService->getPublicShow($candidate);
         return view('aspirants.public.show', compact('candidate'));
     }
 }
