@@ -67,11 +67,11 @@ class CandidateController extends Controller
     public function publicIndex()
     {
         $candidates = $this->candidateService->getPaginatedCandidates(12);
-        return view('candidates.public.index', compact('candidates'));
+        return view('aspirants.public.index', compact('candidates'));
     }
 
     public function publicShow(Candidate $candidate)
     {
-        return view('candidates.public.show', compact('candidate'));
+        return view('aspirants.public.show', compact('candidate'));
     }
 }
