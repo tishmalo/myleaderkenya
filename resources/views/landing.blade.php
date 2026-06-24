@@ -410,6 +410,19 @@
     .county-badge { display: inline-block; background: rgba(0,168,107,0.12); color: var(--green-bright); border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
     .county-rank  { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 700; color: rgba(245,245,240,0.15); margin-right: 16px; }
 
+    /* Scrollable Container */
+    .county-table-scroll {
+        max-height: 480px;
+        overflow-y: auto;
+        padding-right: 12px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    .county-table-scroll::-webkit-scrollbar { width: 6px; }
+    .county-table-scroll::-webkit-scrollbar-track { background: transparent; }
+    .county-table-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .county-table-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
     /* ════════════════════════════════
        HOW IT WORKS
     ════════════════════════════════ */
@@ -831,18 +844,20 @@
 
             <div class="county-list-card">
                 <div class="chart-card-title">Top Counties by Voter Registration</div>
-                <table class="county-table">
-                    <thead><tr><th>#</th><th>County</th><th>Registered</th></tr></thead>
-                    <tbody id="county-table-body">
-                        @foreach(($voterStats['byCounty'] ?? []) as $i => $county)
-                        <tr>
-                            <td><span class="county-rank">{{ str_pad($i+1, 2, '0', STR_PAD_LEFT) }}</span></td>
-                            <td>{{ $county->county }}</td>
-                            <td><span class="county-badge">{{ number_format($county->count) }}</span></td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="county-table-scroll">
+                    <table class="county-table">
+                        <thead><tr><th>#</th><th>County</th><th>Registered</th></tr></thead>
+                        <tbody id="county-table-body">
+                            @foreach(($voterStats['byCounty'] ?? []) as $i => $county)
+                            <tr>
+                                <td><span class="county-rank">{{ str_pad($i+1, 2, '0', STR_PAD_LEFT) }}</span></td>
+                                <td>{{ $county->county }}</td>
+                                <td><span class="county-badge">{{ number_format($county->count) }}</span></td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </section>
