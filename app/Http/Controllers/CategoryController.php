@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\CategoryStoreRequest;
+use App\Http\Requests\Admin\CategoryUpdateRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
+use App\Services\Admin\CategoryService;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private CategoryService $categoryService
+    ) {}
+
     public function index()
     {
-        $categories = Category::withCount('articles')->latest()->paginate(15);
+        $categories = $this->categoryService->getPaginatedCategories();
         return view('categories.index', compact('categories'));
     }
 
@@ -18,15 +24,9 @@ class CategoryController extends Controller
         return view('categories.create');
     }
 
-    public function store(Request $request)
+    public function store(CategoryStoreRequest $request)
     {
-        $request->validate([
-            'name'        => 'required|string|max:255|unique:categories',
-            'description' => 'nullable|string',
-            'color'       => 'nullable|string|max:7',
-        ]);
-
-        Category::create($request->all());
+        $this->categoryService->createCategory($request->validated());
 
         return redirect()->route('categories.index')
                          ->with('success', 'Category created successfully!');
@@ -37,15 +37,9 @@ class CategoryController extends Controller
         return view('categories.edit', compact('category'));
     }
 
-    public function update(Request $request, Category $category)
+    public function update(CategoryUpdateRequest $request, Category $category)
     {
-        $request->validate([
-            'name'        => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'description' => 'nullable|string',
-            'color'       => 'nullable|string|max:7',
-        ]);
-
-        $category->update($request->all());
+        $this->categoryService->updateCategory($category, $request->validated());
 
         return redirect()->route('categories.index')
                          ->with('success', 'Category updated successfully!');
@@ -53,10 +47,11 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        $category->delete();
+        $this->categoryService->deleteCategory($category);
+
         return response()->json([
             'success' => true,
-            'message' => 'Category deleted successfully.'
+            'message' => 'Category deleted successfully.',
         ]);
     }
 }

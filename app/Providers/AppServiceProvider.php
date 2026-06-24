@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CategoryRepositoryInterface;
 use App\Contracts\Repositories\Admin\ConstituencyRepositoryInterface;
 use App\Contracts\Repositories\Admin\CountyRepositoryInterface;
 use App\Contracts\Repositories\Admin\WardRepositoryInterface;
@@ -19,6 +21,8 @@ use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
 use App\Repositories\Admin\BlocRepository;
+use App\Repositories\Admin\CandidateRepository;
+use App\Repositories\Admin\CategoryRepository;
 use App\Repositories\Admin\ConstituencyRepository;
 use App\Repositories\Admin\CountyRepository;
 use App\Repositories\Admin\SettingRepository;
@@ -50,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register Admin Repositories
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
+        $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
+        $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(WardRepositoryInterface::class, WardRepository::class);
         $this->app->bind(CountyRepositoryInterface::class, CountyRepository::class);
         $this->app->bind(ConstituencyRepositoryInterface::class, ConstituencyRepository::class);
