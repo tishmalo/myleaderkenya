@@ -128,6 +128,11 @@ class AppServiceProvider extends ServiceProvider
                 : Limit::perMinute(60)->by($request->ip());
         });
 
+        // Web rate limiting for public routes
+        RateLimiter::for('web', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
         // Stricter limit for data-intensive operations
         RateLimiter::for('api-heavy', function (Request $request) {
             return $request->user()

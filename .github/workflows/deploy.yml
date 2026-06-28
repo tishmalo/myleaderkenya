@@ -50,6 +50,6 @@ jobs:
           **/node_modules/**
           **/tests/**
           .env
-          storage/*.key
+          storage/**
           vendor/bin/**
 

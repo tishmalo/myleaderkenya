@@ -181,5 +181,6 @@
     chatContainer.classList.toggle("show");
   }
 </script>
+@stack('scripts')
 </body>
 </html>
