@@ -42,6 +42,7 @@ return [
             [
                 'label' => 'Front End Settings',
                 'items' => [
+                    ['label' => 'Frontend Pages', 'route' => 'frontend-pages.index', 'icon' => 'fas fa-file-alt', 'active' => ['frontend-pages.*']],
                     ['label' => 'Campaign Tools', 'route' => 'campaign-tools.index', 'icon' => 'fas fa-bullhorn', 'active' => ['campaign-tools.*']],
                     ['label' => 'Donor Settings', 'route' => 'payment-methods.index', 'icon' => 'fas fa-money-bill-wave', 'active' => ['payment-methods.*', 'donors.*']],
                     ['label' => 'News', 'route' => 'news.index', 'icon' => 'fas fa-newspaper', 'active' => ['news.*']],

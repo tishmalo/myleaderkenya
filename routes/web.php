@@ -19,6 +19,8 @@ use App\Http\Controllers\Admin\CoalitionController;
 use App\Http\Controllers\Admin\CandidateController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\NewsArticleController;
+use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
+use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,10 @@ use Illuminate\Support\Facades\Route;
 // ====================== PUBLIC ROUTES (Throttled) ======================
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing');
+    Route::get('/about-us', [PublicFrontendPageController::class, 'about'])->name('about.public');
+    Route::get('/live-stats', [PublicFrontendPageController::class, 'liveStats'])->name('live-stats.public');
+    Route::get('/download-app', [PublicFrontendPageController::class, 'downloadApp'])->name('download-app.public');
+    Route::get('/contact-us', [PublicFrontendPageController::class, 'contact'])->name('contact.public');
     
     Route::get('/privacy', function () {
         return view('privacy');
@@ -92,6 +98,9 @@ Route::middleware('auth')->group(function () {
         ->parameters(['campaign-tools' => 'campaignTool'])
         ->names('campaign-tools')
         ->except(['show']);
+    Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->name('frontend-pages.index');
+    Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->name('frontend-pages.edit');
+    Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->name('frontend-pages.update');
 
     // --- Finance & Donors ---
     Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods');

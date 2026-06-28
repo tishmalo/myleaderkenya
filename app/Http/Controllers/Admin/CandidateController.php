@@ -23,6 +23,7 @@ class CandidateController extends Controller
 
     public function create()
     {
+        
         return view('candidates.create');
     }
 

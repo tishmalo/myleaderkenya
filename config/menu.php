@@ -4,15 +4,14 @@ return [
     'frontend' => [
         [
             'label' => 'About Us',
-            'route' => 'landing',
-            'fragment' => 'about',
-            'active' => ['landing'],
+            'route' => 'about.public',
+            'active' => ['about.public'],
         ],
         [
             'label' => 'Voter',
             'children' => [
-                ['label' => 'Live stats', 'route' => 'landing', 'fragment' => 'analytics', 'active' => ['landing']],
-                ['label' => 'Download App', 'route' => 'landing', 'fragment' => 'download-app'],
+                ['label' => 'Live stats', 'route' => 'live-stats.public', 'active' => ['live-stats.public']],
+                ['label' => 'Download App', 'route' => 'download-app.public', 'active' => ['download-app.public']],
             ],
         ],
         [
@@ -44,8 +43,8 @@ return [
         ],
         [
             'label' => 'Contact us',
-            'route' => 'landing',
-            'fragment' => 'contact-us',
+            'route' => 'contact.public',
+            'active' => ['contact.public'],
         ],
     ],
 ];
