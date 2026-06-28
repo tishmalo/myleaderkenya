@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/dashboard/stations', [DashboardController::class, 'stations'])->name('dashboard.stations');
+    Route::post('/stations', [DashboardController::class, 'storeStation'])->name('stations.store');
     Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->name('dashboard.messages');
     Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->name('dashboard.donors');
     
@@ -112,3 +113,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
