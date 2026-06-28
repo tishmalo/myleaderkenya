@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
-use App\Contracts\Repositories\Admin\CategoryRepositoryInterface;
 use App\Contracts\Repositories\Admin\ConstituencyRepositoryInterface;
 use App\Contracts\Repositories\Admin\CountyRepositoryInterface;
 use App\Contracts\Repositories\Admin\DonorRepositoryInterface;
@@ -29,7 +28,6 @@ use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRep
 use App\Repositories\Admin\BlocRepository;
 use App\Repositories\Admin\CandidateRepository;
 use App\Repositories\Admin\CampaignToolRepository;
-use App\Repositories\Admin\CategoryRepository;
 use App\Repositories\Admin\ConstituencyRepository;
 use App\Repositories\Admin\CountyRepository;
 use App\Repositories\Admin\DonorRepository;
@@ -68,7 +66,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
         $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
         $this->app->bind(CampaignToolRepositoryInterface::class, CampaignToolRepository::class);
-        $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(DonorRepositoryInterface::class, DonorRepository::class);
         $this->app->bind(NewsArticleRepositoryInterface::class, NewsArticleRepository::class);
         $this->app->bind(PaymentMethodRepositoryInterface::class, PaymentMethodRepository::class);
@@ -144,3 +141,4 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
+
