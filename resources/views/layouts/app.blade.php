@@ -120,6 +120,11 @@
         <i class="fas fa-user-tie w-5"></i>
         <span>News</span>
     </a>
+</li><li>
+    <a href="{{ route('campaign-tools.index') }}" class="sidebar-link flex items-center gap-3 px-5 py-4 rounded-2xl text-zinc-300">
+        <i class="fas fa-bullhorn w-5"></i>
+        <span>Campaign Tools</span>
+    </a>
 </li>
         <li>
             <a href="{{ route('tags.index') }}" 

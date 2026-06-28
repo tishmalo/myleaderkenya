@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DonorController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\CandidateController;
+use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\SmtpController;
@@ -35,7 +36,10 @@ Route::middleware('throttle:web')->group(function () {
         return view('privacy');
     })->name('privacy');
 
-    // Public News & Aspirants
+    // Public Campaign Tools, News & Aspirants
+    Route::get('/campaign-tools', [CampaignToolController::class, 'publicIndex'])->name('campaign-tools.public');
+    Route::get('/campaign-tools/{slug}', [CampaignToolController::class, 'publicShow'])->name('campaign-tools.show');
+
     Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
     
@@ -69,6 +73,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/news/{news}/edit', [NewsArticleController::class, 'edit'])->name('news.edit');
     Route::put('/news/{news}', [NewsArticleController::class, 'update'])->name('news.update');
     Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->name('news.destroy');
+
+    Route::resource('/admin/campaign-tools', CampaignToolController::class)
+        ->parameters(['campaign-tools' => 'campaignTool'])
+        ->names('campaign-tools')
+        ->except(['show']);
 
     // --- Finance & Donors ---
     Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods');

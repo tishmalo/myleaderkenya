@@ -6,25 +6,25 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- SEO Meta Tags -->
-    <title>My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants</title>
-    <meta name="description" content="Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases">
+    <title>@yield('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')</title>
+    <meta name="description" content="@yield('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')">
     <meta name="keywords" content="Kenya elections, 2027 Kenya elections, Niko Kadi, Tuko Kadi, Kenya aspirants, campaign software, election tools, voter registration, Kenya politics, election candidates database">
     <meta name="author" content="My Leader Kenya">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph Meta Tags for Social Media -->
-    <meta property="og:title" content="My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants">
-    <meta property="og:description" content="Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases">
+    <meta property="og:title" content="@yield('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')">
+    <meta property="og:description" content="@yield('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:image" content="{{ asset('images/myleader.png') }}">
+    <meta property="og:image" content="@yield('og_image', asset('images/myleader.png'))">
     <meta property="og:site_name" content="My Leader Kenya">
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants">
-    <meta name="twitter:description" content="Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases">
-    <meta name="twitter:image" content="{{ asset('images/myleader.png') }}">
+    <meta name="twitter:title" content="@yield('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')">
+    <meta name="twitter:description" content="@yield('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')">
+    <meta name="twitter:image" content="@yield('og_image', asset('images/myleader.png'))">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="{{ url()->current() }}">

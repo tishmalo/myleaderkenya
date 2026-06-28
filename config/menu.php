@@ -44,16 +44,9 @@ return [
         ],
         [
             'label' => 'Campaign tools',
-            'route' => 'landing',
-            'fragment' => 'campaign-tools',
-            'children' => [
-                ['label' => 'Campaign call center', 'route' => 'landing', 'fragment' => 'campaign-call-center'],
-                ['label' => 'Bulk SMS', 'route' => 'landing', 'fragment' => 'bulk-sms'],
-                ['label' => 'Bulk WhatsApp', 'route' => 'landing', 'fragment' => 'bulk-whatsapp'],
-                ['label' => 'Domain and website', 'route' => 'landing', 'fragment' => 'domain-and-website'],
-                ['label' => 'Databases and opinion polls', 'route' => 'landing', 'fragment' => 'databases-opinion-polls'],
-                ['label' => 'Profile management (Aspirants)', 'route' => 'landing', 'fragment' => 'profile-management'],
-            ],
+            'route' => 'campaign-tools.public',
+            'active' => ['campaign-tools.public', 'campaign-tools.show'],
+            'dynamic' => 'campaign_tools',
         ],
         [
             'label' => 'Parties',

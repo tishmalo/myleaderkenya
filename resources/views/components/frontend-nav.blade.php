@@ -1,6 +1,32 @@
 @php
     $menuItems = config('menu.frontend', []);
 
+    foreach ($menuItems as &$menuItem) {
+        if (($menuItem['dynamic'] ?? null) !== 'campaign_tools') {
+            continue;
+        }
+
+        $menuItem['children'] = [];
+
+        try {
+            if (class_exists(\App\Models\CampaignTool::class) && Route::has('campaign-tools.show')) {
+                $menuItem['children'] = \App\Models\CampaignTool::published()
+                    ->ordered()
+                    ->get()
+                    ->map(fn ($tool) => [
+                        'label' => $tool->nav_title,
+                        'route' => 'campaign-tools.show',
+                        'query' => ['slug' => $tool->slug],
+                        'active' => ['campaign-tools.show'],
+                    ])
+                    ->all();
+            }
+        } catch (\Throwable $e) {
+            $menuItem['children'] = [];
+        }
+    }
+    unset($menuItem);
+
     $buildMenuUrl = function (array $item): string {
         $query = $item['query'] ?? [];
 
@@ -48,7 +74,6 @@
         return false;
     };
 @endphp
-
 <style>
 .frontend-nav {
     background: rgba(10,10,10,0.97);
