@@ -19,14 +19,7 @@ return [
             'label' => 'Aspirants',
             'route' => 'aspirants.public',
             'active' => ['aspirants.public', 'aspirants.show'],
-            'children' => [
-                ['label' => 'Presidential', 'route' => 'aspirants.public', 'query' => ['position' => 'presidential']],
-                ['label' => 'Governor', 'route' => 'aspirants.public', 'query' => ['position' => 'governor']],
-                ['label' => 'Senator', 'route' => 'aspirants.public', 'query' => ['position' => 'senator']],
-                ['label' => 'Women Rep', 'route' => 'aspirants.public', 'query' => ['position' => 'women-rep']],
-                ['label' => 'Mp', 'route' => 'aspirants.public', 'query' => ['position' => 'mp']],
-                ['label' => 'MCA', 'route' => 'aspirants.public', 'query' => ['position' => 'mca']],
-            ],
+            'dynamic' => 'positions',
         ],
         [
             'label' => 'News',

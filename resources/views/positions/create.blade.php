@@ -20,6 +20,13 @@
             </div>
 
             <div class="mt-6">
+                <label class="block text-sm text-zinc-400 mb-2">Sort Order</label>
+                <input type="number" name="sort_order" min="0" value="{{ old('sort_order', 0) }}"
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                       placeholder="0">
+            </div>
+
+            <div class="mt-6">
                 <label class="block text-sm text-zinc-400 mb-2">Description</label>
                 <textarea name="description" rows="4"
                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500"

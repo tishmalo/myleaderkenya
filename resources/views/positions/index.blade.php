@@ -22,6 +22,7 @@
                 <thead class="bg-zinc-950">
                     <tr class="border-b border-zinc-800">
                         <th class="px-6 py-4 text-left">Position Name</th>
+                        <th class="px-6 py-4 text-left">Sort</th>
                         <th class="px-6 py-4 text-left">Description</th>
                         <th class="px-6 py-4 text-center">Actions</th>
                     </tr>
@@ -30,6 +31,7 @@
                     @forelse($positions as $position)
                         <tr class="hover:bg-zinc-800/70 transition-colors">
                             <td class="px-6 py-4 font-medium text-white">{{ $position->name }}</td>
+                            <td class="px-6 py-4 text-zinc-400">{{ $position->sort_order }}</td>
                             <td class="px-6 py-4 text-zinc-400">{{ Str::limit($position->description, 120) }}</td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex gap-4 justify-center">
@@ -46,7 +48,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="px-6 py-16 text-center text-zinc-500">
+                            <td colspan="4" class="px-6 py-16 text-center text-zinc-500">
                                 No positions found.
                             </td>
                         </tr>
