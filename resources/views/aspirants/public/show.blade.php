@@ -144,7 +144,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 }
 .asp-pill i { font-size: 9px; color: var(--green-bright); }
 
-/* Info card (bloc etc) */
+/* Info card */
 .asp-info-card {
     background: #141414;
     border: 1px solid rgba(255,255,255,0.07);
@@ -378,7 +378,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         </div>
 
         <!-- Details Card -->
-        @if($candidate->bloc || $candidate->position)
+        @if($candidate->politicalParty || $candidate->position)
         <div class="asp-info-card">
             <div class="asp-info-card-header">Details</div>
             @if($candidate->position)
@@ -387,10 +387,10 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
                 <span class="asp-info-value green">{{ $candidate->position->name }}</span>
             </div>
             @endif
-            @if($candidate->bloc)
+            @if($candidate->politicalParty)
             <div class="asp-info-row">
-                <span class="asp-info-label">Bloc</span>
-                <span class="asp-info-value">{{ $candidate->bloc->name }}</span>
+                <span class="asp-info-label">Political Party</span>
+                <span class="asp-info-value">{{ $candidate->politicalParty->name }}</span>
             </div>
             @endif
             @if($candidate->county)

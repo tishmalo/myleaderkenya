@@ -10,7 +10,7 @@ class Candidate extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'nick_name', 'phone', 'email', 'position_id', 'bloc_id',
+        'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id',
         'profile_picture', 'about', 'country', 'county', 'constituency', 'ward'
     ];
     // protected $fillable = [
@@ -40,6 +40,11 @@ class Candidate extends Model
     // {
     //     return $this->belongsTo(Position::class);
     // }
+
+    public function politicalParty()
+    {
+        return $this->belongsTo(PoliticalParty::class);
+    }
 
     public function bloc()
     {

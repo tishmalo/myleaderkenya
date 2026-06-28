@@ -63,7 +63,7 @@ class CandidateService
     {
         return [
             'positions' => $this->candidateRepository->allPositions(),
-            'blocs'     => $this->candidateRepository->allBlocs(),
+            'politicalParties' => $this->candidateRepository->allPoliticalParties(),
         ];
     }
 

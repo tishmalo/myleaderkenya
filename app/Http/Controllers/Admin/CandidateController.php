@@ -23,8 +23,7 @@ class CandidateController extends Controller
 
     public function create()
     {
-        
-        return view('candidates.create');
+        return view('candidates.create', $this->candidateService->getFormData());
     }
 
     public function store(CandidateStoreRequest $request)
@@ -40,7 +39,7 @@ class CandidateController extends Controller
 
     public function edit(Candidate $candidate)
     {
-        return view('candidates.edit', compact('candidate'));
+        return view('candidates.edit', array_merge($this->candidateService->getFormData(), compact('candidate')));
     }
 
     public function update(CandidateUpdateRequest $request, Candidate $candidate)

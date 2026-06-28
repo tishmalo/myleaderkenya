@@ -18,7 +18,7 @@ interface CandidateRepositoryInterface
 
     public function allPositions(): Collection;
 
-    public function allBlocs(): Collection;
+    public function allPoliticalParties(): Collection;
 
     public function allCounties(): Collection;
 

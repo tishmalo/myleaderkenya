@@ -3,7 +3,7 @@
 namespace App\Repositories\Admin;
 
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
-use App\Models\Bloc;
+use App\Models\PoliticalParty;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
 use App\Models\Position;
@@ -14,7 +14,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return Candidate::with('position')->latest()->paginate($perPage);
+        return Candidate::with(['position', 'politicalParty'])->latest()->paginate($perPage);
     }
 
     public function create(array $data): Candidate
@@ -37,9 +37,9 @@ class CandidateRepository implements CandidateRepositoryInterface
         return Position::ordered()->get();
     }
 
-    public function allBlocs(): Collection
+    public function allPoliticalParties(): Collection
     {
-        return Bloc::orderBy('name')->get();
+        return PoliticalParty::published()->ordered()->get();
     }
 
     public function allCounties(): Collection
@@ -49,7 +49,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator
     {
-        $query = Candidate::with('position', 'bloc');
+        $query = Candidate::with('position', 'politicalParty');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -89,7 +89,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     public function loadPublicShow(Candidate $candidate): Candidate
     {
-        $candidate->load('position', 'bloc');
+        $candidate->load('position', 'politicalParty');
 
         $candidate->setRelation(
             'relatedArticles',
