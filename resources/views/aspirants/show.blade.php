@@ -27,8 +27,8 @@
 
                     <p class="mt-6 text-xl font-medium">{{ $candidate->position->name ?? 'Aspirant' }}</p>
                     
-                    @if($candidate->bloc)
-                        <p class="mt-2 text-zinc-400">Bloc: <span class="text-white">{{ $candidate->bloc->name }}</span></p>
+                    @if($candidate->politicalParty)
+                        <p class="mt-2 text-zinc-400">Political Party: <span class="text-white">{{ $candidate->politicalParty->name }}</span></p>
                     @endif
                 </div>
             </div>

@@ -22,7 +22,7 @@
                 <tr class="border-b border-zinc-800">
                     <th class="px-6 py-4 text-left">Candidate</th>
                     <th class="px-6 py-4 text-left">Position</th>
-                    <th class="px-6 py-4 text-left">Bloc</th>
+                    <th class="px-6 py-4 text-left">Political Party</th>
                     <th class="px-6 py-4 text-left">Jurisdiction</th>
                     <th class="px-6 py-4 text-center">Actions</th>
                 </tr>
@@ -50,7 +50,7 @@
                         <span class="font-medium">{{ $candidate->position->name ?? '—' }}</span>
                     </td>
                     <td class="px-6 py-4 text-zinc-400">
-                        {{ $candidate->bloc->name ?? '—' }}
+                        {{ $candidate->politicalParty->name ?? '—' }}
                     </td>
                     <td class="px-6 py-4 text-sm text-zinc-400">
                         @if($candidate->county)

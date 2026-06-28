@@ -25,7 +25,7 @@ class CandidateStoreRequest extends FormRequest
             'phone'           => 'nullable|string|max:20',
             'email'           => 'nullable|email|max:255',
             'position_id'     => 'required|exists:positions,id',
-            'bloc_id'         => 'nullable|exists:blocs,id',
+            'political_party_id' => 'nullable|exists:political_parties,id',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'about'           => 'nullable|string',
             'county'          => 'nullable|string',

@@ -35,13 +35,13 @@
                 </div>
             </div>
 
-            <!-- Bloc -->
+            <!-- Political Party -->
             <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Bloc / Political Group</label>
-                <select name="bloc_id" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                    <option value="">Select Bloc (Optional)</option>
-                    @foreach($blocs as $bloc)
-                        <option value="{{ $bloc->id }}">{{ $bloc->name }}</option>
+                <label class="block text-sm text-zinc-400 mb-2">Political Party</label>
+                <select name="political_party_id" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    <option value="">Select Political Party (Optional)</option>
+                    @foreach($politicalParties as $party)
+                        <option value="{{ $party->id }}" {{ old('political_party_id') == $party->id ? 'selected' : '' }}>{{ $party->name }}</option>
                     @endforeach
                 </select>
             </div>
