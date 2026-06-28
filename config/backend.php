@@ -35,8 +35,8 @@ return [
             [
                 'label' => 'Parties',
                 'items' => [
-                    ['label' => 'Parties', 'route' => null, 'icon' => 'fas fa-landmark'],
-                    ['label' => 'Coalition', 'route' => null, 'icon' => 'fas fa-handshake'],
+                    ['label' => 'Parties', 'route' => 'political-parties.index', 'icon' => 'fas fa-landmark', 'active' => ['political-parties.*']],
+                    ['label' => 'Coalitions', 'route' => 'coalitions.index', 'icon' => 'fas fa-handshake', 'active' => ['coalitions.*']],
                 ],
             ],
             [
@@ -61,3 +61,4 @@ return [
         ],
     ],
 ];
+

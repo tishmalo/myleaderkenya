@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\DonorController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\PositionController;
+use App\Http\Controllers\Admin\PoliticalPartyController;
+use App\Http\Controllers\Admin\CoalitionController;
 use App\Http\Controllers\Admin\CandidateController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\NewsArticleController;
@@ -38,6 +40,11 @@ Route::middleware('throttle:web')->group(function () {
     // Public Campaign Tools, News & Aspirants
     Route::get('/campaign-tools', [CampaignToolController::class, 'publicIndex'])->name('campaign-tools.public');
     Route::get('/campaign-tools/{slug}', [CampaignToolController::class, 'publicShow'])->name('campaign-tools.show');
+
+    Route::get('/parties', [PoliticalPartyController::class, 'publicIndex'])->name('parties.public');
+    Route::get('/parties/{slug}', [PoliticalPartyController::class, 'publicShow'])->name('parties.show');
+    Route::get('/coalitions', [CoalitionController::class, 'publicIndex'])->name('coalitions.public');
+    Route::get('/coalitions/{slug}', [CoalitionController::class, 'publicShow'])->name('coalitions.show');
 
     Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
@@ -65,6 +72,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('positions', PositionController::class)->except(['show']);
     Route::resource('candidates', CandidateController::class);
     Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
+    Route::resource('/admin/political-parties', PoliticalPartyController::class)
+        ->parameters(['political-parties' => 'politicalParty'])
+        ->names('political-parties')
+        ->except(['show']);
+    Route::resource('/admin/coalitions', CoalitionController::class)
+        ->parameters(['coalitions' => 'coalition'])
+        ->names('coalitions')
+        ->except(['show']);
     
     Route::get('/news', [NewsArticleController::class, 'index'])->name('news.index');
     Route::get('/news.create', [NewsArticleController::class, 'create'])->name('news.create');
@@ -113,4 +128,5 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
 
