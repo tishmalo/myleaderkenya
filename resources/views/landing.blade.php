@@ -528,11 +528,11 @@
                         <input type="hidden" name="_form_type" value="login">
 
                         <div class="auth-field">
-                            <label>Username</label>
+                            <label>Email Address</label>
                             <div class="auth-field-wrap">
-                                <input type="text" name="username" placeholder="your_username"
-                                       value="{{ old('username') }}" required autocomplete="username" autofocus>
-                                <span class="auth-field-icon"><i class="fas fa-user"></i></span>
+                                <input type="email" name="email" placeholder="admin@nikokadi.top"
+                                       value="{{ old('email') }}" required autocomplete="username" autofocus>
+                                <span class="auth-field-icon"><i class="fas fa-envelope"></i></span>
                             </div>
                         </div>
 
