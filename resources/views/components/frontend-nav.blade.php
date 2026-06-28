@@ -2,14 +2,16 @@
     $menuItems = config('menu.frontend', []);
 
     foreach ($menuItems as &$menuItem) {
-        if (($menuItem['dynamic'] ?? null) !== 'campaign_tools') {
+        $dynamicType = $menuItem['dynamic'] ?? null;
+
+        if (! in_array($dynamicType, ['campaign_tools', 'parties'], true)) {
             continue;
         }
 
         $menuItem['children'] = [];
 
         try {
-            if (class_exists(\App\Models\CampaignTool::class) && Route::has('campaign-tools.show')) {
+            if ($dynamicType === 'campaign_tools' && class_exists(\App\Models\CampaignTool::class) && Route::has('campaign-tools.show')) {
                 $menuItem['children'] = \App\Models\CampaignTool::published()
                     ->ordered()
                     ->get()
@@ -20,6 +22,43 @@
                         'active' => ['campaign-tools.show'],
                     ])
                     ->all();
+            }
+
+            if ($dynamicType === 'parties') {
+                $children = [];
+
+                if (Route::has('coalitions.public')) {
+                    $children[] = ['label' => 'Coalitions', 'route' => 'coalitions.public', 'active' => ['coalitions.public', 'coalitions.show']];
+                }
+
+                if (class_exists(\App\Models\Coalition::class) && Route::has('coalitions.show')) {
+                    foreach (\App\Models\Coalition::published()->ordered()->get() as $coalition) {
+                        $children[] = [
+                            'label' => $coalition->nav_title,
+                            'route' => 'coalitions.show',
+                            'query' => ['slug' => $coalition->slug],
+                            'active' => ['coalitions.show'],
+                        ];
+                    }
+                }
+
+                if (Route::has('parties.public')) {
+                    $children[] = ['label' => 'Political parties', 'route' => 'parties.public', 'active' => ['parties.public', 'parties.show']];
+                }
+
+                if (class_exists(\App\Models\PoliticalParty::class) && Route::has('parties.show')) {
+                    foreach (\App\Models\PoliticalParty::published()->ordered()->get() as $party) {
+                        $children[] = [
+                            'label' => $party->nav_title,
+                            'route' => 'parties.show',
+                            'query' => ['slug' => $party->slug],
+                            'active' => ['parties.show'],
+                        ];
+                    }
+                }
+
+                $children[] = ['label' => 'Partners', 'route' => 'landing', 'fragment' => 'partners'];
+                $menuItem['children'] = $children;
             }
         } catch (\Throwable $e) {
             $menuItem['children'] = [];

@@ -11,17 +11,8 @@ return [
         [
             'label' => 'Voter',
             'children' => [
-                [
-                    'label' => 'Live stats',
-                    'route' => 'landing',
-                    'fragment' => 'analytics',
-                    'active' => ['landing'],
-                ],
-                [
-                    'label' => 'Download App',
-                    'route' => 'landing',
-                    'fragment' => 'download-app',
-                ],
+                ['label' => 'Live stats', 'route' => 'landing', 'fragment' => 'analytics', 'active' => ['landing']],
+                ['label' => 'Download App', 'route' => 'landing', 'fragment' => 'download-app'],
             ],
         ],
         [
@@ -50,13 +41,9 @@ return [
         ],
         [
             'label' => 'Parties',
-            'route' => 'landing',
-            'fragment' => 'parties',
-            'children' => [
-                ['label' => 'Coalitions', 'route' => 'landing', 'fragment' => 'coalitions'],
-                ['label' => 'Political parties', 'route' => 'landing', 'fragment' => 'political-parties'],
-                ['label' => 'Partners', 'route' => 'landing', 'fragment' => 'partners'],
-            ],
+            'route' => 'parties.public',
+            'active' => ['parties.public', 'parties.show', 'coalitions.public', 'coalitions.show'],
+            'dynamic' => 'parties',
         ],
         [
             'label' => 'Contact us',
