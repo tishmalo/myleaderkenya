@@ -43,7 +43,11 @@ return [
             'label' => 'Parties',
             'route' => 'parties.public',
             'active' => ['parties.public', 'parties.show', 'coalitions.public', 'coalitions.show'],
-            'dynamic' => 'parties',
+            'children' => [
+                ['label' => 'Coalitions', 'route' => 'coalitions.public', 'active' => ['coalitions.public', 'coalitions.show']],
+                ['label' => 'Political parties', 'route' => 'parties.public', 'active' => ['parties.public', 'parties.show']],
+                ['label' => 'Partners', 'route' => 'landing', 'fragment' => 'partners'],
+            ],
         ],
         [
             'label' => 'Contact us',
