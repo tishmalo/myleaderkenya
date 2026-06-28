@@ -326,17 +326,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <i class="fas fa-arrow-left"></i> All Aspirants
     </a> -->
 <!-- </div> -->
-<nav class="pp-nav">
-        <div class="pp-nav-inner">
-            <a href="/" class="pp-brand">
-                <div class="pp-brand-logo"><span>TK</span></div>
-                <div class="pp-brand-name">TUKO KADI</div>
-            </a>
-            <a href="{{ url('/') }}" class="pp-back">
-                <i class="fas fa-arrow-left"></i> Back to Home
-            </a>
-        </div>
-    </nav>
+@include('components.frontend-nav')
 <!-- HERO BANNER -->
 <div class="asp-profile-hero">
     <div class="asp-profile-hero-bg"></div>

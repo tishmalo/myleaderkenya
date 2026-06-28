@@ -677,37 +677,7 @@
 <div>
     <div class="flag-stripe"></div>
 
-    <nav class="main-nav">
-        <div class="nav-inner">
-            <a href="/" class="brand">
-                <div class="brand-logo">
-                    <img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya Logo" class="logo-img">
-                </div>
-                <div class="brand-text">
-                    <div class="brand-name">MY LEADER KENYA</div>
-                    <div class="brand-sub">THE KENYA • WE WANT</div>
-                </div>
-            </a>
-
-            <div class="nav-links">
-                <a href="#about">About Us</a>
-                <a href="#analytics">Live Stats</a>
-                <a href="#how">How It Works</a>
-                <a href="{{ route('aspirants.public') }}">Aspirants</a>
-                <a href="{{ route('news.public') }}">Blogs & Updates</a>
-                <a href="{{ route('privacy') }}">Privacy</a>
-            </div>
-
-            <div class="nav-cta">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="btn-ghost">← Dashboard</a>
-                @else
-                    <button class="btn-ghost"    onclick="openModal('login')">Login</button>
-                    <button class="btn-primary"  onclick="openModal('register')">Join Now</button>
-                @endauth
-            </div>
-        </div>
-    </nav>
+    @include('components.frontend-nav')
 
 
     <!-- HERO -->
@@ -955,6 +925,10 @@ function switchTab(tab) {
     document.getElementById('panel-' + tab).classList.add('active');
 }
 document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+document.addEventListener('DOMContentLoaded', function(){
+    var authTab = new URLSearchParams(window.location.search).get('auth');
+    if (authTab === 'login' || authTab === 'register') openModal(authTab);
+});
 
 @if ($errors->any())
 document.addEventListener('DOMContentLoaded', function(){

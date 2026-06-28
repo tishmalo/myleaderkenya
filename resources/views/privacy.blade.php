@@ -292,18 +292,7 @@
 
 <div class="pp-page">
 
-    <!-- Nav -->
-    <nav class="pp-nav">
-        <div class="pp-nav-inner">
-            <a href="/" class="pp-brand">
-                <div class="pp-brand-logo"><span>TK</span></div>
-                <div class="pp-brand-name">TUKO KADI</div>
-            </a>
-            <a href="{{ url('/') }}" class="pp-back">
-                <i class="fas fa-arrow-left"></i> Back to Home
-            </a>
-        </div>
-    </nav>
+    @include('components.frontend-nav')
 
     <!-- Hero header -->
     <div class="pp-hero">
