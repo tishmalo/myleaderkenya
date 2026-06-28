@@ -62,7 +62,26 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         if (!empty($filters['position'])) {
-            $query->where('position_id', $filters['position']);
+            $position = $filters['position'];
+
+            if (is_numeric($position)) {
+                $query->where('position_id', $position);
+            } else {
+                $positionAliases = [
+                    'presidential' => ['presidential', 'president'],
+                    'governor' => ['governor'],
+                    'senator' => ['senator'],
+                    'women-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+                    'mp' => ['mp', 'member of parliament'],
+                    'mca' => ['mca', 'member of county assembly'],
+                ];
+                $positionKey = strtolower(str_replace('_', '-', trim($position)));
+                $names = $positionAliases[$positionKey] ?? [str_replace('-', ' ', $positionKey)];
+
+                $query->whereHas('position', function ($positionQuery) use ($names) {
+                    $positionQuery->whereIn($positionQuery->getModel()->getTable() . '.name', $names);
+                });
+            }
         }
 
         return $query->latest()->paginate($perPage);

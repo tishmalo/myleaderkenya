@@ -415,30 +415,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </style>
 
 <!-- HERO -->
-
- <!-- <nav class="pp-nav">
-        <div class="pp-nav-inner">
-            <a href="/" class="pp-brand">
-                <div class="pp-brand-logo"><span>TK</span></div>
-                <div class="pp-brand-name">TUKO KADI</div>
-            </a>
-            <a href="{{ url('/') }}" class="pp-back">
-                <i class="fas fa-arrow-left"></i> Back to Home
-            </a>
-        </div>
-    </nav> -->
     <div class="asp-hero-stripe"></div>
-    <nav class="pp-nav">
-        <div class="pp-nav-inner">
-            <a href="/" class="pp-brand">
-                <div class="pp-brand-logo"><span>TK</span></div>
-                <div class="pp-brand-name">TUKO KADI</div>
-            </a>
-            <a href="{{ url('/') }}" class="pp-back">
-                <i class="fas fa-arrow-left"></i> Back to Home
-            </a>
-        </div>
-    </nav>
+    @include('components.frontend-nav')
 <div class="asp-hero">
     
     <div class="asp-hero-eyebrow"><span class="dot"></span> General Election 2027</div>
