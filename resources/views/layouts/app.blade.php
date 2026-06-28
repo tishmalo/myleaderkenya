@@ -32,6 +32,13 @@
             border-left: 4px solid rgb(16 185 129);
             color: white;
         }
+        .sidebar-dropdown-summary {
+            list-style: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .sidebar-dropdown-summary::-webkit-details-marker {
+            display: none;
+        }
         .card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -138,4 +145,5 @@ function confirmDelete() {
 @stack('scripts')
 </body>
 </html>
+
 

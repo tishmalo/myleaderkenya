@@ -16,6 +16,16 @@
         return isset($item['route']) && $item['route'] && request()->routeIs($item['route']);
     };
 
+    $sectionIsActive = function (array $section) use ($isActive): bool {
+        foreach ($section['items'] ?? [] as $item) {
+            if ($isActive($item)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
     $itemHref = function (array $item): ?string {
         $route = $item['route'] ?? null;
 
@@ -42,11 +52,11 @@
         </div>
     </div>
 
-    <nav class="flex-1 p-6 overflow-y-auto">
+    <nav class="flex-1 p-5 overflow-y-auto">
         <ul class="space-y-2">
             @if($overview && ($href = $itemHref($overview)))
                 <li>
-                    <a href="{{ $href }}" class="sidebar-link flex items-center gap-3 px-5 py-4 rounded-2xl text-zinc-300 {{ $isActive($overview) ? 'active' : '' }}">
+                    <a href="{{ $href }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-300 {{ $isActive($overview) ? 'active' : '' }}">
                         <i class="{{ $overview['icon'] ?? 'fas fa-circle' }} w-5"></i>
                         <span>{{ $overview['label'] }}</span>
                     </a>
@@ -54,26 +64,37 @@
             @endif
 
             @foreach($sections as $section)
-                <li class="mt-8">
-                    <p class="px-5 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-3">{{ $section['label'] }}</p>
-                </li>
-
-                @foreach($section['items'] ?? [] as $item)
-                    @php($href = $itemHref($item))
-                    <li>
-                        @if($href)
-                            <a href="{{ $href }}" class="sidebar-link flex items-center gap-3 px-5 py-4 rounded-2xl text-zinc-300 {{ $isActive($item) ? 'active' : '' }}">
-                                <i class="{{ $item['icon'] ?? 'fas fa-circle' }} w-5"></i>
-                                <span>{{ $item['label'] }}</span>
-                            </a>
-                        @else
-                            <span class="flex items-center gap-3 px-5 py-4 rounded-2xl text-zinc-600 cursor-not-allowed">
-                                <i class="{{ $item['icon'] ?? 'fas fa-circle' }} w-5"></i>
-                                <span>{{ $item['label'] }}</span>
+                @php($isSectionActive = $sectionIsActive($section))
+                <li>
+                    <details class="sidebar-dropdown group" {{ $isSectionActive ? 'open' : '' }}>
+                        <summary class="sidebar-dropdown-summary flex cursor-pointer select-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white">
+                            <span class="flex items-center gap-3">
+                                <span class="h-2 w-2 rounded-full {{ $isSectionActive ? 'bg-emerald-400' : 'bg-zinc-600' }}"></span>
+                                <span>{{ $section['label'] }}</span>
                             </span>
-                        @endif
-                    </li>
-                @endforeach
+                            <i class="fas fa-chevron-down text-xs text-zinc-500 transition-transform group-open:rotate-180"></i>
+                        </summary>
+
+                        <ul class="mt-2 space-y-1 border-l border-zinc-800 pl-3 ml-5">
+                            @foreach($section['items'] ?? [] as $item)
+                                @php($href = $itemHref($item))
+                                <li>
+                                    @if($href)
+                                        <a href="{{ $href }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-400 {{ $isActive($item) ? 'active' : '' }}">
+                                            <i class="{{ $item['icon'] ?? 'fas fa-circle' }} w-5"></i>
+                                            <span>{{ $item['label'] }}</span>
+                                        </a>
+                                    @else
+                                        <span class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-600 cursor-not-allowed">
+                                            <i class="{{ $item['icon'] ?? 'fas fa-circle' }} w-5"></i>
+                                            <span>{{ $item['label'] }}</span>
+                                        </span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </details>
+                </li>
             @endforeach
         </ul>
     </nav>
