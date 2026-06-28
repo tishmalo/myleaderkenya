@@ -10,7 +10,7 @@ class PositionRepository implements PositionRepositoryInterface
 {
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return Position::latest()->paginate($perPage);
+        return Position::ordered()->paginate($perPage);
     }
 
     public function find(int $id): Position

@@ -16,6 +16,8 @@ class PositionStoreRequest extends FormRequest
         return [
             'name'        => 'required|string|max:255|unique:positions,name',
             'description' => 'nullable|string|max:1000',
+            'sort_order'  => 'required|integer|min:0',
         ];
     }
 }
+

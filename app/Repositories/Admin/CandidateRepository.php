@@ -34,7 +34,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     public function allPositions(): Collection
     {
-        return Position::orderBy('name')->get();
+        return Position::ordered()->get();
     }
 
     public function allBlocs(): Collection

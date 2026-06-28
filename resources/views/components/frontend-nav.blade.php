@@ -4,7 +4,7 @@
     foreach ($menuItems as &$menuItem) {
         $dynamicType = $menuItem['dynamic'] ?? null;
 
-        if ($dynamicType !== 'campaign_tools') {
+        if (! in_array($dynamicType, ['campaign_tools', 'positions'], true)) {
             continue;
         }
 
@@ -20,6 +20,17 @@
                         'route' => 'campaign-tools.show',
                         'query' => ['slug' => $tool->slug],
                         'active' => ['campaign-tools.show'],
+                    ])
+                    ->all();
+            }
+            if ($dynamicType === 'positions' && class_exists(\App\Models\Position::class) && Route::has('aspirants.public')) {
+                $menuItem['children'] = \App\Models\Position::ordered()
+                    ->get()
+                    ->map(fn ($position) => [
+                        'label' => $position->name,
+                        'route' => 'aspirants.public',
+                        'query' => ['position' => $position->id],
+                        'active' => ['aspirants.public', 'aspirants.show'],
                     ])
                     ->all();
             }
