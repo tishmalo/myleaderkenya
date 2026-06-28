@@ -337,9 +337,9 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <img src="{{ Storage::url($article->featured_image) }}" alt="{{ $article->title }}">
         <div class="article-hero-img-overlay"></div>
         <div class="article-hero-content">
-            @if($article->categories->count())
+            @if($article->tags->count())
             <div class="article-hero-cats">
-                @foreach($article->categories as $cat)
+                @foreach($article->tags as $cat)
                 <span class="article-hero-cat"
                       style="background: {{ $cat->color ?? '#BB0000' }}28; color: {{ $cat->color ?? '#ff6666' }}; border-color: {{ $cat->color ?? '#BB0000' }}40">
                     {{ $cat->name }}
@@ -364,9 +364,9 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 {{-- ── HERO: no image ── --}}
 @else
 <div class="article-no-img-header">
-    @if($article->categories->count())
+    @if($article->tags->count())
     <div class="article-no-img-cats">
-        @foreach($article->categories as $cat)
+        @foreach($article->tags as $cat)
         <span class="article-no-img-cat"
               style="background: {{ $cat->color ?? '#BB0000' }}18; color: {{ $cat->color ?? '#ff6666' }}; border-color: {{ $cat->color ?? '#BB0000' }}35">
             {{ $cat->name }}

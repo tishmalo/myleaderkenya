@@ -15,19 +15,19 @@
         </a>
     </div>
 
-    <!-- Category Filter -->
+    <!-- Tag Filter -->
     <div class="mb-6 flex flex-wrap gap-2">
         <a href="{{ route('news.index') }}" 
-           class="px-5 py-2 rounded-2xl text-sm font-medium {{ !request('category') ? 'bg-emerald-600 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300' }}">
+           class="px-5 py-2 rounded-2xl text-sm font-medium {{ !request('tag') ? 'bg-emerald-600 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300' }}">
             All Articles
         </a>
         
-        @foreach($categories as $category)
-            <a href="{{ route('news.index', ['category' => $category->slug]) }}" 
+        @foreach($tags as $tag)
+            <a href="{{ route('news.index', ['tag' => $tag->slug]) }}" 
                class="px-5 py-2 rounded-2xl text-sm font-medium flex items-center gap-2
-                      {{ request('category') == $category->slug ? 'bg-emerald-600 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300' }}">
-                <span class="w-3 h-3 rounded-full" style="background-color: {{ $category->color ?? '#3b82f6' }}"></span>
-                {{ $category->name }}
+                      {{ request('tag') == $tag->slug ? 'bg-emerald-600 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300' }}">
+                <span class="w-3 h-3 rounded-full" style="background-color: {{ $tag->color ?? '#3b82f6' }}"></span>
+                {{ $tag->name }}
             </a>
         @endforeach
     </div>
@@ -37,7 +37,7 @@
             <thead class="bg-zinc-950">
                 <tr>
                     <th class="px-6 py-4 text-left">Article</th>
-                    <th class="px-6 py-4 text-left">Categories</th>
+                    <th class="px-6 py-4 text-left">Tags</th>
                     <th class="px-6 py-4 text-left">Tagged Aspirants</th>
                     <th class="px-6 py-4 text-center">Status</th>
                     <th class="px-6 py-4 text-center">Actions</th>
@@ -62,7 +62,7 @@
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        @foreach($article->categories as $cat)
+                        @foreach($article->tags as $cat)
                             <span class="inline-block px-3 py-1 text-xs rounded-full mr-1 mb-1"
                                   style="background-color: {{ $cat->color ?? '#3b82f6' }}20; color: {{ $cat->color ?? '#3b82f6' }}">
                                 {{ $cat->name }}
@@ -109,3 +109,5 @@ function deleteArticle(id, title) {
 }
 </script>
 @endpush
+
+

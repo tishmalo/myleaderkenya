@@ -17,7 +17,6 @@ use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\CandidateController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\NewsArticleController;
-use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
 use Illuminate\Support\Facades\Route;
@@ -64,7 +63,6 @@ Route::middleware('auth')->group(function () {
     // --- Content Management ---
     Route::resource('positions', PositionController::class)->except(['show']);
     Route::resource('candidates', CandidateController::class);
-    Route::resource('categories', CategoryController::class);
     Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
     
     Route::get('/news', [NewsArticleController::class, 'index'])->name('news.index');

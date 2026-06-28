@@ -23,12 +23,12 @@ class NewsArticleService
     public function getFormData(): array
     {
         return [
-            'categories' => $this->newsArticleRepository->allCategories(),
+            'tags' => $this->newsArticleRepository->allTags(),
             'candidates' => $this->newsArticleRepository->allCandidates(),
         ];
     }
 
-    public function createArticle(array $data, ?UploadedFile $featuredImage = null, array $categories = [], array $candidates = []): NewsArticle
+    public function createArticle(array $data, ?UploadedFile $featuredImage = null, array $tags = [], array $candidates = []): NewsArticle
     {
         if ($featuredImage) {
             $data['featured_image'] = $featuredImage->store('news', 'public');
@@ -43,13 +43,13 @@ class NewsArticleService
 
         $article = $this->newsArticleRepository->create($data);
 
-        $this->newsArticleRepository->syncCategories($article, $categories);
+        $this->newsArticleRepository->syncTags($article, $tags);
         $this->newsArticleRepository->syncCandidates($article, $candidates);
 
         return $article;
     }
 
-    public function updateArticle(NewsArticle $article, array $data, ?UploadedFile $featuredImage = null, array $categories = [], array $candidates = []): bool
+    public function updateArticle(NewsArticle $article, array $data, ?UploadedFile $featuredImage = null, array $tags = [], array $candidates = []): bool
     {
         if ($featuredImage) {
             if ($article->featured_image) {
@@ -66,7 +66,7 @@ class NewsArticleService
 
         $success = $this->newsArticleRepository->update($article, $data);
 
-        $this->newsArticleRepository->syncCategories($article, $categories);
+        $this->newsArticleRepository->syncTags($article, $tags);
         $this->newsArticleRepository->syncCandidates($article, $candidates);
 
         return $success;

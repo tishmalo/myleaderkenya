@@ -3,9 +3,9 @@
 namespace App\Repositories\Admin;
 
 use App\Contracts\Repositories\Admin\NewsArticleRepositoryInterface;
-use App\Models\NewsArticle;
-use App\Models\Category;
 use App\Models\Candidate;
+use App\Models\NewsArticle;
+use App\Models\Tag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -13,16 +13,17 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
 {
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = NewsArticle::with('author', 'categories', 'candidates');
+        $query = NewsArticle::with('author', 'tags', 'candidates');
+        $tagSlug = $filters['tag'] ?? null;
 
-        if (!empty($filters['category'])) {
-            $query->whereHas('categories', function($q) use ($filters) {
-                $q->where('slug', $filters['category']);
+        if (! empty($tagSlug)) {
+            $query->whereHas('tags', function ($q) use ($tagSlug) {
+                $q->where('slug', $tagSlug);
             });
         }
 
         if (!empty($filters['search'])) {
-            $query->where(function($q) use ($filters) {
+            $query->where(function ($q) use ($filters) {
                 $q->where('title', 'like', "%{$filters['search']}%")
                   ->orWhere('content', 'like', "%{$filters['search']}%");
             });
@@ -37,7 +38,7 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
 
     public function findBySlug(string $slug, bool $publishedOnly = true): NewsArticle
     {
-        $query = NewsArticle::with('author', 'categories', 'candidates')
+        $query = NewsArticle::with('author', 'tags', 'candidates')
                            ->where('slug', $slug);
 
         if ($publishedOnly) {
@@ -62,9 +63,9 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
         return $article->delete();
     }
 
-    public function syncCategories(NewsArticle $article, array $categoryIds): void
+    public function syncTags(NewsArticle $article, array $tagIds): void
     {
-        $article->categories()->sync($categoryIds);
+        $article->tags()->sync($tagIds);
     }
 
     public function syncCandidates(NewsArticle $article, array $candidateIds): void
@@ -72,9 +73,9 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
         $article->candidates()->sync($candidateIds);
     }
 
-    public function allCategories(): Collection
+    public function allTags(): Collection
     {
-        return Category::orderBy('name')->get();
+        return Tag::orderBy('name')->get();
     }
 
     public function allCandidates(): Collection
@@ -82,3 +83,4 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
         return Candidate::orderBy('name')->get();
     }
 }
+

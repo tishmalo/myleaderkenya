@@ -10,7 +10,7 @@
                 <i class="fas fa-tags text-emerald-500"></i>
                 Discussion Tags & Topics
             </h1>
-            <p class="text-zinc-400 mt-1">Manage categories used in messages and discussions</p>
+            <p class="text-zinc-400 mt-1">Manage tags used in messages, discussions, and blogs</p>
         </div>
         
         <button onclick="showCreateTagModal()" 
