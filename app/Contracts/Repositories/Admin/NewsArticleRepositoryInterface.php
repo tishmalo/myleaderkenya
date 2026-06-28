@@ -18,11 +18,11 @@ interface NewsArticleRepositoryInterface
 
     public function delete(NewsArticle $article): bool;
 
-    public function syncCategories(NewsArticle $article, array $categoryIds): void;
+    public function syncTags(NewsArticle $article, array $tagIds): void;
 
     public function syncCandidates(NewsArticle $article, array $candidateIds): void;
 
-    public function allCategories(): Collection;
+    public function allTags(): Collection;
 
     public function allCandidates(): Collection;
 }

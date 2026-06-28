@@ -7,7 +7,6 @@ use App\Http\Requests\Admin\NewsArticleStoreRequest;
 use App\Http\Requests\Admin\NewsArticleUpdateRequest;
 use App\Models\NewsArticle;
 use App\Services\Admin\NewsArticleService;
-use Illuminate\Http\Request;
 
 class NewsArticleController extends Controller
 {
@@ -17,12 +16,12 @@ class NewsArticleController extends Controller
 
     public function index()
     {
-        $filters = request()->only(['category']);
+        $filters = request()->only(['tag']);
         $articles = $this->newsArticleService->getPaginatedArticles($filters);
-        
-        ['categories' => $categories] = $this->newsArticleService->getFormData();
 
-        return view('news.index', compact('articles', 'categories'));
+        ['tags' => $tags] = $this->newsArticleService->getFormData();
+
+        return view('news.index', compact('articles', 'tags'));
     }
 
     public function create()
@@ -34,9 +33,9 @@ class NewsArticleController extends Controller
     public function store(NewsArticleStoreRequest $request)
     {
         $this->newsArticleService->createArticle(
-            $request->except(['featured_image', 'categories', 'candidates']),
+            $request->except(['featured_image', 'tags', 'candidates']),
             $request->file('featured_image'),
-            $request->input('categories', []),
+            $request->input('tags', []),
             $request->input('candidates', [])
         );
 
@@ -47,7 +46,7 @@ class NewsArticleController extends Controller
     public function edit(NewsArticle $news)
     {
         $data = $this->newsArticleService->getFormData();
-        $data['news'] = $news;
+        $data['news'] = $news->load('tags', 'candidates');
         return view('news.edit', $data);
     }
 
@@ -55,9 +54,9 @@ class NewsArticleController extends Controller
     {
         $this->newsArticleService->updateArticle(
             $news,
-            $request->except(['featured_image', 'categories', 'candidates']),
+            $request->except(['featured_image', 'tags', 'candidates']),
             $request->file('featured_image'),
-            $request->input('categories', []),
+            $request->input('tags', []),
             $request->input('candidates', [])
         );
 
@@ -77,14 +76,14 @@ class NewsArticleController extends Controller
 
     public function publicIndex()
     {
-        $filters = request()->only(['category', 'search']);
+        $filters = request()->only(['tag', 'search']);
         $filters['published_only'] = true;
 
         $articles = $this->newsArticleService->getPaginatedArticles($filters, 12);
-        
-        ['categories' => $categories] = $this->newsArticleService->getFormData();
 
-        return view('news.public.index', compact('articles', 'categories'));
+        ['tags' => $tags] = $this->newsArticleService->getFormData();
+
+        return view('news.public.index', compact('articles', 'tags'));
     }
 
     public function publicShow($slug)

@@ -22,15 +22,15 @@
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Categories -->
+                <!-- Tags -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm text-zinc-400 mb-2">Categories</label>
-                    <select name="categories[]" multiple 
+                    <label class="block text-sm text-zinc-400 mb-2">Tags</label>
+                    <select name="tags[]" multiple 
                             class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white h-44">
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}"
-                                {{ $news->categories->pluck('id')->contains($category->id) ? 'selected' : '' }}>
-                                {{ $category->name }}
+                        @foreach($tags as $tag)
+                            <option value="{{ $tag->id }}"
+                                {{ $news->tags->pluck('id')->contains($tag->id) ? 'selected' : '' }}>
+                                {{ $tag->name }}
                             </option>
                         @endforeach
                     </select>

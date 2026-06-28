@@ -112,7 +112,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     position: relative;
 }
 
-/* ── CATEGORY FILTER BAR ── */
+/* ── TAG FILTER BAR ── */
 .news-filter-wrap {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px;
@@ -227,7 +227,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Category tags on image */
+/* Tag badges on image */
 .news-card-cats {
     position: absolute; top: 12px; left: 12px;
     display: flex; flex-wrap: wrap; gap: 6px;
@@ -389,22 +389,22 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     <p>Stories, analysis, and voices shaping Kenya's future.</p>
 </div>
 
-<!-- CATEGORY FILTER -->
+<!-- TAG FILTER -->
 <div class="news-filter-wrap">
     <div class="news-filter-bar">
         <span class="news-filter-label">Topics</span>
 
         <a href="{{ route('news.public') }}"
-           class="news-cat-btn {{ !request('category') ? 'active' : '' }}">
+           class="news-cat-btn {{ !request('tag') ? 'active' : '' }}">
             <span class="news-cat-dot" style="background: rgba(245,245,240,0.3)"></span>
             All Blogs
         </a>
 
-        @foreach($categories as $category)
-        <a href="{{ route('news.public', ['category' => $category->slug]) }}"
-           class="news-cat-btn {{ request('category') == $category->slug ? 'active' : '' }}">
-            <span class="news-cat-dot" style="background: {{ $category->color ?? '#BB0000' }}"></span>
-            {{ $category->name }}
+        @foreach($tags as $tag)
+        <a href="{{ route('news.public', ['tag' => $tag->slug]) }}"
+           class="news-cat-btn {{ request('tag') == $tag->slug ? 'active' : '' }}">
+            <span class="news-cat-dot" style="background: {{ $tag->color ?? '#BB0000' }}"></span>
+            {{ $tag->name }}
         </a>
         @endforeach
     </div>
@@ -414,7 +414,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 <div class="news-results-meta">
     <span class="news-results-count">
         <strong>{{ $articles->total() }}</strong> article{{ $articles->total() != 1 ? 's' : '' }}
-        @if(request('category')) &nbsp;in this category @endif
+        @if(request('tag')) &nbsp;with this tag @endif
     </span>
     <div class="news-results-line"></div>
 </div>
@@ -430,9 +430,9 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
             <img src="{{ Storage::url($article->featured_image) }}"
                  alt="{{ $article->title }}" loading="lazy">
             <div class="news-card-img-overlay"></div>
-            @if($article->categories->count())
+            @if($article->tags->count())
             <div class="news-card-cats">
-                @foreach($article->categories->take(2) as $cat)
+                @foreach($article->tags->take(2) as $cat)
                 <span class="news-card-cat"
                       style="background: {{ $cat->color ?? '#BB0000' }}22; color: {{ $cat->color ?? '#ff6666' }}; border-color: {{ $cat->color ?? '#BB0000' }}33">
                     {{ $cat->name }}
@@ -443,9 +443,9 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         </div>
         @else
         <div class="news-card-no-img">📰</div>
-        @if($article->categories->count())
+        @if($article->tags->count())
         <div style="padding: 12px 16px 0; display:flex; gap:6px; flex-wrap:wrap;">
-            @foreach($article->categories->take(2) as $cat)
+            @foreach($article->tags->take(2) as $cat)
             <span class="news-card-cat"
                   style="background: {{ $cat->color ?? '#BB0000' }}18; color: {{ $cat->color ?? '#ff6666' }}; border-color: {{ $cat->color ?? '#BB0000' }}30; position:static; backdrop-filter:none;">
                 {{ $cat->name }}
@@ -514,3 +514,5 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
+

@@ -110,12 +110,6 @@
     </a>
 </li>
 <li>
-    <a href="{{ route('categories.index') }}" class="sidebar-link flex items-center gap-3 px-5 py-4 rounded-2xl text-zinc-300">
-        <i class="fas fa-user-tie w-5"></i>
-        <span>News Categories</span>
-    </a>
-</li>
-<li>
     <a href="{{ route('news.index') }}" class="sidebar-link flex items-center gap-3 px-5 py-4 rounded-2xl text-zinc-300">
         <i class="fas fa-user-tie w-5"></i>
         <span>News</span>
@@ -130,7 +124,7 @@
             <a href="{{ route('tags.index') }}" 
                 class="sidebar-link flex items-center gap-3 px-5 py-4 rounded-2xl text-zinc-300">
                 <i class="fas fa-tags w-5"></i>
-                <span>Tags & Topics</span>
+                <span>Tags</span>
             </a>
         </li>
         <li>

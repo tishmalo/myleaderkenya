@@ -24,23 +24,26 @@ class NewsArticle extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'news_article_tag');
+    }
+
     public function candidates()
     {
         return $this->belongsToMany(Candidate::class, 'news_article_candidate');
     }
 
-    // Auto generate slug
+
     protected static function boot()
     {
         parent::boot();
+
         static::creating(function ($article) {
             if (empty($article->slug)) {
                 $article->slug = Str::slug($article->title);
             }
         });
     }
-    public function categories()
-{
-    return $this->belongsToMany(Category::class, 'news_article_category');
 }
-}
+

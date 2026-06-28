@@ -93,7 +93,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         $candidate->setRelation(
             'relatedArticles',
-            NewsArticle::with('categories')
+            NewsArticle::with('tags')
                 ->whereHas('candidates', fn ($q) => $q->where('candidates.id', $candidate->id))
                 ->where('status', 'published')
                 ->latest()
@@ -104,3 +104,4 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
