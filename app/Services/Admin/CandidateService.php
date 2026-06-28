@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class CandidateService
 {
@@ -26,6 +27,8 @@ class CandidateService
 
     public function createCandidate(array $data, ?UploadedFile $picture = null): Candidate
     {
+        $data = $this->normalizeCandidateData($data);
+
         if ($picture) {
             $data['profile_picture'] = $picture->store('candidates', 'public');
         }
@@ -35,6 +38,8 @@ class CandidateService
 
     public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null): bool
     {
+        $data = $this->normalizeCandidateData($data);
+
         if ($picture) {
             // Delete old picture before storing the new one
             if ($candidate->profile_picture) {
@@ -55,6 +60,14 @@ class CandidateService
         return $this->candidateRepository->delete($candidate);
     }
 
+    private function normalizeCandidateData(array $data): array
+    {
+        if (! Schema::hasColumn('candidates', 'political_party_id')) {
+            unset($data['political_party_id']);
+        }
+
+        return $data;
+    }
     // -------------------------------------------------------------------------
     // Form dropdowns
     // -------------------------------------------------------------------------
