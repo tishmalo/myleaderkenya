@@ -135,7 +135,7 @@ function renderJurisdictionFields(positionName) {
         html = `
             <div class="md:col-span-3">
                 <label class="block text-sm text-zinc-400 mb-2">County <span class="text-red-500">*</span></label>
-                <select name="county_id" id="countySelect" required 
+                <select name="county" id="countySelect" required 
                         class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                     <option value="">Select County</option>
                 </select>
@@ -146,13 +146,13 @@ function renderJurisdictionFields(positionName) {
         
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">County</label>
-                <select name="county_id" id="countySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                <select name="county" id="countySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                     <option value="">Select County</option>
                 </select>
             </div>
             <div class="md:col-span-2">
                 <label class="block text-sm text-zinc-400 mb-2">Constituency <span class="text-red-500">*</span></label>
-                <select name="constituency_id" id="constituencySelect" required 
+                <select name="constituency" id="constituencySelect" required 
                         class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                     <option value="">Select Constituency</option>
                 </select>
@@ -162,19 +162,19 @@ function renderJurisdictionFields(positionName) {
         html = `
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">County</label>
-                <select name="county_id" id="countySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                <select name="county" id="countySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                     <option value="">Select County</option>
                 </select>
             </div>
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Constituency</label>
-                <select name="constituency_id" id="constituencySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                <select name="constituency" id="constituencySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                     <option value="">Select Constituency</option>
                 </select>
             </div>
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Ward <span class="text-red-500">*</span></label>
-                <select name="ward_id" id="wardSelect" required 
+                <select name="ward" id="wardSelect" required 
                         class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                     <option value="">Select Ward</option>
                 </select>
@@ -185,15 +185,15 @@ function renderJurisdictionFields(positionName) {
         html = `
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">County</label>
-                <select name="county_id" id="countySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></select>
+                <select name="county" id="countySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></select>
             </div>
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Constituency</label>
-                <select name="constituency_id" id="constituencySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></select>
+                <select name="constituency" id="constituencySelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></select>
             </div>
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Ward</label>
-                <select name="ward_id" id="wardSelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></select>
+                <select name="ward" id="wardSelect" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></select>
             </div>`;
     }
 
@@ -210,13 +210,14 @@ function attachEventListeners() {
         // Populate counties
         allCounties.forEach(county => {
             const opt = document.createElement('option');
-            opt.value = county.id;
+            opt.value = county.name;
+            opt.dataset.id = county.id;
             opt.textContent = county.name;
             countySelect.appendChild(opt);
         });
 
         countySelect.addEventListener('change', async function() {
-            const countyId = this.value;
+            const countyId = this.selectedOptions[0]?.dataset.id || '';
             if (!constituencySelect) return;
 
             constituencySelect.innerHTML = '<option value="">Loading...</option>';
@@ -225,7 +226,8 @@ function attachEventListeners() {
             constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
             data.forEach(c => {
                 const opt = document.createElement('option');
-                opt.value = c.id;
+                opt.value = c.name;
+                opt.dataset.id = c.id;
                 opt.textContent = c.name;
                 constituencySelect.appendChild(opt);
             });
@@ -237,7 +239,7 @@ function attachEventListeners() {
 
     if (constituencySelect) {
         constituencySelect.addEventListener('change', async function() {
-            const consId = this.value;
+            const consId = this.selectedOptions[0]?.dataset.id || '';
             if (!wardSelect) return;
 
             wardSelect.innerHTML = '<option value="">Loading...</option>';
@@ -246,7 +248,8 @@ function attachEventListeners() {
             wardSelect.innerHTML = '<option value="">Select Ward</option>';
             data.forEach(w => {
                 const opt = document.createElement('option');
-                opt.value = w.id;
+                opt.value = w.name;
+                opt.dataset.id = w.id;
                 opt.textContent = w.name;
                 wardSelect.appendChild(opt);
             });

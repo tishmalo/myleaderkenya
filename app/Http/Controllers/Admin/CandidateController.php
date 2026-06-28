@@ -30,7 +30,7 @@ class CandidateController extends Controller
     {
         $this->candidateService->createCandidate(
             $request->validated(),
-            $request->file('image')
+            $request->file('profile_picture')
         );
 
         return redirect()->route('candidates.index')
@@ -47,7 +47,7 @@ class CandidateController extends Controller
         $this->candidateService->updateCandidate(
             $candidate,
             $request->validated(),
-            $request->file('image')
+            $request->file('profile_picture')
         );
 
         return redirect()->route('candidates.index')

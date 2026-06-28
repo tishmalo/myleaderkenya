@@ -31,6 +31,28 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+
+// Candidate location JSON helpers used by the admin candidate form.
+Route::get('/api/counties', function () {
+    return \App\Models\County::query()
+        ->orderBy('name')
+        ->get(['id', 'name']);
+});
+
+Route::get('/api/constituencies', function (\Illuminate\Http\Request $request) {
+    return \App\Models\Constituency::query()
+        ->when($request->query('county_id'), fn ($query, $countyId) => $query->where('county_id', $countyId))
+        ->orderBy('name')
+        ->get(['id', 'name', 'county_id']);
+});
+
+Route::get('/api/wards', function (\Illuminate\Http\Request $request) {
+    return \App\Models\Ward::query()
+        ->when($request->query('constituency_id'), fn ($query, $constituencyId) => $query->where('constituency_id', $constituencyId))
+        ->orderBy('name')
+        ->get(['id', 'name', 'constituency_id']);
+});
+
 // ====================== PUBLIC ROUTES (Throttled) ======================
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing');
