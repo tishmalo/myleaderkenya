@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
 use App\Contracts\Repositories\Admin\CategoryRepositoryInterface;
 use App\Contracts\Repositories\Admin\ConstituencyRepositoryInterface;
 use App\Contracts\Repositories\Admin\CountyRepositoryInterface;
@@ -27,6 +28,7 @@ use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
 use App\Repositories\Admin\BlocRepository;
 use App\Repositories\Admin\CandidateRepository;
+use App\Repositories\Admin\CampaignToolRepository;
 use App\Repositories\Admin\CategoryRepository;
 use App\Repositories\Admin\ConstituencyRepository;
 use App\Repositories\Admin\CountyRepository;
@@ -65,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
         // Register Admin Repositories
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
         $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
+        $this->app->bind(CampaignToolRepositoryInterface::class, CampaignToolRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(DonorRepositoryInterface::class, DonorRepository::class);
         $this->app->bind(NewsArticleRepositoryInterface::class, NewsArticleRepository::class);
