@@ -26,7 +26,7 @@ class CandidateUpdateRequest extends FormRequest
             'email'           => 'nullable|email|max:255',
             'position_id'     => 'required|exists:positions,id',
             'political_party_id' => 'nullable|exists:political_parties,id',
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'about'           => 'nullable|string',
             'county'          => 'nullable|string',
             'constituency'    => 'nullable|string',

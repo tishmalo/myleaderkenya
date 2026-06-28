@@ -83,7 +83,7 @@
                              alt="Profile" class="w-28 h-28 object-cover rounded-2xl border border-zinc-700">
                     </div>
                 @endif
-                <input type="file" name="profile_picture" accept="image/*"
+                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp"
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
             </div>
 
