@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Web\LandingRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\Message;
 use App\Models\NewsArticle;
+use App\Models\LiveStatFigure;
 use App\Models\Station;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -26,11 +27,12 @@ class LandingRepository implements LandingRepositoryInterface
         $hasCounty          = Schema::hasColumn('users', 'county');
         $hasGender          = Schema::hasColumn('users', 'gender');
         $hasFeatured        = Schema::hasColumn('candidates', 'featured');
+        $generatedFigures   = $this->activeGeneratedFigures();
 
         $voterStats = [
             'confirmedVoters' => $hasVoterRegistered
-                ? User::where('voter_registered', true)->count()
-                : User::count(), // fallback: total users
+                ? User::where('voter_registered', true)->count() + $generatedFigures['confirmed_voters']
+                : User::count() + $generatedFigures['confirmed_voters'], // fallback: total users
 
             'avgAge' => $hasDob
                 ? round(User::whereNotNull('dob')->avg(DB::raw('TIMESTAMPDIFF(YEAR, dob, CURDATE())')))
@@ -48,9 +50,9 @@ class LandingRepository implements LandingRepositoryInterface
         $countyCollection = $voterStats['byCounty'];
 
         return [
-            'totalUsers'     => User::count(),
-            'totalMessages'  => class_exists(\App\Models\Message::class) ? Message::count() : 0,
-            'stationsCount'  => class_exists(\App\Models\Station::class) ? Station::count() : 0,
+            'totalUsers'     => User::count() + $generatedFigures['total_users'],
+            'totalMessages'  => (class_exists(\App\Models\Message::class) ? Message::count() : 0) + $generatedFigures['total_messages'],
+            'stationsCount'  => (class_exists(\App\Models\Station::class) ? Station::count() : 0) + $generatedFigures['stations_count'],
             'voterStats'     => $voterStats,
             'countyLabels'   => $countyCollection->pluck('county'),
             'countyData'     => $countyCollection->pluck('count'),
@@ -100,4 +102,21 @@ class LandingRepository implements LandingRepositoryInterface
             return $group;
         })->all();
     }
+    private function activeGeneratedFigures(): array
+    {
+        $defaults = array_fill_keys(array_keys(LiveStatFigure::METRICS), 0);
+
+        if (! Schema::hasTable('live_stat_figures')) {
+            return $defaults;
+        }
+
+        return array_merge($defaults, LiveStatFigure::query()
+            ->where('active', true)
+            ->select('metric_key', DB::raw('SUM(value) as total'))
+            ->groupBy('metric_key')
+            ->pluck('total', 'metric_key')
+            ->map(fn ($value) => (int) $value)
+            ->all());
+    }
 }
+

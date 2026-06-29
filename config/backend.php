@@ -22,6 +22,7 @@ return [
                     ['label' => 'Voters', 'route' => 'users.index', 'icon' => 'fas fa-user-check', 'active' => ['users.*']],
                     ['label' => 'Voter Messages', 'route' => 'dashboard.messages', 'icon' => 'fas fa-comment-dots', 'active' => ['dashboard.messages', 'messages.*']],
                     ['label' => 'Voter Stats', 'route' => 'dashboard.stats', 'icon' => 'fas fa-chart-pie', 'active' => ['dashboard.stats']],
+                    ['label' => 'Live Stat Figures', 'route' => 'live-stat-figures.index', 'icon' => 'fas fa-sliders', 'active' => ['live-stat-figures.*']],
                     ['label' => 'Voter Locations', 'route' => 'locations.index', 'icon' => 'fas fa-map', 'active' => ['locations.*']],
                 ],
             ],
@@ -62,4 +63,5 @@ return [
         ],
     ],
 ];
+
 

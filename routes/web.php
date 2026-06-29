@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\CandidateController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
+use App\Http\Controllers\Admin\LiveStatFigureController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
@@ -93,6 +94,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/stations', [DashboardController::class, 'storeStation'])->name('stations.store');
     Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->name('dashboard.messages');
     Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->name('dashboard.donors');
+    Route::get('/live-stat-figures', [LiveStatFigureController::class, 'index'])->name('live-stat-figures.index');
+    Route::post('/live-stat-figures', [LiveStatFigureController::class, 'store'])->name('live-stat-figures.store');
+    Route::delete('/live-stat-figures/batches/{batchId}', [LiveStatFigureController::class, 'destroyBatch'])->name('live-stat-figures.batches.destroy');
+    Route::delete('/live-stat-figures/{liveStatFigure}', [LiveStatFigureController::class, 'destroy'])->name('live-stat-figures.destroy');
     
     Route::get('/smtp', [SmtpController::class, 'index'])->name('admin.smtp');
     Route::post('/smtp', [SmtpController::class, 'update'])->name('admin.smtp.update');
@@ -162,4 +167,5 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
 
