@@ -474,10 +474,14 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- RESULTS META -->
+@php
+    $candidateFilter = request('candidate') ?: request('search');
+@endphp
+
 <div class="results-meta">
     <div class="results-count">
         Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
-        @if(request('candidate', request('search'))) matching <strong>{{ request('candidate', request('search')) }}</strong>@endif
+        @if($candidateFilter) matching <strong>{{ $candidateFilter }}</strong>@endif
         @if(request('position')) for selected position@endif
         @if(request('political_party')) under selected political party@endif
     </div>

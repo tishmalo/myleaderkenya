@@ -21,9 +21,9 @@ class CandidateService
     // Admin CRUD
     // -------------------------------------------------------------------------
 
-    public function getPaginatedCandidates(int $perPage = 15): LengthAwarePaginator
+    public function getPaginatedCandidates(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->candidateRepository->paginate($perPage);
+        return $this->candidateRepository->paginate($perPage, $filters);
     }
 
     public function createCandidate(array $data, ?UploadedFile $picture = null): Candidate
@@ -129,4 +129,6 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
+
 

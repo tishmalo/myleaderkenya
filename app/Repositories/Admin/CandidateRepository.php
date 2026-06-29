@@ -12,9 +12,27 @@ use Illuminate\Support\Collection;
 
 class CandidateRepository implements CandidateRepositoryInterface
 {
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return Candidate::with(['position', 'politicalParty'])->latest()->paginate($perPage);
+        $query = Candidate::with(['position', 'politicalParty']);
+
+        if (!empty($filters['candidate'])) {
+            $candidate = $filters['candidate'];
+            $query->where(function ($query) use ($candidate) {
+                $query->where('name', 'like', "%{$candidate}%")
+                    ->orWhere('nick_name', 'like', "%{$candidate}%");
+            });
+        }
+
+        if (!empty($filters['position'])) {
+            $query->where('position_id', $filters['position']);
+        }
+
+        if (!empty($filters['political_party'])) {
+            $query->where('political_party_id', $filters['political_party']);
+        }
+
+        return $query->latest()->paginate($perPage)->withQueryString();
     }
 
     public function create(array $data): Candidate
@@ -119,5 +137,6 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
 
 
