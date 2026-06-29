@@ -16,6 +16,44 @@
         </a>
     </div>
 
+    <form method="GET" action="{{ route('candidates.index') }}" class="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm text-zinc-400 mb-2">Candidate</label>
+                <input type="text" name="candidate" value="{{ request('candidate') }}"
+                       placeholder="Search name or nickname"
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-2">Position</label>
+                <select name="position" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="">All Positions</option>
+                    @foreach($positions as $position)
+                        <option value="{{ $position->id }}" {{ request('position') == $position->id ? 'selected' : '' }}>{{ $position->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-2">Political Party</label>
+                <select name="political_party" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="">All Political Parties</option>
+                    @foreach($politicalParties as $party)
+                        <option value="{{ $party->id }}" {{ request('political_party') == $party->id ? 'selected' : '' }}>
+                            {{ $party->abbreviation ? $party->abbreviation . ' - ' : '' }}{{ $party->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl font-semibold text-white">
+                    Filter
+                </button>
+                <a href="{{ route('candidates.index') }}" class="px-5 py-3 rounded-2xl border border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+                    Clear
+                </a>
+            </div>
+        </div>
+    </form>
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
         <table class="w-full">
             <thead class="bg-zinc-950 sticky top-0">
@@ -146,3 +184,4 @@ document.querySelectorAll('[data-featured-toggle]').forEach(function (toggle) {
 });
 </script>
 @endpush
+

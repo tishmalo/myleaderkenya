@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 interface CandidateRepositoryInterface
 {
-    public function paginate(int $perPage = 15): LengthAwarePaginator;
+    public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
     public function create(array $data): Candidate;
 
@@ -26,3 +26,4 @@ interface CandidateRepositoryInterface
 
     public function loadPublicShow(Candidate $candidate): Candidate;
 }
+

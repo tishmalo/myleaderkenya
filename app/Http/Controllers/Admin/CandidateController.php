@@ -15,10 +15,13 @@ class CandidateController extends Controller
         private CandidateService $candidateService
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $candidates = $this->candidateService->getPaginatedCandidates();
-        return view('candidates.index', compact('candidates'));
+        $filters = $request->only(['candidate', 'position', 'political_party']);
+        $candidates = $this->candidateService->getPaginatedCandidates(15, $filters);
+        $formData = $this->candidateService->getFormData();
+
+        return view('candidates.index', array_merge($formData, compact('candidates')));
     }
 
 
@@ -112,5 +115,7 @@ class CandidateController extends Controller
         return view('aspirants.public.show', compact('candidate'));
     }
 }
+
+
 
 
