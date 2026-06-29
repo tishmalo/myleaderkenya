@@ -64,7 +64,7 @@
             <!-- Profile Picture -->
             <div class="mt-6">
                 <label class="block text-sm text-zinc-400 mb-2">Profile Picture</label>
-                <input type="file" name="profile_picture" accept="image/*" 
+                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" 
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
             </div>
 

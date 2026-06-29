@@ -7,8 +7,9 @@ use App\Models\Candidate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class CandidateService
 {
@@ -30,7 +31,7 @@ class CandidateService
         $data = $this->normalizeCandidateData($data);
 
         if ($picture) {
-            $data['profile_picture'] = $picture->store('candidates', 'public');
+            $data['profile_picture'] = $this->storeCandidatePicture($picture);
         }
 
         return $this->candidateRepository->create($data);
@@ -43,9 +44,9 @@ class CandidateService
         if ($picture) {
             // Delete old picture before storing the new one
             if ($candidate->profile_picture) {
-                Storage::disk('public')->delete($candidate->profile_picture);
+                $this->deleteCandidatePicture($candidate->profile_picture);
             }
-            $data['profile_picture'] = $picture->store('candidates', 'public');
+            $data['profile_picture'] = $this->storeCandidatePicture($picture);
         }
 
         return $this->candidateRepository->update($candidate, $data);
@@ -54,10 +55,39 @@ class CandidateService
     public function deleteCandidate(Candidate $candidate): bool
     {
         if ($candidate->profile_picture) {
-            Storage::disk('public')->delete($candidate->profile_picture);
+            $this->deleteCandidatePicture($candidate->profile_picture);
         }
 
         return $this->candidateRepository->delete($candidate);
+    }
+
+    private function storeCandidatePicture(UploadedFile $picture): string
+    {
+        $directory = storage_path('app/public/candidates');
+
+        if (! File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        $extension = $picture->getClientOriginalExtension() ?: $picture->extension() ?: 'jpg';
+        $filename = Str::uuid()->toString() . '.' . strtolower($extension);
+
+        $picture->move($directory, $filename);
+
+        return 'candidates/' . $filename;
+    }
+
+    private function deleteCandidatePicture(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        $fullPath = storage_path('app/public/' . ltrim($path, '/'));
+
+        if (File::exists($fullPath)) {
+            File::delete($fullPath);
+        }
     }
 
     private function normalizeCandidateData(array $data): array
