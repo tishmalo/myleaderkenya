@@ -228,7 +228,6 @@
 
     <div class="hero-inner">
         <div>
-            <div class="hero-badge"><span class="dot"></span>Youth Voter Movement 2027</div>
             <h1 class="hero-headline">
                 <span class="line-1">Niko Kadi,</span>
                 <span class="line-2"><span>Je Wewe?</span></span>

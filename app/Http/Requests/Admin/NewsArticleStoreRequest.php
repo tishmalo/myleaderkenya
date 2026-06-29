@@ -23,7 +23,11 @@ class NewsArticleStoreRequest extends FormRequest
             'tags.*'          => 'exists:tags,id',
             'candidates'      => 'nullable|array',
             'candidates.*'    => 'exists:candidates,id',
+            'political_parties' => 'nullable|array',
+            'political_parties.*' => 'exists:political_parties,id',
+            'sentiment'       => 'required|in:neutral,positive,negative',
             'status'          => 'required|in:draft,published',
         ];
     }
 }
+

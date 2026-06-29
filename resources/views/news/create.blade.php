@@ -41,6 +41,16 @@
                         empty-text="No matching aspirants found." />
                 </div>
 
+
+                <div class="md:col-span-2">
+                    <x-searchable-multiselect
+                        name="political_parties[]"
+                        label="Tagged Political Parties"
+                        :options="$politicalParties->map(fn ($party) => ['value' => $party->id, 'label' => trim($party->name . ($party->abbreviation ? ' (' . $party->abbreviation . ')' : ''))])"
+                        :selected="old('political_parties', [])"
+                        placeholder="Search political parties..."
+                        empty-text="No matching political parties found." />
+                </div>
                 <!-- Status -->
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Status</label>
@@ -49,7 +59,14 @@
                         <option value="published">Published</option>
                     </select>
                 </div>
-            </div>
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Sentiment</label>
+                    <select name="sentiment" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                        <option value="neutral" {{ old('sentiment', 'neutral') === 'neutral' ? 'selected' : '' }}>Neutral</option>
+                        <option value="positive" {{ old('sentiment') === 'positive' ? 'selected' : '' }}>Positive</option>
+                        <option value="negative" {{ old('sentiment') === 'negative' ? 'selected' : '' }}>Negative</option>
+                    </select>
+                </div>            </div>
 
             <!-- Excerpt -->
             <div class="mt-6">
@@ -89,4 +106,5 @@
     </div>
 </div>
 @endsection
+
 
