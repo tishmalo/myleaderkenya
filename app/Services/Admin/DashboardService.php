@@ -41,16 +41,18 @@ class DashboardService
     public function getVoterStats(): array
     {
         $generatedFigures = $this->liveStatFigureRepository->activeTotals();
-        $totalVoters = $this->dashboardRepository->getTotalVotersCount() + $generatedFigures['confirmed_voters'];
+        $totalRegisteredVoters = $this->dashboardRepository->getTotalUsersCount() + $generatedFigures['total_users'];
+        $confirmedVoters = $this->dashboardRepository->getTotalVotersCount() + $generatedFigures['confirmed_voters'];
         $votersByCounty = $this->withGeneratedCountyDistribution(
             $this->dashboardRepository->getVotersCountByCounty(),
             $generatedFigures['confirmed_voters']
         );
 
         return [
-            'totalVoters' => $totalVoters,
+            'totalVoters' => $totalRegisteredVoters,
+            'totalRegisteredVoters' => $totalRegisteredVoters,
             'voterStats'  => [
-                'confirmedVoters' => $totalVoters,
+                'confirmedVoters' => $confirmedVoters,
                 'avgAge'          => $this->dashboardRepository->getAverageVoterAge(),
                 'byCounty'        => $votersByCounty,
             ]
@@ -154,5 +156,6 @@ class DashboardService
             ->values();
     }
 }
+
 
 
