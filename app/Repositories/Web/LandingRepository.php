@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Web\LandingRepositoryInterface;
 use App\Models\User;
 use App\Models\Message;
 use App\Models\Station;
+use App\Models\NewsArticle;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -56,6 +57,12 @@ class LandingRepository implements LandingRepositoryInterface
                 User::where('gender', 'female')->count(),
                 User::whereNotIn('gender', ['male', 'female'])->orWhereNull('gender')->count(),
             ] : [0, 0, 0],
+            'latestBlogs'    => NewsArticle::query()
+                ->where('status', 'published')
+                ->latest('published_at')
+                ->latest()
+                ->take(3)
+                ->get(),
         ];
     }
 }
