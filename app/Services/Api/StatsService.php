@@ -39,11 +39,11 @@ class StatsService
             'femaleRegistered' => $this->statsRepository->getFemaleRegistered(),
             'countyLabels' => $countyStats['labels'],
             'countyData' => $countyStats['data'],
-            'genderData' => [
+            'genderData' => $this->withGeneratedGenderDistribution([
                 $this->statsRepository->getMaleCount(),
                 $this->statsRepository->getFemaleCount(),
                 $this->statsRepository->getOtherGenderCount(),
-            ],
+            ], $generatedFigures['confirmed_voters']),
         ];
     }
     private function withGeneratedCountyDistribution(array $countyStats, int $generatedVoters): array
@@ -73,6 +73,36 @@ class StatsService
         array_multisort($countyStats['data'], SORT_DESC, SORT_NUMERIC, $countyStats['labels']);
 
         return $countyStats;
+    }
+    private function withGeneratedGenderDistribution(array $genderData, int $generatedVoters): array
+    {
+        if ($generatedVoters <= 0 || ! config('features.live_stats.demo_distribute_counties')) {
+            return $genderData;
+        }
+
+        $realTotal = array_sum(array_map('intval', $genderData));
+
+        if ($realTotal <= 0) {
+            $male = (int) floor($generatedVoters * 0.55);
+            $female = (int) floor($generatedVoters * 0.44);
+
+            return [$male, $female, $generatedVoters - $male - $female];
+        }
+
+        $remaining = $generatedVoters;
+        $lastIndex = count($genderData) - 1;
+
+        foreach ($genderData as $index => $count) {
+            $allocation = $index === $lastIndex
+                ? $remaining
+                : (int) floor($generatedVoters * ((int) $count / $realTotal));
+
+            $allocation = min($allocation, $remaining);
+            $genderData[$index] = (int) $count + $allocation;
+            $remaining -= $allocation;
+        }
+
+        return $genderData;
     }
 }
 
