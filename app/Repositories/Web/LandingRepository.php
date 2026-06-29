@@ -47,7 +47,8 @@ class LandingRepository implements LandingRepositoryInterface
                 : collect(),
         ];
 
-        $countyCollection = $voterStats['byCounty'];
+        $countyCollection = $this->withGeneratedCountyDistribution($voterStats['byCounty'], $generatedFigures['confirmed_voters']);
+        $voterStats['byCounty'] = $countyCollection;
 
         return [
             'totalUsers'     => User::count() + $generatedFigures['total_users'],
@@ -118,5 +119,36 @@ class LandingRepository implements LandingRepositoryInterface
             ->map(fn ($value) => (int) $value)
             ->all());
     }
+    private function withGeneratedCountyDistribution($counties, int $generatedVoters)
+    {
+        if ($generatedVoters <= 0 || ! config('features.live_stats.demo_distribute_counties')) {
+            return $counties;
+        }
+
+        if ($counties->isEmpty()) {
+            return $counties;
+        }
+
+        $realTotal = max((int) $counties->sum('count'), 1);
+        $remaining = $generatedVoters;
+        $lastIndex = $counties->count() - 1;
+
+        return $counties
+            ->values()
+            ->map(function ($county, int $index) use (&$remaining, $generatedVoters, $realTotal, $lastIndex) {
+                $allocation = $index === $lastIndex
+                    ? $remaining
+                    : (int) floor($generatedVoters * ((int) $county->count / $realTotal));
+
+                $allocation = min($allocation, $remaining);
+                $county->count = (int) $county->count + $allocation;
+                $remaining -= $allocation;
+
+                return $county;
+            })
+            ->sortByDesc('count')
+            ->values();
+    }
 }
+
 

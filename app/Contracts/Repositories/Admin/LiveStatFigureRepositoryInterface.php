@@ -12,9 +12,12 @@ interface LiveStatFigureRepositoryInterface
 
     public function batches(): Collection;
 
+    public function activeTotals(): array;
+
     public function create(array $data): LiveStatFigure;
 
     public function delete(LiveStatFigure $figure): bool;
 
     public function deleteBatch(string $batchId): int;
 }
+
