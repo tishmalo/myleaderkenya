@@ -22,32 +22,24 @@
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Tags -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm text-zinc-400 mb-2">Tags</label>
-                    <select name="tags[]" multiple 
-                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white h-44">
-                        @foreach($tags as $tag)
-                            <option value="{{ $tag->id }}"
-                                {{ $news->tags->pluck('id')->contains($tag->id) ? 'selected' : '' }}>
-                                {{ $tag->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <x-searchable-multiselect
+                        name="tags[]"
+                        label="Tags"
+                        :options="$tags->map(fn ($tag) => ['value' => $tag->id, 'label' => $tag->name])"
+                        :selected="old('tags', $news->tags->pluck('id')->all())"
+                        placeholder="Search tags..."
+                        empty-text="No matching tags found." />
                 </div>
 
-                <!-- Tagged Candidates -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm text-zinc-400 mb-2">Tagged Aspirants</label>
-                    <select name="candidates[]" multiple 
-                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white h-40">
-                        @foreach($candidates as $candidate)
-                            <option value="{{ $candidate->id }}"
-                                {{ $news->candidates->pluck('id')->contains($candidate->id) ? 'selected' : '' }}>
-                                {{ $candidate->name }} {{ $candidate->nick_name ? '(' . $candidate->nick_name . ')' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <x-searchable-multiselect
+                        name="candidates[]"
+                        label="Tagged Aspirants"
+                        :options="$candidates->map(fn ($candidate) => ['value' => $candidate->id, 'label' => trim($candidate->name . ($candidate->nick_name ? ' (' . $candidate->nick_name . ')' : ''))])"
+                        :selected="old('candidates', $news->candidates->pluck('id')->all())"
+                        placeholder="Search aspirants..."
+                        empty-text="No matching aspirants found." />
                 </div>
 
                 <!-- Status -->
