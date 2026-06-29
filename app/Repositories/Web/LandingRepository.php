@@ -59,3 +59,4 @@ class LandingRepository implements LandingRepositoryInterface
         ];
     }
 }
+

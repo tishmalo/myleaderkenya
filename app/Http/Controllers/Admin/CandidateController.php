@@ -77,6 +77,19 @@ class CandidateController extends Controller
                          ->with('success', 'Aspirant updated successfully.');
     }
 
+    public function toggleFeatured(Request $request, Candidate $candidate)
+    {
+        $data = $request->validate([
+            'featured' => ['required', 'boolean'],
+        ]);
+
+        $candidate->update(['featured' => $data['featured']]);
+
+        return response()->json([
+            'success' => true,
+            'featured' => $candidate->featured,
+        ]);
+    }
     public function destroy(Candidate $candidate)
     {
         $this->candidateService->deleteCandidate($candidate);

@@ -56,6 +56,7 @@ Route::get('/api/wards', function (\Illuminate\Http\Request $request) {
 // ====================== PUBLIC ROUTES (Throttled) ======================
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing');
+    Route::get('/featured-aspirants', [LandingController::class, 'featuredAspirants'])->name('landing.featured-aspirants');
     Route::get('/about-us', [PublicFrontendPageController::class, 'about'])->name('about.public');
     Route::get('/live-stats', [PublicFrontendPageController::class, 'liveStats'])->name('live-stats.public');
     Route::get('/download-app', [PublicFrontendPageController::class, 'downloadApp'])->name('download-app.public');
@@ -99,6 +100,7 @@ Route::middleware('auth')->group(function () {
     // --- Content Management ---
     Route::resource('positions', PositionController::class)->except(['show']);
     Route::get('/candidates/search', [CandidateController::class, 'search'])->name('candidates.search');
+    Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->name('candidates.featured');
     Route::resource('candidates', CandidateController::class);
     Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
     Route::resource('/admin/political-parties', PoliticalPartyController::class)
