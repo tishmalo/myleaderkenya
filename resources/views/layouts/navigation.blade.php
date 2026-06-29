@@ -29,22 +29,22 @@
                         <x-slot name="content">
                             <div class="py-1">
                                 <x-dropdown-link :href="route('dashboard')">
-                                    📊 Overview
+                                    Overview
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('users.index')">
-                                    👥 Registered Voters
+                                    Registered Voters
                                 </x-dropdown-link>
                                 <x-dropdown-link href="#" 
                                     onclick="switchToTab(2); return false;">
-                                    💬 Messages
+                                    Messages
                                 </x-dropdown-link>
                                 <x-dropdown-link href="#" 
                                     onclick="switchToTab(3); return false;">
-                                    🗳️ Voter Stats
+                                    Voter Stats
                                 </x-dropdown-link>
                                 <x-dropdown-link href="#" 
                                     onclick="switchToTab(4); return false;">
-                                    📍 Polling Stations
+                                    Polling Stations
                                 </x-dropdown-link>
                             </div>
                         </x-slot>
