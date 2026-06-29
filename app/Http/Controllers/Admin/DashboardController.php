@@ -29,10 +29,13 @@ class DashboardController extends Controller
 
     public function stats()
     {
-        ['totalVoters' => $totalVoters, 'voterStats' => $voterStats]
-            = $this->dashboardService->getVoterStats();
+        [
+            'totalVoters' => $totalVoters,
+            'totalRegisteredVoters' => $totalRegisteredVoters,
+            'voterStats' => $voterStats,
+        ] = $this->dashboardService->getVoterStats();
 
-        return view('voters.stats', compact('totalVoters', 'voterStats'));
+        return view('voters.stats', compact('totalVoters', 'totalRegisteredVoters', 'voterStats'));
     }
 
     public function stations()
@@ -121,3 +124,4 @@ class DashboardController extends Controller
         return view('dashboard.index', compact('tags'));
     }
 }
+

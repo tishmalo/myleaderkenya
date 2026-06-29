@@ -12,7 +12,7 @@
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-zinc-400 text-sm">Total Registered Voters</p>
-                    <p class="text-5xl font-bold text-white mt-4">{{ $totalVoters ?? 0 }}</p>
+                    <p class="text-5xl font-bold text-white mt-4">{{ $totalRegisteredVoters ?? $totalVoters ?? 0 }}</p>
                 </div>
                 <i class="fas fa-users text-6xl text-emerald-600/30"></i>
             </div>
