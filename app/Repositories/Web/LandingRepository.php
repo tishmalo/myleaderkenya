@@ -40,6 +40,7 @@ class LandingRepository implements LandingRepositoryInterface
                     ->whereNotNull('county')
                     ->groupBy('county')
                     ->orderByDesc('count')
+                    ->limit(10)
                     ->get()
                 : collect(),
         ];
@@ -195,5 +196,6 @@ class LandingRepository implements LandingRepositoryInterface
         return $genderData;
     }
 }
+
 
 
