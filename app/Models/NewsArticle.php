@@ -12,7 +12,7 @@ class NewsArticle extends Model
 
     protected $fillable = [
         'title', 'slug', 'excerpt', 'content', 'featured_image',
-        'video_url', 'author_id', 'status', 'published_at'
+        'video_url', 'author_id', 'status', 'sentiment', 'published_at'
     ];
 
     protected $casts = [
@@ -33,8 +33,10 @@ class NewsArticle extends Model
     {
         return $this->belongsToMany(Candidate::class, 'news_article_candidate');
     }
-
-
+    public function politicalParties()
+    {
+        return $this->belongsToMany(PoliticalParty::class, 'news_article_political_party');
+    }
     protected static function boot()
     {
         parent::boot();
@@ -46,4 +48,6 @@ class NewsArticle extends Model
         });
     }
 }
+
+
 

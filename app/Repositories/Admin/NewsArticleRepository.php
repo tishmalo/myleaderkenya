@@ -5,6 +5,7 @@ namespace App\Repositories\Admin;
 use App\Contracts\Repositories\Admin\NewsArticleRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
+use App\Models\PoliticalParty;
 use App\Models\Tag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -13,7 +14,7 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
 {
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = NewsArticle::with('author', 'tags', 'candidates');
+        $query = NewsArticle::with('author', 'tags', 'candidates', 'politicalParties');
         $tagSlug = $filters['tag'] ?? null;
 
         if (! empty($tagSlug)) {
@@ -38,7 +39,7 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
 
     public function findBySlug(string $slug, bool $publishedOnly = true): NewsArticle
     {
-        $query = NewsArticle::with('author', 'tags', 'candidates')
+        $query = NewsArticle::with('author', 'tags', 'candidates', 'politicalParties')
                            ->where('slug', $slug);
 
         if ($publishedOnly) {
@@ -72,7 +73,10 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
     {
         $article->candidates()->sync($candidateIds);
     }
-
+    public function syncPoliticalParties(NewsArticle $article, array $partyIds): void
+    {
+        $article->politicalParties()->sync($partyIds);
+    }
     public function allTags(): Collection
     {
         return Tag::orderBy('name')->get();
@@ -81,6 +85,10 @@ class NewsArticleRepository implements NewsArticleRepositoryInterface
     public function allCandidates(): Collection
     {
         return Candidate::orderBy('name')->get();
+    }
+    public function allPoliticalParties(): Collection
+    {
+        return PoliticalParty::orderBy('name')->get();
     }
 }
 

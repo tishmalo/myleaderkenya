@@ -38,7 +38,10 @@ class PoliticalParty extends Model
     {
         return $this->belongsToMany(Coalition::class, 'coalition_political_party');
     }
-
+    public function newsArticles()
+    {
+        return $this->belongsToMany(NewsArticle::class, 'news_article_political_party');
+    }
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', 'published');
@@ -54,3 +57,5 @@ class PoliticalParty extends Model
         return $this->abbreviation ?: $this->name;
     }
 }
+
+

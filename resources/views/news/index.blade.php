@@ -39,6 +39,8 @@
                     <th class="px-6 py-4 text-left">Article</th>
                     <th class="px-6 py-4 text-left">Tags</th>
                     <th class="px-6 py-4 text-left">Tagged Aspirants</th>
+                    <th class="px-6 py-4 text-left">Tagged Parties</th>
+                    <th class="px-6 py-4 text-center">Sentiment</th>
                     <th class="px-6 py-4 text-center">Status</th>
                     <th class="px-6 py-4 text-center">Actions</th>
                 </tr>
@@ -72,6 +74,15 @@
                     <td class="px-6 py-4 text-sm text-zinc-400">
                         {{ $article->candidates->pluck('name')->join(', ') ?: '—' }}
                     </td>
+                    <td class="px-6 py-4 text-sm text-zinc-400">
+                        {{ $article->politicalParties->map(fn ($party) => $party->abbreviation ?: $party->name)->join(', ') ?: '—' }}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        @php($sentiment = $article->sentiment ?? 'neutral')
+                        <span class="px-3 py-1 text-xs font-medium rounded-full {{ $sentiment === 'positive' ? 'bg-emerald-500/20 text-emerald-400' : ($sentiment === 'negative' ? 'bg-red-500/20 text-red-400' : 'bg-zinc-700/60 text-zinc-300') }}">
+                            {{ ucfirst($sentiment) }}
+                        </span>
+                    </td>
                     <td class="px-6 py-4 text-center">
                         @if($article->status === 'published')
                             <span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-400">Published</span>
@@ -90,7 +101,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center py-16 text-zinc-500">No articles found.</td></tr>
+                <tr><td colspan="7" class="text-center py-16 text-zinc-500">No articles found.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -109,5 +120,6 @@ function deleteArticle(id, title) {
 }
 </script>
 @endpush
+
 
 

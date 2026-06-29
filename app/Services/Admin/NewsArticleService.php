@@ -24,10 +24,11 @@ class NewsArticleService
     {
         return [
             'tags' => $this->newsArticleRepository->allTags(),
+            'politicalParties' => $this->newsArticleRepository->allPoliticalParties(),
         ];
     }
 
-    public function createArticle(array $data, ?UploadedFile $featuredImage = null, array $tags = [], array $candidates = []): NewsArticle
+    public function createArticle(array $data, ?UploadedFile $featuredImage = null, array $tags = [], array $candidates = [], array $politicalParties = []): NewsArticle
     {
         if ($featuredImage) {
             $data['featured_image'] = $featuredImage->store('news', 'public');
@@ -44,11 +45,12 @@ class NewsArticleService
 
         $this->newsArticleRepository->syncTags($article, $tags);
         $this->newsArticleRepository->syncCandidates($article, $candidates);
+        $this->newsArticleRepository->syncPoliticalParties($article, $politicalParties);
 
         return $article;
     }
 
-    public function updateArticle(NewsArticle $article, array $data, ?UploadedFile $featuredImage = null, array $tags = [], array $candidates = []): bool
+    public function updateArticle(NewsArticle $article, array $data, ?UploadedFile $featuredImage = null, array $tags = [], array $candidates = [], array $politicalParties = []): bool
     {
         if ($featuredImage) {
             if ($article->featured_image) {
@@ -67,6 +69,7 @@ class NewsArticleService
 
         $this->newsArticleRepository->syncTags($article, $tags);
         $this->newsArticleRepository->syncCandidates($article, $candidates);
+        $this->newsArticleRepository->syncPoliticalParties($article, $politicalParties);
 
         return $success;
     }
@@ -85,4 +88,5 @@ class NewsArticleService
         return $this->newsArticleRepository->findBySlug($slug, true);
     }
 }
+
 

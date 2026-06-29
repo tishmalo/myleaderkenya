@@ -33,10 +33,11 @@ class NewsArticleController extends Controller
     public function store(NewsArticleStoreRequest $request)
     {
         $this->newsArticleService->createArticle(
-            $request->except(['featured_image', 'tags', 'candidates']),
+            $request->except(['featured_image', 'tags', 'candidates', 'political_parties']),
             $request->file('featured_image'),
             $request->input('tags', []),
-            $request->input('candidates', [])
+            $request->input('candidates', []),
+            $request->input('political_parties', [])
         );
 
         return redirect()->route('news.index')
@@ -46,7 +47,7 @@ class NewsArticleController extends Controller
     public function edit(NewsArticle $news)
     {
         $data = $this->newsArticleService->getFormData();
-        $data['news'] = $news->load('tags', 'candidates');
+        $data['news'] = $news->load('tags', 'candidates', 'politicalParties');
         return view('news.edit', $data);
     }
 
@@ -54,10 +55,11 @@ class NewsArticleController extends Controller
     {
         $this->newsArticleService->updateArticle(
             $news,
-            $request->except(['featured_image', 'tags', 'candidates']),
+            $request->except(['featured_image', 'tags', 'candidates', 'political_parties']),
             $request->file('featured_image'),
             $request->input('tags', []),
-            $request->input('candidates', [])
+            $request->input('candidates', []),
+            $request->input('political_parties', [])
         );
 
         return redirect()->route('news.index')
@@ -93,3 +95,6 @@ class NewsArticleController extends Controller
         return view('news.public.show', compact('article'));
     }
 }
+
+
+

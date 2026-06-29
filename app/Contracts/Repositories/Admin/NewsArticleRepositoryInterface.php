@@ -22,7 +22,12 @@ interface NewsArticleRepositoryInterface
 
     public function syncCandidates(NewsArticle $article, array $candidateIds): void;
 
+    public function syncPoliticalParties(NewsArticle $article, array $partyIds): void;
+
     public function allTags(): Collection;
 
     public function allCandidates(): Collection;
+
+    public function allPoliticalParties(): Collection;
 }
+
