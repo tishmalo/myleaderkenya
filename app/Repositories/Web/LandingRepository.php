@@ -22,7 +22,6 @@ class LandingRepository implements LandingRepositoryInterface
     public function getLandingStats(): array
     {
         // Check which columns actually exist before querying
-        $hasVoterRegistered = Schema::hasColumn('users', 'voter_registered');
         $hasDob             = Schema::hasColumn('users', 'dob');
         $hasCounty          = Schema::hasColumn('users', 'county');
         $hasGender          = Schema::hasColumn('users', 'gender');
@@ -30,9 +29,7 @@ class LandingRepository implements LandingRepositoryInterface
         $generatedFigures   = $this->activeGeneratedFigures();
 
         $voterStats = [
-            'confirmedVoters' => $hasVoterRegistered
-                ? User::where('voter_registered', true)->count() + $generatedFigures['confirmed_voters']
-                : User::count() + $generatedFigures['confirmed_voters'], // fallback: total users
+            'confirmedVoters' => $this->confirmedVotersCount() + $generatedFigures['confirmed_voters'],
 
             'avgAge' => $hasDob
                 ? round(User::whereNotNull('dob')->avg(DB::raw('TIMESTAMPDIFF(YEAR, dob, CURDATE())')))
@@ -103,6 +100,22 @@ class LandingRepository implements LandingRepositoryInterface
             return $group;
         })->all();
     }
+    private function confirmedVotersCount(): int
+    {
+        if (Schema::hasColumn('users', 'is_voter')) {
+            return User::where('is_voter', true)->count();
+        }
+
+        if (Schema::hasColumn('users', 'is_registered')) {
+            return User::where('is_registered', true)->count();
+        }
+
+        if (Schema::hasColumn('users', 'voter_registered')) {
+            return User::where('voter_registered', true)->count();
+        }
+
+        return User::count();
+    }
     private function activeGeneratedFigures(): array
     {
         $defaults = array_fill_keys(array_keys(LiveStatFigure::METRICS), 0);
@@ -150,5 +163,7 @@ class LandingRepository implements LandingRepositoryInterface
             ->values();
     }
 }
+
+
 
 
