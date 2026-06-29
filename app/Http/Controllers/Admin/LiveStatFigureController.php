@@ -20,9 +20,10 @@ class LiveStatFigureController extends Controller
             ->select('batch_id', 'batch_name', 'source')
             ->selectRaw('COUNT(*) as figures_count')
             ->selectRaw('SUM(value) as total_value')
+            ->selectRaw('MAX(created_at) as latest_created_at')
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'batch_name', 'source')
-            ->latestRaw('MAX(created_at)')
+            ->orderByDesc('latest_created_at')
             ->get();
 
         return view('live-stat-figures.index', [
@@ -89,3 +90,5 @@ class LiveStatFigureController extends Controller
             ->with('success', "Deleted {$deleted} generated live stat figure(s).");
     }
 }
+
+
