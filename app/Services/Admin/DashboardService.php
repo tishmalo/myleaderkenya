@@ -3,38 +3,56 @@
 namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\DashboardRepositoryInterface;
+use App\Contracts\Repositories\Admin\LiveStatFigureRepositoryInterface;
 
 class DashboardService
 {
     public function __construct(
-        private DashboardRepositoryInterface $dashboardRepository
+        private DashboardRepositoryInterface $dashboardRepository,
+        private LiveStatFigureRepositoryInterface $liveStatFigureRepository
     ) {}
 
     public function getDashboardStats(): array
     {
+        $generatedFigures = $this->liveStatFigureRepository->activeTotals();
+        $totalUsers = $this->dashboardRepository->getTotalUsersCount() + $generatedFigures['total_users'];
+        $totalMessages = $this->dashboardRepository->getTotalMessagesCount() + $generatedFigures['total_messages'];
+        $totalVoters = $this->dashboardRepository->getTotalVotersCount() + $generatedFigures['confirmed_voters'];
+        $votersByCounty = $this->withGeneratedCountyDistribution(
+            $this->dashboardRepository->getVotersCountByCounty(),
+            $generatedFigures['confirmed_voters']
+        );
+
         return [
-            'totalUsers'   => $this->dashboardRepository->getTotalUsersCount(),
-            'totalMessages'=> $this->dashboardRepository->getTotalMessagesCount(),
+            'totalUsers'   => $totalUsers,
+            'totalMessages'=> $totalMessages,
             'totalGroups'  => $this->dashboardRepository->getTotalGroupsCount(),
             'messages'     => $this->dashboardRepository->getLatestMessages(30),
             'stations'     => $this->dashboardRepository->getLatestStations(),
-            'totalVoters'  => $this->dashboardRepository->getTotalVotersCount(),
+            'totalVoters'  => $totalVoters,
             'voterStats'   => [
-                'confirmedVoters' => $this->dashboardRepository->getTotalVotersCount(),
+                'confirmedVoters' => $totalVoters,
                 'avgAge'          => $this->dashboardRepository->getAverageVoterAge(),
-                'byCounty'        => $this->dashboardRepository->getVotersCountByCounty(),
+                'byCounty'        => $votersByCounty,
             ],
         ];
     }
 
     public function getVoterStats(): array
     {
+        $generatedFigures = $this->liveStatFigureRepository->activeTotals();
+        $totalVoters = $this->dashboardRepository->getTotalVotersCount() + $generatedFigures['confirmed_voters'];
+        $votersByCounty = $this->withGeneratedCountyDistribution(
+            $this->dashboardRepository->getVotersCountByCounty(),
+            $generatedFigures['confirmed_voters']
+        );
+
         return [
-            'totalVoters' => $this->dashboardRepository->getTotalVotersCount(),
+            'totalVoters' => $totalVoters,
             'voterStats'  => [
-                'confirmedVoters' => $this->dashboardRepository->getTotalVotersCount(),
+                'confirmedVoters' => $totalVoters,
                 'avgAge'          => $this->dashboardRepository->getAverageVoterAge(),
-                'byCounty'        => $this->dashboardRepository->getVotersCountByCounty(),
+                'byCounty'        => $votersByCounty,
             ]
         ];
     }
@@ -105,4 +123,36 @@ class DashboardService
     {
         return $this->dashboardRepository->getTags();
     }
+    private function withGeneratedCountyDistribution($counties, int $generatedVoters)
+    {
+        if ($generatedVoters <= 0 || ! config('features.live_stats.demo_distribute_counties')) {
+            return $counties;
+        }
+
+        if ($counties->isEmpty()) {
+            return $counties;
+        }
+
+        $realTotal = max((int) $counties->sum('count'), 1);
+        $remaining = $generatedVoters;
+        $lastIndex = $counties->count() - 1;
+
+        return $counties
+            ->values()
+            ->map(function ($county, int $index) use (&$remaining, $generatedVoters, $realTotal, $lastIndex) {
+                $allocation = $index === $lastIndex
+                    ? $remaining
+                    : (int) floor($generatedVoters * ((int) $county->count / $realTotal));
+
+                $allocation = min($allocation, $remaining);
+                $county->count = (int) $county->count + $allocation;
+                $remaining -= $allocation;
+
+                return $county;
+            })
+            ->sortByDesc('count')
+            ->values();
+    }
 }
+
+
