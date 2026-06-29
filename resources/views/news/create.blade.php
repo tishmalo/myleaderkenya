@@ -21,29 +21,24 @@
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Tags -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm text-zinc-400 mb-2">Tags</label>
-                    <select name="tags[]" multiple 
-                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white h-40">
-                        @foreach($tags as $tag)
-                            <option value="{{ $tag->id }}">{{ $tag->name }}</option>
-                        @endforeach
-                    </select>
-                    <p class="text-xs text-zinc-500 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</p>
+                    <x-searchable-multiselect
+                        name="tags[]"
+                        label="Tags"
+                        :options="$tags->map(fn ($tag) => ['value' => $tag->id, 'label' => $tag->name])"
+                        :selected="old('tags', [])"
+                        placeholder="Search tags..."
+                        empty-text="No matching tags found." />
                 </div>
 
-                <!-- Tagged Candidates -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm text-zinc-400 mb-2">Tagged Aspirants / Candidates</label>
-                    <select name="candidates[]" multiple 
-                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white h-40">
-                        @foreach($candidates as $candidate)
-                            <option value="{{ $candidate->id }}">
-                                {{ $candidate->name }} {{ $candidate->nick_name ? '(' . $candidate->nick_name . ')' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <x-searchable-multiselect
+                        name="candidates[]"
+                        label="Tagged Aspirants"
+                        :options="$candidates->map(fn ($candidate) => ['value' => $candidate->id, 'label' => trim($candidate->name . ($candidate->nick_name ? ' (' . $candidate->nick_name . ')' : ''))])"
+                        :selected="old('candidates', [])"
+                        placeholder="Search aspirants..."
+                        empty-text="No matching aspirants found." />
                 </div>
 
                 <!-- Status -->
