@@ -119,6 +119,7 @@ class CandidateService
         return [
             'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
             'positions'  => $this->candidateRepository->allPositions(),
+            'politicalParties' => $this->candidateRepository->allPoliticalParties(),
             'counties'   => $this->candidateRepository->allCounties(),
         ];
     }
@@ -128,3 +129,4 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+

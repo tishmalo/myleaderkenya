@@ -51,10 +51,12 @@ class CandidateRepository implements CandidateRepositoryInterface
     {
         $query = Candidate::with('position', 'politicalParty');
 
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('nick_name', 'like', "%{$search}%");
+        $candidate = $filters['candidate'] ?? $filters['search'] ?? null;
+        if (!empty($candidate)) {
+            $query->where(function ($query) use ($candidate) {
+                $query->where('name', 'like', "%{$candidate}%")
+                    ->orWhere('nick_name', 'like', "%{$candidate}%");
+            });
         }
 
         if (!empty($filters['county'])) {
@@ -84,7 +86,20 @@ class CandidateRepository implements CandidateRepositoryInterface
             }
         }
 
-        return $query->latest()->paginate($perPage);
+        if (!empty($filters['political_party'])) {
+            $party = $filters['political_party'];
+
+            if (is_numeric($party)) {
+                $query->where('political_party_id', $party);
+            } else {
+                $query->whereHas('politicalParty', function ($partyQuery) use ($party) {
+                    $partyQuery->where('name', 'like', "%{$party}%")
+                        ->orWhere('abbreviation', 'like', "%{$party}%");
+                });
+            }
+        }
+
+        return $query->latest()->paginate($perPage)->withQueryString();
     }
 
     public function loadPublicShow(Candidate $candidate): Candidate
@@ -104,4 +119,5 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
 
