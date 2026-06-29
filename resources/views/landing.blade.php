@@ -346,8 +346,17 @@
     .hero-card { background: rgba(22,22,22,0.92); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; backdrop-filter: blur(12px); }
     .hero-card-header { padding: 28px 28px 0; display: flex; align-items: center; gap: 10px; }
     .hc-dot { width: 12px; height: 12px; border-radius: 50%; }
-    .hero-card-banner { margin: 20px 28px; background: #0c0c0c; border-radius: 12px; padding: 40px 24px; text-align: center; position: relative; overflow: hidden; }
-    .hero-card-banner::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(187,0,0,0.08) 0%, rgba(0,102,0,0.08) 100%); }
+    .hero-card-banner { margin: 20px 28px; background: #0c0c0c; border-radius: 12px; padding: 18px; text-align: center; position: relative; overflow: hidden; min-height: 292px; }
+    .hero-card-banner::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(187,0,0,0.08) 0%, rgba(0,102,0,0.08) 100%); pointer-events: none; }
+    .aspirant-carousel { position: relative; z-index: 1; min-height: 256px; }
+    .aspirant-slide { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; position: absolute; inset: 0; opacity: 0; transform: translateX(18px); pointer-events: none; transition: opacity 600ms ease, transform 600ms ease; }
+    .aspirant-slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .aspirant-card { display: flex; min-width: 0; flex-direction: column; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); text-align: left; color: var(--kenya-white); }
+    .aspirant-card img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: rgba(255,255,255,0.06); }
+    .aspirant-card-body { padding: 10px; }
+    .aspirant-name { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .aspirant-position { margin-top: 4px; color: var(--kenya-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .aspirant-carousel-empty { position: relative; z-index: 1; display: grid; min-height: 256px; place-items: center; color: var(--kenya-muted); }
     .banner-icon { font-size: 80px; color: rgba(255,255,255,0.05); position: relative; z-index: 1; }
     .banner-tagline { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: var(--kenya-white); position: relative; z-index: 1; margin-top: 12px; }
     .tri-underline { height: 3px; border-radius: 2px; margin: 8px auto 0; width: 120px; background: linear-gradient(90deg, var(--kenya-red) 33%, var(--kenya-black) 33% 66%, var(--kenya-green) 66%); }
@@ -475,7 +484,11 @@
     ════════════════════════════════ */
     @media (max-width: 900px) {
         .hero-inner  { grid-template-columns: 1fr; }
-        .hero-card   { display: none; }
+        .hero-card   { display: block; }
+        .hero-card-banner { margin: 18px; min-height: 440px; }
+        .aspirant-carousel { min-height: 404px; }
+        .aspirant-slide { grid-template-columns: 1fr; }
+        .aspirant-card img { aspect-ratio: 16 / 8; }
         .stats-grid  { grid-template-columns: 1fr 1fr; }
         .charts-grid { grid-template-columns: 1fr; }
         .steps-grid  { grid-template-columns: 1fr; }
@@ -736,9 +749,15 @@
                 <div class="hc-dot" style="background:var(--kenya-green)"></div>
             </div>
             <div class="hero-card-banner">
-                <div class="banner-icon"><i class="fas fa-vote-yea"></i></div>
-                <div class="banner-tagline">Your Kadi = Your Power</div>
-                <div class="tri-underline"></div>
+                <div class="aspirant-carousel" data-aspirant-carousel data-endpoint="{{ route('landing.featured-aspirants') }}?per_page=20">
+                    <div class="aspirant-carousel-empty" data-aspirant-empty>
+                        <div>
+                            <div class="banner-icon"><i class="fas fa-vote-yea"></i></div>
+                            <div class="banner-tagline">Loading featured aspirants</div>
+                            <div class="tri-underline"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="hero-card-body">
                 <div class="hc-title">Why Register Today?</div>
@@ -994,6 +1013,122 @@ let currentSlide = 0;
     // Change slide every 5 seconds
     setInterval(nextSlide, 5000);
 
+/* Aspirant image carousel */
+(function(){
+    var carousel = document.querySelector('[data-aspirant-carousel]');
+    if (!carousel) return;
+
+    var endpoint = carousel.dataset.endpoint;
+    var empty = carousel.querySelector('[data-aspirant-empty]');
+    var slides = [];
+    var pending = [];
+    var current = 0;
+    var nextPageUrl = endpoint;
+    var isLoading = false;
+    var timer = null;
+
+    function createCard(aspirant) {
+        var card = document.createElement('a');
+        card.href = aspirant.url;
+        card.className = 'aspirant-card';
+
+        var image = document.createElement('img');
+        image.src = aspirant.image_url;
+        image.alt = aspirant.name;
+        image.loading = 'lazy';
+
+        var body = document.createElement('div');
+        body.className = 'aspirant-card-body';
+
+        var name = document.createElement('div');
+        name.className = 'aspirant-name';
+        name.textContent = aspirant.name;
+
+        var position = document.createElement('div');
+        position.className = 'aspirant-position';
+        position.textContent = aspirant.position || 'Aspirant';
+
+        body.appendChild(name);
+        body.appendChild(position);
+        card.appendChild(image);
+        card.appendChild(body);
+
+        return card;
+    }
+
+    function appendSlide(items) {
+        var slide = document.createElement('div');
+        slide.className = 'aspirant-slide' + (slides.length === 0 ? ' active' : '');
+        slide.dataset.aspirantSlide = '';
+
+        items.forEach(function (aspirant) {
+            slide.appendChild(createCard(aspirant));
+        });
+
+        carousel.appendChild(slide);
+        slides.push(slide);
+    }
+
+    function appendAspirants(items) {
+        if (!items.length && slides.length === 0 && empty) {
+            empty.querySelector('.banner-tagline').textContent = 'Your Kadi = Your Power';
+            return;
+        }
+
+        if (empty) empty.remove();
+        pending = pending.concat(items);
+
+        while (pending.length >= 2) {
+            appendSlide(pending.splice(0, 2));
+        }
+
+        if (!nextPageUrl && pending.length > 0) {
+            appendSlide(pending.splice(0, 2));
+        }
+
+        startTimer();
+    }
+
+    function loadNextPage() {
+        if (!nextPageUrl || isLoading) return;
+
+        isLoading = true;
+        fetch(nextPageUrl, { headers: { 'Accept': 'application/json' } })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                nextPageUrl = data.next_page_url;
+                appendAspirants(data.data || []);
+            })
+            .catch(function () {
+                if (empty) empty.querySelector('.banner-tagline').textContent = 'Featured aspirants unavailable';
+            })
+            .finally(function () {
+                isLoading = false;
+            });
+    }
+
+    function showSlide(index) {
+        if (slides.length <= 1) return;
+
+        slides[current].classList.remove('active');
+        current = (index + slides.length) % slides.length;
+        slides[current].classList.add('active');
+
+        if (nextPageUrl && current >= slides.length - 3) {
+            loadNextPage();
+        }
+    }
+
+    function startTimer() {
+        if (timer || slides.length <= 1) return;
+
+        timer = setInterval(function(){
+            showSlide(current + 1);
+        }, 10000);
+    }
+
+    loadNextPage();
+})();
 /* ── HERO SLIDER ── */
 (function(){
     var slides = document.querySelectorAll('.hero-slide');
@@ -1114,3 +1249,4 @@ document.addEventListener('DOMContentLoaded', function(){
 })();
 </script>
 @endpush
+
