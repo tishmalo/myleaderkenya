@@ -370,6 +370,14 @@
     .reason-item:nth-child(3) .reason-num { color: var(--green-bright); }
     .reason-title { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
     .reason-desc  { font-size: 13px; color: rgba(245,245,240,0.5); line-height: 1.5; }
+    .latest-blog-list { display: flex; flex-direction: column; gap: 14px; }
+    .latest-blog-item { display: block; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08); color: var(--kenya-white); }
+    .latest-blog-item:last-child { border-bottom: 0; }
+    .latest-blog-date { font-size: 11px; color: var(--green-bright); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+    .latest-blog-title { font-weight: 700; font-size: 15px; line-height: 1.35; }
+    .latest-blog-excerpt { margin-top: 5px; font-size: 12px; color: rgba(245,245,240,0.55); line-height: 1.45; }
+    .latest-blog-more { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; color: var(--green-bright); font-weight: 700; font-size: 13px; }
+    .latest-blog-more:hover { color: var(--kenya-white); }
 
     /* ════════════════════════════════
        SECTION STRIPE
@@ -760,21 +768,23 @@
                 </div>
             </div>
             <div class="hero-card-body">
-                <div class="hc-title">Why Register Today?</div>
-                <div class="reason-list">
-                    <div class="reason-item">
-                        <span class="reason-num">01</span>
-                        <div><div class="reason-title">Shape Kenya's Future</div><div class="reason-desc">Your vote decides who leads in 2027.</div></div>
+                <div class="hc-title">Latest Blogs</div>
+                @if(($latestBlogs ?? collect())->isNotEmpty())
+                    <div class="latest-blog-list">
+                        @foreach($latestBlogs as $blog)
+                            <a href="{{ route('news.public.show', $blog->slug) }}" class="latest-blog-item">
+                                <div class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</div>
+                                <div class="latest-blog-title">{{ $blog->title }}</div>
+                                <div class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</div>
+                            </a>
+                        @endforeach
                     </div>
-                    <div class="reason-item">
-                        <span class="reason-num">02</span>
-                        <div><div class="reason-title">Amplify Gen Z Voice</div><div class="reason-desc">Young people have the numbers — now we need the power.</div></div>
-                    </div>
-                    <div class="reason-item">
-                        <span class="reason-num">03</span>
-                        <div><div class="reason-title">Be Part of History</div><div class="reason-desc">Join Kenya's biggest youth voter movement.</div></div>
-                    </div>
-                </div>
+                @else
+                    <div class="reason-desc">Latest blogs will appear here once published.</div>
+                @endif
+                <a href="{{ route('news.public') }}" class="latest-blog-more">
+                    Read more <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
     </div>
