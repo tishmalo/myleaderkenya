@@ -432,18 +432,20 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
             <div class="filter-input-wrap">
                 <span class="filter-icon"><i class="fas fa-search"></i></span>
-                <input type="text" name="search" value="{{ request('search') }}"
-                       placeholder="Search by name or nickname…">
+                <input type="text" name="candidate" value="{{ request('candidate', request('search')) }}"
+                       placeholder="Search candidate by name or nickname...">
             </div>
 
             <div class="filter-divider"></div>
 
             <div class="filter-select-wrap">
-                <span class="filter-icon"><i class="fas fa-map-marker-alt"></i></span>
-                <select name="county">
-                    <option value="">All Counties</option>
-                    @foreach($counties as $c)
-                        <option value="{{ $c }}" {{ request('county') == $c ? 'selected' : '' }}>{{ $c }}</option>
+                <span class="filter-icon"><i class="fas fa-flag"></i></span>
+                <select name="political_party">
+                    <option value="">All Political Parties</option>
+                    @foreach($politicalParties as $party)
+                        <option value="{{ $party->id }}" {{ request('political_party') == $party->id ? 'selected' : '' }}>
+                            {{ $party->abbreviation ? $party->abbreviation . ' - ' : '' }}{{ $party->name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -475,7 +477,9 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 <div class="results-meta">
     <div class="results-count">
         Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
-        @if(request('county')) in <strong>{{ request('county') }}</strong>@endif
+        @if(request('candidate', request('search'))) matching <strong>{{ request('candidate', request('search')) }}</strong>@endif
+        @if(request('position')) for selected position@endif
+        @if(request('political_party')) under selected political party@endif
     </div>
     <div class="results-tri"></div>
 </div>
@@ -552,3 +556,4 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
