@@ -21,11 +21,20 @@ class LocationController extends Controller
     /**
      * GET /locations  (Admin dashboard – raw locations list)
      */
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
-        $locations = $this->locationService->getAllLocations();
+        $perPage = min(max((int) $request->query('per_page', 50), 10), 100);
+        $locations = $this->locationService->getPaginatedLocations($perPage);
+        $mapLocations = $locations->getCollection()
+            ->filter(fn ($location) => $location->latitude !== null && $location->longitude !== null)
+            ->map(fn ($location) => [
+                'name' => $location->name,
+                'latitude' => (float) $location->latitude,
+                'longitude' => (float) $location->longitude,
+            ])
+            ->values();
 
-        return view('locations.index', compact('locations'));
+        return view('locations.index', compact('locations', 'mapLocations'));
     }
 
     /**
@@ -57,3 +66,4 @@ class LocationController extends Controller
         ]);
     }
 }
+
