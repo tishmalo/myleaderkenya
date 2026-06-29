@@ -98,6 +98,7 @@ Route::middleware('auth')->group(function () {
 
     // --- Content Management ---
     Route::resource('positions', PositionController::class)->except(['show']);
+    Route::get('/candidates/search', [CandidateController::class, 'search'])->name('candidates.search');
     Route::resource('candidates', CandidateController::class);
     Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
     Route::resource('/admin/political-parties', PoliticalPartyController::class)
@@ -159,5 +160,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
-
 

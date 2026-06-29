@@ -21,6 +21,29 @@ class CandidateController extends Controller
         return view('candidates.index', compact('candidates'));
     }
 
+
+    public function search(Request $request)
+    {
+        $term = trim((string) $request->query('q', ''));
+
+        $candidates = Candidate::query()
+            ->select(['id', 'name', 'nick_name'])
+            ->when($term !== '', function ($query) use ($term) {
+                $query->where(function ($query) use ($term) {
+                    $query->where('name', 'like', "%{$term}%")
+                        ->orWhere('nick_name', 'like', "%{$term}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get()
+            ->map(fn (Candidate $candidate) => [
+                'id' => $candidate->id,
+                'text' => trim($candidate->name . ($candidate->nick_name ? ' (' . $candidate->nick_name . ')' : '')),
+            ]);
+
+        return response()->json(['results' => $candidates]);
+    }
     public function create()
     {
         return view('candidates.create', $this->candidateService->getFormData());
@@ -76,3 +99,4 @@ class CandidateController extends Controller
         return view('aspirants.public.show', compact('candidate'));
     }
 }
+

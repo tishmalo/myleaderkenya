@@ -24,7 +24,6 @@ class NewsArticleService
     {
         return [
             'tags' => $this->newsArticleRepository->allTags(),
-            'candidates' => $this->newsArticleRepository->allCandidates(),
         ];
     }
 
@@ -86,3 +85,4 @@ class NewsArticleService
         return $this->newsArticleRepository->findBySlug($slug, true);
     }
 }
+

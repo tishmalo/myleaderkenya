@@ -32,12 +32,12 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <x-searchable-multiselect
+                    <x-remote-multiselect
                         name="candidates[]"
                         label="Tagged Aspirants"
-                        :options="$candidates->map(fn ($candidate) => ['value' => $candidate->id, 'label' => trim($candidate->name . ($candidate->nick_name ? ' (' . $candidate->nick_name . ')' : ''))])"
-                        :selected="old('candidates', [])"
-                        placeholder="Search aspirants..."
+                        :search-url="route('candidates.search')"
+                        :selected="[]"
+                        placeholder="Search aspirants by name or nickname..."
                         empty-text="No matching aspirants found." />
                 </div>
 
@@ -89,3 +89,4 @@
     </div>
 </div>
 @endsection
+
