@@ -3,69 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LiveStatFigureStoreRequest;
 use App\Models\LiveStatFigure;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use App\Services\Admin\LiveStatFigureService;
 
 class LiveStatFigureController extends Controller
 {
+    public function __construct(
+        private LiveStatFigureService $liveStatFigureService
+    ) {}
+
     public function index()
     {
-        $figures = LiveStatFigure::query()
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
-
-        $batches = LiveStatFigure::query()
-            ->select('batch_id', 'batch_name', 'source')
-            ->selectRaw('COUNT(*) as figures_count')
-            ->selectRaw('SUM(value) as total_value')
-            ->selectRaw('MAX(created_at) as latest_created_at')
-            ->whereNotNull('batch_id')
-            ->groupBy('batch_id', 'batch_name', 'source')
-            ->orderByDesc('latest_created_at')
-            ->get();
-
-        return view('live-stat-figures.index', [
-            'figures' => $figures,
-            'batches' => $batches,
-            'metrics' => LiveStatFigure::METRICS,
-        ]);
+        return view('live-stat-figures.index', $this->liveStatFigureService->getIndexData());
     }
 
-    public function store(Request $request)
+    public function store(LiveStatFigureStoreRequest $request)
     {
-        $data = $request->validate([
-            'batch_name' => ['nullable', 'string', 'max:255'],
-            'notes' => ['nullable', 'string'],
-            'figures' => ['required', 'array'],
-            'figures.*' => ['nullable', 'integer', 'min:0'],
-        ]);
-
-        $batchId = 'generated-' . now()->format('YmdHis') . '-' . Str::lower(Str::random(6));
-        $batchName = $data['batch_name'] ?: 'Generated live stats ' . now()->format('M d, Y H:i');
-        $created = 0;
-
-        foreach (LiveStatFigure::METRICS as $metricKey => $label) {
-            $value = (int) ($data['figures'][$metricKey] ?? 0);
-
-            if ($value <= 0) {
-                continue;
-            }
-
-            LiveStatFigure::create([
-                'metric_key' => $metricKey,
-                'label' => $label,
-                'value' => $value,
-                'source' => 'generated',
-                'batch_id' => $batchId,
-                'batch_name' => $batchName,
-                'notes' => $data['notes'] ?? null,
-                'active' => true,
-            ]);
-
-            $created++;
-        }
+        $created = $this->liveStatFigureService->generateBatch($request->validated());
 
         return redirect()
             ->route('live-stat-figures.index')
@@ -74,7 +29,7 @@ class LiveStatFigureController extends Controller
 
     public function destroy(LiveStatFigure $liveStatFigure)
     {
-        $liveStatFigure->delete();
+        $this->liveStatFigureService->deleteFigure($liveStatFigure);
 
         return redirect()
             ->route('live-stat-figures.index')
@@ -83,12 +38,11 @@ class LiveStatFigureController extends Controller
 
     public function destroyBatch(string $batchId)
     {
-        $deleted = LiveStatFigure::where('batch_id', $batchId)->delete();
+        $deleted = $this->liveStatFigureService->deleteBatch($batchId);
 
         return redirect()
             ->route('live-stat-figures.index')
             ->with('success', "Deleted {$deleted} generated live stat figure(s).");
     }
 }
-
 

@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Repositories\Admin;
+
+use App\Contracts\Repositories\Admin\LiveStatFigureRepositoryInterface;
+use App\Models\LiveStatFigure;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+
+class LiveStatFigureRepository implements LiveStatFigureRepositoryInterface
+{
+    public function paginate(int $perPage = 20): LengthAwarePaginator
+    {
+        return LiveStatFigure::query()
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    public function batches(): Collection
+    {
+        return LiveStatFigure::query()
+            ->select('batch_id', 'batch_name', 'source')
+            ->selectRaw('COUNT(*) as figures_count')
+            ->selectRaw('SUM(value) as total_value')
+            ->selectRaw('MAX(created_at) as latest_created_at')
+            ->whereNotNull('batch_id')
+            ->groupBy('batch_id', 'batch_name', 'source')
+            ->orderByDesc('latest_created_at')
+            ->get();
+    }
+
+    public function create(array $data): LiveStatFigure
+    {
+        return LiveStatFigure::create($data);
+    }
+
+    public function delete(LiveStatFigure $figure): bool
+    {
+        return $figure->delete();
+    }
+
+    public function deleteBatch(string $batchId): int
+    {
+        return LiveStatFigure::where('batch_id', $batchId)->delete();
+    }
+}

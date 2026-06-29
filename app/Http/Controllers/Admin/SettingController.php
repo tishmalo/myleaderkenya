@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateDonateSettingRequest;
 use App\Services\Admin\SettingService;
-
+use App\Services\Admin\PaymentMethodService;
 class SettingController extends Controller
 {
     public function __construct(
         private SettingService $settingService,
-        private \App\Services\Admin\PaymentMethodService $paymentMethodService
+        private PaymentMethodService $paymentMethodService
     ) {}
 
     public function donateSettings()
