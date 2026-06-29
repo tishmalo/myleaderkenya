@@ -481,9 +481,15 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 <div class="results-meta">
     <div class="results-count">
         Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
-        @if($candidateFilter) matching <strong>{{ $candidateFilter }}</strong>@endif
-        @if(request('position')) for selected position@endif
-        @if(request('political_party')) under selected political party@endif
+        @if($candidateFilter)
+            matching <strong>{{ $candidateFilter }}</strong>
+        @endif
+        @if(request('position'))
+            for selected position
+        @endif
+        @if(request('political_party'))
+            under selected political party
+        @endif
     </div>
     <div class="results-tri"></div>
 </div>
@@ -491,72 +497,73 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 <!-- GRID -->
 <div class="asp-grid">
     @forelse($candidates as $candidate)
-    <div class="asp-card">
+        <div class="asp-card">
+            <!-- Photo -->
+            <div class="asp-card-photo">
+                @if($candidate->profile_picture)
+                    <img src="{{ Storage::url($candidate->profile_picture) }}"
+                         alt="{{ $candidate->name }}" loading="lazy">
+                @else
+                    <div class="asp-card-photo-placeholder">
+                        <span class="initials">
+                            {{ strtoupper(substr($candidate->name, 0, 1)) }}{{ strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1)) }}
+                        </span>
+                    </div>
+                @endif
+                <div class="asp-card-photo-overlay"></div>
 
-        <!-- Photo -->
-        <div class="asp-card-photo">
-            @if($candidate->profile_picture)
-                <img src="{{ Storage::url($candidate->profile_picture) }}"
-                     alt="{{ $candidate->name }}" loading="lazy">
-            @else
-                <div class="asp-card-photo-placeholder">
-                    <span class="initials">
-                        {{ strtoupper(substr($candidate->name, 0, 1)) }}{{ strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1)) }}
-                    </span>
-                </div>
-            @endif
-            <div class="asp-card-photo-overlay"></div>
+                @if($candidate->position)
+                    <div class="asp-card-position-badge">{{ $candidate->position->name }}</div>
+                @endif
 
-            @if($candidate->position)
-            <div class="asp-card-position-badge">{{ $candidate->position->name }}</div>
-            @endif
-
-            @if($candidate->county)
-            <div class="asp-card-county-tag">
-                <i class="fas fa-map-marker-alt" style="font-size:9px"></i>
-                {{ $candidate->county }}
+                @if($candidate->county)
+                    <div class="asp-card-county-tag">
+                        <i class="fas fa-map-marker-alt" style="font-size:9px"></i>
+                        {{ $candidate->county }}
+                    </div>
+                @endif
             </div>
-            @endif
-        </div>
 
-        <!-- Body -->
-        <div class="asp-card-body">
-            <div class="asp-card-name">{{ $candidate->name }}</div>
+            <!-- Body -->
+            <div class="asp-card-body">
+                <div class="asp-card-name">{{ $candidate->name }}</div>
 
-            @if($candidate->nick_name)
-            <div class="asp-card-nick">"{{ $candidate->nick_name }}"</div>
-            @endif
+                @if($candidate->nick_name)
+                    <div class="asp-card-nick">"{{ $candidate->nick_name }}"</div>
+                @endif
 
-            @if($candidate->constituency)
-            <div class="asp-card-location">
-                <i class="fas fa-circle" style="font-size:4px;color:var(--green-bright)"></i>
-                {{ $candidate->constituency }}
-                @if($candidate->ward) &nbsp;·&nbsp; {{ $candidate->ward }} @endif
+                @if($candidate->constituency)
+                    <div class="asp-card-location">
+                        <i class="fas fa-circle" style="font-size:4px;color:var(--green-bright)"></i>
+                        {{ $candidate->constituency }}
+                        @if($candidate->ward)
+                            &nbsp;&middot;&nbsp; {{ $candidate->ward }}
+                        @endif
+                    </div>
+                @endif
+
+                <div class="asp-card-divider"></div>
+
+                <a href="{{ route('aspirants.show', $candidate) }}" class="asp-card-action">
+                    <span class="asp-card-action-text">View Profile</span>
+                    <span class="asp-card-action-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
             </div>
-            @endif
-
-            <div class="asp-card-divider"></div>
-
-            <a href="{{ route('aspirants.show', $candidate) }}" class="asp-card-action">
-                <span class="asp-card-action-text">View Profile</span>
-                <span class="asp-card-action-arrow"><i class="fas fa-arrow-right"></i></span>
-            </a>
         </div>
-    </div>
     @empty
-    <div class="asp-empty">
-        <div class="asp-empty-icon">🗳️</div>
-        <h3>No aspirants found</h3>
-        <p>Try adjusting your filters or check back soon.</p>
-    </div>
+        <div class="asp-empty">
+            <div class="asp-empty-icon"></div>
+            <h3>No aspirants found</h3>
+            <p>Try adjusting your filters or check back soon.</p>
+        </div>
     @endforelse
 </div>
 
 <!-- PAGINATION -->
 @if($candidates->hasPages())
-<div class="asp-pagination">
-    {{ $candidates->links() }}
-</div>
+    <div class="asp-pagination">
+        {{ $candidates->links() }}
+    </div>
 @endif
 
 @endsection
