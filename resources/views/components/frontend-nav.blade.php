@@ -42,6 +42,17 @@
     }
     unset($menuItem);
 
+    try {
+        $downloadAppPage = app(\App\Services\Admin\SettingService::class)->getFrontendPage('download-app');
+        $downloadAppCtaUrl = $downloadAppPage['content']['cta_url'] ?? null;
+    } catch (\Throwable $e) {
+        $downloadAppCtaUrl = null;
+    }
+
+    $joinNowUrl = $downloadAppCtaUrl ?: (Route::has('download-app.public') ? route('download-app.public') : url('/download-app'));
+    if (! \Illuminate\Support\Str::startsWith($joinNowUrl, ['http://', 'https://', 'mailto:', 'tel:', '#'])) {
+        $joinNowUrl = url($joinNowUrl);
+    }
     $buildMenuUrl = function (array $item): string {
         $query = $item['query'] ?? [];
 
@@ -333,7 +344,7 @@
         <div class="frontend-nav-actions">
             @guest
                 <button class="btn-ghost" onclick="window.openFrontendAuth('login')">Login</button>
-                <button class="btn-primary" onclick="window.openFrontendAuth('register')">Join Now</button>
+                <a href="{{ $joinNowUrl }}" class="btn-primary" target="_blank" rel="noopener noreferrer">Join Now</a>
             @else
                 <a href="{{ route('dashboard') }}" class="btn-primary">Dashboard</a>
             @endguest
@@ -367,7 +378,7 @@
 
         @guest
             <button class="frontend-nav-mobile-link" type="button" onclick="window.openFrontendAuth('login')">Login</button>
-            <button class="frontend-nav-mobile-link" type="button" onclick="window.openFrontendAuth('register')">Join Now</button>
+            <a href="{{ $joinNowUrl }}" class="frontend-nav-mobile-link" target="_blank" rel="noopener noreferrer">Join Now</a>
         @else
             <a href="{{ route('dashboard') }}" class="frontend-nav-mobile-link">Dashboard</a>
         @endguest
@@ -396,6 +407,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
 
 
 
