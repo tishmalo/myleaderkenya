@@ -427,18 +427,9 @@
     .county-badge { display: inline-block; background: rgba(0,168,107,0.12); color: var(--green-bright); border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
     .county-rank  { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 700; color: rgba(245,245,240,0.15); margin-right: 16px; }
 
-    /* Scrollable Container */
     .county-table-scroll {
-        max-height: 480px;
-        overflow-y: auto;
-        padding-right: 12px;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255,255,255,0.1) transparent;
+        overflow: visible;
     }
-    .county-table-scroll::-webkit-scrollbar { width: 6px; }
-    .county-table-scroll::-webkit-scrollbar-track { background: transparent; }
-    .county-table-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-    .county-table-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
     /* ════════════════════════════════
        HOW IT WORKS
@@ -1343,4 +1334,5 @@ document.addEventListener('DOMContentLoaded', function(){
 })();
 </script>
 @endpush
+
 
