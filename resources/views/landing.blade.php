@@ -443,6 +443,22 @@
     /* ════════════════════════════════
        HOW IT WORKS
     ════════════════════════════════ */
+    /* Featured Aspirants */
+    .featured-aspirants-section { padding: 96px 0 40px; background: var(--kenya-black); }
+    .aspirants-table-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .aspirants-table-card { background: #141414; border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; }
+    .aspirants-table-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .aspirants-table-title { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; color: var(--kenya-white); }
+    .aspirants-view-more { color: var(--green-bright); font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .aspirants-view-more:hover { color: var(--kenya-white); }
+    .aspirants-table-wrap { overflow-x: auto; }
+    .aspirants-table { width: 100%; border-collapse: collapse; min-width: 520px; }
+    .aspirants-table th { padding: 12px 20px; text-align: left; color: rgba(245,245,240,0.55); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; background: rgba(255,255,255,0.02); }
+    .aspirants-table td { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.05); color: rgba(245,245,240,0.72); font-size: 13px; }
+    .aspirants-name-link { color: var(--kenya-white); font-weight: 700; }
+    .aspirants-name-link:hover { color: var(--green-bright); }
+    .aspirants-featured-pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; background: rgba(0,168,107,0.14); color: var(--green-bright); font-size: 11px; font-weight: 700; }
+    .aspirants-empty { padding: 32px; border: 1px dashed rgba(255,255,255,0.14); border-radius: 20px; text-align: center; color: rgba(245,245,240,0.55); background: #141414; }
     .how-section { padding: 100px 0; background: var(--kenya-black); }
     .steps-grid  { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     .step-card { background: #141414; border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 44px 36px; text-align: center; position: relative; overflow: hidden; transition: border-color 0.3s, transform 0.3s; }
@@ -499,6 +515,7 @@
         .aspirant-card img { aspect-ratio: 16 / 8; }
         .stats-grid  { grid-template-columns: 1fr 1fr; }
         .charts-grid { grid-template-columns: 1fr; }
+        .aspirants-table-grid { grid-template-columns: 1fr; }
         .steps-grid  { grid-template-columns: 1fr; }
         .nav-links   { display: none; }
     }
@@ -863,6 +880,74 @@
 
     <div class="section-stripe" style="background:linear-gradient(90deg, var(--kenya-red) 0% 33.3%, #111 33.3% 66.6%, var(--kenya-green) 66.6% 100%)"></div>
 
+    <!-- FEATURED ASPIRANTS -->
+    <section class="featured-aspirants-section">
+        <div class="section-inner">
+            <div class="section-header">
+                <div class="section-label">Featured Aspirants</div>
+                <h2 class="section-title">Aspirants From President to MCA</h2>
+                <p class="section-sub">Featured aspirants are shown first, then the newest profiles complete each list.</p>
+            </div>
+
+            @php
+                $aspirantGroups = collect($homepageAspirantGroups ?? []);
+                $hasAspirants = $aspirantGroups->sum(fn ($group) => $group['candidates']->count()) > 0;
+            @endphp
+
+            @if($hasAspirants)
+                <div class="aspirants-table-grid">
+                    @foreach($aspirantGroups as $group)
+                        <div class="aspirants-table-card">
+                            <div class="aspirants-table-head">
+                                <div class="aspirants-table-title">{{ $group['label'] }}</div>
+                                <a href="{{ route('aspirants.public', ['position' => $group['position']]) }}" class="aspirants-view-more">
+                                    View more <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                            @if($group['candidates']->isNotEmpty())
+                                <div class="aspirants-table-wrap">
+                                    <table class="aspirants-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Party</th>
+                                                <th>County</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($group['candidates'] as $candidate)
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ route('aspirants.show', $candidate) }}" class="aspirants-name-link">
+                                                            {{ $candidate->name }}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{ $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? '-' }}</td>
+                                                    <td>{{ $candidate->county ?? $candidate->country ?? '-' }}</td>
+                                                    <td>
+                                                        @if($candidate->featured)
+                                                            <span class="aspirants-featured-pill">Featured</span>
+                                                        @else
+                                                            Newest
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="aspirants-empty">No {{ strtolower($group['label']) }} aspirants yet.</div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="aspirants-empty">No aspirants are available yet.</div>
+            @endif
+        </div>
+    </section>
     <!-- HOW IT WORKS -->
     <section id="how" class="how-section">
         <div class="section-inner">
