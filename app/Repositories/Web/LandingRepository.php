@@ -54,11 +54,13 @@ class LandingRepository implements LandingRepositoryInterface
             'voterStats'     => $voterStats,
             'countyLabels'   => $countyCollection->pluck('county'),
             'countyData'     => $countyCollection->pluck('count'),
-            'genderData'     => $hasGender ? [
-                User::where('gender', 'male')->count(),
-                User::where('gender', 'female')->count(),
-                User::whereNotIn('gender', ['male', 'female'])->orWhereNull('gender')->count(),
-            ] : [0, 0, 0],
+            'genderData'     => $hasGender
+                ? $this->withGeneratedGenderDistribution([
+                    User::where('gender', 'male')->count(),
+                    User::where('gender', 'female')->count(),
+                    User::whereNotIn('gender', ['male', 'female'])->orWhereNull('gender')->count(),
+                ], $generatedFigures['confirmed_voters'])
+                : [0, 0, 0],
             'latestBlogs'    => NewsArticle::query()
                 ->where('status', 'published')
                 ->latest('published_at')
@@ -162,8 +164,36 @@ class LandingRepository implements LandingRepositoryInterface
             ->sortByDesc('count')
             ->values();
     }
+    private function withGeneratedGenderDistribution(array $genderData, int $generatedVoters): array
+    {
+        if ($generatedVoters <= 0 || ! config('features.live_stats.demo_distribute_counties')) {
+            return $genderData;
+        }
+
+        $realTotal = array_sum(array_map('intval', $genderData));
+
+        if ($realTotal <= 0) {
+            $male = (int) floor($generatedVoters * 0.55);
+            $female = (int) floor($generatedVoters * 0.44);
+
+            return [$male, $female, $generatedVoters - $male - $female];
+        }
+
+        $remaining = $generatedVoters;
+        $lastIndex = count($genderData) - 1;
+
+        foreach ($genderData as $index => $count) {
+            $allocation = $index === $lastIndex
+                ? $remaining
+                : (int) floor($generatedVoters * ((int) $count / $realTotal));
+
+            $allocation = min($allocation, $remaining);
+            $genderData[$index] = (int) $count + $allocation;
+            $remaining -= $allocation;
+        }
+
+        return $genderData;
+    }
 }
-
-
 
 
