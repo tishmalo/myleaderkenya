@@ -10,6 +10,7 @@ use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
 use App\Contracts\Repositories\Admin\ConstituencyRepositoryInterface;
 use App\Contracts\Repositories\Admin\CountyRepositoryInterface;
 use App\Contracts\Repositories\Admin\DonorRepositoryInterface;
+use App\Contracts\Repositories\Admin\LiveStatFigureRepositoryInterface;
 use App\Contracts\Repositories\Admin\NewsArticleRepositoryInterface;
 use App\Contracts\Repositories\Admin\PaymentMethodRepositoryInterface;
 use App\Contracts\Repositories\Admin\PositionRepositoryInterface;
@@ -35,6 +36,7 @@ use App\Repositories\Admin\PoliticalPartyRepository;
 use App\Repositories\Admin\ConstituencyRepository;
 use App\Repositories\Admin\CountyRepository;
 use App\Repositories\Admin\DonorRepository;
+use App\Repositories\Admin\LiveStatFigureRepository;
 use App\Repositories\Admin\NewsArticleRepository;
 use App\Repositories\Admin\PaymentMethodRepository;
 use App\Repositories\Admin\PositionRepository;
@@ -73,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CoalitionRepositoryInterface::class, CoalitionRepository::class);
         $this->app->bind(PoliticalPartyRepositoryInterface::class, PoliticalPartyRepository::class);
         $this->app->bind(DonorRepositoryInterface::class, DonorRepository::class);
+        $this->app->bind(LiveStatFigureRepositoryInterface::class, LiveStatFigureRepository::class);
         $this->app->bind(NewsArticleRepositoryInterface::class, NewsArticleRepository::class);
         $this->app->bind(PaymentMethodRepositoryInterface::class, PaymentMethodRepository::class);
         $this->app->bind(PositionRepositoryInterface::class, PositionRepository::class);
@@ -147,5 +150,7 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
+
+
 
 
