@@ -886,7 +886,6 @@
             <div class="section-header">
                 <div class="section-label">Featured Aspirants</div>
                 <h2 class="section-title">Aspirants From President to MCA</h2>
-                <p class="section-sub">Featured aspirants are shown first, then the newest profiles complete each list.</p>
             </div>
 
             @php
