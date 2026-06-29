@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Message;
 use App\Models\PollingStation;
 use App\Models\Group;
+use Illuminate\Support\Facades\Schema;
 
 class StatsRepository implements StatsRepositoryInterface
 {
@@ -17,7 +18,7 @@ class StatsRepository implements StatsRepositoryInterface
 
     public function getConfirmedVoters(): int
     {
-        return User::where('is_registered', true)->count();
+        return $this->confirmedVotersQuery()->count();
     }
 
     public function getTotalMessages(): int
@@ -49,7 +50,7 @@ class StatsRepository implements StatsRepositoryInterface
 
     public function getTotalRegistered(): int
     {
-        return User::where('is_registered', true)->count();
+        return $this->confirmedVotersQuery()->count();
     }
 
     public function getMaleRegistered(): int
@@ -98,4 +99,21 @@ class StatsRepository implements StatsRepositoryInterface
             'data' => $results->pluck('total')->toArray(),
         ];
     }
+    private function confirmedVotersQuery()
+    {
+        if (Schema::hasColumn('users', 'is_voter')) {
+            return User::where('is_voter', true);
+        }
+
+        if (Schema::hasColumn('users', 'is_registered')) {
+            return User::where('is_registered', true);
+        }
+
+        if (Schema::hasColumn('users', 'voter_registered')) {
+            return User::where('voter_registered', true);
+        }
+
+        return User::query();
+    }
 }
+
