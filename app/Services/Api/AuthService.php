@@ -19,11 +19,7 @@ class AuthService
 
         return [
             'message' => 'User registered successfully',
-            'user'    => $user->only([
-                'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
-                'county', 'constituency', 'ward', 'polling_station',
-                'country_of_residence', 'is_voter', 'is_registered'
-            ]),
+            'user'    => $this->userPayload($user),
             'token'   => $token,
         ];
     }
@@ -42,9 +38,10 @@ class AuthService
         $token = $user->createToken('voter-app-token')->plainTextToken;
 
         return [
-            'message'  => 'Login successful',
-            'username' => $user->username,
-            'token'    => $token,
+            'message'   => 'Login successful',
+            'username'  => $user->username,
+            'user_type' => $user->user_type,
+            'token'     => $token,
         ];
     }
 
@@ -69,22 +66,25 @@ class AuthService
         return [
             'success' => true,
             'message' => 'Profile updated successfully',
-            'user'    => $user->only([
-                'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
-                'county', 'constituency', 'ward', 'polling_station',
-                'country_of_residence', 'is_voter', 'is_registered'
-            ])
+            'user'    => $this->userPayload($user)
         ];
     }
 
     public function getProfile(User $user): array
     {
         return [
-            'user' => $user->only([
-                'username', 'name', 'email', 'phone', 'gender',
-                'year_of_birth', 'county', 'constituency', 'ward',
-                'polling_station', 'country_of_residence', 'is_voter', 'is_registered'
-            ])
+            'user' => $this->userPayload($user)
         ];
+    }
+
+    private function userPayload(User $user): array
+    {
+        return array_merge($user->only([
+            'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
+            'county', 'constituency', 'ward', 'polling_station',
+            'country_of_residence', 'is_voter', 'is_registered'
+        ]), [
+            'user_type' => $user->user_type,
+        ]);
     }
 }
