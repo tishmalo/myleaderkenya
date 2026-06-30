@@ -67,6 +67,31 @@ class User extends Authenticatable
         return $this->hasOne(Location::class, 'name', 'username');
     }
 
+    public function getUserTypeAttribute(): string
+    {
+        if (($this->role ?? null) === 'admin') {
+            return 'admin';
+        }
+
+        if (empty($this->email) && empty($this->phone)) {
+            return 'user';
+        }
+
+        $hasCandidateProfile = Candidate::query()
+            ->where(function ($query) {
+                if (!empty($this->email)) {
+                    $query->orWhere('email', $this->email);
+                }
+
+                if (!empty($this->phone)) {
+                    $query->orWhere('phone', $this->phone);
+                }
+            })
+            ->exists();
+
+        return $hasCandidateProfile ? 'aspirant' : 'user';
+    }
+
         // Voter status relationship (optional)
     public function messages()
     {
