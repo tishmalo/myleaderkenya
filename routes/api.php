@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\DonorController;
 use App\Http\Controllers\Api\StatsController;
+use App\Http\Controllers\Api\CoalitionController as ApiCoalitionController;
+use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyController;
+use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Admin\DashboardController;
 
 /*
@@ -21,6 +24,8 @@ use App\Http\Controllers\Admin\DashboardController;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/resend-email-verification', [AuthController::class, 'resendEmailVerification']);
     Route::post('/refresh-token', [AuthController::class, 'refresh']);
     Route::post('/check-email', [AuthController::class, 'checkEmail']);
     Route::post('/check-otp', [AuthController::class, 'checkOtp']);
@@ -48,6 +53,16 @@ Route::get('/tags', [MessageController::class, 'getTags']);
 Route::post('/nearby_messages', [MessageController::class, 'nearbyMessages']);
 Route::get('/constituency_messages', [MessageController::class, 'getConstituencyMessages']);
 
+
+// Public Content APIs
+Route::get('/news', [NewsController::class, 'list']);
+Route::get('/news/{slug}', [NewsController::class, 'show']);
+Route::get('/parties', [ApiPoliticalPartyController::class, 'list']);
+Route::get('/parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
+Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
+Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
 // Donations
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
 
