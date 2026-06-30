@@ -13,6 +13,30 @@ class LocationController extends Controller
         private LocationService $locationService
     ) {}
 
+    public function getCounties(): JsonResponse
+    {
+        $counties = $this->locationService->getAllCounties();
+
+        return response()->json($counties);
+    }
+
+    public function getConstituenciesByCounty(Request $request): JsonResponse
+    {
+        $constituencies = $this->locationService->getConstituenciesByCountyName(
+            $request->query('county')
+        );
+
+        return response()->json($constituencies);
+    }
+
+    public function getWardsByConstituency(Request $request): JsonResponse
+    {
+        $wards = $this->locationService->getWardsByConstituencyName(
+            $request->query('constituency')
+        );
+
+        return response()->json($wards);
+    }
     /**
      * GET /api/get_locations (Public)
      */
@@ -45,3 +69,4 @@ class LocationController extends Controller
         ]);
     }
 }
+
