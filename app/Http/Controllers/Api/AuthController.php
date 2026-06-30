@@ -15,12 +15,14 @@ class AuthController extends Controller
     public function __construct(
         private AuthService $authService
     ) {}
+
     public function register(RegisterRequest $request)
     {
         $result = $this->authService->register($request->validated());
 
         return response()->json($result, 201);
     }
+
     /**
      * Refresh token (requires authentication)
      */
@@ -62,5 +64,40 @@ class AuthController extends Controller
         $result = $this->authService->updateProfile($request->user(), $request->validated());
 
         return response()->json($result);
+    }
+
+    public function verifyEmail(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'otp'   => 'required|string|size:6',
+        ]);
+
+        try {
+            $result = $this->authService->verifyEmail($validated['email'], $validated['otp']);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 400);
+        }
+    }
+
+    public function resendEmailVerification(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        try {
+            $result = $this->authService->resendEmailVerification($validated['email']);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 400);
+        }
     }
 }
