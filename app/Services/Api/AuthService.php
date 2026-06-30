@@ -39,6 +39,7 @@ class AuthService
 
         return [
             'message'   => 'Login successful',
+            'id'        => $user->id,
             'username'  => $user->username,
             'user_type' => $user->user_type,
             'token'     => $token,
@@ -80,7 +81,7 @@ class AuthService
     private function userPayload(User $user): array
     {
         return array_merge($user->only([
-            'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
+            'id', 'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
             'county', 'constituency', 'ward', 'polling_station',
             'country_of_residence', 'is_voter', 'is_registered'
         ]), [
