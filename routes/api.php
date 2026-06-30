@@ -29,9 +29,9 @@ Route::prefix('auth')->group(function () {
 
 // Location Hierarchy (Public API)
 Route::prefix('locations')->group(function () {
-    Route::get('/counties', [MessageController::class, 'getCounties']);
-    Route::get('/constituencies/by-county', [MessageController::class, 'getConstituenciesByCounty']);
-    Route::get('/wards/by-constituency', [MessageController::class, 'getWardsByConstituency']);
+    Route::get('/counties', [LocationController::class, 'getCounties']);
+    Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty']);
+    Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency']);
     Route::get('/all', [LocationController::class, 'getLocations']);
 });
 
