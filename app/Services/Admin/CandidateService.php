@@ -96,7 +96,42 @@ class CandidateService
             unset($data['political_party_id']);
         }
 
+        foreach (['country', 'county', 'constituency', 'ward'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = $this->normalizeLocationValue($data[$field]);
+            }
+        }
+
         return $data;
+    }
+
+    private function normalizeLocationValue($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_array($value)) {
+            return $value['name'] ?? $value['label'] ?? null;
+        }
+
+        if (is_object($value)) {
+            return $value->name ?? $value->label ?? null;
+        }
+
+        $value = trim((string) $value);
+        if ($value === '[object Object]') {
+            return null;
+        }
+
+        if (str_starts_with($value, '{')) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded['name'] ?? $decoded['label'] ?? null;
+            }
+        }
+
+        return $value;
     }
     // -------------------------------------------------------------------------
     // Form dropdowns
@@ -129,6 +164,3 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
-
-
-

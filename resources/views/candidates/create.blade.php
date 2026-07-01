@@ -91,6 +91,14 @@ const jurisdictionFields = document.getElementById('jurisdictionFields');
 
 let allCounties = [];
 
+function optionName(item) {
+    return typeof item === 'object' && item !== null ? (item.name || item.label || '') : item;
+}
+
+function optionId(item) {
+    return typeof item === 'object' && item !== null ? (item.id || '') : '';
+}
+
 // Fetch all counties once
 async function fetchCounties() {
     try {
@@ -209,10 +217,11 @@ function attachEventListeners() {
     if (countySelect) {
         // Populate counties
         allCounties.forEach(county => {
+            const name = optionName(county);
             const opt = document.createElement('option');
-            opt.value = county.name;
-            opt.dataset.id = county.id;
-            opt.textContent = county.name;
+            opt.value = name;
+            opt.dataset.id = optionId(county);
+            opt.textContent = name;
             countySelect.appendChild(opt);
         });
 
@@ -225,10 +234,11 @@ function attachEventListeners() {
 
             constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
             data.forEach(c => {
+                const name = optionName(c);
                 const opt = document.createElement('option');
-                opt.value = c.name;
-                opt.dataset.id = c.id;
-                opt.textContent = c.name;
+                opt.value = name;
+                opt.dataset.id = optionId(c);
+                opt.textContent = name;
                 constituencySelect.appendChild(opt);
             });
 
@@ -247,10 +257,11 @@ function attachEventListeners() {
 
             wardSelect.innerHTML = '<option value="">Select Ward</option>';
             data.forEach(w => {
+                const name = optionName(w);
                 const opt = document.createElement('option');
-                opt.value = w.name;
-                opt.dataset.id = w.id;
-                opt.textContent = w.name;
+                opt.value = name;
+                opt.dataset.id = optionId(w);
+                opt.textContent = name;
                 wardSelect.appendChild(opt);
             });
         });

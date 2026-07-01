@@ -112,10 +112,10 @@ class AspirantController extends Controller
             'featured' => (bool) $candidate->featured,
             'profile_picture' => $candidate->profile_picture,
             'profile_picture_url' => $this->storageUrl($candidate->profile_picture),
-            'country' => $candidate->country,
-            'county' => $candidate->county,
-            'constituency' => $candidate->constituency,
-            'ward' => $candidate->ward,
+            'country' => $this->formatLocationValue($candidate->country),
+            'county' => $this->formatLocationValue($candidate->county),
+            'constituency' => $this->formatLocationValue($candidate->constituency),
+            'ward' => $this->formatLocationValue($candidate->ward),
             'position' => $candidate->position ? [
                 'id' => $candidate->position->id,
                 'name' => $candidate->position->name,
@@ -137,6 +137,35 @@ class AspirantController extends Controller
         }
 
         return $data;
+    }
+
+    private function formatLocationValue($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_array($value)) {
+            return $value['name'] ?? $value['label'] ?? null;
+        }
+
+        if (is_object($value)) {
+            return $value->name ?? $value->label ?? null;
+        }
+
+        $value = trim((string) $value);
+        if ($value === '[object Object]') {
+            return null;
+        }
+
+        if (str_starts_with($value, '{')) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded['name'] ?? $decoded['label'] ?? null;
+            }
+        }
+
+        return $value;
     }
 
     private function storageUrl(?string $path): ?string
