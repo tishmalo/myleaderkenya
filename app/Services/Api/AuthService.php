@@ -69,12 +69,10 @@ class AuthService
         ])->save();
 
         try {
-            Mail::raw(
-                "Your password reset code is {$otp}. It expires in 10 minutes.",
-                function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('Reset your password');
-                }
+            $this->sendRawMail(
+                $user->email,
+                'Reset your password',
+                "Your password reset code is {$otp}. It expires in 10 minutes."
             );
         } catch (\Throwable $e) {
             return [
@@ -267,12 +265,10 @@ class AuthService
         ])->save();
 
         try {
-            Mail::raw(
-                "Your verification code is {$otp}. It expires in 10 minutes.",
-                function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('Verify your email');
-                }
+            $this->sendRawMail(
+                $user->email,
+                'Verify your email',
+                "Your verification code is {$otp}. It expires in 10 minutes."
             );
         } catch (\Throwable $e) {
             return [
@@ -289,6 +285,16 @@ class AuthService
             'verified' => false,
             'expires_at' => $expiresAt->toISOString(),
         ];
+    }
+
+    private function sendRawMail(string $to, string $subject, string $body): void
+    {
+        $timeout = (int) env('MAIL_TIMEOUT', config('mail.mailers.smtp.timeout') ?: 5);
+        config(['mail.mailers.smtp.timeout' => max(1, $timeout)]);
+
+        Mail::raw($body, function ($message) use ($to, $subject) {
+            $message->to($to)->subject($subject);
+        });
     }
 
     private function userPayload(User $user): array
