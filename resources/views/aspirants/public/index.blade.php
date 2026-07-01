@@ -425,9 +425,10 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- FILTER BAR -->
+
 <div class="filter-bar-wrap">
     <form method="GET">
-        <div class="filter-bar">
+        <div class="filter-bar" data-aspirant-filter>
             <span class="filter-bar-label">Filter</span>
 
             <div class="filter-input-wrap">
@@ -439,27 +440,56 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
             <div class="filter-divider"></div>
 
             <div class="filter-select-wrap">
-                <span class="filter-icon"><i class="fas fa-flag"></i></span>
-                <select name="political_party">
-                    <option value="">All Political Parties</option>
-                    @foreach($politicalParties as $party)
-                        <option value="{{ $party->id }}" {{ request('political_party') == $party->id ? 'selected' : '' }}>
-                            {{ $party->abbreviation ? $party->abbreviation . ' - ' : '' }}{{ $party->name }}
+                <span class="filter-icon"><i class="fas fa-briefcase"></i></span>
+                <select name="position" data-position-filter>
+                    <option value="" data-position-key="">All Positions</option>
+                    @foreach($positions as $pos)
+                        @php($positionKey = strtolower(str_replace([' ', '_'], '-', $pos->name)))
+                        <option value="{{ $pos->id }}" data-position-key="{{ $positionKey }}" {{ request('position') == $pos->id ? 'selected' : '' }}>
+                            {{ $pos->name }}
                         </option>
                     @endforeach
                 </select>
             </div>
 
-            <div class="filter-divider"></div>
+            <div class="filter-divider" data-location-divider></div>
 
-            <div class="filter-select-wrap">
-                <span class="filter-icon"><i class="fas fa-briefcase"></i></span>
-                <select name="position">
-                    <option value="">All Positions</option>
-                    @foreach($positions as $pos)
-                        <option value="{{ $pos->id }}" {{ request('position') == $pos->id ? 'selected' : '' }}>
-                            {{ $pos->name }}
-                        </option>
+            <div class="filter-select-wrap" data-location-filter="country">
+                <span class="filter-icon"><i class="fas fa-globe-africa"></i></span>
+                <select name="country">
+                    <option value="">Country</option>
+                    @foreach(($countries ?? collect(['Kenya'])) as $country)
+                        <option value="{{ $country }}" {{ request('country') == $country ? 'selected' : '' }}>{{ $country }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="filter-select-wrap" data-location-filter="county">
+                <span class="filter-icon"><i class="fas fa-map-marker-alt"></i></span>
+                <select name="county" data-county-filter>
+                    <option value="">County</option>
+                    @foreach($counties as $county)
+                        <option value="{{ $county }}" {{ request('county') == $county ? 'selected' : '' }}>{{ $county }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="filter-select-wrap" data-location-filter="constituency">
+                <span class="filter-icon"><i class="fas fa-location-arrow"></i></span>
+                <select name="constituency" data-constituency-filter data-selected="{{ request('constituency') }}">
+                    <option value="">Constituency</option>
+                    @foreach($constituencies as $constituency)
+                        <option value="{{ $constituency }}" {{ request('constituency') == $constituency ? 'selected' : '' }}>{{ $constituency }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="filter-select-wrap" data-location-filter="ward">
+                <span class="filter-icon"><i class="fas fa-map-pin"></i></span>
+                <select name="ward" data-ward-filter data-selected="{{ request('ward') }}">
+                    <option value="">Ward</option>
+                    @foreach($wards as $ward)
+                        <option value="{{ $ward }}" {{ request('ward') == $ward ? 'selected' : '' }}>{{ $ward }}</option>
                     @endforeach
                 </select>
             </div>
@@ -487,8 +517,17 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         @if(request('position'))
             for selected position
         @endif
-        @if(request('political_party'))
-            under selected political party
+        @if(request('country'))
+            in <strong>{{ request('country') }}</strong>
+        @endif
+        @if(request('county'))
+            in <strong>{{ request('county') }}</strong>
+        @endif
+        @if(request('constituency'))
+            / <strong>{{ request('constituency') }}</strong>
+        @endif
+        @if(request('ward'))
+            / <strong>{{ request('ward') }}</strong>
         @endif
     </div>
     <div class="results-tri"></div>
@@ -566,5 +605,87 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     </div>
 @endif
 
-@endsection
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var root = document.querySelector('[data-aspirant-filter]');
+    if (!root) return;
 
+    var positionSelect = root.querySelector('[data-position-filter]');
+    var countySelect = root.querySelector('[data-county-filter]');
+    var constituencySelect = root.querySelector('[data-constituency-filter]');
+    var wardSelect = root.querySelector('[data-ward-filter]');
+    var locationGroups = root.querySelectorAll('[data-location-filter]');
+
+    function selectedPositionKey() {
+        var option = positionSelect.options[positionSelect.selectedIndex];
+        return (option && option.dataset.positionKey || '').toLowerCase();
+    }
+
+    function positionScope(key) {
+        if (!key || key.indexOf('president') !== -1) return ['country'];
+        if (key.indexOf('mca') !== -1 || key.indexOf('county-assembly') !== -1) return ['county', 'constituency', 'ward'];
+        if (key === 'mp' || key.indexOf('parliament') !== -1) return ['county', 'constituency'];
+        if (key.indexOf('governor') !== -1 || key.indexOf('senator') !== -1 || key.indexOf('woman') !== -1 || key.indexOf('women') !== -1) return ['county'];
+        return ['country'];
+    }
+
+    function setSelectOptions(select, values, placeholder, selectedValue) {
+        select.innerHTML = '';
+        select.appendChild(new Option(placeholder, ''));
+        values.forEach(function (item) {
+            var value = typeof item === 'string' ? item : (item.name || item.value || '');
+            if (!value) return;
+            var option = new Option(value, value);
+            if (value === selectedValue) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+
+    function fetchOptions(url, select, placeholder, selectedValue) {
+        fetch(url, { headers: { Accept: 'application/json' } })
+            .then(function (response) { return response.ok ? response.json() : []; })
+            .then(function (data) { setSelectOptions(select, Array.isArray(data) ? data : [], placeholder, selectedValue || ''); })
+            .catch(function () { setSelectOptions(select, [], placeholder, ''); });
+    }
+
+    function applyScope() {
+        var allowed = positionScope(selectedPositionKey());
+        locationGroups.forEach(function (group) {
+            var visible = allowed.indexOf(group.dataset.locationFilter) !== -1;
+            group.style.display = visible ? '' : 'none';
+            var select = group.querySelector('select');
+            if (select) {
+                select.disabled = !visible;
+                if (!visible) select.value = '';
+            }
+        });
+    }
+
+    positionSelect.addEventListener('change', function () {
+        countySelect.value = '';
+        setSelectOptions(constituencySelect, [], 'Constituency', '');
+        setSelectOptions(wardSelect, [], 'Ward', '');
+        applyScope();
+    });
+
+    countySelect.addEventListener('change', function () {
+        setSelectOptions(wardSelect, [], 'Ward', '');
+        if (!countySelect.value) {
+            setSelectOptions(constituencySelect, [], 'Constituency', '');
+            return;
+        }
+        fetchOptions('/api/locations/constituencies/by-county?county=' + encodeURIComponent(countySelect.value), constituencySelect, 'Constituency', '');
+    });
+
+    constituencySelect.addEventListener('change', function () {
+        if (!constituencySelect.value) {
+            setSelectOptions(wardSelect, [], 'Ward', '');
+            return;
+        }
+        fetchOptions('/api/locations/wards/by-constituency?constituency=' + encodeURIComponent(constituencySelect.value), wardSelect, 'Ward', '');
+    });
+
+    applyScope();
+});
+</script>
+@endsection

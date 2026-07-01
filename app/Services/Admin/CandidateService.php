@@ -155,7 +155,10 @@ class CandidateService
             'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
             'positions'  => $this->candidateRepository->allPositions(),
             'politicalParties' => $this->candidateRepository->allPoliticalParties(),
+            'countries' => $this->candidateRepository->allCountries(),
             'counties'   => $this->candidateRepository->allCounties(),
+            'constituencies' => $this->candidateRepository->allConstituencies($filters['county'] ?? null),
+            'wards' => $this->candidateRepository->allWards($filters['constituency'] ?? null),
         ];
     }
 
