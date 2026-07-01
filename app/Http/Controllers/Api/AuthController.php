@@ -28,8 +28,16 @@ class AuthController extends Controller
      */
     public function refresh(Request $request)
     {
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'Unauthenticated. Please provide a valid bearer token.'
+            ], 401);
+        }
+
         try {
-            $result = $this->authService->refreshToken($request->user());
+            $result = $this->authService->refreshToken($user);
 
             return response()->json($result);
         } catch (\Exception $e) {
