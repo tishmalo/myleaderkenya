@@ -27,7 +27,6 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('/resend-email-verification', [AuthController::class, 'resendEmailVerification']);
-    Route::post('/refresh-token', [AuthController::class, 'refresh']);
     Route::post('/check-email', [AuthController::class, 'checkEmail']);
     Route::post('/check-otp', [AuthController::class, 'checkOtp']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
@@ -75,6 +74,8 @@ Route::get('/stats/live', [StatsController::class, 'liveStats']);
 
 // ====================== PROTECTED ROUTES ======================
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/auth/refresh-token', [AuthController::class, 'refresh']);
 
     // Profile
     Route::prefix('profile')->group(function () {
