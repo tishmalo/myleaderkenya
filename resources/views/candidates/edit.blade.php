@@ -223,8 +223,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (countySelect) {
             countySelect.addEventListener('change', function() {
                 const county = this.selectedOptions[0]?.dataset.id || this.value;
+                currentConstituency = '';
+                currentWard = '';
                 if (constituencySelect) loadConstituencies(county);
                 if (wardSelect) wardSelect.innerHTML = '<option value="">Select Ward</option>';
+            });
+        }
+
+        if (constituencySelect) {
+            constituencySelect.addEventListener('change', function() {
+                const constituency = this.selectedOptions[0]?.dataset.id || this.value;
+                currentWard = '';
+                if (wardSelect) loadWards(constituency);
             });
         }
     }
