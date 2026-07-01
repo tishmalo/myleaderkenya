@@ -28,12 +28,14 @@ class AuthService
         ];
     }
 
-    public function login(string $username, string $password): array
+    public function login(string $login, string $password): array
     {
-        $user = $this->userRepository->findByUsername($username);
+        $user = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? $this->userRepository->findByEmail($login)
+            : $this->userRepository->findByUsername($login);
 
         if (!$user || !Hash::check($password, $user->password)) {
-            throw new \Exception('Invalid username or password', 401);
+            throw new \Exception('Invalid email/username or password', 401);
         }
 
         // Revoke all previous tokens
