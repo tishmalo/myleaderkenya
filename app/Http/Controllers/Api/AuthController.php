@@ -100,4 +100,72 @@ class AuthController extends Controller
             ], $e->getCode() ?: 400);
         }
     }
+    public function checkEmail(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        try {
+            $result = $this->authService->sendPasswordResetOtp($validated['email']);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 400);
+        }
+    }
+
+    public function checkOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|string|size:6',
+        ]);
+
+        try {
+            $result = $this->authService->checkPasswordResetOtp($validated['email'], $validated['otp']);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 400);
+        }
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|string|size:6',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        try {
+            $result = $this->authService->resetPasswordWithOtp(
+                $validated['email'],
+                $validated['otp'],
+                $validated['password']
+            );
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 400);
+        }
+    }
+
+    public function savePlayerId(Request $request)
+    {
+        $validated = $request->validate([
+            'player_id' => 'required|string|max:255',
+        ]);
+
+        $result = $this->authService->savePlayerId($request->user(), $validated['player_id']);
+
+        return response()->json($result, $result['success'] ? 200 : 501);
+    }
 }
