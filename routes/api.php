@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\CoalitionController as ApiCoalitionController;
 use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyController;
 use App\Http\Controllers\Api\NewsController;
+use App\Http\Controllers\Api\AspirantController;
 use App\Http\Controllers\Admin\DashboardController;
 
 /*
@@ -63,6 +64,8 @@ Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
 Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
 Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
 Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
+Route::get('/aspirants', [AspirantController::class, 'list']);
+Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
 // Donations
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
 
