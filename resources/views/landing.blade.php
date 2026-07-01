@@ -269,22 +269,31 @@
                 </div>
             </div>
             <div class="hero-card-body">
-                <div class="hc-title">Latest Blogs</div>
+                <div class="hc-title">Latest News Updates</div>
                 @if(($latestBlogs ?? collect())->isNotEmpty())
                     <div class="latest-blog-list">
                         @foreach($latestBlogs as $blog)
                             <a href="{{ route('news.public.show', $blog->slug) }}" class="latest-blog-item">
-                                <div class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</div>
-                                <div class="latest-blog-title">{{ $blog->title }}</div>
-                                <div class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</div>
+                                <div class="latest-blog-image">
+                                    @if($blog->featured_image)
+                                        <img src="{{ Storage::url($blog->featured_image) }}" alt="{{ $blog->title }}">
+                                    @else
+                                        <i class="fas fa-newspaper"></i>
+                                    @endif
+                                </div>
+                                <div class="latest-blog-copy">
+                                    <div class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</div>
+                                    <div class="latest-blog-title">{{ $blog->title }}</div>
+                                    <div class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</div>
+                                </div>
                             </a>
                         @endforeach
                     </div>
                 @else
-                    <div class="reason-desc">Latest blogs will appear here once published.</div>
+                    <div class="reason-desc">Latest news updates will appear here once published.</div>
                 @endif
                 <a href="{{ route('news.public') }}" class="latest-blog-more">
-                    Read more <i class="fas fa-arrow-right"></i>
+                    More News <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
