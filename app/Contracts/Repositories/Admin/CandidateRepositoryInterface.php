@@ -22,6 +22,12 @@ interface CandidateRepositoryInterface
 
     public function allCounties(): Collection;
 
+    public function allCountries(): Collection;
+
+    public function allConstituencies(?string $county = null): Collection;
+
+    public function allWards(?string $constituency = null): Collection;
+
     public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator;
 
     public function loadPublicShow(Candidate $candidate): Candidate;

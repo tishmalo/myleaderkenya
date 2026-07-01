@@ -5,8 +5,11 @@ namespace App\Repositories\Admin;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Models\PoliticalParty;
 use App\Models\Candidate;
+use App\Models\Constituency;
+use App\Models\County;
 use App\Models\NewsArticle;
 use App\Models\Position;
+use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -62,7 +65,33 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     public function allCounties(): Collection
     {
-        return Candidate::whereNotNull('county')->distinct()->pluck('county');
+        return County::orderBy('name')->pluck('name');
+    }
+
+    public function allCountries(): Collection
+    {
+        return Candidate::whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country')
+            ->whenEmpty(fn () => collect(['Kenya']));
+    }
+
+    public function allConstituencies(?string $county = null): Collection
+    {
+        return Constituency::query()
+            ->when($county, fn ($query) => $query->whereHas('county', fn ($countyQuery) => $countyQuery->where('name', $county)))
+            ->orderBy('name')
+            ->pluck('name');
+    }
+
+    public function allWards(?string $constituency = null): Collection
+    {
+        return Ward::query()
+            ->when($constituency, fn ($query) => $query->whereHas('constituency', fn ($constituencyQuery) => $constituencyQuery->where('name', $constituency)))
+            ->orderBy('name')
+            ->pluck('name');
     }
 
     public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator
@@ -77,8 +106,20 @@ class CandidateRepository implements CandidateRepositoryInterface
             });
         }
 
+        if (!empty($filters['country'])) {
+            $query->where('country', $filters['country']);
+        }
+
         if (!empty($filters['county'])) {
             $query->where('county', $filters['county']);
+        }
+
+        if (!empty($filters['constituency'])) {
+            $query->where('constituency', $filters['constituency']);
+        }
+
+        if (!empty($filters['ward'])) {
+            $query->where('ward', $filters['ward']);
         }
 
         if (!empty($filters['position'])) {
