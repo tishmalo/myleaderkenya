@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class AuthService
 {
@@ -51,6 +52,100 @@ class AuthService
         ];
     }
 
+    public function sendPasswordResetOtp(string $email): array
+    {
+        $user = $this->userRepository->findByEmail($email);
+
+        if (!$user) {
+            throw new \Exception('User not found', 404);
+        }
+
+        $otp = (string) random_int(100000, 999999);
+        $expiresAt = now()->addMinutes(10);
+
+        $user->forceFill([
+            'otp' => Hash::make($otp),
+            'otp_expires_at' => $expiresAt,
+        ])->save();
+
+        try {
+            Mail::raw(
+                "Your password reset code is {$otp}. It expires in 10 minutes.",
+                function ($message) use ($user) {
+                    $message->to($user->email)
+                        ->subject('Reset your password');
+                }
+            );
+        } catch (\Throwable $e) {
+            return [
+                'message' => 'OTP generated but could not be sent',
+                'otp_sent' => false,
+                'expires_at' => $expiresAt->toISOString(),
+            ];
+        }
+
+        return [
+            'message' => 'OTP sent successfully',
+            'otp_sent' => true,
+            'expires_at' => $expiresAt->toISOString(),
+        ];
+    }
+
+    public function checkPasswordResetOtp(string $email, string $otp): array
+    {
+        $user = $this->userRepository->findByEmail($email);
+
+        if (!$user) {
+            throw new \Exception('User not found', 404);
+        }
+
+        $this->assertValidOtp($user, $otp);
+
+        return [
+            'message' => 'OTP is valid',
+            'valid' => true,
+        ];
+    }
+
+    public function resetPasswordWithOtp(string $email, string $otp, string $password): array
+    {
+        $user = $this->userRepository->findByEmail($email);
+
+        if (!$user) {
+            throw new \Exception('User not found', 404);
+        }
+
+        $this->assertValidOtp($user, $otp);
+
+        $user->forceFill([
+            'password' => Hash::make($password),
+            'otp' => null,
+            'otp_expires_at' => null,
+        ])->save();
+
+        $user->tokens()->delete();
+
+        return [
+            'message' => 'Password reset successfully',
+        ];
+    }
+
+    public function savePlayerId(User $user, string $playerId): array
+    {
+        if (!Schema::hasColumn('users', 'player_id')) {
+            return [
+                'success' => false,
+                'message' => 'Player ID storage is not configured on this server',
+            ];
+        }
+
+        $user->forceFill(['player_id' => $playerId])->save();
+
+        return [
+            'success' => true,
+            'message' => 'Player ID saved successfully',
+        ];
+    }
     public function verifyEmail(string $email, string $otp): array
     {
         $user = $this->userRepository->findByEmail($email);
@@ -134,6 +229,16 @@ class AuthService
         ];
     }
 
+    private function assertValidOtp(User $user, string $otp): void
+    {
+        if (!$user->otp || !$user->otp_expires_at || now()->greaterThan($user->otp_expires_at)) {
+            throw new \Exception('OTP has expired', 422);
+        }
+
+        if (!Hash::check($otp, $user->otp)) {
+            throw new \Exception('Invalid OTP', 422);
+        }
+    }
     private function sendEmailVerificationCode(User $user): array
     {
         if ($user->email_verified_at) {

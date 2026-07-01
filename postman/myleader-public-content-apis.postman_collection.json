@@ -1,161 +1,386 @@
 {
-  "info": {
-    "name": "MyLeader Public Content APIs",
-    "description": "Postman collection for public news, political parties, and coalitions API endpoints.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "News",
-      "item": [
-        {
-          "name": "List News",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/news?per_page=12&search=&tag=&party=&candidate=",
-              "host": ["{{base_url}}"],
-              "path": ["api", "news"],
-              "query": [
-                { "key": "per_page", "value": "12", "description": "Max 50" },
-                { "key": "search", "value": "", "description": "Optional title/excerpt/content search" },
-                { "key": "tag", "value": "", "description": "Optional tag slug" },
-                { "key": "party", "value": "", "description": "Optional political party slug" },
-                { "key": "candidate", "value": "", "description": "Optional candidate id" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Show News Article",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/news/{{news_slug}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "news", "{{news_slug}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Political Parties",
-      "item": [
-        {
-          "name": "List Parties",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/parties?per_page=12&search=",
-              "host": ["{{base_url}}"],
-              "path": ["api", "parties"],
-              "query": [
-                { "key": "per_page", "value": "12", "description": "Max 50" },
-                { "key": "search", "value": "", "description": "Optional name/abbreviation/excerpt search" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Show Party",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/parties/{{party_slug}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "parties", "{{party_slug}}"]
-            }
-          }
-        },
-        {
-          "name": "List Political Parties Alias",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/political-parties?per_page=12&search=",
-              "host": ["{{base_url}}"],
-              "path": ["api", "political-parties"],
-              "query": [
-                { "key": "per_page", "value": "12", "description": "Max 50" },
-                { "key": "search", "value": "", "description": "Optional name/abbreviation/excerpt search" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Show Political Party Alias",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/political-parties/{{party_slug}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "political-parties", "{{party_slug}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Coalitions",
-      "item": [
-        {
-          "name": "List Coalitions",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/coalitions?per_page=12&search=",
-              "host": ["{{base_url}}"],
-              "path": ["api", "coalitions"],
-              "query": [
-                { "key": "per_page", "value": "12", "description": "Max 50" },
-                { "key": "search", "value": "", "description": "Optional name/excerpt search" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Show Coalition",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/coalitions/{{coalition_slug}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "coalitions", "{{coalition_slug}}"]
-            }
-          }
-        }
-      ]
-    }
-  ],
-  "variable": [
-    { "key": "base_url", "value": "https://myleader.co.ke" },
-    { "key": "news_slug", "value": "sample-news-slug" },
-    { "key": "party_slug", "value": "sample-party-slug" },
-    { "key": "coalition_slug", "value": "sample-coalition-slug" }
-  ]
+    "info":  {
+                 "name":  "MyLeader Public Content APIs",
+                 "description":  "Postman collection for public news, political parties, and coalitions API endpoints.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "News",
+                     "item":  [
+                                  {
+                                      "name":  "List News",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/news?per_page=12\u0026search=\u0026tag=\u0026party=\u0026candidate=",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "news"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "per_page",
+                                                                                    "value":  "12",
+                                                                                    "description":  "Max 50"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "search",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional title/excerpt/content search"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "tag",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional tag slug"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "party",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional political party slug"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "candidate",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional candidate id"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Show News Article",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/news/{{news_slug}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "news",
+                                                                               "{{news_slug}}"
+                                                                           ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Political Parties",
+                     "item":  [
+                                  {
+                                      "name":  "List Parties",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/parties?per_page=12\u0026search=",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "parties"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "per_page",
+                                                                                    "value":  "12",
+                                                                                    "description":  "Max 50"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "search",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional name/abbreviation/excerpt search"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Show Party",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/parties/{{party_slug}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "parties",
+                                                                               "{{party_slug}}"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "List Political Parties Alias",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/political-parties?per_page=12\u0026search=",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "political-parties"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "per_page",
+                                                                                    "value":  "12",
+                                                                                    "description":  "Max 50"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "search",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional name/abbreviation/excerpt search"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Show Political Party Alias",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/political-parties/{{party_slug}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "political-parties",
+                                                                               "{{party_slug}}"
+                                                                           ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Coalitions",
+                     "item":  [
+                                  {
+                                      "name":  "List Coalitions",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/coalitions?per_page=12\u0026search=",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "coalitions"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "per_page",
+                                                                                    "value":  "12",
+                                                                                    "description":  "Max 50"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "search",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional name/excerpt search"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Show Coalition",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/coalitions/{{coalition_slug}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "coalitions",
+                                                                               "{{coalition_slug}}"
+                                                                           ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Aspirants",
+                     "item":  [
+                                  {
+                                      "name":  "List Aspirants",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/aspirants?per_page=12\u0026search=\u0026candidate=\u0026position=\u0026political_party=\u0026county=\u0026constituency=\u0026ward=\u0026featured=",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "aspirants"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "per_page",
+                                                                                    "value":  "12",
+                                                                                    "description":  "Max 50"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "search",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional name/nickname/about search"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "candidate",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional alias for search"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "position",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional position id or alias e.g. governor, senator, mp, mca"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "political_party",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional party id, slug, name, or abbreviation"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "county",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional county name"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "constituency",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional constituency name"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "ward",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional ward name"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "featured",
+                                                                                    "value":  "",
+                                                                                    "description":  "Optional true or false"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Show Aspirant",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/api/aspirants/{{aspirant_id}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "api",
+                                                                               "aspirants",
+                                                                               "{{aspirant_id}}"
+                                                                           ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 }
+             ],
+    "variable":  [
+                     {
+                         "key":  "base_url",
+                         "value":  "https://myleader.co.ke"
+                     },
+                     {
+                         "key":  "news_slug",
+                         "value":  "sample-news-slug"
+                     },
+                     {
+                         "key":  "party_slug",
+                         "value":  "sample-party-slug"
+                     },
+                     {
+                         "key":  "coalition_slug",
+                         "value":  "sample-coalition-slug"
+                     },
+                     {
+                         "key":  "aspirant_id",
+                         "value":  "1"
+                     }
+                 ]
 }
