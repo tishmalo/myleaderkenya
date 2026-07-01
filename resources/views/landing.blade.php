@@ -258,7 +258,7 @@
                 <div class="hc-dot" style="background:var(--kenya-green)"></div>
             </div>
             <div class="hero-card-banner">
-                <div class="aspirant-carousel" data-aspirant-carousel data-endpoint="{{ route('landing.featured-aspirants') }}?per_page=20">
+                <div class="aspirant-carousel" data-aspirant-carousel data-endpoint="{{ route('landing.featured-aspirants') }}?per_page=20" data-all-aspirants-url="{{ route('aspirants.public') }}">
                     <div class="aspirant-carousel-empty" data-aspirant-empty>
                         <div>
                             <div class="banner-icon"><i class="fas fa-vote-yea"></i></div>

@@ -27,7 +27,7 @@ class LandingController extends Controller
         $perPage = min(max((int) $request->query('per_page', 20), 2), 40);
 
         $aspirants = Candidate::query()
-            ->with('position')
+            ->with(['position', 'politicalParty'])
             ->where('featured', true)
             ->whereNotNull('profile_picture')
             ->where('profile_picture', '!=', '')
@@ -38,11 +38,32 @@ class LandingController extends Controller
             'data' => $aspirants->getCollection()->map(fn (Candidate $candidate) => [
                 'name' => $candidate->name,
                 'position' => $candidate->position->name ?? 'Aspirant',
+                'area' => $this->candidateArea($candidate),
+                'party' => $candidate->politicalParty->abbreviation
+                    ?? $candidate->politicalParty->name
+                    ?? null,
                 'image_url' => $this->candidateImageUrl($candidate->profile_picture),
                 'url' => route('aspirants.show', $candidate),
             ])->values(),
             'next_page_url' => $aspirants->nextPageUrl(),
         ]);
+    }
+
+    private function candidateArea(Candidate $candidate): ?string
+    {
+        if ($candidate->ward) {
+            return $candidate->ward . ' Ward';
+        }
+
+        if ($candidate->constituency) {
+            return $candidate->constituency . ' Constituency';
+        }
+
+        if ($candidate->county) {
+            return $candidate->county . ' County';
+        }
+
+        return $candidate->country ?: null;
     }
 
     private function candidateImageUrl(string $path): string
