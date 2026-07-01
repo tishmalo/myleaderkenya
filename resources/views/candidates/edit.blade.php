@@ -179,6 +179,14 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
     }
 
+    function optionName(item) {
+        return typeof item === 'object' && item !== null ? (item.name || item.label || '') : item;
+    }
+
+    function optionId(item) {
+        return typeof item === 'object' && item !== null ? (item.id || '') : '';
+    }
+
     function initCascadingDropdowns() {
         const countySelect = document.getElementById('countySelect');
         const constituencySelect = document.getElementById('constituencySelect');
