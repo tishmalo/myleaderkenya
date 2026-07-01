@@ -148,17 +148,16 @@ let currentSlide = 0;
 
         var position = document.createElement('div');
         position.className = 'aspirant-position';
-        position.textContent = aspirant.position || 'Aspirant';
+        position.textContent = [aspirant.position || 'Aspirant', aspirant.area].filter(Boolean).join(', ');
 
         body.appendChild(name);
         body.appendChild(position);
 
-        var metaParts = [aspirant.area, aspirant.party].filter(Boolean);
-        if (metaParts.length) {
-            var meta = document.createElement('div');
-            meta.className = 'aspirant-meta';
-            meta.textContent = metaParts.join(' - ');
-            body.appendChild(meta);
+        if (aspirant.party) {
+            var party = document.createElement('div');
+            party.className = 'aspirant-party';
+            party.textContent = aspirant.party;
+            body.appendChild(party);
         }
         card.appendChild(image);
         card.appendChild(body);
