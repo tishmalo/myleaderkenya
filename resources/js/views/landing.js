@@ -120,6 +120,7 @@ let currentSlide = 0;
     if (!carousel) return;
 
     var endpoint = carousel.dataset.endpoint;
+    var allAspirantsUrl = carousel.dataset.allAspirantsUrl || '/aspirants';
     var empty = carousel.querySelector('[data-aspirant-empty]');
     var slides = [];
     var pending = [];
@@ -151,10 +152,26 @@ let currentSlide = 0;
 
         body.appendChild(name);
         body.appendChild(position);
+
+        var metaParts = [aspirant.area, aspirant.party].filter(Boolean);
+        if (metaParts.length) {
+            var meta = document.createElement('div');
+            meta.className = 'aspirant-meta';
+            meta.textContent = metaParts.join(' - ');
+            body.appendChild(meta);
+        }
         card.appendChild(image);
         card.appendChild(body);
 
         return card;
+    }
+
+    function createAllAspirantsLink() {
+        var link = document.createElement('a');
+        link.href = allAspirantsUrl;
+        link.className = 'aspirant-view-all';
+        link.innerHTML = 'View All Aspirants <i class="fas fa-arrow-right"></i>';
+        return link;
     }
 
     function appendSlide(items) {
@@ -162,10 +179,14 @@ let currentSlide = 0;
         slide.className = 'aspirant-slide' + (slides.length === 0 ? ' active' : '');
         slide.dataset.aspirantSlide = '';
 
+        var grid = document.createElement('div');
+        grid.className = 'aspirant-slide-grid';
         items.forEach(function (aspirant) {
-            slide.appendChild(createCard(aspirant));
+            grid.appendChild(createCard(aspirant));
         });
 
+        slide.appendChild(grid);
+        slide.appendChild(createAllAspirantsLink());
         carousel.appendChild(slide);
         slides.push(slide);
     }
