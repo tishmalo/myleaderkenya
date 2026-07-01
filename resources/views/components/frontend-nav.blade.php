@@ -121,41 +121,39 @@
 .frontend-nav-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     text-decoration: none;
     flex-shrink: 0;
 }
 .frontend-nav-brand-logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 8px;
-    background: var(--kenya-red, #BB0000);
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Oswald', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: white;
-    position: relative;
-    overflow: hidden;
+    flex-shrink: 0;
 }
-.frontend-nav-brand-logo::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 50%;
+.frontend-nav-logo-img {
+    width: 100%;
     height: 100%;
-    background: var(--kenya-green, #006600);
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
-.frontend-nav-brand-logo span { position: relative; z-index: 1; }
+.frontend-nav-brand-text { line-height: 1.1; }
 .frontend-nav-brand-name {
     font-family: 'Oswald', sans-serif;
-    font-size: 19px;
+    font-size: 22px;
     font-weight: 700;
     color: white;
     letter-spacing: 1px;
+    white-space: nowrap;
+}
+.frontend-nav-brand-sub {
+    font-size: 11px;
+    color: var(--green-bright, #00A86B);
+    letter-spacing: 2px;
+    margin-top: -2px;
+    font-weight: 500;
     white-space: nowrap;
 }
 .frontend-nav-menu {
@@ -316,9 +314,14 @@
 
 <nav class="frontend-nav" data-frontend-nav>
     <div class="frontend-nav-inner">
-        <a href="{{ route('landing') }}" class="frontend-nav-brand" aria-label="Tuko Kadi home">
-            <div class="frontend-nav-brand-logo"><span>TK</span></div>
-            <div class="frontend-nav-brand-name">TUKO KADI</div>
+        <a href="{{ route('landing') }}" class="frontend-nav-brand" aria-label="My Leader Kenya home">
+            <div class="frontend-nav-brand-logo">
+                <img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya Logo" class="frontend-nav-logo-img">
+            </div>
+            <div class="frontend-nav-brand-text">
+                <div class="frontend-nav-brand-name">MY LEADER KENYA</div>
+                <div class="frontend-nav-brand-sub">THE KENYA &bull; WE WANT</div>
+            </div>
         </a>
 
         <ul class="frontend-nav-menu" aria-label="Primary navigation">
