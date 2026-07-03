@@ -21,7 +21,7 @@ class LocationRepository implements LocationRepositoryInterface
 
     public function getCountiesByBloc(int $blocId): Collection
     {
-        return County::where('bloc_id', $blocId)
+        return County::whereHas('blocs', fn ($query) => $query->where('blocs.id', $blocId))
             ->orderBy('name')
             ->pluck('name');
     }

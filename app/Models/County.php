@@ -19,25 +19,23 @@ class County extends Model
         'postal_abbreviation',
     ];
 
-    // Relationship: County belongs to one Bloc
     public function bloc()
     {
         return $this->belongsTo(Bloc::class);
     }
 
-    // Relationship: County has many Constituencies
+    public function blocs()
+    {
+        return $this->belongsToMany(Bloc::class, 'bloc_county')->withTimestamps();
+    }
+
     public function constituencies()
     {
         return $this->hasMany(Constituency::class);
     }
 
     public function pollingStations()
-{
-    return $this->hasMany(PollingStation::class, 'county', 'name');   // 'county' column in polling_stations = 'name' in counties
-}
-
-//     public function pollingStations()
-// {
-//     return $this->hasMany(\App\Models\PollingStation::class);
-// }
+    {
+        return $this->hasMany(PollingStation::class, 'county', 'name');
+    }
 }
