@@ -24,14 +24,54 @@
                     ->all();
             }
             if ($dynamicType === 'positions' && class_exists(\App\Models\Position::class) && Route::has('aspirants.public')) {
+                $politicalBlocs = class_exists(\App\Models\Bloc::class)
+                    && \Illuminate\Support\Facades\Schema::hasColumn('blocs', 'type')
+                    ? \App\Models\Bloc::query()
+                        ->where('type', 'political')
+                        ->orderBy('name')
+                        ->get(['id', 'name'])
+                    : collect();
+
+                $isCountyScopedPosition = function (string $name): bool {
+                    $key = strtolower(str_replace(['_', '-'], ' ', trim($name)));
+
+                    if (str_contains($key, 'president')) {
+                        return false;
+                    }
+
+                    return str_contains($key, 'governor')
+                        || str_contains($key, 'senator')
+                        || str_contains($key, 'woman')
+                        || str_contains($key, 'women')
+                        || $key === 'mp'
+                        || str_contains($key, 'parliament')
+                        || str_contains($key, 'mca')
+                        || str_contains($key, 'county assembly');
+                };
+
                 $menuItem['children'] = \App\Models\Position::ordered()
                     ->get()
-                    ->map(fn ($position) => [
-                        'label' => $position->name,
-                        'route' => 'aspirants.public',
-                        'query' => ['position' => $position->id],
-                        'active' => ['aspirants.public', 'aspirants.show'],
-                    ])
+                    ->map(function ($position) use ($politicalBlocs, $isCountyScopedPosition) {
+                        $child = [
+                            'label' => $position->name,
+                            'route' => 'aspirants.public',
+                            'query' => ['position' => $position->id],
+                            'active' => ['aspirants.public', 'aspirants.show'],
+                        ];
+
+                        if ($isCountyScopedPosition($position->name) && $politicalBlocs->isNotEmpty()) {
+                            $child['children'] = $politicalBlocs
+                                ->map(fn ($bloc) => [
+                                    'label' => $bloc->name,
+                                    'route' => 'aspirants.public',
+                                    'query' => ['position' => $position->id, 'bloc' => $bloc->id],
+                                    'active' => ['aspirants.public', 'aspirants.show'],
+                                ])
+                                ->all();
+                        }
+
+                        return $child;
+                    })
                     ->all();
             }
 
@@ -94,6 +134,18 @@
 
             if (! empty($child['route']) && request()->routeIs($child['route'])) {
                 return true;
+            }
+
+            foreach (($child['children'] ?? []) as $grandchild) {
+                foreach (($grandchild['active'] ?? []) as $pattern) {
+                    if (request()->routeIs($pattern)) {
+                        return true;
+                    }
+                }
+
+                if (! empty($grandchild['route']) && request()->routeIs($grandchild['route'])) {
+                    return true;
+                }
             }
         }
 
@@ -227,6 +279,36 @@
     background: rgba(255,255,255,0.06);
     color: var(--green-bright, #00A86B);
 }
+.frontend-nav-dropdown-item { position: relative; }
+.frontend-nav-dropdown-parent {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+.frontend-nav-subdropdown {
+    position: absolute;
+    top: -8px;
+    left: calc(100% + 8px);
+    min-width: 250px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: rgba(15,15,15,0.98);
+    box-shadow: 0 22px 50px rgba(0,0,0,0.42);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+.frontend-nav-dropdown-item:hover > .frontend-nav-subdropdown,
+.frontend-nav-dropdown-item:focus-within > .frontend-nav-subdropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
 .frontend-nav-actions {
     display: flex;
     align-items: center;
@@ -334,7 +416,22 @@
                         </a>
                         <div class="frontend-nav-dropdown">
                             @foreach($children as $child)
-                                <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
+                                @php($grandchildren = $child['children'] ?? [])
+                                @if($grandchildren)
+                                    <div class="frontend-nav-dropdown-item">
+                                        <a href="{{ $buildMenuUrl($child) }}" class="frontend-nav-dropdown-parent">
+                                            <span>{{ $child['label'] }}</span>
+                                            <i class="fas fa-chevron-right frontend-nav-chevron" aria-hidden="true"></i>
+                                        </a>
+                                        <div class="frontend-nav-subdropdown">
+                                            @foreach($grandchildren as $grandchild)
+                                                <a href="{{ $buildMenuUrl($grandchild) }}">{{ $grandchild['label'] }}</a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
+                                @endif
                             @endforeach
                         </div>
                     @else
@@ -370,7 +467,23 @@
                     <div class="frontend-nav-mobile-children">
                         <a href="{{ $buildMenuUrl($item) }}">All {{ $item['label'] }}</a>
                         @foreach($children as $child)
-                            <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
+                            @php($grandchildren = $child['children'] ?? [])
+                            @if($grandchildren)
+                                <details class="frontend-nav-mobile-group">
+                                    <summary class="frontend-nav-mobile-summary">
+                                        <span>{{ $child['label'] }}</span>
+                                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                                    </summary>
+                                    <div class="frontend-nav-mobile-children">
+                                        <a href="{{ $buildMenuUrl($child) }}">All {{ $child['label'] }}</a>
+                                        @foreach($grandchildren as $grandchild)
+                                            <a href="{{ $buildMenuUrl($grandchild) }}">{{ $grandchild['label'] }}</a>
+                                        @endforeach
+                                    </div>
+                                </details>
+                            @else
+                                <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
+                            @endif
                         @endforeach
                     </div>
                 </details>

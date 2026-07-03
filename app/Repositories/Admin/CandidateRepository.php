@@ -5,12 +5,14 @@ namespace App\Repositories\Admin;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Models\PoliticalParty;
 use App\Models\Candidate;
+use App\Models\Bloc;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\NewsArticle;
 use App\Models\Position;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
 
 class CandidateRepository implements CandidateRepositoryInterface
@@ -112,6 +114,18 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         if (!empty($filters['county'])) {
             $query->where('county', $filters['county']);
+        }
+
+        if (!empty($filters['bloc'])) {
+            $blocCountyNames = Schema::hasTable('bloc_county')
+                ? (Bloc::whereKey($filters['bloc'])->first()?->counties()->pluck('counties.name')->all() ?? [])
+                : County::where('bloc_id', $filters['bloc'])->pluck('name')->all();
+
+            if (empty($blocCountyNames)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('county', $blocCountyNames);
+            }
         }
 
         if (!empty($filters['constituency'])) {
