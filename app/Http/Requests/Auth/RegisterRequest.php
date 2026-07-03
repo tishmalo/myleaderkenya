@@ -26,7 +26,18 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (User::emailExists((string) $value)) {
+                        $fail('The email has already been taken.');
+                    }
+                },
+            ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ];
     }
