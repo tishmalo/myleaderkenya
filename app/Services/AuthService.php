@@ -44,7 +44,16 @@ class AuthService
      */
     public function sendPasswordResetLink(string $email): string
     {
-        return Password::sendResetLink(['email' => $email]);
+        $user = User::findByEmailValue($email);
+
+        if (! $user) {
+            return Password::INVALID_USER;
+        }
+
+        $token = Password::broker()->createToken($user);
+        $user->sendPasswordResetNotification($token);
+
+        return Password::RESET_LINK_SENT;
     }
 
     /**
@@ -52,19 +61,25 @@ class AuthService
      */
     public function resetPassword(array $credentials): string
     {
-        $status = Password::reset(
-            $credentials,
-            function (User $user) use ($credentials) {
-                $user->forceFill([
-                    'password' => Hash::make($credentials['password']),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        $user = User::findByEmailValue((string) ($credentials['email'] ?? ''));
 
-                event(new PasswordReset($user));
-            }
-        );
+        if (! $user) {
+            return Password::INVALID_USER;
+        }
 
-        return $status;
+        if (! Password::broker()->tokenExists($user, (string) ($credentials['token'] ?? ''))) {
+            return Password::INVALID_TOKEN;
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($credentials['password']),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        Password::broker()->deleteToken($user);
+        event(new PasswordReset($user));
+
+        return Password::PASSWORD_RESET;
     }
 
     /**

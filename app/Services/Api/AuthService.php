@@ -302,7 +302,7 @@ class AuthService
     private function userPayload(User $user): array
     {
         return array_merge($user->only([
-            'id', 'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
+            'id', 'username', 'name', 'email', 'phone', 'id_number', 'gender', 'year_of_birth',
             'county', 'constituency', 'ward', 'polling_station',
             'country_of_residence', 'is_voter', 'is_registered', 'email_verified_at'
         ]), [

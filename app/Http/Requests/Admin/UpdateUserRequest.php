@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateUserRequest extends FormRequest
@@ -13,13 +14,20 @@ class UpdateUserRequest extends FormRequest
 
     public function rules(): array
     {
-        // the user ID is retrieved from the route parameter
         $user = $this->route('user');
         $userId = $user ? $user->id : null;
 
         return [
             'name'         => 'required|string|max:255',
-            'email'        => 'nullable|email|unique:users,email,' . $userId,
+            'email'        => [
+                'nullable',
+                'email',
+                function (string $attribute, mixed $value, \Closure $fail) use ($userId): void {
+                    if ($value && User::emailExists((string) $value, $userId)) {
+                        $fail('The email has already been taken.');
+                    }
+                },
+            ],
             'phone'        => 'nullable|string|max:20',
             'gender'       => 'nullable|in:male,female,other',
             'year_of_birth'=> 'nullable|integer|min:1900|max:' . date('Y'),

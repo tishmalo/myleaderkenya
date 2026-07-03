@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -30,6 +31,16 @@ class UpdateProfileRequest extends FormRequest
             'ward'            => 'nullable|string|max:100',
             'polling_station' => 'nullable|string|max:255',
             'phone'           => 'nullable|string|max:20',
+            'id_number'       => [
+                'nullable',
+                'string',
+                'max:50',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value && User::idNumberExists((string) $value, $this->user()->id)) {
+                        $fail('The ID number has already been taken.');
+                    }
+                },
+            ],
             'is_voter'        => 'boolean',
             'country_of_residence' => 'nullable|string|max:100',
         ];
