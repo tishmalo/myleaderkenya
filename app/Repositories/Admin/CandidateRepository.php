@@ -158,7 +158,33 @@ class CandidateRepository implements CandidateRepositoryInterface
             }
         }
 
+        if (! $this->filtersTargetPresidential($filters)) {
+            $query->orderByRaw("CASE WHEN county IS NULL OR county = '' THEN 1 ELSE 0 END")
+                ->orderBy('county');
+        }
+
         return $query->latest()->paginate($perPage)->withQueryString();
+    }
+
+    private function filtersTargetPresidential(array $filters): bool
+    {
+        if (empty($filters['position'])) {
+            return false;
+        }
+
+        $position = $filters['position'];
+
+        if (is_numeric($position)) {
+            $position = Position::whereKey($position)->value('name');
+        }
+
+        if (! is_string($position)) {
+            return false;
+        }
+
+        $position = strtolower(str_replace(['_', '-'], ' ', trim($position)));
+
+        return str_contains($position, 'president');
     }
 
     public function loadPublicShow(Candidate $candidate): Candidate

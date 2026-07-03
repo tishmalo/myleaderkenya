@@ -75,12 +75,12 @@ class LandingRepository implements LandingRepositoryInterface
     private function homepageAspirantGroups(bool $hasFeatured): array
     {
         $groups = [
-            ['label' => 'Presidential', 'position' => 'presidential', 'aliases' => ['presidential', 'president']],
-            ['label' => 'Governor', 'position' => 'governor', 'aliases' => ['governor']],
-            ['label' => 'Senator', 'position' => 'senator', 'aliases' => ['senator']],
-            ['label' => 'Women Rep', 'position' => 'women-rep', 'aliases' => ['women rep', 'woman rep', 'women representative', 'woman representative']],
-            ['label' => 'MP', 'position' => 'mp', 'aliases' => ['mp', 'member of parliament']],
-            ['label' => 'MCA', 'position' => 'mca', 'aliases' => ['mca', 'member of county assembly']],
+            ['label' => 'Presidential', 'position' => 'presidential', 'aliases' => ['presidential', 'president'], 'county_scoped' => false],
+            ['label' => 'Governor', 'position' => 'governor', 'aliases' => ['governor'], 'county_scoped' => true],
+            ['label' => 'Senator', 'position' => 'senator', 'aliases' => ['senator'], 'county_scoped' => true],
+            ['label' => 'Women Rep', 'position' => 'women-rep', 'aliases' => ['women rep', 'woman rep', 'women representative', 'woman representative'], 'county_scoped' => true],
+            ['label' => 'MP', 'position' => 'mp', 'aliases' => ['mp', 'member of parliament'], 'county_scoped' => true],
+            ['label' => 'MCA', 'position' => 'mca', 'aliases' => ['mca', 'member of county assembly'], 'county_scoped' => true],
         ];
 
         return collect($groups)->map(function (array $group) use ($hasFeatured) {
@@ -96,6 +96,11 @@ class LandingRepository implements LandingRepositoryInterface
 
             if ($hasFeatured) {
                 $query->orderByDesc('featured');
+            }
+
+            if ($group['county_scoped']) {
+                $query->orderByRaw("CASE WHEN county IS NULL OR county = '' THEN 1 ELSE 0 END")
+                    ->orderBy('county');
             }
 
             $group['candidates'] = $query->latest()->take(10)->get();
