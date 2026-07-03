@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\StoreBlocRequest;
 use App\Http\Requests\Admin\UpdateBlocRequest;
 use App\Models\Bloc;
 use App\Services\Admin\BlocService;
-use Illuminate\Http\Request;
 
 class BlocController extends Controller
 {
@@ -28,13 +27,13 @@ class BlocController extends Controller
 
     public function index()
     {
-        $blocs = $this->blocService->getPaginatedBlocs(15);
+        $blocs = $this->blocService->getPaginatedBlocs(15, request('search'));
         return view('blocs.index', compact('blocs'));
     }
 
     public function create()
     {
-        return view('blocs.create');
+        return view('blocs.create', $this->blocService->getFormData());
     }
 
     public function store(StoreBlocRequest $request)
@@ -47,7 +46,12 @@ class BlocController extends Controller
 
     public function edit(Bloc $bloc)
     {
-        return view('blocs.edit', compact('bloc'));
+        $bloc->load('counties');
+
+        return view('blocs.edit', array_merge(
+            $this->blocService->getFormData(),
+            compact('bloc')
+        ));
     }
 
     public function update(UpdateBlocRequest $request, Bloc $bloc)

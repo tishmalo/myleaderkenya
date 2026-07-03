@@ -34,7 +34,7 @@
             <thead class="bg-zinc-950">
                 <tr class="border-b border-zinc-800">
                     <th class="px-8 py-5 text-left">County Name</th>
-                    <th class="px-8 py-5 text-left">Bloc</th>
+                    <th class="px-8 py-5 text-left">Blocs</th>
                     <th class="px-8 py-5 text-center">Population</th>
                     <th class="px-8 py-5 text-center">Polling Stations</th>
                     <th class="px-8 py-5 text-center">Registered Voters</th>
@@ -46,7 +46,7 @@
                 @forelse($counties as $county)
                 <tr class="hover:bg-zinc-800/70 transition-colors">
                     <td class="px-8 py-6 font-medium">{{ $county->name }}</td>
-                    <td class="px-8 py-6">{{ $county->bloc->name ?? '—' }}</td>
+                    <td class="px-8 py-6">{{ $county->blocs->pluck('name')->join(', ') ?: ($county->bloc->name ?? '—') }}</td>
                     <td class="px-8 py-6 text-center">{{ number_format($county->population ?? 0) }}</td>
                     
                     <td class="px-8 py-6 text-center">
