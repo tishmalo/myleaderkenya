@@ -217,6 +217,27 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
 }
+.asp-county-heading {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 10px;
+}
+.asp-county-heading:first-child { margin-top: 0; }
+.asp-county-heading-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--kenya-white);
+    white-space: nowrap;
+}
+.asp-county-heading-count {
+    font-size: 12px; font-weight: 700;
+    color: var(--green-bright);
+}
+.asp-county-heading-line {
+    height: 1px; flex: 1;
+    background: linear-gradient(90deg, rgba(0,168,107,0.45), rgba(187,0,0,0.2), transparent);
+}
 
 /* ── CANDIDATE CARD ── */
 .asp-card {
@@ -536,61 +557,81 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- GRID -->
+@php
+    $candidateGroups = $candidates->getCollection()->groupBy(function ($candidate) {
+        $positionName = strtolower(optional($candidate->position)->name ?? '');
+
+        if (str_contains($positionName, 'president')) {
+            return 'National';
+        }
+
+        return $candidate->county ?: 'County not specified';
+    });
+@endphp
+
 <div class="asp-grid">
-    @forelse($candidates as $candidate)
-        <div class="asp-card">
-            <!-- Photo -->
-            <div class="asp-card-photo">
-                @if($candidate->profile_picture)
-                    <img src="{{ Storage::url($candidate->profile_picture) }}"
-                         alt="{{ $candidate->name }}" loading="lazy">
-                @else
-                    <div class="asp-card-photo-placeholder">
-                        <span class="initials">
-                            {{ strtoupper(substr($candidate->name, 0, 1)) }}{{ strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1)) }}
-                        </span>
-                    </div>
-                @endif
-                <div class="asp-card-photo-overlay"></div>
-
-                @if($candidate->position)
-                    <div class="asp-card-position-badge">{{ $candidate->position->name }}</div>
-                @endif
-
-                @if($candidate->county)
-                    <div class="asp-card-county-tag">
-                        <i class="fas fa-map-marker-alt" style="font-size:9px"></i>
-                        {{ $candidate->county }}
-                    </div>
-                @endif
-            </div>
-
-            <!-- Body -->
-            <div class="asp-card-body">
-                <div class="asp-card-name">{{ $candidate->name }}</div>
-
-                @if($candidate->nick_name)
-                    <div class="asp-card-nick">"{{ $candidate->nick_name }}"</div>
-                @endif
-
-                @if($candidate->constituency)
-                    <div class="asp-card-location">
-                        <i class="fas fa-circle" style="font-size:4px;color:var(--green-bright)"></i>
-                        {{ $candidate->constituency }}
-                        @if($candidate->ward)
-                            &nbsp;&middot;&nbsp; {{ $candidate->ward }}
-                        @endif
-                    </div>
-                @endif
-
-                <div class="asp-card-divider"></div>
-
-                <a href="{{ route('aspirants.show', $candidate) }}" class="asp-card-action">
-                    <span class="asp-card-action-text">View Profile</span>
-                    <span class="asp-card-action-arrow"><i class="fas fa-arrow-right"></i></span>
-                </a>
-            </div>
+    @forelse($candidateGroups as $countyName => $countyCandidates)
+        <div class="asp-county-heading">
+            <span class="asp-county-heading-title">{{ $countyName }}</span>
+            <span class="asp-county-heading-count">{{ $countyCandidates->count() }}</span>
+            <span class="asp-county-heading-line"></span>
         </div>
+
+        @foreach($countyCandidates as $candidate)
+            <div class="asp-card">
+                <!-- Photo -->
+                <div class="asp-card-photo">
+                    @if($candidate->profile_picture)
+                        <img src="{{ Storage::url($candidate->profile_picture) }}"
+                             alt="{{ $candidate->name }}" loading="lazy">
+                    @else
+                        <div class="asp-card-photo-placeholder">
+                            <span class="initials">
+                                {{ strtoupper(substr($candidate->name, 0, 1)) }}{{ strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1)) }}
+                            </span>
+                        </div>
+                    @endif
+                    <div class="asp-card-photo-overlay"></div>
+
+                    @if($candidate->position)
+                        <div class="asp-card-position-badge">{{ $candidate->position->name }}</div>
+                    @endif
+
+                    @if($candidate->county)
+                        <div class="asp-card-county-tag">
+                            <i class="fas fa-map-marker-alt" style="font-size:9px"></i>
+                            {{ $candidate->county }}
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Body -->
+                <div class="asp-card-body">
+                    <div class="asp-card-name">{{ $candidate->name }}</div>
+
+                    @if($candidate->nick_name)
+                        <div class="asp-card-nick">"{{ $candidate->nick_name }}"</div>
+                    @endif
+
+                    @if($candidate->constituency)
+                        <div class="asp-card-location">
+                            <i class="fas fa-circle" style="font-size:4px;color:var(--green-bright)"></i>
+                            {{ $candidate->constituency }}
+                            @if($candidate->ward)
+                                &nbsp;&middot;&nbsp; {{ $candidate->ward }}
+                            @endif
+                        </div>
+                    @endif
+
+                    <div class="asp-card-divider"></div>
+
+                    <a href="{{ route('aspirants.show', $candidate) }}" class="asp-card-action">
+                        <span class="asp-card-action-text">View Profile</span>
+                        <span class="asp-card-action-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </a>
+                </div>
+            </div>
+        @endforeach
     @empty
         <div class="asp-empty">
             <div class="asp-empty-icon"></div>

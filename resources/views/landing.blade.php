@@ -323,6 +323,20 @@
             @endphp
 
             @if($hasAspirants)
+                <style>
+                    .aspirants-county-row td {
+                        padding: 14px 14px 8px;
+                        color: var(--green-bright);
+                        font-family: 'Oswald', sans-serif;
+                        font-size: 12px;
+                        font-weight: 700;
+                        letter-spacing: 1.5px;
+                        text-transform: uppercase;
+                        border-top: 1px solid rgba(0,168,107,0.22);
+                        background: rgba(0,168,107,0.04);
+                    }
+                    .aspirants-county-row:first-child td { border-top: 0; }
+                </style>
                 <div class="aspirants-table-grid">
                     @foreach($aspirantGroups as $group)
                         <div class="aspirants-table-card">
@@ -344,7 +358,20 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            @php $currentCounty = null; @endphp
                                             @foreach($group['candidates'] as $candidate)
+                                                @php
+                                                    $countyName = $candidate->county ?: 'County not specified';
+                                                    $showCountyRow = ($group['county_scoped'] ?? false) && $countyName !== $currentCounty;
+                                                    if ($showCountyRow) {
+                                                        $currentCounty = $countyName;
+                                                    }
+                                                @endphp
+                                                @if($showCountyRow)
+                                                    <tr class="aspirants-county-row">
+                                                        <td colspan="4">{{ $countyName }}</td>
+                                                    </tr>
+                                                @endif
                                                 <tr>
                                                     <td>
                                                         <a href="{{ route('aspirants.show', $candidate) }}" class="aspirants-name-link">
