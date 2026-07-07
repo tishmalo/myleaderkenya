@@ -176,11 +176,16 @@ class User extends Authenticatable
             return 'admin';
         }
 
+        return $this->candidateProfile() ? 'aspirant' : 'user';
+    }
+
+    public function candidateProfile(): ?Candidate
+    {
         if (empty($this->email) && empty($this->phone)) {
-            return 'user';
+            return null;
         }
 
-        $hasCandidateProfile = Candidate::query()
+        return Candidate::query()
             ->where(function ($query) {
                 if (!empty($this->email)) {
                     if (Schema::hasColumn('candidates', 'email_hash')) {
@@ -198,9 +203,9 @@ class User extends Authenticatable
                     }
                 }
             })
-            ->exists();
-
-        return $hasCandidateProfile ? 'aspirant' : 'user';
+            ->with(['position', 'politicalParty'])
+            ->latest()
+            ->first();
     }
 
     public function messages()
@@ -214,3 +219,4 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 }
+

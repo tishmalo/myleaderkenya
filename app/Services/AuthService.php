@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Contracts\Repositories\Api\UserRepositoryInterface;
+use App\Models\Candidate;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -22,13 +25,32 @@ class AuthService
      */
     public function register(array $data): User
     {
-        $user = $this->userRepository->create($data);
+        return DB::transaction(function () use ($data) {
+            $candidateData = collect($data)->only([
+                'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id',
+                'about', 'country', 'county', 'constituency', 'ward',
+            ])->all();
 
-        event(new Registered($user));
+            $user = $this->userRepository->create(collect($data)->only([
+                'name', 'email', 'phone', 'password', 'is_aspirant',
+            ])->all());
 
-        Auth::login($user);
+            if (! empty($candidateData['position_id'])) {
+                $candidateData['country'] = $candidateData['country'] ?? 'Kenya';
+                $candidateData['approval_status'] = 'pending';
 
-        return $user;
+                if (! Schema::hasColumn('candidates', 'approval_status')) {
+                    unset($candidateData['approval_status']);
+                }
+
+                Candidate::create($candidateData);
+            }
+
+            event(new Registered($user));
+            Auth::login($user);
+
+            return $user;
+        });
     }
 
     /**
@@ -90,3 +112,4 @@ class AuthService
         Auth::guard('web')->logout();
     }
 }
+

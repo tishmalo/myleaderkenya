@@ -4,36 +4,28 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\PoliticalParty;
+use App\Models\Position;
 use App\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function __construct(
-        private AuthService $authService
-    ) {}
+    public function __construct(private AuthService $authService) {}
 
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
-        return view('auth.register');
+        return view('auth.register', [
+            'positions' => Position::ordered()->get(),
+            'politicalParties' => PoliticalParty::published()->ordered()->get(),
+        ]);
     }
 
-    /**
-     * Handle an incoming registration request.
-     */
     public function store(RegisterRequest $request): RedirectResponse
     {
-        $this->authService->register([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = $this->authService->register(array_merge($request->validated(), ['is_aspirant' => true]));
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route($user->user_type === 'aspirant' ? 'aspirant.dashboard' : 'dashboard');
     }
 }

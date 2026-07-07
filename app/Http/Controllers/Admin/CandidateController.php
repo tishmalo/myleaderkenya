@@ -17,7 +17,7 @@ class CandidateController extends Controller
 
     public function index()
     {
-        $filters = request()->only(['candidate', 'position', 'political_party']);
+        $filters = request()->only(['candidate', 'position', 'political_party', 'approval_status']);
         $candidates = $this->candidateService->getPaginatedCandidates(15, $filters);
         $formData = $this->candidateService->getFormData();
 
@@ -93,6 +93,20 @@ class CandidateController extends Controller
             'featured' => $candidate->featured,
         ]);
     }
+    public function approve(Candidate $candidate)
+    {
+        $this->candidateService->approveCandidate($candidate);
+
+        return back()->with('success', 'Aspirant approved successfully.');
+    }
+
+    public function reject(Candidate $candidate)
+    {
+        $this->candidateService->rejectCandidate($candidate);
+
+        return back()->with('success', 'Aspirant rejected successfully.');
+    }
+
     public function destroy(Candidate $candidate)
     {
         $this->candidateService->deleteCandidate($candidate);
@@ -111,8 +125,10 @@ class CandidateController extends Controller
 
     public function publicShow(Candidate $candidate)
     {
+        abort_unless(($candidate->approval_status ?? 'approved') === 'approved', 404);
         $candidate = $this->candidateService->getPublicShow($candidate);
         return view('aspirants.public.show', compact('candidate'));
     }
 }
+
 

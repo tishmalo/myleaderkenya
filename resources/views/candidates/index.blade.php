@@ -17,7 +17,7 @@
     </div>
 
     <form method="GET" action="{{ route('candidates.index') }}" class="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Candidate</label>
                 <input type="text" name="candidate" value="{{ request('candidate') }}"
@@ -44,6 +44,15 @@
                     @endforeach
                 </select>
             </div>
+                        <div>
+                <label class="block text-sm text-zinc-400 mb-2">Approval</label>
+                <select name="approval_status" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="">All Statuses</option>
+                    @foreach(['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $value => $label)
+                        <option value="{{ $value }}" {{ request('approval_status') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="flex items-end gap-3">
                 <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl font-semibold text-white">
                     Filter
@@ -62,6 +71,7 @@
                     <th class="px-6 py-4 text-left">Position</th>
                     <th class="px-6 py-4 text-left">Political Party</th>
                     <th class="px-6 py-4 text-left">Jurisdiction</th>
+                    <th class="px-6 py-4 text-center">Status</th>
                     <th class="px-6 py-4 text-center">Featured</th>
                     <th class="px-6 py-4 text-center">Actions</th>
                 </tr>
@@ -104,6 +114,11 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1 rounded-xl text-xs font-semibold {{ $candidate->approval_status === 'approved' ? 'bg-emerald-500/10 text-emerald-400' : ($candidate->approval_status === 'rejected' ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-300') }}">
+                            {{ ucfirst($candidate->approval_status ?? 'approved') }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
                         <label class="inline-flex cursor-pointer items-center justify-center" title="Show in homepage aspirants carousel">
                             <input type="checkbox"
                                    class="sr-only peer"
@@ -115,6 +130,18 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex gap-4 justify-center">
+                                                        @if(($candidate->approval_status ?? 'approved') !== 'approved')
+                                <form method="POST" action="{{ route('candidates.approve', $candidate) }}" class="inline">
+                                    @csrf @method('PATCH')
+                                    <button class="text-emerald-400 hover:text-emerald-500" title="Approve"><i class="fas fa-check"></i></button>
+                                </form>
+                            @endif
+                            @if(($candidate->approval_status ?? 'approved') !== 'rejected')
+                                <form method="POST" action="{{ route('candidates.reject', $candidate) }}" class="inline">
+                                    @csrf @method('PATCH')
+                                    <button class="text-amber-400 hover:text-amber-500" title="Reject"><i class="fas fa-ban"></i></button>
+                                </form>
+                            @endif
                             <a href="{{ route('candidates.edit', $candidate) }}"
                                class="text-blue-400 hover:text-blue-500 transition-colors">
                                 <i class="fas fa-edit"></i>
@@ -128,7 +155,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-16 text-center text-zinc-500">
+                    <td colspan="7" class="px-6 py-16 text-center text-zinc-500">
                         No candidates found.
                     </td>
                 </tr>
@@ -184,4 +211,7 @@ document.querySelectorAll('[data-featured-toggle]').forEach(function (toggle) {
 });
 </script>
 @endpush
+
+
+
 

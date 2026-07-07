@@ -16,7 +16,7 @@ class AspirantController extends Controller
     {
         $perPage = min((int) $request->query('per_page', 12), 50);
 
-        $aspirants = Candidate::with(['position', 'politicalParty'])
+        $aspirants = Candidate::with(['position', 'politicalParty'])->where('approval_status', 'approved')
             ->when($request->query('featured') !== null, function ($query) use ($request) {
                 $query->where('featured', filter_var($request->query('featured'), FILTER_VALIDATE_BOOLEAN));
             })
@@ -199,3 +199,4 @@ class AspirantController extends Controller
         return $path ? asset(Storage::url($path)) : null;
     }
 }
+
