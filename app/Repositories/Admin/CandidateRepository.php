@@ -37,6 +37,10 @@ class CandidateRepository implements CandidateRepositoryInterface
             $query->where('political_party_id', $filters['political_party']);
         }
 
+        if (!empty($filters['approval_status'])) {
+            $query->where('approval_status', $filters['approval_status']);
+        }
+
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
@@ -98,7 +102,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator
     {
-        $query = Candidate::with('position', 'politicalParty');
+        $query = Candidate::with('position', 'politicalParty')->where('approval_status', 'approved');
 
         $candidate = $filters['candidate'] ?? $filters['search'] ?? null;
         if (!empty($candidate)) {
@@ -218,6 +222,8 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
+
 
 
 
