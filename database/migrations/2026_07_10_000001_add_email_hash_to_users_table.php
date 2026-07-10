@@ -19,9 +19,6 @@ return new class extends Migration
 
         DB::table('users')
             ->whereNotNull('email')
-            ->where(function ($query) {
-                $query->whereNull('email_hash')->orWhere('email_hash', '');
-            })
             ->orderBy('id')
             ->chunkById(100, function ($users) {
                 foreach ($users as $user) {
@@ -60,3 +57,4 @@ return new class extends Migration
         }
     }
 };
+
