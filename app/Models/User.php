@@ -5,7 +5,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;   // ← This is the important line
 
 class User extends Authenticatable
@@ -20,7 +23,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'email_hash',
         'password',
+        'role',
         'username',
         'phone',
         'gender',
@@ -32,6 +37,7 @@ class User extends Authenticatable
         'country_of_residence',
         'is_voter',
         'is_registered',
+        'email_verified_at',
     ];
 
 
@@ -57,6 +63,33 @@ class User extends Authenticatable
             'password' => 'hashed',
             'year_of_birth' => 'integer',
         ];
+    }
+
+    public function getEmailAttribute($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return Crypt::decryptString($value);
+        } catch (DecryptException) {
+            return (string) $value;
+        }
+    }
+
+    public function setEmailAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['email'] = null;
+            $this->attributes['email_hash'] = null;
+            return;
+        }
+
+        $email = Str::lower(trim((string) $value));
+
+        $this->attributes['email'] = Crypt::encryptString($email);
+        $this->attributes['email_hash'] = hash('sha256', $email);
     }
 
     /**
@@ -104,3 +137,4 @@ class User extends Authenticatable
                 ->withTimestamps();
 }
 }
+
