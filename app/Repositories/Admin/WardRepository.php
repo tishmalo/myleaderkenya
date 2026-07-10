@@ -67,6 +67,10 @@ class WardRepository implements WardRepositoryInterface
 
     public function all(): Collection
     {
-        return Ward::with('constituency')->orderBy('name')->get();
+        return Ward::with('constituency')
+            ->get()
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
     }
 }
+

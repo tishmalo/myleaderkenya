@@ -45,8 +45,9 @@ class LocationRepository implements LocationRepositoryInterface
     {
         return Ward::join('constituencies', 'wards.constituency_id', '=', 'constituencies.id')
             ->where('constituencies.name', $constituencyName)
-            ->orderBy('wards.name')
-            ->pluck('wards.name');
+            ->pluck('wards.name')
+            ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
     }
 
     public function getPollingStationsByType(string $type, int $id): Collection
@@ -104,3 +105,4 @@ class LocationRepository implements LocationRepositoryInterface
         );
     }
 }
+

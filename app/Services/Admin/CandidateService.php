@@ -151,8 +151,14 @@ class CandidateService
 
     public function getPublicIndex(array $filters, int $perPage = 16): array
     {
+        $showCountyGroups = ! empty($filters['bloc']) && empty($filters['county']);
+
         return [
             'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
+            'countyGroups' => $showCountyGroups
+                ? $this->candidateRepository->publicCountyGroups($filters, 5)
+                : collect(),
+            'showCountyGroups' => $showCountyGroups,
             'positions'  => $this->candidateRepository->allPositions(),
             'politicalParties' => $this->candidateRepository->allPoliticalParties(),
             'countries' => $this->candidateRepository->allCountries(),

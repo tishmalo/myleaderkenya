@@ -30,6 +30,8 @@ interface CandidateRepositoryInterface
 
     public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator;
 
+    public function publicCountyGroups(array $filters, int $limit = 5): Collection;
+
     public function loadPublicShow(Candidate $candidate): Candidate;
 }
 

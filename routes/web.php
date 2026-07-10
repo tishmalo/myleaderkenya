@@ -50,8 +50,9 @@ Route::get('/api/constituencies', function (\Illuminate\Http\Request $request) {
 Route::get('/api/wards', function (\Illuminate\Http\Request $request) {
     return \App\Models\Ward::query()
         ->when($request->query('constituency_id'), fn ($query, $constituencyId) => $query->where('constituency_id', $constituencyId))
-        ->orderBy('name')
-        ->get(['id', 'name', 'constituency_id']);
+        ->get(['id', 'name', 'constituency_id'])
+        ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+        ->values();
 });
 
 // ====================== PUBLIC ROUTES (Throttled) ======================
@@ -167,5 +168,6 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
 
 

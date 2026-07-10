@@ -1,0 +1,56 @@
+name: Deploy to cPanel Staging
+
+on:
+  push:
+    branches: [ staging ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, mysql, gd
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ runner.os }}-
+
+    - name: Install Dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Build Assets
+      run: |
+        npm install
+        npm run build
+
+    - name: Deploy via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.DEV_FTP_SERVER }}
+        username: ${{ secrets.DEV_FTP_USERNAME }}
+        password: ${{ secrets.DEV_FTP_PASSWORD }}
+        server-dir: ${{ secrets.FTP_PATH}}
+        exclude: |
+          **/.git/**
+          **/.git*
+          **/node_modules/**
+          **/tests/**
+          .env
+          storage/**
+          vendor/bin/**
+

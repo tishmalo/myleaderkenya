@@ -131,7 +131,7 @@ class DashboardRepository implements DashboardRepositoryInterface
     {
         return Ward::where('constituency_id', function($query) use ($constituencyName) {
                     $query->select('id')->from('constituencies')->where('name', $constituencyName)->limit(1);
-                })->orderBy('name')->pluck('name');
+                })->pluck('name')->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
     }
 
     public function getPollingStationsFiltered($type, $id)
@@ -165,3 +165,5 @@ class DashboardRepository implements DashboardRepositoryInterface
         return Tag::orderBy('name')->get();
     }
 }
+
+

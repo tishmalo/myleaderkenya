@@ -90,11 +90,40 @@ class CandidateRepository implements CandidateRepositoryInterface
     {
         return Ward::query()
             ->when($constituency, fn ($query) => $query->whereHas('constituency', fn ($constituencyQuery) => $constituencyQuery->where('name', $constituency)))
-            ->orderBy('name')
-            ->pluck('name');
+            ->pluck('name')
+            ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
     }
 
     public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator
+    {
+        $query = $this->publicQuery($filters);
+
+        return $query->latest()->paginate($perPage)->withQueryString();
+    }
+
+    public function publicCountyGroups(array $filters, int $limit = 5): Collection
+    {
+        $counties = $this->countiesForPublicFilters($filters);
+
+        return $counties
+            ->map(function (string $county) use ($filters, $limit) {
+                $countyFilters = array_merge($filters, ['county' => $county]);
+                unset($countyFilters['bloc']);
+
+                $baseQuery = $this->publicQuery($countyFilters);
+
+                return [
+                    'county' => $county,
+                    'total' => (clone $baseQuery)->count(),
+                    'candidates' => $baseQuery->latest()->take($limit)->get(),
+                ];
+            })
+            ->filter(fn (array $group) => $group['total'] > 0)
+            ->values();
+    }
+
+    private function publicQuery(array $filters)
     {
         $query = Candidate::with('position', 'politicalParty');
 
@@ -108,6 +137,11 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         if (!empty($filters['country'])) {
             $query->where('country', $filters['country']);
+        }
+
+        if (!empty($filters['bloc']) && empty($filters['county'])) {
+            $counties = $this->countiesForPublicFilters($filters);
+            $query->whereIn('county', $counties->all());
         }
 
         if (!empty($filters['county'])) {
@@ -158,7 +192,26 @@ class CandidateRepository implements CandidateRepositoryInterface
             }
         }
 
-        return $query->latest()->paginate($perPage)->withQueryString();
+        return $query;
+    }
+
+    private function countiesForPublicFilters(array $filters): Collection
+    {
+        if (!empty($filters['county'])) {
+            return collect([$filters['county']]);
+        }
+
+        if (!empty($filters['bloc'])) {
+            return County::where('bloc_id', $filters['bloc'])
+                ->orderBy('name')
+                ->pluck('name');
+        }
+
+        return Candidate::whereNotNull('county')
+            ->where('county', '!=', '')
+            ->distinct()
+            ->orderBy('county')
+            ->pluck('county');
     }
 
     public function loadPublicShow(Candidate $candidate): Candidate
@@ -178,6 +231,7 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
 
 
 

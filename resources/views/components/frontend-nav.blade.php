@@ -24,14 +24,33 @@
                     ->all();
             }
             if ($dynamicType === 'positions' && class_exists(\App\Models\Position::class) && Route::has('aspirants.public')) {
+                $regionalBlocs = class_exists(\App\Models\Bloc::class)
+                    ? \App\Models\Bloc::orderBy('name')->get(['id', 'name'])
+                    : collect();
+
                 $menuItem['children'] = \App\Models\Position::ordered()
                     ->get()
-                    ->map(fn ($position) => [
-                        'label' => $position->name,
-                        'route' => 'aspirants.public',
-                        'query' => ['position' => $position->id],
-                        'active' => ['aspirants.public', 'aspirants.show'],
-                    ])
+                    ->map(function ($position) use ($regionalBlocs) {
+                        $positionItem = [
+                            'label' => $position->name,
+                            'route' => 'aspirants.public',
+                            'query' => ['position' => $position->id],
+                            'active' => ['aspirants.public', 'aspirants.show'],
+                        ];
+
+                        if (strtolower($position->name) === 'governor' && $regionalBlocs->isNotEmpty()) {
+                            $positionItem['children'] = $regionalBlocs
+                                ->map(fn ($bloc) => [
+                                    'label' => $bloc->name,
+                                    'route' => 'aspirants.public',
+                                    'query' => ['position' => $position->id, 'bloc' => $bloc->id],
+                                    'active' => ['aspirants.public'],
+                                ])
+                                ->all();
+                        }
+
+                        return $positionItem;
+                    })
                     ->all();
             }
 
@@ -213,7 +232,8 @@
     visibility: visible;
     transform: translateY(0);
 }
-.frontend-nav-dropdown a {
+.frontend-nav-dropdown a,
+.frontend-nav-dropdown-trigger {
     display: block;
     padding: 10px 12px;
     border-radius: 6px;
@@ -225,7 +245,44 @@
     text-transform: none;
     transition: color 0.2s, background 0.2s;
 }
-.frontend-nav-dropdown a:hover {
+.frontend-nav-dropdown-trigger {
+    width: 100%;
+    border: 0;
+    text-align: left;
+    background: transparent;
+    cursor: default;
+}
+.frontend-nav-dropdown-row { position: relative; }
+.frontend-nav-dropdown-row.has-children > a,
+.frontend-nav-dropdown-row.has-children > .frontend-nav-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.frontend-nav-subdropdown {
+    position: absolute;
+    top: -8px;
+    left: calc(100% + 8px);
+    min-width: 240px;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: rgba(15,15,15,0.98);
+    box-shadow: 0 22px 50px rgba(0,0,0,0.42);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+.frontend-nav-dropdown-row:hover > .frontend-nav-subdropdown,
+.frontend-nav-dropdown-row:focus-within > .frontend-nav-subdropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+.frontend-nav-dropdown a:hover,
+.frontend-nav-dropdown-trigger:hover {
     background: rgba(255,255,255,0.06);
     color: var(--green-bright, #00A86B);
 }
@@ -311,6 +368,13 @@
         font-size: 13px;
         text-decoration: none;
     }
+    .frontend-nav-mobile-grandchildren {
+        padding: 0 0 4px 14px;
+    }
+    .frontend-nav-mobile-grandchildren a {
+        font-size: 12px;
+        color: rgba(255,255,255,0.48);
+    }
 }
 </style>
 
@@ -331,7 +395,22 @@
                         </a>
                         <div class="frontend-nav-dropdown">
                             @foreach($children as $child)
-                                <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
+                                @php($grandChildren = $child['children'] ?? [])
+                                <div class="frontend-nav-dropdown-row {{ $grandChildren ? 'has-children' : '' }}">
+                                    <a href="{{ $buildMenuUrl($child) }}">
+                                        <span>{{ $child['label'] }}</span>
+                                        @if($grandChildren)
+                                            <i class="fas fa-chevron-right frontend-nav-chevron" aria-hidden="true"></i>
+                                        @endif
+                                    </a>
+                                    @if($grandChildren)
+                                        <div class="frontend-nav-subdropdown">
+                                            @foreach($grandChildren as $grandChild)
+                                                <a href="{{ $buildMenuUrl($grandChild) }}">{{ $grandChild['label'] }}</a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
                             @endforeach
                         </div>
                     @else
@@ -367,7 +446,15 @@
                     <div class="frontend-nav-mobile-children">
                         <a href="{{ $buildMenuUrl($item) }}">All {{ $item['label'] }}</a>
                         @foreach($children as $child)
+                            @php($grandChildren = $child['children'] ?? [])
                             <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
+                            @if($grandChildren)
+                                <div class="frontend-nav-mobile-grandchildren">
+                                    @foreach($grandChildren as $grandChild)
+                                        <a href="{{ $buildMenuUrl($grandChild) }}">{{ $grandChild['label'] }}</a>
+                                    @endforeach
+                                </div>
+                            @endif
                         @endforeach
                     </div>
                 </details>
