@@ -485,7 +485,9 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
                 <select name="position" data-position-filter>
                     <option value="" data-position-key="">All Positions</option>
                     @foreach($positions as $pos)
-                        @php($positionKey = strtolower(str_replace([' ', '_'], '-', $pos->name)))
+                        @php
+                            $positionKey = strtolower(str_replace([' ', '_'], '-', $pos->name));
+                        @endphp
                         <option value="{{ $pos->id }}" data-position-key="{{ $positionKey }}" {{ request('position') == $pos->id ? 'selected' : '' }}>
                             {{ $pos->name }}
                         </option>

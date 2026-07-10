@@ -1,4 +1,4 @@
-name: Deploy to cPanel Staging
+name: Deploy to Prod
 
 on:
   push:
