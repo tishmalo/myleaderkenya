@@ -31,6 +31,7 @@
                 $menuItem['children'] = \App\Models\Position::ordered()
                     ->get()
                     ->map(function ($position) use ($regionalBlocs) {
+                        $positionName = strtolower(trim($position->name));
                         $positionItem = [
                             'label' => $position->name,
                             'route' => 'aspirants.public',
@@ -38,7 +39,7 @@
                             'active' => ['aspirants.public', 'aspirants.show'],
                         ];
 
-                        if (strtolower($position->name) === 'governor' && $regionalBlocs->isNotEmpty()) {
+                        if (! str_contains($positionName, 'president') && $regionalBlocs->isNotEmpty()) {
                             $positionItem['children'] = $regionalBlocs
                                 ->map(fn ($bloc) => [
                                     'label' => $bloc->name,
@@ -387,7 +388,9 @@
 
         <ul class="frontend-nav-menu" aria-label="Primary navigation">
             @foreach($menuItems as $item)
-                @php($children = $item['children'] ?? [])
+                @php
+                    $children = $item['children'] ?? [];
+                @endphp
                 <li class="frontend-nav-item {{ $isMenuActive($item) ? 'active' : '' }}">
                     @if($children)
                         <a href="{{ $buildMenuUrl($item) }}" class="frontend-nav-trigger">
@@ -395,7 +398,9 @@
                         </a>
                         <div class="frontend-nav-dropdown">
                             @foreach($children as $child)
-                                @php($grandChildren = $child['children'] ?? [])
+                                @php
+                                    $grandChildren = $child['children'] ?? [];
+                                @endphp
                                 <div class="frontend-nav-dropdown-row {{ $grandChildren ? 'has-children' : '' }}">
                                     <a href="{{ $buildMenuUrl($child) }}">
                                         <span>{{ $child['label'] }}</span>
@@ -436,7 +441,9 @@
 
     <div class="frontend-nav-mobile-panel" data-frontend-nav-panel>
         @foreach($menuItems as $item)
-            @php($children = $item['children'] ?? [])
+            @php
+                $children = $item['children'] ?? [];
+            @endphp
             @if($children)
                 <details class="frontend-nav-mobile-group">
                     <summary class="frontend-nav-mobile-summary">
@@ -446,7 +453,9 @@
                     <div class="frontend-nav-mobile-children">
                         <a href="{{ $buildMenuUrl($item) }}">All {{ $item['label'] }}</a>
                         @foreach($children as $child)
-                            @php($grandChildren = $child['children'] ?? [])
+                            @php
+                                $grandChildren = $child['children'] ?? [];
+                            @endphp
                             <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
                             @if($grandChildren)
                                 <div class="frontend-nav-mobile-grandchildren">
@@ -494,7 +503,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
-
 
 
