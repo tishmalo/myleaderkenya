@@ -289,8 +289,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(res => res.json())
             .then(counties => {
                 counties.forEach(county => {
-                    const opt = new Option(county, county);
-                    if (county === currentCounty) opt.selected = true;
+                    const name = optionName(county);
+                    if (!name) return;
+                    const opt = new Option(name, name);
+                    if (name === currentCounty) opt.selected = true;
                     countySelect.add(opt);
                 });
 
@@ -317,8 +319,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
                 data.forEach(consti => {
-                    const opt = new Option(consti, consti);
-                    if (consti === currentConstituency) opt.selected = true;
+                    const name = optionName(consti);
+                    if (!name) return;
+                    const opt = new Option(name, name);
+                    if (name === currentConstituency) opt.selected = true;
                     constituencySelect.add(opt);
                 });
 
@@ -337,8 +341,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 wardSelect.innerHTML = '<option value="">Select Ward</option>';
                 data.forEach(ward => {
-                    const opt = new Option(ward, ward);
-                    if (ward === currentWard) opt.selected = true;
+                    const name = optionName(ward);
+                    if (!name) return;
+                    const opt = new Option(name, name);
+                    if (name === currentWard) opt.selected = true;
                     wardSelect.add(opt);
                 });
             });
