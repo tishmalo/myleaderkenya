@@ -17,6 +17,18 @@
             @csrf
             @method('PUT')
 
+            <div class="mb-8 border-b border-zinc-800">
+                <div class="flex flex-wrap gap-2" role="tablist" aria-label="Candidate edit sections">
+                    <button type="button" data-candidate-tab-button="profile" class="candidate-tab-btn active px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-emerald-500 bg-emerald-600 text-white">
+                        <i class="fas fa-user mr-2"></i> Profile
+                    </button>
+                    <button type="button" data-candidate-tab-button="tools" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
+                        <i class="fas fa-toolbox mr-2"></i> Tools
+                    </button>
+                </div>
+            </div>
+
+            <section data-candidate-tab-panel="profile">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Full Name <span class="text-red-500">*</span></label>
@@ -94,8 +106,11 @@
                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">{{ old('about', $candidate->about) }}</textarea>
             </div>
 
+            </section>
+
+            <section data-candidate-tab-panel="tools" class="hidden">
             @php($smsSetting = \Illuminate\Support\Facades\Schema::hasTable('candidate_sms_settings') ? $candidate->smsSetting : null)
-            <div class="mt-8 border border-zinc-800 rounded-3xl p-6 bg-zinc-950">
+            <div class="border border-zinc-800 rounded-3xl p-6 bg-zinc-950">
                 <div class="flex items-start justify-between gap-4 mb-5">
                     <div>
                         <h2 class="text-xl font-semibold text-white flex items-center gap-2">
@@ -140,6 +155,8 @@
                 </div>
             </div>
 
+            </section>
+
             <div class="mt-10 flex gap-4">
                 <a href="{{ route('candidates.index') }}" 
                    class="flex-1 py-4 border border-zinc-700 rounded-2xl text-center font-medium hover:bg-zinc-800">
@@ -158,6 +175,33 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const tabButtons = document.querySelectorAll('[data-candidate-tab-button]');
+    const tabPanels = document.querySelectorAll('[data-candidate-tab-panel]');
+    const initialCandidateTab = @json($errors->hasAny(['sms_enabled', 'sms_provider', 'sms_base_url', 'sms_sender_name', 'sms_username', 'sms_password']) ? 'tools' : 'profile');
+
+    function activateCandidateTab(tab) {
+        tabButtons.forEach((button) => {
+            const active = button.dataset.candidateTabButton === tab;
+            button.classList.toggle('active', active);
+            button.classList.toggle('bg-emerald-600', active);
+            button.classList.toggle('border-emerald-500', active);
+            button.classList.toggle('text-white', active);
+            button.classList.toggle('bg-zinc-950', !active);
+            button.classList.toggle('border-zinc-800', !active);
+            button.classList.toggle('text-zinc-400', !active);
+        });
+
+        tabPanels.forEach((panel) => {
+            panel.classList.toggle('hidden', panel.dataset.candidateTabPanel !== tab);
+        });
+    }
+
+    tabButtons.forEach((button) => {
+        button.addEventListener('click', () => activateCandidateTab(button.dataset.candidateTabButton));
+    });
+
+    activateCandidateTab(initialCandidateTab);
+
     const positionSelect = document.getElementById('positionSelect');
     const fieldsContainer = document.getElementById('jurisdictionFields');
 
