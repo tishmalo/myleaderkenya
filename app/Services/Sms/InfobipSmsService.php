@@ -7,7 +7,6 @@ use App\Support\PhoneNumber;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class InfobipSmsService
 {
@@ -30,11 +29,11 @@ class InfobipSmsService
         $responses = [];
 
         foreach ($phones->chunk(config('sms.infobip.chunk_size', 500)) as $chunk) {
-            $responses[] = Http::withHeaders([
-                'Authorization' => $this->authorizationHeader($setting->api_key),
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ])
+            $responses[] = Http::withBasicAuth($setting->username, $setting->password)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
                 ->timeout(config('sms.infobip.timeout', 30))
                 ->post($this->url($setting->base_url), [
                     'from' => $setting->sender_name,
@@ -60,11 +59,6 @@ class InfobipSmsService
             ->filter()
             ->unique()
             ->values();
-    }
-
-    private function authorizationHeader(string $apiKey): string
-    {
-        return Str::startsWith($apiKey, ['App ', 'Basic ', 'Bearer ']) ? $apiKey : 'App ' . $apiKey;
     }
 
     private function url(string $baseUrl): string

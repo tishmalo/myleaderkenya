@@ -100,7 +100,7 @@ class CandidateService
 
     private function normalizeCandidateData(array $data): array
     {
-        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_api_key']);
+        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_username'], $data['sms_password']);
 
         if (! Schema::hasColumn('candidates', 'political_party_id')) {
             unset($data['political_party_id']);
@@ -159,7 +159,8 @@ class CandidateService
             'provider' => $data['sms_provider'] ?? 'infobip',
             'base_url' => $data['sms_base_url'] ?? null,
             'sender_name' => $data['sms_sender_name'] ?? null,
-            'api_key' => $data['sms_api_key'] ?? null,
+            'username' => $data['sms_username'] ?? null,
+            'password' => $data['sms_password'] ?? null,
         ];
     }
 
@@ -171,15 +172,16 @@ class CandidateService
 
         $existing = $this->smsSettingRepository->findForCandidate($candidate);
 
-        if (blank($settings['api_key'] ?? null) && $existing) {
-            unset($settings['api_key']);
+        if (blank($settings['password'] ?? null) && $existing) {
+            unset($settings['password']);
         }
 
         if (
             ! $settings['enabled']
             && blank($settings['base_url'] ?? null)
             && blank($settings['sender_name'] ?? null)
-            && blank($settings['api_key'] ?? null)
+            && blank($settings['username'] ?? null)
+            && blank($settings['password'] ?? null)
             && ! $existing
         ) {
             return;

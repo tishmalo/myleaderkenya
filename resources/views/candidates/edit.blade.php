@@ -102,7 +102,7 @@
                             <i class="fas fa-comment-sms text-emerald-500"></i>
                             Bulk SMS Settings
                         </h2>
-                        <p class="text-sm text-zinc-500 mt-1">Infobip credentials are stored encrypted and are only used by this candidate's Bulk SMS workspace.</p>
+                        <p class="text-sm text-zinc-500 mt-1">Infobip username and password are stored encrypted and are only used by this candidate's Bulk SMS workspace.</p>
                     </div>
                     <label class="inline-flex items-center gap-3 text-sm text-zinc-300">
                         <input type="hidden" name="sms_enabled" value="0">
@@ -126,10 +126,17 @@
                     </div>
                 </div>
 
-                <div class="mt-6">
-                    <label class="block text-sm text-zinc-400 mb-2">API Key</label>
-                    <input type="password" name="sms_api_key" value="" placeholder="{{ $smsSetting && $smsSetting->api_key ? 'Leave blank to keep existing key' : 'Paste candidate Infobip API key' }}"
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Username</label>
+                        <input type="text" name="sms_username" value="{{ old('sms_username', optional($smsSetting)->username) }}" placeholder="EGEMEOARDHI"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Password</label>
+                        <input type="password" name="sms_password" value="" placeholder="{{ $smsSetting && $smsSetting->password ? 'Leave blank to keep existing password' : 'Paste candidate Infobip password' }}"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
                 </div>
             </div>
 

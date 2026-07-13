@@ -35,7 +35,8 @@ class CandidateUpdateRequest extends FormRequest
             'sms_provider'    => 'nullable|in:infobip',
             'sms_base_url'    => 'nullable|url|max:255',
             'sms_sender_name' => 'nullable|string|max:50',
-            'sms_api_key'     => 'nullable|string|max:500',
+            'sms_username'    => 'nullable|string|max:255',
+            'sms_password'    => 'nullable|string|max:500',
         ];
     }
 }

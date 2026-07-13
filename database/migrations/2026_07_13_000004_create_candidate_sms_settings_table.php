@@ -14,7 +14,8 @@ return new class extends Migration
             $table->boolean('enabled')->default(false);
             $table->string('provider')->default('infobip');
             $table->text('base_url')->nullable();
-            $table->text('api_key')->nullable();
+            $table->text('username')->nullable();
+            $table->text('password')->nullable();
             $table->text('sender_name')->nullable();
             $table->timestamps();
         });

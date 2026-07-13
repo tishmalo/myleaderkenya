@@ -12,14 +12,16 @@ class CandidateSmsSetting extends Model
         'enabled',
         'provider',
         'base_url',
-        'api_key',
+        'username',
+        'password',
         'sender_name',
     ];
 
     protected $casts = [
         'enabled' => 'boolean',
         'base_url' => 'encrypted',
-        'api_key' => 'encrypted',
+        'username' => 'encrypted',
+        'password' => 'encrypted',
         'sender_name' => 'encrypted',
     ];
 
@@ -33,7 +35,8 @@ class CandidateSmsSetting extends Model
         return $this->enabled
             && $this->provider === 'infobip'
             && filled($this->base_url)
-            && filled($this->api_key)
+            && filled($this->username)
+            && filled($this->password)
             && filled($this->sender_name);
     }
 }
