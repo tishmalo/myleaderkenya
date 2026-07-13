@@ -5,6 +5,8 @@ namespace App\Services\Api;
 use App\Contracts\Repositories\Api\GroupRepositoryInterface;
 use App\Contracts\Repositories\Api\GroupMemberRepositoryInterface;
 use App\Contracts\Repositories\Api\GroupMessageRepositoryInterface;
+use App\Models\AspirantPoll;
+use App\Models\AspirantPollResponse;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -19,7 +21,6 @@ class GroupService
 
     public function createGroup(User $user, array $data): array
     {
-        // Generate unique 8-character invite code
         do {
             $inviteCode = strtoupper(Str::random(8));
         } while ($this->groupRepository->findByInviteCode($inviteCode));
@@ -31,7 +32,6 @@ class GroupService
             'invite_code' => $inviteCode,
         ]);
 
-        // Creator automatically becomes a member
         $this->groupMemberRepository->create([
             'group_id' => $group->id,
             'user_id'  => $user->id,
@@ -57,7 +57,6 @@ class GroupService
             throw new \Exception('Invalid or expired invite code', 404);
         }
 
-        // Check if already a member
         if ($this->groupMemberRepository->isMember($group->id, $user->id)) {
             throw new \Exception('You are already a member of this group', 400);
         }
@@ -79,7 +78,6 @@ class GroupService
 
     public function sendGroupMessage(User $user, array $data): array
     {
-        // Verify user is a member of the group
         if (!$this->groupMemberRepository->isMember($data['group_id'], $user->id)) {
             throw new \Exception('You are not a member of this group', 403);
         }
@@ -88,6 +86,7 @@ class GroupService
             'group_id'  => $data['group_id'],
             'username'  => $user->username ?? $user->name ?? 'Anonymous',
             'message'   => $data['message'],
+            'message_type' => 'text',
             'latitude'  => $data['latitude'] ?? null,
             'longitude' => $data['longitude'] ?? null,
         ]);
@@ -100,12 +99,59 @@ class GroupService
 
     public function getGroupMessages(User $user, int $groupId): Collection
     {
-        // Verify user is a member
         if (!$this->groupMemberRepository->isMember($groupId, $user->id)) {
             throw new \Exception('You are not a member of this group', 403);
         }
 
-        return $this->groupMessageRepository->getGroupMessages($groupId);
+        return $this->groupMessageRepository->getGroupMessages($groupId, $user->id);
+    }
+
+    public function respondToPoll(User $user, AspirantPoll $poll, int $optionIndex): array
+    {
+        if (! $poll->group_id || ! $this->groupMemberRepository->isMember($poll->group_id, $user->id)) {
+            throw new \Exception('You are not a member of this poll group', 403);
+        }
+
+        if ($poll->scope_column && $poll->scope_value && ($user->{$poll->scope_column} ?? null) !== $poll->scope_value) {
+            throw new \Exception('This poll is outside your voting bloc', 403);
+        }
+
+        $options = $poll->options ?? [];
+
+        if (! array_key_exists($optionIndex, $options)) {
+            throw new \Exception('Invalid poll option', 422);
+        }
+
+        AspirantPollResponse::updateOrCreate(
+            [
+                'aspirant_poll_id' => $poll->id,
+                'user_id' => $user->id,
+            ],
+            ['option_index' => $optionIndex]
+        );
+
+        $poll->load('responses');
+        $totalResponses = $poll->responses->count();
+
+        return [
+            'message' => 'Poll response recorded',
+            'poll' => [
+                'id' => $poll->id,
+                'question' => $poll->question,
+                'selected_option_index' => $optionIndex,
+                'total_responses' => $totalResponses,
+                'options' => collect($options)->map(function (string $option, int $index) use ($poll, $totalResponses): array {
+                    $count = $poll->responses->where('option_index', $index)->count();
+
+                    return [
+                        'index' => $index,
+                        'label' => $option,
+                        'response_count' => $count,
+                        'response_percent' => $totalResponses > 0 ? round(($count / $totalResponses) * 100) : 0,
+                    ];
+                })->values(),
+            ],
+        ];
     }
 
     public function getUserGroups(User $user): Collection

@@ -226,6 +226,22 @@ class MessageController extends Controller
         }
     }
 
+    public function respondToPoll(RespondToPollRequest $request, AspirantPoll $poll)
+    {
+        try {
+            $result = $this->groupService->respondToPoll(
+                $request->user(),
+                $poll,
+                (int) $request->validated('option_index')
+            );
+
+            return response()->json($result, 200);
+        } catch (\Exception $e) {
+            $statusCode = $e->getCode() ?: 500;
+
+            return response()->json(['message' => $e->getMessage()], $statusCode);
+        }
+    }
     public function getMyGroups(Request $request)
     {
         try {

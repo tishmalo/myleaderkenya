@@ -9,5 +9,5 @@ interface GroupMessageRepositoryInterface
 {
     public function create(array $data): GroupMessage;
 
-    public function getGroupMessages(int $groupId): Collection;
+    public function getGroupMessages(int $groupId, ?int $userId = null): Collection;
 }

@@ -104,6 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/join', [MessageController::class, 'joinGroup']);
         Route::post('/send-message', [MessageController::class, 'sendGroupMessage']);
         Route::get('/my-groups', [MessageController::class, 'getMyGroups']);
+        Route::post('/polls/{poll}/respond', [MessageController::class, 'respondToPoll']);
         Route::get('/{group_id}/messages', [MessageController::class, 'getGroupMessages']);
     });
 
