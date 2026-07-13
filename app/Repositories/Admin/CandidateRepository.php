@@ -14,7 +14,6 @@ use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Schema;
 
 class CandidateRepository implements CandidateRepositoryInterface
 {
