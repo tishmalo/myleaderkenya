@@ -40,6 +40,9 @@ Route::prefix('locations')->group(function () {
     Route::get('/all', [LocationController::class, 'getLocations']);
 });
 
+Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty']);
+Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency']);
+
 // Admin-Specific API (Consolidated from web.php)
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::get('/counties/by-bloc/{blocId}', [DashboardController::class, 'getCountiesByBloc'])->name('api.counties.by-bloc');
