@@ -308,6 +308,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (wardSelect) wardSelect.innerHTML = '<option value="">Select Ward</option>';
             });
         }
+
+        if (constituencySelect) {
+            constituencySelect.addEventListener('change', function() {
+                loadWards(this.value);
+            });
+        }
     }
 
     function loadConstituencies(county) {
