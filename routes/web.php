@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\AspirantDashboardController;
+use App\Http\Controllers\Web\AspirantToolController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -92,6 +93,7 @@ Route::middleware('throttle:web')->group(function () {
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
     Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
+    Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
 
     // --- Core Admin & Dashboard ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

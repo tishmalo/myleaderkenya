@@ -37,6 +37,8 @@ body { background:#090909; color:#f5f5f0; }
 .asp-tool-foot { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; color:#00A86B; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
 .asp-chip { color:rgba(245,245,240,.5); font-size:11px; border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:4px 8px; }
 .asp-empty { color:rgba(245,245,240,.55); line-height:1.6; }
+.asp-alert { margin-bottom:18px; border-radius:8px; padding:14px 16px; color:#fde68a; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.28); }
+.asp-scope { margin-top:10px; color:rgba(245,245,240,.58); font-size:13px; }
 @media (max-width:980px) { .asp-grid { grid-template-columns:1fr; } .asp-tools { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:640px) { .asp-dash-wrap { padding:28px 18px 64px; } .asp-top { align-items:flex-start; flex-direction:column; } .asp-tools,.asp-meta { grid-template-columns:1fr; } .asp-profile { align-items:flex-start; flex-direction:column; } }
 </style>
@@ -50,6 +52,9 @@ body { background:#090909; color:#f5f5f0; }
             <div>
                 <div class="asp-kicker">Aspirant Workspace</div>
                 <h1 class="asp-title">Campaign Dashboard</h1>
+                @if(! empty($voterScope['label']))
+                    <div class="asp-scope">Voter scope: {{ $voterScope['label'] }}</div>
+                @endif
             </div>
             <div class="asp-actions">
                 <a href="{{ route('campaign-tools.public') }}" class="asp-btn"><i class="fas fa-toolbox"></i> All Tools</a>
@@ -62,6 +67,10 @@ body { background:#090909; color:#f5f5f0; }
                 </form>
             </div>
         </div>
+
+        @if(session('warning'))
+            <div class="asp-alert">{{ session('warning') }}</div>
+        @endif
 
         <div class="asp-grid">
             <section class="asp-panel">

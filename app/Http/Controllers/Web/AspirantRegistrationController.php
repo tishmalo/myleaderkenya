@@ -63,7 +63,7 @@ class AspirantRegistrationController extends Controller
             return $candidate;
         });
 
-        return redirect()->route('aspirant.dashboard')
+        return redirect('/aspirant/dashboard')
             ->with('success', 'Your aspirant registration has been submitted. An admin will review and approve it before it appears publicly.');
     }
 
