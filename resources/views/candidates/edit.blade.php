@@ -177,7 +177,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const tabButtons = document.querySelectorAll('[data-candidate-tab-button]');
     const tabPanels = document.querySelectorAll('[data-candidate-tab-panel]');
-    const initialCandidateTab = @json($errors->hasAny(['sms_enabled', 'sms_provider', 'sms_base_url', 'sms_sender_name', 'sms_username', 'sms_password']) ? 'tools' : 'profile');
+    const initialCandidateTab = '{{ $errors->hasAny(["sms_enabled", "sms_provider", "sms_base_url", "sms_sender_name", "sms_username", "sms_password"]) ? "tools" : "profile" }}';
 
     function activateCandidateTab(tab) {
         tabButtons.forEach((button) => {
