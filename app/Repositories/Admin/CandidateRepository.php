@@ -12,6 +12,7 @@ use App\Models\Position;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class CandidateRepository implements CandidateRepositoryInterface
 {
@@ -33,6 +34,10 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         if (!empty($filters['political_party'])) {
             $query->where('political_party_id', $filters['political_party']);
+        }
+
+        if (!empty($filters['approval_status']) && Schema::hasColumn('candidates', 'approval_status')) {
+            $query->where('approval_status', $filters['approval_status']);
         }
 
         return $query->latest()->paginate($perPage)->withQueryString();
@@ -70,8 +75,14 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     public function allCountries(): Collection
     {
-        return Candidate::whereNotNull('country')
-            ->where('country', '!=', '')
+        $query = Candidate::whereNotNull('country')
+            ->where('country', '!=', '');
+
+        if (Schema::hasColumn('candidates', 'approval_status')) {
+            $query->where('approval_status', 'approved');
+        }
+
+        return $query
             ->distinct()
             ->orderBy('country')
             ->pluck('country')
@@ -126,6 +137,10 @@ class CandidateRepository implements CandidateRepositoryInterface
     private function publicQuery(array $filters)
     {
         $query = Candidate::with('position', 'politicalParty');
+
+        if (Schema::hasColumn('candidates', 'approval_status')) {
+            $query->where('approval_status', 'approved');
+        }
 
         $candidate = $filters['candidate'] ?? $filters['search'] ?? null;
         if (!empty($candidate)) {
@@ -207,8 +222,14 @@ class CandidateRepository implements CandidateRepositoryInterface
                 ->pluck('name');
         }
 
-        return Candidate::whereNotNull('county')
-            ->where('county', '!=', '')
+        $query = Candidate::whereNotNull('county')
+            ->where('county', '!=', '');
+
+        if (Schema::hasColumn('candidates', 'approval_status')) {
+            $query->where('approval_status', 'approved');
+        }
+
+        return $query
             ->distinct()
             ->orderBy('county')
             ->pluck('county');
@@ -231,7 +252,3 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
-
-
-
-

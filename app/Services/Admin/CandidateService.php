@@ -96,6 +96,14 @@ class CandidateService
             unset($data['political_party_id']);
         }
 
+        if (! Schema::hasColumn('candidates', 'user_id')) {
+            unset($data['user_id']);
+        }
+
+        if (! Schema::hasColumn('candidates', 'approval_status')) {
+            unset($data['approval_status']);
+        }
+
         foreach (['country', 'county', 'constituency', 'ward'] as $field) {
             if (array_key_exists($field, $data)) {
                 $data[$field] = $this->normalizeLocationValue($data[$field]);

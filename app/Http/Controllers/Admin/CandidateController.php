@@ -17,7 +17,7 @@ class CandidateController extends Controller
 
     public function index()
     {
-        $filters = request()->only(['candidate', 'position', 'political_party']);
+        $filters = request()->only(['candidate', 'position', 'political_party', 'approval_status']);
         $candidates = $this->candidateService->getPaginatedCandidates(15, $filters);
         $formData = $this->candidateService->getFormData();
 
@@ -93,6 +93,20 @@ class CandidateController extends Controller
             'featured' => $candidate->featured,
         ]);
     }
+
+    public function updateApproval(Request $request, Candidate $candidate)
+    {
+        $data = $request->validate([
+            'approval_status' => ['required', 'in:pending,approved,rejected'],
+        ]);
+
+        $candidate->update(['approval_status' => $data['approval_status']]);
+
+        return response()->json([
+            'success' => true,
+            'approval_status' => $candidate->approval_status,
+        ]);
+    }
     public function destroy(Candidate $candidate)
     {
         $this->candidateService->deleteCandidate($candidate);
@@ -111,8 +125,11 @@ class CandidateController extends Controller
 
     public function publicShow(Candidate $candidate)
     {
+        if (\Illuminate\Support\Facades\Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
+            abort(404);
+        }
+
         $candidate = $this->candidateService->getPublicShow($candidate);
         return view('aspirants.public.show', compact('candidate'));
     }
 }
-

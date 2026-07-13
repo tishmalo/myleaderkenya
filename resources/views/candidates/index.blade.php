@@ -17,7 +17,7 @@
     </div>
 
     <form method="GET" action="{{ route('candidates.index') }}" class="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Candidate</label>
                 <input type="text" name="candidate" value="{{ request('candidate') }}"
@@ -44,6 +44,15 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-2">Approval</label>
+                <select name="approval_status" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {{ request('approval_status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="approved" {{ request('approval_status') === 'approved' ? 'selected' : '' }}>Approved</option>
+                    <option value="rejected" {{ request('approval_status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </div>
             <div class="flex items-end gap-3">
                 <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl font-semibold text-white">
                     Filter
@@ -62,6 +71,7 @@
                     <th class="px-6 py-4 text-left">Position</th>
                     <th class="px-6 py-4 text-left">Political Party</th>
                     <th class="px-6 py-4 text-left">Jurisdiction</th>
+                    <th class="px-6 py-4 text-center">Approval</th>
                     <th class="px-6 py-4 text-center">Featured</th>
                     <th class="px-6 py-4 text-center">Actions</th>
                 </tr>
@@ -104,6 +114,13 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">
+                        <select data-approval-select data-url="{{ route('candidates.approval', $candidate) }}" class="rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white">
+                            <option value="pending" {{ ($candidate->approval_status ?? 'approved') === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="approved" {{ ($candidate->approval_status ?? 'approved') === 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected" {{ ($candidate->approval_status ?? 'approved') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 text-center">
                         <label class="inline-flex cursor-pointer items-center justify-center" title="Show in homepage aspirants carousel">
                             <input type="checkbox"
                                    class="sr-only peer"
@@ -128,7 +145,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-16 text-center text-zinc-500">
+                    <td colspan="7" class="px-6 py-16 text-center text-zinc-500">
                         No candidates found.
                     </td>
                 </tr>
@@ -182,6 +199,38 @@ document.querySelectorAll('[data-featured-toggle]').forEach(function (toggle) {
             });
     });
 });
+
+document.querySelectorAll('[data-approval-select]').forEach(function (select) {
+    select.addEventListener('change', function () {
+        var previous = select.dataset.previous || select.defaultValue || 'approved';
+        select.disabled = true;
+
+        fetch(select.dataset.url, {
+            method: 'PATCH',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ approval_status: select.value })
+        })
+            .then(function (response) {
+                if (!response.ok) throw new Error('Request failed');
+                return response.json();
+            })
+            .then(function (data) {
+                select.value = data.approval_status;
+                select.dataset.previous = data.approval_status;
+            })
+            .catch(function () {
+                select.value = previous;
+                alert('Could not update approval status. Please try again.');
+            })
+            .finally(function () {
+                select.disabled = false;
+            });
+    });
+    select.dataset.previous = select.value;
+});
 </script>
 @endpush
-

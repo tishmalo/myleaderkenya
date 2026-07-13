@@ -9,7 +9,7 @@ use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
-use Laravel\Sanctum\HasApiTokens;   // ← This is the important line
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -37,6 +37,7 @@ class User extends Authenticatable
         'country_of_residence',
         'is_voter',
         'is_registered',
+        'is_aspirant',
         'email_verified_at',
     ];
 
@@ -137,4 +138,3 @@ class User extends Authenticatable
                 ->withTimestamps();
 }
 }
-

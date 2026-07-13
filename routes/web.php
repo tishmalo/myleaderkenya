@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\LiveStatFigureController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
+use App\Http\Controllers\Web\AspirantRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -80,6 +81,8 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
     
+    Route::get('/aspirants/register', [AspirantRegistrationController::class, 'create'])->name('aspirants.register');
+    Route::post('/aspirants/register', [AspirantRegistrationController::class, 'store'])->name('aspirants.register.store');
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->name('aspirants.public');
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->name('aspirants.show');
 });
@@ -107,6 +110,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('positions', PositionController::class)->except(['show']);
     Route::get('/candidates/search', [CandidateController::class, 'search'])->name('candidates.search');
     Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->name('candidates.featured');
+    Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->name('candidates.approval');
     Route::resource('candidates', CandidateController::class);
     Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
     Route::resource('/admin/political-parties', PoliticalPartyController::class)
@@ -168,6 +172,3 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
-
-
-

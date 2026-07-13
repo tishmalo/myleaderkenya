@@ -8,6 +8,7 @@ use App\Models\NewsArticle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class AspirantController extends Controller
 {
@@ -16,6 +17,7 @@ class AspirantController extends Controller
         $perPage = min((int) $request->query('per_page', 12), 50);
 
         $aspirants = Candidate::with(['position', 'politicalParty'])
+            ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
             ->when($request->query('featured') !== null, function ($query) use ($request) {
                 $query->where('featured', filter_var($request->query('featured'), FILTER_VALIDATE_BOOLEAN));
             })
@@ -72,6 +74,10 @@ class AspirantController extends Controller
 
     public function show(Candidate $candidate): JsonResponse
     {
+        if (Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
+            abort(404);
+        }
+
         $candidate->load(['position', 'politicalParty']);
 
         $relatedArticles = NewsArticle::with('tags')

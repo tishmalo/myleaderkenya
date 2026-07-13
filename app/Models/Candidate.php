@@ -10,8 +10,8 @@ class Candidate extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id',
-        'profile_picture', 'featured', 'about', 'country', 'county', 'constituency', 'ward'
+        'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id', 'user_id',
+        'profile_picture', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward'
     ];
 
     protected $casts = [

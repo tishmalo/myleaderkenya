@@ -86,6 +86,7 @@ class LandingRepository implements LandingRepositoryInterface
         return collect($groups)->map(function (array $group) use ($hasFeatured) {
             $query = Candidate::query()
                 ->with(['position', 'politicalParty'])
+                ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
                 ->whereHas('position', function ($positionQuery) use ($group) {
                     $positionQuery->where(function ($query) use ($group) {
                         foreach ($group['aliases'] as $alias) {
@@ -196,6 +197,3 @@ class LandingRepository implements LandingRepositoryInterface
         return $genderData;
     }
 }
-
-
-

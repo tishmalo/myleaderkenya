@@ -62,7 +62,7 @@
     }
     unset($menuItem);
 
-    $joinNowUrl = Route::has('register') ? route('register') : url('/register');
+    $joinNowUrl = Route::has('aspirants.register') ? route('aspirants.register') : url('/aspirants/register');
     $buildMenuUrl = function (array $item): string {
         $query = $item['query'] ?? [];
 
@@ -493,4 +493,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-

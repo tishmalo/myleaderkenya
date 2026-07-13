@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Services\Web\LandingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class LandingController extends Controller
@@ -29,6 +30,7 @@ class LandingController extends Controller
         $aspirants = Candidate::query()
             ->with(['position', 'politicalParty'])
             ->where('featured', true)
+            ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
             ->whereNotNull('profile_picture')
             ->where('profile_picture', '!=', '')
             ->latest()
@@ -75,4 +77,3 @@ class LandingController extends Controller
         return asset(Storage::url(ltrim($path, '/')));
     }
 }
-
