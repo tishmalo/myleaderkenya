@@ -25,6 +25,10 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .tool-value { color:#fff; font-size:28px; font-weight:800; }
 .tool-note { color:rgba(245,245,240,.62); line-height:1.6; }
 .tool-alert { border:1px solid rgba(245,158,11,.3); border-radius:8px; background:rgba(245,158,11,.12); color:#fde68a; padding:16px; line-height:1.55; }
+.tool-success { border:1px solid rgba(34,197,94,.3); border-radius:8px; background:rgba(34,197,94,.12); color:#bbf7d0; padding:16px; line-height:1.55; margin-bottom:18px; }
+.poll-result { margin-top:14px; border-top:1px solid rgba(255,255,255,.07); padding-top:14px; }
+.poll-bar { height:8px; border-radius:999px; overflow:hidden; background:#242424; margin-top:7px; }
+.poll-bar span { display:block; height:100%; background:#00A86B; }
 .tool-form { display:grid; gap:14px; }
 .tool-form label { display:grid; gap:7px; color:rgba(245,245,240,.58); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .tool-form input,.tool-form textarea,.tool-form select { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; }
@@ -50,6 +54,14 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
             </div>
             <a href="/aspirant/dashboard" class="tool-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
         </div>
+
+        @if(session('success'))
+            <div class="tool-success">{{ session('success') }}</div>
+        @endif
+
+        @if(session('warning'))
+            <div class="tool-alert" style="margin-bottom:18px;">{{ session('warning') }}</div>
+        @endif
 
         <div class="tool-grid">
             <section class="tool-panel">

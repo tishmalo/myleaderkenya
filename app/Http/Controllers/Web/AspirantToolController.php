@@ -3,9 +3,15 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\AspirantPoll;
+use App\Models\Group;
+use App\Models\GroupMember;
+use App\Models\GroupMessage;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AspirantToolController extends Controller
@@ -49,6 +55,13 @@ class AspirantToolController extends Controller
                 ->take(8)
                 ->get()
             : collect();
+        $polls = $key === 'opinion-polls'
+            ? AspirantPoll::with(['group', 'responses'])
+                ->where('candidate_id', $candidate->id)
+                ->latest()
+                ->take(8)
+                ->get()
+            : collect();
 
         return view('aspirants.tools.show', [
             'candidate' => $candidate,
@@ -57,6 +70,128 @@ class AspirantToolController extends Controller
             'isBlocked' => $isBlocked,
             'voterCount' => $voterCount,
             'recentVoters' => $recentVoters,
+            'polls' => $polls,
         ]);
+    }
+
+    public function storePoll(Request $request): RedirectResponse
+    {
+        if (! $this->workspaceService->publishedToolForKey('opinion-polls')) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'Opinion polls are not enabled yet. Ask an admin to publish the tool first.');
+        }
+
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $scope = $this->workspaceService->scopeForCandidate($candidate);
+
+        if ($scope['missing']) {
+            return redirect()->route('aspirant.tools.show', 'opinion-polls')
+                ->with('warning', $scope['message']);
+        }
+
+        $validated = $request->validate([
+            'question' => ['required', 'string', 'max:255'],
+            'options' => ['required', 'string'],
+        ]);
+
+        $options = collect(preg_split('/\r\n|\r|\n/', $validated['options']))
+            ->map(fn (string $option): string => trim($option))
+            ->filter()
+            ->values();
+
+        if ($options->count() < 2) {
+            return redirect()->back()
+                ->withInput()
+                ->with('warning', 'Add at least two poll options.');
+        }
+
+        DB::transaction(function () use ($request, $candidate, $scope, $validated, $options): void {
+            $group = $this->scopedPollGroup($request, $scope);
+
+            GroupMember::firstOrCreate([
+                'group_id' => $group->id,
+                'user_id' => $request->user()->id,
+            ]);
+
+            $this->workspaceService->registeredVotersQuery($scope)
+                ->select('id')
+                ->orderBy('id')
+                ->chunkById(200, function ($voters) use ($group): void {
+                    foreach ($voters as $voter) {
+                        GroupMember::firstOrCreate([
+                            'group_id' => $group->id,
+                            'user_id' => $voter->id,
+                        ]);
+                    }
+                });
+
+            $poll = AspirantPoll::create([
+                'candidate_id' => $candidate->id,
+                'user_id' => $request->user()->id,
+                'group_id' => $group->id,
+                'question' => $validated['question'],
+                'options' => $options->all(),
+                'scope_type' => $scope['type'],
+                'scope_column' => $scope['column'],
+                'scope_value' => $scope['value'],
+                'status' => 'published',
+                'published_at' => now(),
+            ]);
+
+            GroupMessage::create([
+                'group_id' => $group->id,
+                'username' => $request->user()->username ?? $request->user()->name ?? 'Aspirant',
+                'message' => $this->pollMessage($poll),
+                'latitude' => null,
+                'longitude' => null,
+            ]);
+        });
+
+        return redirect()->route('aspirant.tools.show', 'opinion-polls')
+            ->with('success', 'Poll published to the ' . $scope['label'] . ' chat group.');
+    }
+
+    private function scopedPollGroup(Request $request, array $scope): Group
+    {
+        $name = $scope['label'] . ' Opinion Polls';
+
+        $group = Group::where('name', $name)
+            ->where('created_by', $request->user()->id)
+            ->first();
+
+        if ($group) {
+            return $group;
+        }
+
+        return Group::create([
+            'name' => $name,
+            'description' => 'Opinion polls for voters in ' . $scope['label'] . '.',
+            'created_by' => $request->user()->id,
+            'invite_code' => $this->uniqueInviteCode(),
+        ]);
+    }
+
+    private function uniqueInviteCode(): string
+    {
+        do {
+            $code = strtoupper(Str::random(8));
+        } while (Group::where('invite_code', $code)->exists());
+
+        return $code;
+    }
+
+    private function pollMessage(AspirantPoll $poll): string
+    {
+        $options = collect($poll->options)
+            ->map(fn (string $option, int $index): string => ($index + 1) . '. ' . $option)
+            ->implode("\n");
+
+        return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }

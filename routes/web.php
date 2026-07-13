@@ -94,6 +94,7 @@ Route::middleware('throttle:web')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
     Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
+    Route::post('/aspirant/tools/opinion-polls/polls', [AspirantToolController::class, 'storePoll'])->name('aspirant.tools.polls.store');
 
     // --- Core Admin & Dashboard ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
