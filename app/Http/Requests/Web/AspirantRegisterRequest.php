@@ -45,4 +45,56 @@ class AspirantRegisterRequest extends FormRequest
             'ward' => ['nullable', 'string', 'max:255'],
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $position = $this->positionName();
+
+            if ($position === '') {
+                return;
+            }
+
+            if ($this->requiresCounty($position) && blank($this->input('county'))) {
+                $validator->errors()->add('county', 'Select the county for this aspirant position.');
+            }
+
+            if ($this->requiresConstituency($position) && blank($this->input('constituency'))) {
+                $validator->errors()->add('constituency', 'Select the constituency for this aspirant position.');
+            }
+
+            if ($this->requiresWard($position) && blank($this->input('ward'))) {
+                $validator->errors()->add('ward', 'Select the ward for this aspirant position.');
+            }
+        });
+    }
+
+    private function positionName(): string
+    {
+        $position = \App\Models\Position::find($this->input('position_id'));
+
+        return Str::lower((string) ($position->name ?? ''));
+    }
+
+    private function requiresCounty(string $position): bool
+    {
+        return ! str_contains($position, 'president');
+    }
+
+    private function requiresConstituency(string $position): bool
+    {
+        return str_contains($position, 'member of parliament')
+            || preg_match('/\bmp\b/', $position)
+            || str_contains($position, 'mca')
+            || str_contains($position, 'member of county assembly')
+            || str_contains($position, 'county assembly');
+    }
+
+    private function requiresWard(string $position): bool
+    {
+        return str_contains($position, 'mca')
+            || str_contains($position, 'member of county assembly')
+            || str_contains($position, 'county assembly');
+    }
+
 }

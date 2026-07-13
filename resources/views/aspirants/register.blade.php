@@ -119,36 +119,54 @@ function renderJurisdictionFields(positionName) {
     const isMCA = name.includes('mca') || name.includes('county assembly');
     if (isPresident) jurisdictionFields.innerHTML = `<div class="md:col-span-3"><label class="mb-2 block text-sm text-zinc-400">Country</label><input type="text" name="country" value="Kenya" readonly class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white"></div>`;
     else if (isCounty) jurisdictionFields.innerHTML = `<div class="md:col-span-3">${selectHtml('county','countySelect','County',true)}</div>`;
-    else if (isMP) jurisdictionFields.innerHTML = selectHtml('county','countySelect','County',false) + `<div class="md:col-span-2">${selectHtml('constituency','constituencySelect','Constituency',true)}</div>`;
-    else if (isMCA) jurisdictionFields.innerHTML = selectHtml('county','countySelect','County',false) + selectHtml('constituency','constituencySelect','Constituency',false) + selectHtml('ward','wardSelect','Ward',true);
+    else if (isMP) jurisdictionFields.innerHTML = selectHtml('county','countySelect','County',true) + `<div class="md:col-span-2">${selectHtml('constituency','constituencySelect','Constituency',true)}</div>`;
+    else if (isMCA) jurisdictionFields.innerHTML = selectHtml('county','countySelect','County',true) + selectHtml('constituency','constituencySelect','Constituency',true) + selectHtml('ward','wardSelect','Ward',true);
     else jurisdictionFields.innerHTML = selectHtml('county','countySelect','County',false) + selectHtml('constituency','constituencySelect','Constituency',false) + selectHtml('ward','wardSelect','Ward',false);
     attachEventListeners();
 }
-function fillSelect(select, items, selectedValue) { items.forEach(item => { const opt = document.createElement('option'); const name = optionName(item); opt.value = name; opt.dataset.id = optionId(item); opt.textContent = name; if (selectedValue === name) opt.selected = true; select.appendChild(opt); }); }
+function fillSelect(select, items, selectedValue) { items.forEach(item => { const opt = document.createElement('option'); const name = optionName(item); if (!name) return; opt.value = name; opt.dataset.id = optionId(item); opt.textContent = name; if (selectedValue === name) opt.selected = true; select.appendChild(opt); }); }
+function selectedOptionId(select) { return select?.selectedOptions?.[0]?.dataset?.id || ''; }
+
+async function loadConstituenciesForCounty(countySelect, constituencySelect, wardSelect) {
+    const countyId = selectedOptionId(countySelect);
+    if (!constituencySelect) return;
+    constituencySelect.innerHTML = '<option value="">Loading...</option>';
+    const data = await fetchConstituencies(countyId);
+    constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
+    fillSelect(constituencySelect, data, oldValues.constituency);
+    if (wardSelect) wardSelect.innerHTML = '<option value="">Select Ward</option>';
+    if (oldValues.constituency && wardSelect) {
+        await loadWardsForConstituency(constituencySelect, wardSelect);
+    }
+}
+async function loadWardsForConstituency(constituencySelect, wardSelect) {
+    const consId = selectedOptionId(constituencySelect);
+    if (!wardSelect) return;
+    wardSelect.innerHTML = '<option value="">Loading...</option>';
+    const data = await fetchWards(consId);
+    wardSelect.innerHTML = '<option value="">Select Ward</option>';
+    fillSelect(wardSelect, data, oldValues.ward);
+}
+
 function attachEventListeners() {
     const countySelect = document.getElementById('countySelect');
     const constituencySelect = document.getElementById('constituencySelect');
     const wardSelect = document.getElementById('wardSelect');
     if (countySelect) {
         fillSelect(countySelect, allCounties, oldValues.county);
+        if (oldValues.county && constituencySelect) {
+            loadConstituenciesForCounty(countySelect, constituencySelect, wardSelect);
+        }
         countySelect.addEventListener('change', async function() {
-            const countyId = this.selectedOptions[0]?.dataset.id || '';
-            if (!constituencySelect) return;
-            constituencySelect.innerHTML = '<option value="">Loading...</option>';
-            const data = await fetchConstituencies(countyId);
-            constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
-            fillSelect(constituencySelect, data, oldValues.constituency);
-            if (wardSelect) wardSelect.innerHTML = '<option value="">Select Ward</option>';
+            oldValues.constituency = '';
+            oldValues.ward = '';
+            await loadConstituenciesForCounty(this, constituencySelect, wardSelect);
         });
     }
     if (constituencySelect) {
         constituencySelect.addEventListener('change', async function() {
-            const consId = this.selectedOptions[0]?.dataset.id || '';
-            if (!wardSelect) return;
-            wardSelect.innerHTML = '<option value="">Loading...</option>';
-            const data = await fetchWards(consId);
-            wardSelect.innerHTML = '<option value="">Select Ward</option>';
-            fillSelect(wardSelect, data, oldValues.ward);
+            oldValues.ward = '';
+            await loadWardsForConstituency(this, wardSelect);
         });
     }
 }
