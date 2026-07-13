@@ -68,15 +68,7 @@ class User extends Authenticatable
 
     public function getEmailAttribute($value): ?string
     {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        try {
-            return Crypt::decryptString($value);
-        } catch (DecryptException) {
-            return (string) $value;
-        }
+        return $this->decryptNullableString($value);
     }
 
     public function setEmailAttribute($value): void
@@ -91,6 +83,35 @@ class User extends Authenticatable
 
         $this->attributes['email'] = Crypt::encryptString($email);
         $this->attributes['email_hash'] = hash('sha256', $email);
+    }
+
+    public function getPhoneAttribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setPhoneAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['phone'] = null;
+            return;
+        }
+
+        $phone = trim((string) $value);
+        $this->attributes['phone'] = Crypt::encryptString($phone);
+    }
+
+    private function decryptNullableString($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return Crypt::decryptString($value);
+        } catch (DecryptException) {
+            return (string) $value;
+        }
     }
 
     /**

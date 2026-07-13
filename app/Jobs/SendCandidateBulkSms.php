@@ -65,6 +65,12 @@ class SendCandidateBulkSms implements ShouldQueue
         ]);
 
         $recipients = $this->recipients($smsMessage);
+        Log::info('Bulk SMS recipients resolved from voter scope.', [
+            'sms_message_id' => $smsMessage->id,
+            'candidate_id' => $smsMessage->candidate_id,
+            'recipient_count' => $recipients->count(),
+            'valid_phone_count' => $recipients->filter(fn (User $user): bool => filled($user->phone))->count(),
+        ]);
 
         try {
             $result = $smsService->sendBulk($setting, $recipients, $smsMessage->message);
