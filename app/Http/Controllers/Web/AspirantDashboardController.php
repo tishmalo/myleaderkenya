@@ -23,7 +23,7 @@ class AspirantDashboardController extends Controller
             'user' => $user,
             'candidate' => $candidate,
             'campaignTools' => $campaignTools,
-            'toolModules' => $this->workspaceService->toolModules($campaignTools),
+            'toolModules' => $this->workspaceService->toolModules($campaignTools, $candidate),
             'voterScope' => $scope,
         ]);
     }

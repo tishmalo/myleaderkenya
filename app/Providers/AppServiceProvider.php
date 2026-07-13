@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
 use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
 use App\Contracts\Repositories\Admin\CoalitionRepositoryInterface;
 use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
@@ -30,6 +31,7 @@ use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
 use App\Repositories\Admin\BlocRepository;
 use App\Repositories\Admin\CandidateRepository;
+use App\Repositories\Admin\CandidateSmsSettingRepository;
 use App\Repositories\Admin\CampaignToolRepository;
 use App\Repositories\Admin\CoalitionRepository;
 use App\Repositories\Admin\PoliticalPartyRepository;
@@ -55,7 +57,9 @@ use App\Repositories\Api\TagRepository;
 use App\Repositories\Api\UserRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
 use App\Contracts\Repositories\Web\LandingRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Repositories\Web\LandingRepository;
+use App\Repositories\Web\CandidateSmsMessageRepository;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -71,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         // Register Admin Repositories
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
         $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
+        $this->app->bind(CandidateSmsSettingRepositoryInterface::class, CandidateSmsSettingRepository::class);
         $this->app->bind(CampaignToolRepositoryInterface::class, CampaignToolRepository::class);
         $this->app->bind(CoalitionRepositoryInterface::class, CoalitionRepository::class);
         $this->app->bind(PoliticalPartyRepositoryInterface::class, PoliticalPartyRepository::class);
@@ -109,6 +114,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Web Repositories
         $this->app->bind(LandingRepositoryInterface::class, LandingRepository::class);
+        $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);
     }
 
     /**

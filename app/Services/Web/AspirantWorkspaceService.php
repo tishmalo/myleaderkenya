@@ -13,7 +13,13 @@ class AspirantWorkspaceService
 {
     public function candidateForUser(User $user): ?Candidate
     {
-        $query = Candidate::with(['position', 'politicalParty']);
+        $relations = ['position', 'politicalParty'];
+
+        if (Schema::hasTable('candidate_sms_settings')) {
+            $relations[] = 'smsSetting';
+        }
+
+        $query = Candidate::with($relations);
 
         if (Schema::hasColumn('candidates', 'user_id')) {
             $candidate = (clone $query)->where('user_id', $user->id)->latest()->first();
@@ -76,16 +82,18 @@ class AspirantWorkspaceService
         ];
     }
 
-    public function toolModules(Collection $campaignTools): array
+    public function toolModules(Collection $campaignTools, ?Candidate $candidate = null): array
     {
-        return collect($this->toolDefinitions())->map(function (array $module, string $key) use ($campaignTools): array {
+        return collect($this->toolDefinitions())->map(function (array $module, string $key) use ($campaignTools, $candidate): array {
             $match = $this->matchingCampaignTool($campaignTools, $key, $module['title']);
+            $availability = $this->toolAvailability($key, $match, $candidate);
 
             return array_merge($module, [
                 'key' => $key,
                 'tool' => $match,
-                'url' => $match ? route('aspirant.tools.show', $key) : route('campaign-tools.public'),
-                'available' => (bool) $match,
+                'url' => $availability['available'] ? route('aspirant.tools.show', $key) : '#',
+                'available' => $availability['available'],
+                'disabled_reason' => $availability['reason'],
             ]);
         })->values()->all();
     }
@@ -99,6 +107,20 @@ class AspirantWorkspaceService
         }
 
         return $this->matchingCampaignTool(CampaignTool::published()->ordered()->get(), $key, $definition['title']);
+    }
+
+
+    public function canUseTool(string $key, ?Candidate $candidate): array
+    {
+        $definition = $this->toolDefinitions()[$key] ?? null;
+
+        if (! $definition) {
+            return ['available' => false, 'reason' => 'Unknown campaign tool.'];
+        }
+
+        $tool = $this->publishedToolForKey($key);
+
+        return $this->toolAvailability($key, $tool, $candidate);
     }
 
     public function scopeForCandidate(?Candidate $candidate): array
@@ -173,6 +195,32 @@ class AspirantWorkspaceService
         }
 
         return $query;
+    }
+
+
+    private function toolAvailability(string $key, ?CampaignTool $tool, ?Candidate $candidate): array
+    {
+        if (! $tool) {
+            return ['available' => false, 'reason' => 'Ask an admin to publish this campaign tool.'];
+        }
+
+        if ($key === 'bulk-sms') {
+            if (! Schema::hasTable('candidate_sms_settings')) {
+                return ['available' => false, 'reason' => 'Run the Bulk SMS settings migration before enabling this tool.'];
+            }
+
+            if (! $candidate) {
+                return ['available' => false, 'reason' => 'Link an aspirant profile before using Bulk SMS.'];
+            }
+
+            $setting = $candidate->smsSetting;
+
+            if (! $setting || ! $setting->isReady()) {
+                return ['available' => false, 'reason' => 'Ask an admin to enable Bulk SMS and add Infobip credentials for this candidate.'];
+            }
+        }
+
+        return ['available' => true, 'reason' => null];
     }
 
     private function matchingCampaignTool(Collection $campaignTools, string $key, string $title): ?CampaignTool

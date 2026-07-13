@@ -31,6 +31,8 @@ body { background:#090909; color:#f5f5f0; }
 .asp-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
 .asp-tool { min-height:196px; display:flex; flex-direction:column; gap:12px; border:1px solid rgba(255,255,255,.08); background:#141414; border-radius:8px; padding:18px; text-decoration:none; color:white; transition:transform .2s,border-color .2s; }
 .asp-tool:hover { transform:translateY(-3px); border-color:rgba(0,168,107,.45); }
+.asp-tool.disabled { opacity:.48; cursor:not-allowed; pointer-events:none; }
+.asp-tool.disabled:hover { transform:none; border-color:rgba(255,255,255,.08); }
 .asp-tool-icon { width:40px; height:40px; border-radius:8px; display:grid; place-items:center; background:rgba(0,168,107,.12); color:#00A86B; font-size:18px; }
 .asp-tool h3 { margin:0; font-family:'Oswald',sans-serif; font-size:20px; }
 .asp-tool p { margin:0; color:rgba(245,245,240,.58); line-height:1.5; font-size:13px; }
@@ -77,12 +79,12 @@ body { background:#090909; color:#f5f5f0; }
                 <h2>Campaign Tools</h2>
                 <div class="asp-tools">
                     @foreach($toolModules as $module)
-                        <a href="{{ $module['url'] }}" class="asp-tool">
+                        <a href="{{ $module['url'] }}" class="asp-tool {{ $module['available'] ? '' : 'disabled' }}" title="{{ $module['disabled_reason'] ?? '' }}" aria-disabled="{{ $module['available'] ? 'false' : 'true' }}">
                             <div class="asp-tool-icon"><i class="{{ str_starts_with($module['icon'], 'fa-brands') ? $module['icon'] : 'fas ' . $module['icon'] }}"></i></div>
                             <h3>{{ $module['title'] }}</h3>
                             <p>{{ $module['summary'] }}</p>
                             <div class="asp-tool-foot">
-                                <span>{{ $module['available'] ? 'Open Tool' : 'View Options' }}</span>
+                                <span>{{ $module['available'] ? 'Open Tool' : 'Setup Required' }}</span>
                                 <span class="asp-chip">{{ $module['available'] ? 'Ready' : 'Setup' }}</span>
                             </div>
                         </a>

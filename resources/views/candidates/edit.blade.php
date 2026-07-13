@@ -94,6 +94,45 @@
                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">{{ old('about', $candidate->about) }}</textarea>
             </div>
 
+            @php($smsSetting = \Illuminate\Support\Facades\Schema::hasTable('candidate_sms_settings') ? $candidate->smsSetting : null)
+            <div class="mt-8 border border-zinc-800 rounded-3xl p-6 bg-zinc-950">
+                <div class="flex items-start justify-between gap-4 mb-5">
+                    <div>
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-comment-sms text-emerald-500"></i>
+                            Bulk SMS Settings
+                        </h2>
+                        <p class="text-sm text-zinc-500 mt-1">Infobip credentials are stored encrypted and are only used by this candidate's Bulk SMS workspace.</p>
+                    </div>
+                    <label class="inline-flex items-center gap-3 text-sm text-zinc-300">
+                        <input type="hidden" name="sms_enabled" value="0">
+                        <input type="checkbox" name="sms_enabled" value="1" class="rounded border-zinc-700 bg-zinc-800 text-emerald-600" {{ old('sms_enabled', optional($smsSetting)->enabled) ? 'checked' : '' }}>
+                        Enabled
+                    </label>
+                </div>
+
+                <input type="hidden" name="sms_provider" value="infobip">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Infobip Base URL</label>
+                        <input type="url" name="sms_base_url" value="{{ old('sms_base_url', optional($smsSetting)->base_url) }}" placeholder="https://xxxxx.api.infobip.com"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Sender Name</label>
+                        <input type="text" name="sms_sender_name" value="{{ old('sms_sender_name', optional($smsSetting)->sender_name) }}" placeholder="EGEMEOARDHI"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label class="block text-sm text-zinc-400 mb-2">API Key</label>
+                    <input type="password" name="sms_api_key" value="" placeholder="{{ $smsSetting && $smsSetting->api_key ? 'Leave blank to keep existing key' : 'Paste candidate Infobip API key' }}"
+                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                </div>
+            </div>
+
             <div class="mt-10 flex gap-4">
                 <a href="{{ route('candidates.index') }}" 
                    class="flex-1 py-4 border border-zinc-700 rounded-2xl text-center font-medium hover:bg-zinc-800">

@@ -1,0 +1,912 @@
+{
+  "info": {
+    "_postman_id": "5b9b0c85-4016-40a7-a3e6-5fe36d2c9bae",
+    "name": "SMS API Collection",
+    "description": "Complete SMS API collection with all endpoints for sending SMS, retrieving delivery reports, logs, account balance, receiving SMS, and Number Context lookups.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47563489"
+  },
+  "item": [
+    {
+      "name": "Send SMS",
+      "item": [
+        {
+          "name": "Single Textual Message - Single Destination",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"from\":\"EGEMEOARDHI\",\n   \"to\":\"254740274151\",\n   \"text\":\"Test SMS.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/text/single",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "text",
+                "single"
+              ]
+            },
+            "description": "Send a single textual SMS to one destination."
+          },
+          "response": []
+        },
+        {
+          "name": "Single Textual Message - Multiple Destinations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"from\":\"InfoSMS\",\n   \"to\":[\n      \"41793026727\",\n      \"41793026834\"\n   ],\n   \"text\":\"Test SMS.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/text/single",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "text",
+                "single"
+              ]
+            },
+            "description": "Send a single textual SMS to multiple destinations."
+          },
+          "response": []
+        },
+        {
+          "name": "Multiple Textual Messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"messages\":[\n      {\n         \"from\":\"InfoSMS\",\n         \"to\":[\n            \"41793026727\",\n            \"41793026731\"\n         ],\n         \"text\":\"May the Force be with you!\"\n      },\n      {\n         \"from\":\"41793026700\",\n         \"to\":\"41793026785\",\n         \"text\":\"A long time ago, in a galaxy far, far away... It is a period of civil war.\"\n      }\n   ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/text/multi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "text",
+                "multi"
+              ]
+            },
+            "description": "Send multiple textual messages to one or more destinations."
+          },
+          "response": []
+        },
+        {
+          "name": "Single Binary Message - Single Destination",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"from\":\"InfoSMS\",\n   \"to\":\"41793026727\",\n   \"binary\":{\n      \"hex\":\"54 65 73 74 20 6d 65 73 73 61 67 65 2e\",\n      \"dataCoding\":0,\n      \"esmClass\":0\n   }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/binary/single",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "binary",
+                "single"
+              ]
+            },
+            "description": "Send a single binary message to one destination."
+          },
+          "response": []
+        },
+        {
+          "name": "Single Binary Message - Multiple Destinations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"from\":\"InfoSMS\",\n   \"to\":[\n      \"41793026727\",\n      \"41793026834\"\n   ],\n   \"binary\":{\n      \"hex\":\"54 65 73 74 69 6e 67 20 c4 8d c5 a1 c4 87 c4 91\",\n      \"dataCoding\":7,\n      \"esmClass\":0\n   }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/binary/single",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "binary",
+                "single"
+              ]
+            },
+            "description": "Send a single binary message to multiple destinations."
+          },
+          "response": []
+        },
+        {
+          "name": "Multiple Binary Messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"messages\":[\n      {\n         \"from\":\"InfoSMS\",\n         \"to\":[\n            \"41793026727\",\n            \"41793026731\"\n         ],\n         \"binary\":{\n            \"hex\":\"54 65 73 74 20 6d 65 73 73 61 67 65 2e\",\n            \"dataCoding\":0,\n            \"esmClass\":0\n         }\n      },\n      {\n         \"from\":\"41793026700\",\n         \"to\":\"41793026785\",\n         \"binary\":{\n            \"hex\":\"d1 82 d0 b5 d1 81 d1 82 d0 b8 d1 80 d0 b0 d1 9a d0 b5 20 d1 9b d0 b8 d1 80 d0 b8 d0 bb d0 b8 d1 86 d0 b5\",\n            \"dataCoding\":6,\n            \"esmClass\":0\n         }\n      }\n   ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/binary/multi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "binary",
+                "multi"
+              ]
+            },
+            "description": "Send multiple binary messages to one or more destinations."
+          },
+          "response": []
+        },
+        {
+          "name": "Advanced Textual Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"bulkId\":\"BULK-ID-123-xyz\",\n   \"messages\":[\n      {\n         \"from\":\"InfoSMS\",\n         \"destinations\":[\n            {\n               \"to\":\"41793026727\",\n               \"messageId\":\"MESSAGE-ID-123-xyz\"\n            },\n            {\n               \"to\":\"41793026731\"\n            }\n         ],\n         \"text\":\"Advanced SMS with all features.\",\n         \"flash\":false,\n         \"language\":{\n            \"languageCode\":\"TR\",\n            \"singleShift\":true,\n            \"lockingShift\":false\n         },\n         \"transliteration\":\"TURKISH\",\n         \"notifyUrl\":\"http://www.example.com/sms/advanced\",\n         \"notifyContentType\":\"application/json\",\n         \"callbackData\":\"DLR callback data\",\n         \"validityPeriod\":720\n      },\n      {\n         \"from\":\"41793026700\",\n         \"destinations\":[\n            {\n               \"to\":\"41793026785\"\n            }\n         ],\n         \"text\":\"Scheduled message text.\",\n         \"sendAt\":\"2025-12-31T17:00:00.000+01:00\"\n      }\n   ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/text/advanced",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "text",
+                "advanced"
+              ]
+            },
+            "description": "Send advanced SMS with all available features including scheduled sending, language settings, and delivery notifications."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for sending various types of SMS messages"
+    },
+    {
+      "name": "Delivery Reports",
+      "item": [
+        {
+          "name": "Get Delivery Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "reports"
+              ]
+            },
+            "description": "Get one-time delivery reports for sent SMS. Note: Reports can only be retrieved once."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Delivery Reports with Limit",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/reports?limit=2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "Get delivery reports with a limit on the number of reports returned."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Delivery Reports by Message ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/reports?messageId=ff4804ef-6ab6-4abd-984d-ab3b1387e852",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "messageId",
+                  "value": "ff4804ef-6ab6-4abd-984d-ab3b1387e852"
+                }
+              ]
+            },
+            "description": "Get delivery report for a specific message ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Delivery Reports by Bulk ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/reports?bulkId=80664c0c-e1ca-414d-806a-5caf146463df",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "bulkId",
+                  "value": "80664c0c-e1ca-414d-806a-5caf146463df"
+                }
+              ]
+            },
+            "description": "Get delivery reports for all messages in a bulk request."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for retrieving delivery reports"
+    },
+    {
+      "name": "SMS Logs",
+      "item": [
+        {
+          "name": "Get Sent Messages Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "logs"
+              ]
+            },
+            "description": "Get logs for sent SMS messages. Available for the last 48 hours."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs with Filters (from, to, limit)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/logs?from=InfoSMS&to=41793026727&limit=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "InfoSMS"
+                },
+                {
+                  "key": "to",
+                  "value": "41793026727"
+                },
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Get SMS logs filtered by sender, recipient, and limit."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs by Multiple Bulk IDs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/logs?bulkId=1dece649-6c8f-404e-8c6e-c7e073be509a,bafdeb3d-719b-4cce-8762-54d47b40f3c5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "bulkId",
+                  "value": "1dece649-6c8f-404e-8c6e-c7e073be509a,bafdeb3d-719b-4cce-8762-54d47b40f3c5"
+                }
+              ]
+            },
+            "description": "Get SMS logs for multiple bulk IDs."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs by Date Range and Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/logs?sentSince=2025-01-01T00:00:00.000+01:00&generalStatus=DELIVERED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "sentSince",
+                  "value": "2025-01-01T00:00:00.000+01:00"
+                },
+                {
+                  "key": "generalStatus",
+                  "value": "DELIVERED"
+                }
+              ]
+            },
+            "description": "Get SMS logs filtered by date range and general status."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for retrieving SMS logs"
+    },
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Get Account Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/account/1/balance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "account",
+                "1",
+                "balance"
+              ]
+            },
+            "description": "Get your account balance and currency."
+          },
+          "response": []
+        }
+      ],
+      "description": "Account management endpoints"
+    },
+    {
+      "name": "Receive SMS",
+      "item": [
+        {
+          "name": "Pull Received Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/inbox/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "inbox",
+                "reports"
+              ]
+            },
+            "description": "Pull received messages one time. Note: Once retrieved, messages cannot be retrieved again."
+          },
+          "response": []
+        },
+        {
+          "name": "Pull Received Messages with Limit",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/inbox/reports?limit=2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "inbox",
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "Pull a limited number of received messages."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Received Messages Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/inbox/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "inbox",
+                "logs"
+              ]
+            },
+            "description": "Get logs of received messages."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Received Messages Logs with Keyword Filter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/inbox/logs?keyword=HEY&to=13372",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "inbox",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "HEY"
+                },
+                {
+                  "key": "to",
+                  "value": "13372"
+                }
+              ]
+            },
+            "description": "Get received messages logs filtered by keyword and recipient."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Messages Without Keyword",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restapi/sms/1/inbox/logs?keyword=NO_KEYWORD",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "sms",
+                "1",
+                "inbox",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "NO_KEYWORD"
+                }
+              ]
+            },
+            "description": "Get all received messages that were sent without a keyword."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for receiving and retrieving inbox messages"
+    },
+    {
+      "name": "Number Context",
+      "item": [
+        {
+          "name": "Number Context Lookup - Synchronous (Single)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"to\":[\"41793026727\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/number/1/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "number",
+                "1",
+                "query"
+              ]
+            },
+            "description": "Synchronous Number Context lookup for a single phone number. Response is returned immediately."
+          },
+          "response": []
+        },
+        {
+          "name": "Number Context Lookup - Synchronous (Multiple)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"to\":[\n      \"41793026727\",\n      \"3859851212\"\n   ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/number/1/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "number",
+                "1",
+                "query"
+              ]
+            },
+            "description": "Synchronous Number Context lookup for multiple phone numbers."
+          },
+          "response": []
+        },
+        {
+          "name": "Number Context Lookup - Asynchronous (Single)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"to\":[\"41793026727\"],\n   \"notifyUrl\":\"http://example.com/notifyUrl\",\n   \"notifyContentType\":\"application/json\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/number/1/notify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "number",
+                "1",
+                "notify"
+              ]
+            },
+            "description": "Asynchronous Number Context lookup for a single phone number. Response is sent to the notify URL."
+          },
+          "response": []
+        },
+        {
+          "name": "Number Context Lookup - Asynchronous (Multiple)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n   \"to\":[\n      \"41793026727\",\n      \"12345678\",\n      \"Alphanumeric\"\n   ],\n   \"notifyUrl\":\"http://example.com/notifyUrl\",\n   \"notifyContentType\":\"application/json\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restapi/number/1/notify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restapi",
+                "number",
+                "1",
+                "notify"
+              ]
+            },
+            "description": "Asynchronous Number Context lookup for multiple phone numbers. Response is sent to the notify URL."
+          },
+          "response": []
+        }
+      ],
+      "description": "Number Context validation endpoints for checking mobile number validity, porting status, and roaming information"
+    }
+  ],
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "password",
+        "value": "BZ@L67prAnPDUVC",
+        "type": "string"
+      },
+      {
+        "key": "username",
+        "value": "RASHMILAN",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://107.20.199.106"
+    }
+  ]
+}

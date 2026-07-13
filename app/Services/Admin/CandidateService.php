@@ -3,10 +3,10 @@
 namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
 use App\Models\Candidate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -14,7 +14,8 @@ use Illuminate\Support\Str;
 class CandidateService
 {
     public function __construct(
-        private CandidateRepositoryInterface $candidateRepository
+        private CandidateRepositoryInterface $candidateRepository,
+        private CandidateSmsSettingRepositoryInterface $smsSettingRepository
     ) {}
 
     // -------------------------------------------------------------------------
@@ -28,28 +29,35 @@ class CandidateService
 
     public function createCandidate(array $data, ?UploadedFile $picture = null): Candidate
     {
+        $smsSettings = $this->extractSmsSettings($data);
         $data = $this->normalizeCandidateData($data);
 
         if ($picture) {
             $data['profile_picture'] = $this->storeCandidatePicture($picture);
         }
 
-        return $this->candidateRepository->create($data);
+        $candidate = $this->candidateRepository->create($data);
+        $this->saveSmsSettings($candidate, $smsSettings);
+
+        return $candidate;
     }
 
     public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null): bool
     {
+        $smsSettings = $this->extractSmsSettings($data);
         $data = $this->normalizeCandidateData($data);
 
         if ($picture) {
-            // Delete old picture before storing the new one
             if ($candidate->profile_picture) {
                 $this->deleteCandidatePicture($candidate->profile_picture);
             }
             $data['profile_picture'] = $this->storeCandidatePicture($picture);
         }
 
-        return $this->candidateRepository->update($candidate, $data);
+        $updated = $this->candidateRepository->update($candidate, $data);
+        $this->saveSmsSettings($candidate, $smsSettings);
+
+        return $updated;
     }
 
     public function deleteCandidate(Candidate $candidate): bool
@@ -92,6 +100,8 @@ class CandidateService
 
     private function normalizeCandidateData(array $data): array
     {
+        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_api_key']);
+
         if (! Schema::hasColumn('candidates', 'political_party_id')) {
             unset($data['political_party_id']);
         }
@@ -141,6 +151,43 @@ class CandidateService
 
         return $value;
     }
+
+    private function extractSmsSettings(array $data): array
+    {
+        return [
+            'enabled' => (bool) ($data['sms_enabled'] ?? false),
+            'provider' => $data['sms_provider'] ?? 'infobip',
+            'base_url' => $data['sms_base_url'] ?? null,
+            'sender_name' => $data['sms_sender_name'] ?? null,
+            'api_key' => $data['sms_api_key'] ?? null,
+        ];
+    }
+
+    private function saveSmsSettings(Candidate $candidate, array $settings): void
+    {
+        if (! Schema::hasTable('candidate_sms_settings')) {
+            return;
+        }
+
+        $existing = $this->smsSettingRepository->findForCandidate($candidate);
+
+        if (blank($settings['api_key'] ?? null) && $existing) {
+            unset($settings['api_key']);
+        }
+
+        if (
+            ! $settings['enabled']
+            && blank($settings['base_url'] ?? null)
+            && blank($settings['sender_name'] ?? null)
+            && blank($settings['api_key'] ?? null)
+            && ! $existing
+        ) {
+            return;
+        }
+
+        $this->smsSettingRepository->upsertForCandidate($candidate, $settings);
+    }
+
     // -------------------------------------------------------------------------
     // Form dropdowns
     // -------------------------------------------------------------------------

@@ -112,16 +112,19 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                             </div>
                         </form>
                     @elseif($module['key'] === 'bulk-sms')
-                        <form class="tool-form">
+                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.send') }}">
+                            @csrf
                             <label>Recipients
                                 <input type="text" value="{{ number_format($voterCount ?? 0) }} registered voters in {{ $scope['label'] }}" readonly>
                             </label>
                             <label>Message
-                                <textarea rows="6" placeholder="Write a focused SMS update for voters in your bloc."></textarea>
+                                <textarea name="message" rows="6" maxlength="918" required placeholder="Write a focused SMS update for voters in your bloc.">{{ old('message') }}</textarea>
                             </label>
+                            @error('message')
+                                <div class="tool-alert">{{ $message }}</div>
+                            @enderror
                             <div class="tool-actions">
-                                <button type="button" class="tool-btn primary"><i class="fas fa-save"></i> Save Draft</button>
-                                <button type="button" class="tool-btn"><i class="fas fa-paper-plane"></i> Queue Review</button>
+                                <button type="submit" class="tool-btn primary"><i class="fas fa-paper-plane"></i> Send SMS</button>
                             </div>
                         </form>
                     @elseif($module['key'] === 'bulk-whatsapp')

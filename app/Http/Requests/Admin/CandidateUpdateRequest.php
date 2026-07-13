@@ -31,6 +31,11 @@ class CandidateUpdateRequest extends FormRequest
             'county'          => 'nullable|string',
             'constituency'    => 'nullable|string',
             'ward'            => 'nullable|string',
+            'sms_enabled'     => 'nullable|boolean',
+            'sms_provider'    => 'nullable|in:infobip',
+            'sms_base_url'    => 'nullable|url|max:255',
+            'sms_sender_name' => 'nullable|string|max:50',
+            'sms_api_key'     => 'nullable|string|max:500',
         ];
     }
 }

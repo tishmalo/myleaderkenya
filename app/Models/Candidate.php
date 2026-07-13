@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Candidate extends Model
 {
@@ -31,5 +33,15 @@ class Candidate extends Model
     public function bloc()
     {
         return $this->belongsTo(Bloc::class);
+    }
+
+    public function smsSetting(): HasOne
+    {
+        return $this->hasOne(CandidateSmsSetting::class);
+    }
+
+    public function smsMessages(): HasMany
+    {
+        return $this->hasMany(CandidateSmsMessage::class);
     }
 }
