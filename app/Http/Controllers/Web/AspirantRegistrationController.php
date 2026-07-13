@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AspirantRegistrationController extends Controller
@@ -34,6 +35,7 @@ class AspirantRegistrationController extends Controller
         $candidate = DB::transaction(function () use ($request, $validated): Candidate {
             $user = User::create([
                 'name' => $validated['name'],
+                'username' => $this->uniqueUsername($validated['name']),
                 'email' => $validated['email'],
                 'password' => $validated['password'],
                 'role' => 'user',
@@ -61,7 +63,25 @@ class AspirantRegistrationController extends Controller
             return $candidate;
         });
 
-        return redirect()->route('aspirants.register')
+        return redirect()->route('aspirant.dashboard')
             ->with('success', 'Your aspirant registration has been submitted. An admin will review and approve it before it appears publicly.');
+    }
+
+    private function uniqueUsername(string $name): string
+    {
+        $base = Str::limit(Str::slug($name, '_'), 40, '');
+
+        if ($base === '') {
+            $base = 'aspirant';
+        }
+
+        $username = $base;
+        $suffix = 1;
+
+        while (User::where('username', $username)->exists()) {
+            $username = $base . '_' . $suffix++;
+        }
+
+        return $username;
     }
 }

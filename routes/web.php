@@ -25,6 +25,7 @@ use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageControl
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
+use App\Http\Controllers\Web\AspirantDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -90,6 +91,7 @@ Route::middleware('throttle:web')->group(function () {
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
+    Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
 
     // --- Core Admin & Dashboard ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

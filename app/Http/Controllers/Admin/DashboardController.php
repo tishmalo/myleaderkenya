@@ -16,6 +16,10 @@ class DashboardController extends Controller
 
     public function index()
     {
+        if (auth()->user()?->user_type === 'aspirant') {
+            return redirect()->route('aspirant.dashboard');
+        }
+
         return view('dashboard', $this->dashboardService->getDashboardStats());
     }
 
@@ -124,4 +128,3 @@ class DashboardController extends Controller
         return view('dashboard.index', compact('tags'));
     }
 }
-
