@@ -7,6 +7,7 @@ use App\Support\PhoneNumber;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class InfobipSmsService
 {
@@ -18,6 +19,8 @@ class InfobipSmsService
         $phones = $this->recipientPhones($recipients);
 
         if ($phones->isEmpty()) {
+            Log::warning('Bulk SMS send skipped because no valid recipient phone numbers were found.');
+
             return [
                 'success' => false,
                 'recipient_count' => 0,
@@ -29,6 +32,12 @@ class InfobipSmsService
         $responses = [];
 
         foreach ($phones->chunk(config('sms.infobip.chunk_size', 500)) as $chunk) {
+            Log::info('Sending Bulk SMS chunk to Infobip.', [
+                'recipient_count' => $chunk->count(),
+                'base_url' => $this->maskedBaseUrl($setting->base_url),
+                'sender_name' => $setting->sender_name,
+            ]);
+
             $responses[] = Http::withBasicAuth($setting->username, $setting->password)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
@@ -48,7 +57,7 @@ class InfobipSmsService
             'success' => true,
             'recipient_count' => $phones->count(),
             'responses' => $responses,
-            'message' => 'Bulk SMS sent.',
+            'message' => 'Infobip accepted the bulk SMS request.',
         ];
     }
 
@@ -64,5 +73,10 @@ class InfobipSmsService
     private function url(string $baseUrl): string
     {
         return rtrim($baseUrl, '/') . '/' . ltrim(config('sms.infobip.endpoint'), '/');
+    }
+
+    private function maskedBaseUrl(string $baseUrl): string
+    {
+        return parse_url($baseUrl, PHP_URL_HOST) ?: 'configured';
     }
 }

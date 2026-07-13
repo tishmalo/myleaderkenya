@@ -16,6 +16,10 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .tool-sub { margin:12px 0 0; max-width:720px; color:rgba(245,245,240,.62); line-height:1.55; }
 .tool-btn { display:inline-flex; align-items:center; gap:8px; border-radius:8px; border:1px solid rgba(255,255,255,.12); padding:11px 14px; color:#f5f5f0; text-decoration:none; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; background:#141414; }
 .tool-btn.primary { border-color:rgba(0,168,107,.45); background:#006600; }
+.tool-btn[disabled] { opacity:.7; cursor:wait; }
+.tool-spinner { display:none; width:14px; height:14px; border:2px solid rgba(255,255,255,.45); border-top-color:#fff; border-radius:999px; animation:tool-spin .8s linear infinite; }
+.tool-btn.loading .tool-spinner { display:inline-block; }
+@keyframes tool-spin { to { transform:rotate(360deg); } }
 .tool-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(320px,.8fr); gap:22px; }
 .tool-panel { border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#121212; padding:22px; }
 .tool-panel h2 { margin:0 0 18px; font-size:24px; }
@@ -112,7 +116,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                             </div>
                         </form>
                     @elseif($module['key'] === 'bulk-sms')
-                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.send') }}">
+                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.send') }}" data-loading-form>
                             @csrf
                             <label>Recipients
                                 <input type="text" value="{{ number_format($voterCount ?? 0) }} registered voters in {{ $scope['label'] }}" readonly>
@@ -124,7 +128,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <div class="tool-alert">{{ $message }}</div>
                             @enderror
                             <div class="tool-actions">
-                                <button type="submit" class="tool-btn primary"><i class="fas fa-paper-plane"></i> Send SMS</button>
+                                <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Queueing..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-paper-plane" data-loading-icon></i> <span data-loading-label>Queue SMS</span></button>
                             </div>
                         </form>
                     @elseif($module['key'] === 'bulk-whatsapp')
@@ -194,4 +198,21 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
         </div>
     </div>
 </main>
+
+<script>
+document.querySelectorAll('[data-loading-form]').forEach((form) => {
+    form.addEventListener('submit', () => {
+        const button = form.querySelector('[data-loading-button]');
+        if (!button) return;
+
+        const label = button.querySelector('[data-loading-label]');
+        const icon = button.querySelector('[data-loading-icon]');
+        button.disabled = true;
+        button.classList.add('loading');
+        if (icon) icon.style.display = 'none';
+        if (label) label.textContent = button.dataset.loadingText || 'Working...';
+    });
+});
+</script>
+
 @endsection

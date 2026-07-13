@@ -4,26 +4,24 @@ namespace App\Http\Controllers\Web;
 
 use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendCandidateBulkSms;
 use App\Http\Requests\Web\SendBulkSmsRequest;
 use App\Models\AspirantPoll;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupMessage;
-use App\Services\Sms\InfobipSmsService;
 use App\Services\Web\AspirantWorkspaceService;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Throwable;
 
 class AspirantToolController extends Controller
 {
     public function __construct(
         private AspirantWorkspaceService $workspaceService,
-        private InfobipSmsService $smsService,
         private CandidateSmsMessageRepositoryInterface $smsMessageRepository
     ) {}
 
@@ -115,10 +113,9 @@ class AspirantToolController extends Controller
         }
 
         $validated = $request->validated();
-        $recipients = $this->workspaceService->registeredVotersQuery($scope)
+        $recipientCount = $this->workspaceService->registeredVotersQuery($scope)
             ->whereNotNull('phone')
-            ->select('id', 'phone')
-            ->get();
+            ->count();
 
         $smsMessage = $this->smsMessageRepository->create([
             'candidate_id' => $candidate->id,
@@ -127,46 +124,24 @@ class AspirantToolController extends Controller
             'scope_type' => $scope['type'],
             'scope_column' => $scope['column'],
             'scope_value' => $scope['value'],
-            'recipient_count' => $recipients->count(),
+            'recipient_count' => $recipientCount,
             'status' => 'queued',
         ]);
 
-        try {
-            $result = $this->smsService->sendBulk($candidate->smsSetting, $recipients, $validated['message']);
+        SendCandidateBulkSms::dispatch($smsMessage->id);
 
-            $this->smsMessageRepository->update($smsMessage, [
-                'recipient_count' => $result['recipient_count'],
-                'status' => $result['success'] ? 'sent' : 'failed',
-                'provider_response' => $result,
-                'sent_at' => $result['success'] ? now() : null,
-            ]);
+        Log::info('Bulk SMS queued from aspirant workspace.', [
+            'sms_message_id' => $smsMessage->id,
+            'candidate_id' => $candidate->id,
+            'user_id' => $request->user()->id,
+            'scope_type' => $scope['type'],
+            'scope_column' => $scope['column'],
+            'scope_value' => $scope['value'],
+            'recipient_count' => $recipientCount,
+        ]);
 
-            if (! $result['success']) {
-                return redirect()->route('aspirant.tools.show', 'bulk-sms')
-                    ->with('warning', $result['message']);
-            }
-
-            return redirect()->route('aspirant.tools.show', 'bulk-sms')
-                ->with('success', 'Bulk SMS sent to ' . number_format($result['recipient_count']) . ' voters in ' . $scope['label'] . '.');
-        } catch (RequestException $exception) {
-            $response = $exception->response?->json() ?? ['message' => $exception->getMessage()];
-
-            $this->smsMessageRepository->update($smsMessage, [
-                'status' => 'failed',
-                'provider_response' => $response,
-            ]);
-
-            return redirect()->route('aspirant.tools.show', 'bulk-sms')
-                ->with('warning', 'Infobip rejected the SMS request. Check the candidate sender ID, API key, and base URL.');
-        } catch (Throwable $exception) {
-            $this->smsMessageRepository->update($smsMessage, [
-                'status' => 'failed',
-                'provider_response' => ['message' => $exception->getMessage()],
-            ]);
-
-            return redirect()->route('aspirant.tools.show', 'bulk-sms')
-                ->with('warning', 'Bulk SMS could not be sent right now. Please check the candidate SMS settings.');
-        }
+        return redirect()->route('aspirant.tools.show', 'bulk-sms')
+            ->with('success', 'Bulk SMS queued for ' . number_format($recipientCount) . ' voters in ' . $scope['label'] . '. Delivery will be confirmed after Infobip processes the job.');
     }
 
     public function storePoll(Request $request): RedirectResponse
