@@ -21,7 +21,6 @@ use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
-use App\Http\Controllers\Aspirant\DashboardController as AspirantDashboardController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
