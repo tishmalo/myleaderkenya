@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
+use App\Models\Position;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,8 +17,7 @@ class AspirantController extends Controller
     {
         $perPage = min((int) $request->query('per_page', 12), 50);
 
-        $aspirants = Candidate::with(['position', 'politicalParty'])
-            ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
+        $aspirants = Candidate::with(['position', 'politicalParty'])->where('approval_status', 'approved')
             ->when($request->query('featured') !== null, function ($query) use ($request) {
                 $query->where('featured', filter_var($request->query('featured'), FILTER_VALIDATE_BOOLEAN));
             })
@@ -64,6 +64,10 @@ class AspirantController extends Controller
                         ->orWhere('about', 'like', "%{$search}%");
                 });
             })
+            ->when(! $this->requestTargetsPresidential($request), function ($query) {
+                $query->orderByRaw("CASE WHEN county IS NULL OR county = '' THEN 1 ELSE 0 END")
+                    ->orderBy('county');
+            })
             ->latest()
             ->paginate($perPage)
             ->withQueryString()
@@ -105,6 +109,27 @@ class AspirantController extends Controller
                 ])->values(),
             ]),
         ]);
+    }
+
+    private function requestTargetsPresidential(Request $request): bool
+    {
+        $position = $request->query('position');
+
+        if ($position === null || $position === '') {
+            return false;
+        }
+
+        if (is_numeric($position)) {
+            $position = Position::whereKey($position)->value('name');
+        }
+
+        if (! is_string($position)) {
+            return false;
+        }
+
+        $position = strtolower(str_replace(['_', '-'], ' ', trim($position)));
+
+        return str_contains($position, 'president');
     }
 
     private function formatAspirant(Candidate $candidate, bool $includeAbout = false): array
@@ -179,3 +204,4 @@ class AspirantController extends Controller
         return $path ? asset(Storage::url($path)) : null;
     }
 }
+

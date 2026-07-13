@@ -217,43 +217,27 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
 }
-
-.asp-county-groups {
-    max-width: 1280px; margin: 0 auto;
-    padding: 0 32px 80px;
-    display: grid;
-    gap: 28px;
+.asp-county-heading {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 10px;
 }
-.asp-county-row {
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding-top: 22px;
-}
-.asp-county-row-head {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; margin-bottom: 16px;
-}
-.asp-county-row-title {
+.asp-county-heading:first-child { margin-top: 0; }
+.asp-county-heading-title {
     font-family: 'Oswald', sans-serif;
-    font-size: 28px; font-weight: 700;
+    font-size: 18px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
     color: var(--kenya-white);
+    white-space: nowrap;
 }
-.asp-county-row-meta { color: rgba(245,245,240,0.38); font-size: 13px; }
-.asp-county-row-link {
-    display: inline-flex; align-items: center; gap: 8px;
-    color: var(--green-bright); text-decoration: none;
-    font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
+.asp-county-heading-count {
+    font-size: 12px; font-weight: 700;
+    color: var(--green-bright);
 }
-.asp-county-row-link:hover { color: var(--kenya-white); }
-.asp-county-row-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 16px;
+.asp-county-heading-line {
+    height: 1px; flex: 1;
+    background: linear-gradient(90deg, rgba(0,168,107,0.45), rgba(187,0,0,0.2), transparent);
 }
-.asp-county-row-grid .asp-card-photo { height: 180px; }
-.asp-county-row-grid .asp-card-body { padding: 16px; }
-.asp-county-row-grid .asp-card-name { font-size: 18px; }
-.asp-county-row-grid .asp-card-action { padding: 10px 12px; }
 
 /* ── CANDIDATE CARD ── */
 .asp-card {
@@ -579,45 +563,89 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- GRID -->
-@if($showCountyGroups ?? false)
-    <div class="asp-county-groups">
-        @forelse($countyGroups as $group)
-            <section class="asp-county-row">
-                <div class="asp-county-row-head">
-                    <div>
-                        <div class="asp-county-row-title">{{ $group['county'] }}</div>
-                        <div class="asp-county-row-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</div>
-                    </div>
-                    <a href="{{ route('aspirants.public', array_merge(request()->except('page'), ['county' => $group['county']])) }}" class="asp-county-row-link">
-                        View more <i class="fas fa-arrow-right"></i>
+@php
+    $candidateGroups = $candidates->getCollection()->groupBy(function ($candidate) {
+        $positionName = strtolower(optional($candidate->position)->name ?? '');
+
+        if (str_contains($positionName, 'president')) {
+            return 'National';
+        }
+
+        return $candidate->county ?: 'County not specified';
+    });
+@endphp
+
+<div class="asp-grid">
+    @forelse($candidateGroups as $countyName => $countyCandidates)
+        <div class="asp-county-heading">
+            <span class="asp-county-heading-title">{{ $countyName }}</span>
+            <span class="asp-county-heading-count">{{ $countyCandidates->count() }}</span>
+            <span class="asp-county-heading-line"></span>
+        </div>
+
+        @foreach($countyCandidates as $candidate)
+            <div class="asp-card">
+                <!-- Photo -->
+                <div class="asp-card-photo">
+                    @if($candidate->profile_picture)
+                        <img src="{{ Storage::url($candidate->profile_picture) }}"
+                             alt="{{ $candidate->name }}" loading="lazy">
+                    @else
+                        <div class="asp-card-photo-placeholder">
+                            <span class="initials">
+                                {{ strtoupper(substr($candidate->name, 0, 1)) }}{{ strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1)) }}
+                            </span>
+                        </div>
+                    @endif
+                    <div class="asp-card-photo-overlay"></div>
+
+                    @if($candidate->position)
+                        <div class="asp-card-position-badge">{{ $candidate->position->name }}</div>
+                    @endif
+
+                    @if($candidate->county)
+                        <div class="asp-card-county-tag">
+                            <i class="fas fa-map-marker-alt" style="font-size:9px"></i>
+                            {{ $candidate->county }}
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Body -->
+                <div class="asp-card-body">
+                    <div class="asp-card-name">{{ $candidate->name }}</div>
+
+                    @if($candidate->nick_name)
+                        <div class="asp-card-nick">"{{ $candidate->nick_name }}"</div>
+                    @endif
+
+                    @if($candidate->constituency)
+                        <div class="asp-card-location">
+                            <i class="fas fa-circle" style="font-size:4px;color:var(--green-bright)"></i>
+                            {{ $candidate->constituency }}
+                            @if($candidate->ward)
+                                &nbsp;&middot;&nbsp; {{ $candidate->ward }}
+                            @endif
+                        </div>
+                    @endif
+
+                    <div class="asp-card-divider"></div>
+
+                    <a href="{{ route('aspirants.show', $candidate) }}" class="asp-card-action">
+                        <span class="asp-card-action-text">View Profile</span>
+                        <span class="asp-card-action-arrow"><i class="fas fa-arrow-right"></i></span>
                     </a>
                 </div>
-                <div class="asp-county-row-grid">
-                    @foreach($group['candidates'] as $candidate)
-                        @include('aspirants.public._card', ['candidate' => $candidate])
-                    @endforeach
-                </div>
-            </section>
-        @empty
-            <div class="asp-empty">
-                <div class="asp-empty-icon"></div>
-                <h3>No aspirants found</h3>
-                <p>Try another region or check back soon.</p>
             </div>
-        @endforelse
-    </div>
-@else
-    <div class="asp-grid">
-        @forelse($candidates as $candidate)
-            @include('aspirants.public._card', ['candidate' => $candidate])
-        @empty
-            <div class="asp-empty">
-                <div class="asp-empty-icon"></div>
-                <h3>No aspirants found</h3>
-                <p>Try adjusting your filters or check back soon.</p>
-            </div>
-        @endforelse
-    </div>
+        @endforeach
+    @empty
+        <div class="asp-empty">
+            <div class="asp-empty-icon"></div>
+            <h3>No aspirants found</h3>
+            <p>Try adjusting your filters or check back soon.</p>
+        </div>
+    @endforelse
+</div>
 
     <!-- PAGINATION -->
     @if($candidates->hasPages())

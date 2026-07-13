@@ -269,22 +269,31 @@
                 </div>
             </div>
             <div class="hero-card-body">
-                <div class="hc-title">Latest Blogs</div>
+                <div class="hc-title">Latest News Updates</div>
                 @if(($latestBlogs ?? collect())->isNotEmpty())
                     <div class="latest-blog-list">
                         @foreach($latestBlogs as $blog)
                             <a href="{{ route('news.public.show', $blog->slug) }}" class="latest-blog-item">
-                                <div class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</div>
-                                <div class="latest-blog-title">{{ $blog->title }}</div>
-                                <div class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</div>
+                                <div class="latest-blog-image">
+                                    @if($blog->featured_image)
+                                        <img src="{{ Storage::url($blog->featured_image) }}" alt="{{ $blog->title }}">
+                                    @else
+                                        <i class="fas fa-newspaper"></i>
+                                    @endif
+                                </div>
+                                <div class="latest-blog-copy">
+                                    <div class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</div>
+                                    <div class="latest-blog-title">{{ $blog->title }}</div>
+                                    <div class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</div>
+                                </div>
                             </a>
                         @endforeach
                     </div>
                 @else
-                    <div class="reason-desc">Latest blogs will appear here once published.</div>
+                    <div class="reason-desc">Latest news updates will appear here once published.</div>
                 @endif
                 <a href="{{ route('news.public') }}" class="latest-blog-more">
-                    Read more <i class="fas fa-arrow-right"></i>
+                    More News <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -296,71 +305,7 @@
     <div class="section-stripe"></div>
 
     <!-- ANALYTICS -->
-    <section id="analytics" class="analytics-section">
-        <div class="section-inner">
-            <div class="section-header">
-                <div class="section-label">Real-Time Data</div>
-                <h2 class="section-title">Live Registration Statistics</h2>
-                <p class="section-sub">Real-time data showing how young Kenyans are taking charge of their future.</p>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card green">
-                    <div class="stat-num" id="live-confirmed-voters">{{ number_format($voterStats['confirmedVoters'] ?? 0) }}</div>
-                    <div class="stat-label">Confirmed Voters</div>
-                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? '—' }}</span></div>
-                    <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
-                </div>
-                <div class="stat-card white">
-                    <div class="stat-num" id="live-total-users">{{ number_format($totalUsers ?? 0) }}</div>
-                    <div class="stat-label">Tuko Kadi Members</div>
-                    <div class="stat-meta">&nbsp;</div>
-                    <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
-                </div>
-                <div class="stat-card red">
-                    <div class="stat-num" id="live-total-messages">{{ number_format($totalMessages ?? 0) }}</div>
-                    <div class="stat-label">Community Messages</div>
-                    <div class="stat-meta">&nbsp;</div>
-                    <div class="live-badge"><span class="live-dot" style="background:#ff5555"></span><span class="live-text">Live</span></div>
-                </div>
-                <div class="stat-card pink">
-                    <div class="stat-num" id="live-stations">{{ number_format($stationsCount ?? 0) }}</div>
-                    <div class="stat-label">Polling Stations</div>
-                    <div class="stat-meta">&nbsp;</div>
-                    <div class="live-badge"><span class="live-dot" style="background:#ff6eb4"></span><span class="live-text">Live</span></div>
-                </div>
-            </div>
-
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <div class="chart-card-title">Confirmed Voters by County</div>
-                    <div class="chart-wrap"><canvas id="countyChart"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-card-title">Gender Distribution</div>
-                    <div class="chart-wrap"><canvas id="genderChart"></canvas></div>
-                </div>
-            </div>
-
-            <div class="county-list-card">
-                <div class="chart-card-title">Top Counties by Voter Registration</div>
-                <div class="county-table-scroll">
-                    <table class="county-table">
-                        <thead><tr><th>#</th><th>County</th><th>Registered</th></tr></thead>
-                        <tbody id="county-table-body">
-                            @foreach(($voterStats['byCounty'] ?? []) as $i => $county)
-                            <tr>
-                                <td><span class="county-rank">{{ str_pad($i+1, 2, '0', STR_PAD_LEFT) }}</span></td>
-                                <td>{{ $county->county }}</td>
-                                <td><span class="county-badge">{{ number_format($county->count) }}</span></td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </section>
+    @include('components.live-registration-statistics')
 
     <div class="section-stripe" style="background:linear-gradient(90deg, var(--kenya-red) 0% 33.3%, #111 33.3% 66.6%, var(--kenya-green) 66.6% 100%)"></div>
 
@@ -378,6 +323,20 @@
             @endphp
 
             @if($hasAspirants)
+                <style>
+                    .aspirants-county-row td {
+                        padding: 14px 14px 8px;
+                        color: var(--green-bright);
+                        font-family: 'Oswald', sans-serif;
+                        font-size: 12px;
+                        font-weight: 700;
+                        letter-spacing: 1.5px;
+                        text-transform: uppercase;
+                        border-top: 1px solid rgba(0,168,107,0.22);
+                        background: rgba(0,168,107,0.04);
+                    }
+                    .aspirants-county-row:first-child td { border-top: 0; }
+                </style>
                 <div class="aspirants-table-grid">
                     @foreach($aspirantGroups as $group)
                         <div class="aspirants-table-card">
@@ -399,7 +358,20 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            @php $currentCounty = null; @endphp
                                             @foreach($group['candidates'] as $candidate)
+                                                @php
+                                                    $countyName = $candidate->county ?: 'County not specified';
+                                                    $showCountyRow = ($group['county_scoped'] ?? false) && $countyName !== $currentCounty;
+                                                    if ($showCountyRow) {
+                                                        $currentCounty = $countyName;
+                                                    }
+                                                @endphp
+                                                @if($showCountyRow)
+                                                    <tr class="aspirants-county-row">
+                                                        <td colspan="4">{{ $countyName }}</td>
+                                                    </tr>
+                                                @endif
                                                 <tr>
                                                     <td>
                                                         <a href="{{ route('aspirants.show', $candidate) }}" class="aspirants-name-link">
@@ -497,12 +469,6 @@
     <div class="flag-stripe"></div>
 </div>
 
-<div id="landing-page-config"
-     data-county-labels="{{ e(json_encode($countyLabels ?? [])) }}"
-     data-county-data="{{ e(json_encode($countyData ?? [])) }}"
-     data-gender-data="{{ e(json_encode($genderData ?? [0, 0, 0])) }}"
-     data-auth-error-tab="{{ e($errors->any() ? old('_form_type', 'login') : '') }}"
-     hidden></div>
 
 @endsection
 
@@ -511,8 +477,3 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 @vite('resources/js/views/landing.js')
 @endpush
-
-
-
-
-

@@ -13,7 +13,8 @@ class PoliticalParty extends Model
 
     protected $fillable = [
         'name', 'slug', 'abbreviation', 'logo', 'brand_color', 'excerpt', 'content',
-        'website_url', 'meta_title', 'meta_description', 'status', 'sort_order',
+        'website_url', 'phone_1', 'phone_2', 'email_1', 'email_2',
+        'meta_title', 'meta_description', 'status', 'sort_order',
     ];
 
     protected $casts = [

@@ -3,6 +3,12 @@
 @section('title', $pageData['content']['meta_title'] ?: ($pageData['content']['title'] . ' - Tuko Kadi'))
 @section('meta_description', $pageData['content']['meta_description'] ?: $pageData['content']['excerpt'])
 
+@if($pageData['key'] === 'live-stats')
+    @push('styles')
+        @vite('resources/css/views/landing.css')
+    @endpush
+@endif
+
 @section('content')
 <style>
 body { font-family:'Barlow',sans-serif; background:#0a0a0a; color:var(--kenya-white); }
@@ -20,7 +26,7 @@ body { font-family:'Barlow',sans-serif; background:#0a0a0a; color:var(--kenya-wh
 .fp-stat-value { font-family:'Oswald',sans-serif; font-size:42px; margin-top:8px; }
 .fp-counties { margin-top:28px; display:grid; gap:12px; max-width:820px; }
 .fp-county { display:flex; justify-content:space-between; gap:18px; background:#141414; border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:16px 18px; }
-@media(max-width:760px){ .fp-hero{padding:88px 20px 54px}.fp-body{padding:52px 20px}.fp-stats{grid-template-columns:1fr}.fp-title{font-size:44px} }
+@media(max-width:760px){ .fp-hero{padding:88px 20px 54px}.fp-body{padding:52px 20px}.fp-title{font-size:44px} }
 </style>
 
 @include('components.frontend-nav')
@@ -39,38 +45,22 @@ body { font-family:'Barlow',sans-serif; background:#0a0a0a; color:var(--kenya-wh
     <div class="fp-inner">
         <div class="fp-content">{{ $pageData['content']['content'] }}</div>
 
-        @if($pageData['key'] === 'live-stats')
-            <div class="fp-stats">
-                <div class="fp-stat">
-                    <div class="fp-stat-label">Confirmed Voters</div>
-                    <div class="fp-stat-value">{{ number_format($voterStats['confirmedVoters'] ?? 0) }}</div>
-                </div>
-                <div class="fp-stat">
-                    <div class="fp-stat-label">Registered Users</div>
-                    <div class="fp-stat-value">{{ number_format($totalUsers ?? 0) }}</div>
-                </div>
-                <div class="fp-stat">
-                    <div class="fp-stat-label">Polling Stations</div>
-                    <div class="fp-stat-value">{{ number_format($stationsCount ?? 0) }}</div>
-                </div>
-            </div>
-
-            @if(! empty($voterStats['byCounty']) && $voterStats['byCounty']->count())
-                <div class="fp-counties">
-                    @foreach($voterStats['byCounty']->take(8) as $county)
-                        <div class="fp-county">
-                            <span>{{ $county->county }}</span>
-                            <strong>{{ number_format($county->count) }}</strong>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        @endif
-
         @if($pageData['content']['cta_label'] && $pageData['content']['cta_url'])
             @php($ctaUrl = Str::startsWith($pageData['content']['cta_url'], ['http://', 'https://', 'mailto:', 'tel:', '#']) ? $pageData['content']['cta_url'] : url($pageData['content']['cta_url']))
             <a href="{{ $ctaUrl }}" class="fp-cta">{{ $pageData['content']['cta_label'] }} <i class="fas fa-arrow-right"></i></a>
         @endif
     </div>
 </section>
+
+@if($pageData['key'] === 'live-stats')
+    <div class="section-stripe"></div>
+    @include('components.live-registration-statistics')
+@endif
 @endsection
+
+@if($pageData['key'] === 'live-stats')
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    @vite('resources/js/views/live-stats.js')
+    @endpush
+@endif

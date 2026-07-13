@@ -28,12 +28,14 @@ class AuthService
         ];
     }
 
-    public function login(string $username, string $password): array
+    public function login(string $login, string $password): array
     {
-        $user = $this->userRepository->findByUsername($username);
+        $user = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? $this->userRepository->findByEmail($login)
+            : $this->userRepository->findByUsername($login);
 
         if (!$user || !Hash::check($password, $user->password)) {
-            throw new \Exception('Invalid username or password', 401);
+            throw new \Exception('Invalid email/username or password', 401);
         }
 
         // Revoke all previous tokens
@@ -69,12 +71,10 @@ class AuthService
         ])->save();
 
         try {
-            Mail::raw(
-                "Your password reset code is {$otp}. It expires in 10 minutes.",
-                function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('Reset your password');
-                }
+            $this->sendRawMail(
+                $user->email,
+                'Reset your password',
+                "Your password reset code is {$otp}. It expires in 10 minutes."
             );
         } catch (\Throwable $e) {
             return [
@@ -267,12 +267,10 @@ class AuthService
         ])->save();
 
         try {
-            Mail::raw(
-                "Your verification code is {$otp}. It expires in 10 minutes.",
-                function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('Verify your email');
-                }
+            $this->sendRawMail(
+                $user->email,
+                'Verify your email',
+                "Your verification code is {$otp}. It expires in 10 minutes."
             );
         } catch (\Throwable $e) {
             return [
@@ -291,10 +289,20 @@ class AuthService
         ];
     }
 
+    private function sendRawMail(string $to, string $subject, string $body): void
+    {
+        $timeout = (int) env('MAIL_TIMEOUT', config('mail.mailers.smtp.timeout') ?: 5);
+        config(['mail.mailers.smtp.timeout' => max(1, $timeout)]);
+
+        Mail::raw($body, function ($message) use ($to, $subject) {
+            $message->to($to)->subject($subject);
+        });
+    }
+
     private function userPayload(User $user): array
     {
         return array_merge($user->only([
-            'id', 'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
+            'id', 'username', 'name', 'email', 'phone', 'id_number', 'gender', 'year_of_birth',
             'county', 'constituency', 'ward', 'polling_station',
             'country_of_residence', 'is_voter', 'is_registered', 'email_verified_at'
         ]), [

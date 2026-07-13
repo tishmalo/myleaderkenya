@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
+use App\Http\Controllers\Aspirant\DashboardController as AspirantDashboardController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
@@ -97,7 +98,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/aspirant/tools/opinion-polls/polls', [AspirantToolController::class, 'storePoll'])->name('aspirant.tools.polls.store');
 
     // --- Core Admin & Dashboard ---
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/aspirant/dashboard', AspirantDashboardController::class)->middleware('aspirant')->name('aspirant.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('admin')->name('dashboard');
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/dashboard/stations', [DashboardController::class, 'stations'])->name('dashboard.stations');
     Route::post('/stations', [DashboardController::class, 'storeStation'])->name('stations.store');
@@ -115,7 +117,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('positions', PositionController::class)->except(['show']);
     Route::get('/candidates/search', [CandidateController::class, 'search'])->name('candidates.search');
     Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->name('candidates.featured');
-    Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->name('candidates.approval');
+    Route::patch('/candidates/{candidate}/approve', [CandidateController::class, 'approve'])->middleware('admin')->name('candidates.approve');
+    Route::patch('/candidates/{candidate}/reject', [CandidateController::class, 'reject'])->middleware('admin')->name('candidates.reject');
     Route::resource('candidates', CandidateController::class);
     Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
     Route::resource('/admin/political-parties', PoliticalPartyController::class)
@@ -177,3 +180,6 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+
+

@@ -34,6 +34,8 @@ class CandidateService
             $data['profile_picture'] = $this->storeCandidatePicture($picture);
         }
 
+        $data['approval_status'] = $data['approval_status'] ?? 'approved';
+
         return $this->candidateRepository->create($data);
     }
 
@@ -96,10 +98,6 @@ class CandidateService
             unset($data['political_party_id']);
         }
 
-        if (! Schema::hasColumn('candidates', 'user_id')) {
-            unset($data['user_id']);
-        }
-
         if (! Schema::hasColumn('candidates', 'approval_status')) {
             unset($data['approval_status']);
         }
@@ -141,6 +139,16 @@ class CandidateService
 
         return $value;
     }
+    public function approveCandidate(Candidate $candidate): bool
+    {
+        return $this->candidateRepository->update($candidate, ['approval_status' => 'approved']);
+    }
+
+    public function rejectCandidate(Candidate $candidate): bool
+    {
+        return $this->candidateRepository->update($candidate, ['approval_status' => 'rejected']);
+    }
+
     // -------------------------------------------------------------------------
     // Form dropdowns
     // -------------------------------------------------------------------------
@@ -181,3 +189,4 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+

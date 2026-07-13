@@ -5,12 +5,14 @@ namespace App\Repositories\Admin;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Models\PoliticalParty;
 use App\Models\Candidate;
+use App\Models\Bloc;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\NewsArticle;
 use App\Models\Position;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
@@ -36,7 +38,7 @@ class CandidateRepository implements CandidateRepositoryInterface
             $query->where('political_party_id', $filters['political_party']);
         }
 
-        if (!empty($filters['approval_status']) && Schema::hasColumn('candidates', 'approval_status')) {
+        if (!empty($filters['approval_status'])) {
             $query->where('approval_status', $filters['approval_status']);
         }
 
@@ -136,11 +138,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     private function publicQuery(array $filters)
     {
-        $query = Candidate::with('position', 'politicalParty');
-
-        if (Schema::hasColumn('candidates', 'approval_status')) {
-            $query->where('approval_status', 'approved');
-        }
+        $query = Candidate::with('position', 'politicalParty')->where('approval_status', 'approved');
 
         $candidate = $filters['candidate'] ?? $filters['search'] ?? null;
         if (!empty($candidate)) {
@@ -161,6 +159,18 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         if (!empty($filters['county'])) {
             $query->where('county', $filters['county']);
+        }
+
+        if (!empty($filters['bloc'])) {
+            $blocCountyNames = Schema::hasTable('bloc_county')
+                ? (Bloc::whereKey($filters['bloc'])->first()?->counties()->pluck('counties.name')->all() ?? [])
+                : County::where('bloc_id', $filters['bloc'])->pluck('name')->all();
+
+            if (empty($blocCountyNames)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('county', $blocCountyNames);
+            }
         }
 
         if (!empty($filters['constituency'])) {
@@ -207,32 +217,33 @@ class CandidateRepository implements CandidateRepositoryInterface
             }
         }
 
-        return $query;
+        if (! $this->filtersTargetPresidential($filters)) {
+            $query->orderByRaw("CASE WHEN county IS NULL OR county = '' THEN 1 ELSE 0 END")
+                ->orderBy('county');
+        }
+
+        return $query->latest()->paginate($perPage)->withQueryString();
     }
 
-    private function countiesForPublicFilters(array $filters): Collection
+    private function filtersTargetPresidential(array $filters): bool
     {
-        if (!empty($filters['county'])) {
-            return collect([$filters['county']]);
+        if (empty($filters['position'])) {
+            return false;
         }
 
-        if (!empty($filters['bloc'])) {
-            return County::where('bloc_id', $filters['bloc'])
-                ->orderBy('name')
-                ->pluck('name');
+        $position = $filters['position'];
+
+        if (is_numeric($position)) {
+            $position = Position::whereKey($position)->value('name');
         }
 
-        $query = Candidate::whereNotNull('county')
-            ->where('county', '!=', '');
-
-        if (Schema::hasColumn('candidates', 'approval_status')) {
-            $query->where('approval_status', 'approved');
+        if (! is_string($position)) {
+            return false;
         }
 
-        return $query
-            ->distinct()
-            ->orderBy('county')
-            ->pluck('county');
+        $position = strtolower(str_replace(['_', '-'], ' ', trim($position)));
+
+        return str_contains($position, 'president');
     }
 
     public function loadPublicShow(Candidate $candidate): Candidate
@@ -252,3 +263,8 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
+
+
+
+

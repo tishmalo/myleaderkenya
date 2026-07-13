@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 interface CountyRepositoryInterface
 {
-    public function paginate(int $perPage = 15): LengthAwarePaginator;
+    public function paginate(int $perPage = 15, ?string $search = null): LengthAwarePaginator;
 
     public function create(array $data): County;
 

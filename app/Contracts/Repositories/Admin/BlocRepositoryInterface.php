@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 interface BlocRepositoryInterface
 {
-    public function paginate(int $perPage = 15): LengthAwarePaginator;
+    public function paginate(int $perPage = 15, ?string $search = null): LengthAwarePaginator;
 
     public function create(array $data): Bloc;
 
@@ -19,4 +19,6 @@ interface BlocRepositoryInterface
     public function import(array $blocs): int;
 
     public function all(): Collection;
+
+    public function allCounties(): Collection;
 }

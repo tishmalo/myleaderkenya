@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -25,8 +26,26 @@ class RegisterRequest extends FormRequest
         return [
             'username'       => 'required|string|max:255|unique:users,username',
             'name'           => 'required|string|max:255',
-            'email'          => 'nullable|email|unique:users,email',
+            'email'          => [
+                'nullable',
+                'email',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value && User::emailExists((string) $value)) {
+                        $fail('The email has already been taken.');
+                    }
+                },
+            ],
             'phone'          => 'nullable|string|max:20',
+            'id_number'      => [
+                'nullable',
+                'string',
+                'max:50',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value && User::idNumberExists((string) $value)) {
+                        $fail('The ID number has already been taken.');
+                    }
+                },
+            ],
             'gender'         => 'nullable|in:male,female,other',
             'year_of_birth'  => 'nullable|integer|min:1900|max:' . date('Y'),
             'county'         => 'nullable|string|max:100',

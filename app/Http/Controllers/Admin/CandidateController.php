@@ -93,20 +93,20 @@ class CandidateController extends Controller
             'featured' => $candidate->featured,
         ]);
     }
-
-    public function updateApproval(Request $request, Candidate $candidate)
+    public function approve(Candidate $candidate)
     {
-        $data = $request->validate([
-            'approval_status' => ['required', 'in:pending,approved,rejected'],
-        ]);
+        $this->candidateService->approveCandidate($candidate);
 
-        $candidate->update(['approval_status' => $data['approval_status']]);
-
-        return response()->json([
-            'success' => true,
-            'approval_status' => $candidate->approval_status,
-        ]);
+        return back()->with('success', 'Aspirant approved successfully.');
     }
+
+    public function reject(Candidate $candidate)
+    {
+        $this->candidateService->rejectCandidate($candidate);
+
+        return back()->with('success', 'Aspirant rejected successfully.');
+    }
+
     public function destroy(Candidate $candidate)
     {
         $this->candidateService->deleteCandidate($candidate);
@@ -125,11 +125,10 @@ class CandidateController extends Controller
 
     public function publicShow(Candidate $candidate)
     {
-        if (\Illuminate\Support\Facades\Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
-            abort(404);
-        }
-
+        abort_unless(($candidate->approval_status ?? 'approved') === 'approved', 404);
         $candidate = $this->candidateService->getPublicShow($candidate);
         return view('aspirants.public.show', compact('candidate'));
     }
 }
+
+

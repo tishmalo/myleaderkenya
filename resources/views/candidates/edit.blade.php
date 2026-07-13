@@ -198,22 +198,43 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/api/counties')
             .then(res => res.json())
             .then(counties => {
+                let selectedCountyId = '';
+
                 counties.forEach(county => {
-                    const opt = new Option(county, county);
-                    if (county === currentCounty) opt.selected = true;
+                    const name = optionName(county);
+                    if (!name) return;
+
+                    const opt = new Option(name, name);
+                    opt.dataset.id = optionId(county);
+
+                    if (name === currentCounty) {
+                        opt.selected = true;
+                        selectedCountyId = opt.dataset.id;
+                    }
+
                     countySelect.add(opt);
                 });
 
                 if (currentCounty && constituencySelect) {
-                    loadConstituencies(currentCounty);
+                    loadConstituencies(selectedCountyId || currentCounty);
                 }
             });
 
         if (countySelect) {
             countySelect.addEventListener('change', function() {
-                const county = this.value;
+                const county = this.selectedOptions[0]?.dataset.id || this.value;
+                currentConstituency = '';
+                currentWard = '';
                 if (constituencySelect) loadConstituencies(county);
                 if (wardSelect) wardSelect.innerHTML = '<option value="">Select Ward</option>';
+            });
+        }
+
+        if (constituencySelect) {
+            constituencySelect.addEventListener('change', function() {
+                const constituency = this.selectedOptions[0]?.dataset.id || this.value;
+                currentWard = '';
+                if (wardSelect) loadWards(constituency);
             });
         }
     }
@@ -222,18 +243,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const constituencySelect = document.getElementById('constituencySelect');
         if (!constituencySelect) return;
 
-        fetch(`/api/constituencies/by-county?county=${encodeURIComponent(county)}`)
+        fetch(`/api/constituencies?county_id=${encodeURIComponent(county)}`)
             .then(res => res.json())
             .then(data => {
+                let selectedConstituencyId = '';
                 constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
+
                 data.forEach(consti => {
-                    const opt = new Option(consti, consti);
-                    if (consti === currentConstituency) opt.selected = true;
+                    const name = optionName(consti);
+                    if (!name) return;
+
+                    const opt = new Option(name, name);
+                    opt.dataset.id = optionId(consti);
+
+                    if (name === currentConstituency) {
+                        opt.selected = true;
+                        selectedConstituencyId = opt.dataset.id;
+                    }
+
                     constituencySelect.add(opt);
                 });
 
                 if (currentConstituency && document.getElementById('wardSelect')) {
-                    loadWards(currentConstituency);
+                    loadWards(selectedConstituencyId || currentConstituency);
                 }
             });
     }
@@ -242,13 +274,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const wardSelect = document.getElementById('wardSelect');
         if (!wardSelect) return;
 
-        fetch(`/api/wards/by-constituency?constituency=${encodeURIComponent(constituency)}`)
+        fetch(`/api/wards?constituency_id=${encodeURIComponent(constituency)}`)
             .then(res => res.json())
             .then(data => {
                 wardSelect.innerHTML = '<option value="">Select Ward</option>';
                 data.forEach(ward => {
-                    const opt = new Option(ward, ward);
-                    if (ward === currentWard) opt.selected = true;
+                    const name = optionName(ward);
+                    if (!name) return;
+
+                    const opt = new Option(name, name);
+                    opt.dataset.id = optionId(ward);
+                    if (name === currentWard) opt.selected = true;
                     wardSelect.add(opt);
                 });
             });
