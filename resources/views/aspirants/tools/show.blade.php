@@ -137,7 +137,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 
                             <label>Website Package
                                 <select name="website_type" required>
-                                    @php($selectedType = old('website_type', $websiteRequest->website_type ?? 'standard'))
+                                    @php
+                                        $selectedType = old('website_type', $websiteRequest->website_type ?? 'standard');
+                                    @endphp
                                     <option value="standard" {{ $selectedType === 'standard' ? 'selected' : '' }}>Standard campaign website</option>
                                     <option value="premium" {{ $selectedType === 'premium' ? 'selected' : '' }}>Premium campaign website</option>
                                     <option value="custom" {{ $selectedType === 'custom' ? 'selected' : '' }}>Custom website</option>
@@ -354,6 +356,7 @@ document.querySelectorAll('[data-poll-form]').forEach((form) => {
 </script>
 
 @endsection
+
 
 
 
