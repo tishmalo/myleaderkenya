@@ -159,7 +159,8 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Submitting..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-paper-plane" data-loading-icon></i> <span data-loading-label>Submit Request</span></button>
                                 <a href="{{ route('aspirant.campaign-website.samples') }}" class="tool-btn"><i class="fas fa-images"></i> View Samples</a>
                             </div>
-                        </form>                    @elseif($module['key'] === 'opinion-polls')
+                        </form>
+                    @elseif($module['key'] === 'opinion-polls')
                         <form class="tool-form" method="POST" action="{{ route('aspirant.tools.polls.store') }}" data-loading-form data-poll-form>
                             @csrf
                             <label>Poll Question
@@ -353,6 +354,7 @@ document.querySelectorAll('[data-poll-form]').forEach((form) => {
 </script>
 
 @endsection
+
 
 
 
