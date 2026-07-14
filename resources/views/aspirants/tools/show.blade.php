@@ -52,6 +52,10 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .call-log-form { display:grid; gap:8px; min-width:260px; }
 .call-log-form .call-log-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .call-log-form input,.call-log-form select { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:8px 9px; font:inherit; }
+.call-log-status { min-height:18px; color:rgba(245,245,240,.62); font-size:12px; line-height:1.4; }
+.call-log-status.success { color:#86efac; }
+.call-log-status.error { color:#fca5a5; }
+.tool-pagination { margin-top:14px; }
 .tool-table { width:100%; border-collapse:collapse; }
 .tool-table th,.tool-table td { padding:12px 10px; border-top:1px solid rgba(255,255,255,.06); text-align:left; font-size:13px; }
 .tool-table th { color:rgba(245,245,240,.48); font-size:11px; text-transform:uppercase; letter-spacing:.09em; }
@@ -285,7 +289,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <div class="poll-card">
                                     <div class="poll-card-top">
                                         <h3>Call List</h3>
-                                        <span class="poll-status">{{ number_format($callListContacts->count()) }} ready</span>
+                                        <span class="poll-status">{{ number_format(method_exists($callListContacts, 'total') ? $callListContacts->total() : $callListContacts->count()) }} ready</span>
                                     </div>
                                     @if($callScript)
                                         <p class="tool-note" style="margin-top:0;">Use the saved script above while calling voters in {{ $scope['label'] }}.</p>
@@ -313,7 +317,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                                             <td>{{ $contact->phone }}</td>
                                                             <td>{{ $contact->ward ?: '-' }}</td>
                                                             <td>
-                                                                <form class="call-log-form" method="POST" action="{{ route('aspirant.tools.call-center.calls') }}" data-loading-form>
+                                                                <form class="call-log-form" method="POST" action="{{ route('aspirant.tools.call-center.calls') }}" data-call-log-form>
                                                                     @csrf
                                                                     <input type="hidden" name="voter_user_id" value="{{ $contact->id }}">
                                                                     <div class="call-log-row">
@@ -333,7 +337,8 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                                                         <input type="datetime-local" name="callback_at" aria-label="Callback time">
                                                                         <input type="text" name="notes" maxlength="1000" placeholder="Notes">
                                                                     </div>
-                                                                    <button type="submit" class="tool-btn primary" style="padding:8px 10px; justify-content:center;" data-loading-button data-loading-text="Logging..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-check" data-loading-icon></i> <span data-loading-label>Log Call</span></button>
+                                                                    <button type="submit" class="tool-btn primary" style="padding:8px 10px; justify-content:center;" data-call-log-button><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-check" data-call-log-icon></i> <span data-call-log-label>Log Call</span></button>
+                                                                    <div class="call-log-status" data-call-log-status aria-live="polite"></div>
                                                                 </form>
                                                             </td>
                                                         </tr>
@@ -341,6 +346,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                                 </tbody>
                                             </table>
                                         </div>
+                                        @if(method_exists($callListContacts, 'links'))
+                                            <div class="tool-pagination">{{ $callListContacts->links() }}</div>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -469,7 +477,76 @@ document.querySelectorAll('[data-poll-form]').forEach((form) => {
         preview.classList.add('is-visible');
     });
 });
+
+document.querySelectorAll('[data-call-log-form]').forEach((form) => {
+    const button = form.querySelector('[data-call-log-button]');
+    const label = form.querySelector('[data-call-log-label]');
+    const icon = form.querySelector('[data-call-log-icon]');
+    const status = form.querySelector('[data-call-log-status]');
+    const token = form.querySelector('input[name="_token"]')?.value || '';
+
+    const setStatus = (message, type = '') => {
+        if (!status) return;
+        status.textContent = message;
+        status.classList.remove('success', 'error');
+        if (type) status.classList.add(type);
+    };
+
+    const setLoading = (loading) => {
+        if (!button) return;
+        button.disabled = loading;
+        button.classList.toggle('loading', loading);
+        if (icon) icon.style.display = loading ? 'none' : '';
+        if (label) label.textContent = loading ? 'Logging...' : 'Log Call';
+    };
+
+    const submitWithRetry = async (attempt = 1) => {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': token,
+            },
+            body: new FormData(form),
+        });
+
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            if (response.status >= 500 && attempt < 3) {
+                return submitWithRetry(attempt + 1);
+            }
+
+            const validationMessage = payload.errors
+                ? Object.values(payload.errors).flat().join(' ')
+                : null;
+            throw new Error(validationMessage || payload.message || 'Call log could not be saved.');
+        }
+
+        return payload;
+    };
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setStatus('Saving call log...');
+
+        try {
+            const payload = await submitWithRetry();
+            setStatus(payload.message || 'Call log recorded.', 'success');
+            form.querySelector('input[name="notes"]')?.value = '';
+            form.querySelector('input[name="callback_at"]')?.value = '';
+        } catch (error) {
+            setStatus(`${error.message} You can retry.`, 'error');
+        } finally {
+            setLoading(false);
+        }
+    });
+});
 </script>
 
 @endsection
+
+
 

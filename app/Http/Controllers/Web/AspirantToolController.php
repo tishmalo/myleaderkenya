@@ -15,6 +15,7 @@ use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupMessage;
 use App\Services\Web\AspirantWorkspaceService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,8 +96,8 @@ class AspirantToolController extends Controller
                 ->whereNotNull('phone')
                 ->select('id', 'name', 'username', 'phone', 'county', 'constituency', 'ward', 'polling_station', 'created_at')
                 ->latest()
-                ->take(100)
-                ->get()
+                ->paginate(10, ['*'], 'call_page')
+                ->withQueryString()
             : collect();
         $callLogs = $key === 'call-center'
             ? CandidateCallLog::with(['caller', 'voter'])
@@ -320,25 +321,22 @@ class AspirantToolController extends Controller
             ->with('success', 'Call script saved. You can now start the scoped call list.');
     }
 
-    public function storeCallLog(Request $request): RedirectResponse
+    public function storeCallLog(Request $request): RedirectResponse|JsonResponse
     {
         if (! $this->workspaceService->publishedToolForKey('call-center')) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'Call Center is not enabled yet. Ask an admin to publish the tool first.');
+            return $this->callLogFailure($request, 'Call Center is not enabled yet. Ask an admin to publish the tool first.', 403);
         }
 
         $candidate = $this->workspaceService->candidateForUser($request->user());
 
         if (! $candidate) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'No aspirant profile is linked to this account yet.');
+            return $this->callLogFailure($request, 'No aspirant profile is linked to this account yet.', 403);
         }
 
         $scope = $this->workspaceService->scopeForCandidate($candidate);
 
         if ($scope['missing']) {
-            return redirect()->route('aspirant.tools.show', 'call-center')
-                ->with('warning', $scope['message']);
+            return $this->callLogFailure($request, $scope['message'], 422);
         }
 
         $validated = $request->validate([
@@ -354,11 +352,10 @@ class AspirantToolController extends Controller
             ->first();
 
         if (! $voter) {
-            return redirect()->route('aspirant.tools.show', ['key' => 'call-center', 'call_list' => 1])
-                ->with('warning', 'That voter is not available in your scoped call list.');
+            return $this->callLogFailure($request, 'That voter is not available in your scoped call list.', 404);
         }
 
-        CandidateCallLog::create([
+        $callLog = CandidateCallLog::create([
             'candidate_id' => $candidate->id,
             'user_id' => $request->user()->id,
             'voter_user_id' => $voter->id,
@@ -373,8 +370,31 @@ class AspirantToolController extends Controller
             'called_at' => now(),
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Call log recorded.',
+                'log' => [
+                    'id' => $callLog->id,
+                    'voter' => $callLog->voter_name,
+                    'outcome' => str_replace('_', ' ', ucfirst($callLog->outcome)),
+                    'callback_at' => $callLog->callback_at?->format('M j, H:i'),
+                    'notes' => $callLog->notes,
+                ],
+            ], 201);
+        }
+
         return redirect()->route('aspirant.tools.show', ['key' => 'call-center', 'call_list' => 1])
             ->with('success', 'Call log recorded.');
+    }
+
+    private function callLogFailure(Request $request, string $message, int $status): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], $status);
+        }
+
+        return redirect()->route('aspirant.tools.show', ['key' => 'call-center', 'call_list' => 1])
+            ->with('warning', $message);
     }
     public function storeWebsiteRequest(Request $request): RedirectResponse
     {
@@ -452,6 +472,7 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
+
 
 
 
