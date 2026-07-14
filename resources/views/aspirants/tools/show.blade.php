@@ -55,6 +55,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .call-log-status { min-height:18px; color:rgba(245,245,240,.62); font-size:12px; line-height:1.4; }
 .call-log-status.success { color:#86efac; }
 .call-log-status.error { color:#fca5a5; }
+.call-row-logged td { background:rgba(34,197,94,.04); }
 .tool-pagination { margin-top:14px; }
 .tool-table { width:100%; border-collapse:collapse; }
 .tool-table th,.tool-table td { padding:12px 10px; border-top:1px solid rgba(255,255,255,.06); text-align:left; font-size:13px; }
@@ -312,7 +313,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                                 </thead>
                                                 <tbody>
                                                     @foreach($callListContacts as $contact)
-                                                        <tr>
+                                                        <tr data-call-row>
                                                             <td>{{ $contact->name ?: $contact->username }}</td>
                                                             <td>{{ $contact->phone }}</td>
                                                             <td>{{ $contact->ward ?: '-' }}</td>
@@ -321,7 +322,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                                                     @csrf
                                                                     <input type="hidden" name="voter_user_id" value="{{ $contact->id }}">
                                                                     <div class="call-log-row">
-                                                                        <a class="tool-btn" style="padding:8px 10px; justify-content:center;" href="tel:{{ preg_replace('/\s+/', '', $contact->phone) }}"><i class="fas fa-phone"></i> Call</a>
+                                                                        <a class="tool-btn" style="padding:8px 10px; justify-content:center;" href="tel:{{ preg_replace('/\s+/', '', $contact->phone) }}" data-call-button><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-phone" data-call-icon></i> <span data-call-label>Call</span></a>
                                                                         <select name="outcome" required>
                                                                             <option value="reached">Reached</option>
                                                                             <option value="no_answer">No answer</option>
@@ -484,6 +485,10 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
     const icon = form.querySelector('[data-call-log-icon]');
     const status = form.querySelector('[data-call-log-status]');
     const token = form.querySelector('input[name="_token"]')?.value || '';
+    const row = form.closest('[data-call-row]');
+    const callButton = form.querySelector('[data-call-button]');
+    const callLabel = form.querySelector('[data-call-label]');
+    const callIcon = form.querySelector('[data-call-icon]');
 
     const setStatus = (message, type = '') => {
         if (!status) return;
@@ -499,6 +504,23 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
         if (icon) icon.style.display = loading ? 'none' : '';
         if (label) label.textContent = loading ? 'Logging...' : 'Log Call';
     };
+    const acknowledgeCallOpened = () => {
+        if (!callButton) return;
+        callButton.classList.add('loading');
+        if (callIcon) callIcon.style.display = 'none';
+        if (callLabel) callLabel.textContent = 'Calling...';
+        setStatus('Opening phone dialer...');
+
+        window.setTimeout(() => {
+            callButton.classList.remove('loading');
+            if (callIcon) callIcon.style.display = '';
+            if (callLabel) callLabel.textContent = 'Call opened';
+            setStatus('Call opened. Log the outcome here when done.', 'success');
+        }, 900);
+    };
+
+    callButton?.addEventListener('click', acknowledgeCallOpened);
+
 
     const submitWithRetry = async (attempt = 1) => {
         const response = await fetch(form.action, {
@@ -535,18 +557,24 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
         try {
             const payload = await submitWithRetry();
             setStatus(payload.message || 'Call log recorded.', 'success');
+            row?.classList.add('call-row-logged');
+            if (label) label.textContent = 'Logged';
             form.querySelector('input[name="notes"]')?.value = '';
             form.querySelector('input[name="callback_at"]')?.value = '';
         } catch (error) {
             setStatus(`${error.message} You can retry.`, 'error');
         } finally {
             setLoading(false);
+            if (row?.classList.contains('call-row-logged') && label) {
+                label.textContent = 'Logged';
+            }
         }
     });
 });
 </script>
 
 @endsection
+
 
 
 
