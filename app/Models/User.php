@@ -128,6 +128,10 @@ class User extends Authenticatable
             return 'admin';
         }
 
+        if ((bool) ($this->is_aspirant ?? false)) {
+            return 'aspirant';
+        }
+
         if (empty($this->email) && empty($this->phone)) {
             return 'user';
         }
@@ -159,3 +163,4 @@ class User extends Authenticatable
                 ->withTimestamps();
 }
 }
+

@@ -44,7 +44,7 @@ Route::get('/constituencies/by-county', [LocationController::class, 'getConstitu
 Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency']);
 
 // Admin-Specific API (Consolidated from web.php)
-Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/counties/by-bloc/{blocId}', [DashboardController::class, 'getCountiesByBloc'])->name('api.counties.by-bloc');
     Route::get('/constituencies/by-county', [DashboardController::class, 'getConstituenciesByCounty'])->name('api.constituencies.by-county');
     Route::get('/wards/by-constituency', [DashboardController::class, 'getWardsByConstituency'])->name('api.wards.by-constituency');
@@ -120,3 +120,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
+

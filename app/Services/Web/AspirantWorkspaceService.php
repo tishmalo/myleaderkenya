@@ -29,15 +29,23 @@ class AspirantWorkspaceService
             }
         }
 
-        return $query->where(function (Builder $candidateQuery) use ($user): void {
-            if (! empty($user->email)) {
-                $candidateQuery->orWhere('email', $user->email);
-            }
+        if (empty($user->email) && empty($user->phone)) {
+            return null;
+        }
 
-            if (! empty($user->phone)) {
-                $candidateQuery->orWhere('phone', $user->phone);
-            }
-        })->latest()->first();
+        return $query
+            ->when(Schema::hasColumn('candidates', 'user_id'), fn (Builder $candidateQuery) => $candidateQuery->whereNull('user_id'))
+            ->where(function (Builder $candidateQuery) use ($user): void {
+                if (! empty($user->email)) {
+                    $candidateQuery->orWhere('email', $user->email);
+                }
+
+                if (! empty($user->phone)) {
+                    $candidateQuery->orWhere('phone', $user->phone);
+                }
+            })
+            ->latest()
+            ->first();
     }
 
     public function toolDefinitions(): array
@@ -252,4 +260,6 @@ class AspirantWorkspaceService
         ];
     }
 }
+
+
 
