@@ -99,7 +99,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/aspirant/campaign-website/samples', [AspirantToolController::class, 'websiteSamples'])->name('aspirant.campaign-website.samples');
     Route::post('/aspirant/tools/bulk-sms/send', [AspirantToolController::class, 'sendBulkSms'])->name('aspirant.tools.bulk-sms.send');
     Route::post('/aspirant/tools/opinion-polls/polls', [AspirantToolController::class, 'storePoll'])->name('aspirant.tools.polls.store');
-    Route::post('/aspirant/tools/campaign-website/request', [AspirantToolController::class, 'storeWebsiteRequest'])->name('aspirant.tools.campaign-website.request');
+    Route::post('/aspirant/tools/campaign-website/request', [AspirantToolController::class, 'storeWebsiteRequest'])->middleware('throttle:3,10')->name('aspirant.tools.campaign-website.request');
 
     // --- Core Admin & Dashboard ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -144,10 +144,10 @@ Route::middleware('auth')->group(function () {
         ->names('campaign-tools')
         ->except(['show']);
     Route::get('/admin/campaign-website-requests', [CampaignWebsiteRequestController::class, 'index'])->name('campaign-website-requests.index');
-    Route::patch('/admin/campaign-website-requests/{campaignWebsiteRequest}', [CampaignWebsiteRequestController::class, 'update'])->name('campaign-website-requests.update');
+    Route::patch('/admin/campaign-website-requests/{campaignWebsiteRequest}', [CampaignWebsiteRequestController::class, 'update'])->middleware('throttle:30,1')->name('campaign-website-requests.update');
     Route::get('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'index'])->name('campaign-website-samples.index');
-    Route::post('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'store'])->name('campaign-website-samples.store');
-    Route::delete('/admin/campaign-website-samples/{campaignWebsiteSample}', [CampaignWebsiteSampleController::class, 'destroy'])->name('campaign-website-samples.destroy');
+    Route::post('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'store'])->middleware('throttle:10,10')->name('campaign-website-samples.store');
+    Route::delete('/admin/campaign-website-samples/{campaignWebsiteSample}', [CampaignWebsiteSampleController::class, 'destroy'])->middleware('throttle:30,1')->name('campaign-website-samples.destroy');
     Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->name('frontend-pages.index');
     Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->name('frontend-pages.edit');
     Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->name('frontend-pages.update');
@@ -187,4 +187,5 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
 

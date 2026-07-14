@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CampaignWebsiteSample;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class CampaignWebsiteSampleController extends Controller
 {
@@ -22,11 +22,26 @@ class CampaignWebsiteSampleController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'image_url' => ['nullable', 'string', 'max:500'],
+            'preview_image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:5120'],
             'website_url' => ['nullable', 'url', 'max:500'],
             'status' => ['required', 'in:draft,published'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        if ($request->hasFile('preview_image')) {
+            $file = $request->file('preview_image');
+            $directory = public_path('storage/campaign-website-samples');
+
+            if (! is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            $filename = (string) Str::uuid() . '.' . $file->extension();
+            $file->move($directory, $filename);
+            $validated['image_url'] = asset('storage/campaign-website-samples/' . $filename);
+        }
+
+        unset($validated['preview_image']);
 
         CampaignWebsiteSample::create($validated);
 
@@ -36,10 +51,19 @@ class CampaignWebsiteSampleController extends Controller
 
     public function destroy(CampaignWebsiteSample $campaignWebsiteSample): RedirectResponse
     {
+        $path = parse_url((string) $campaignWebsiteSample->image_url, PHP_URL_PATH);
+
+        if ($path && str_starts_with($path, '/storage/campaign-website-samples/')) {
+            $file = public_path(ltrim($path, '/'));
+
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+
         $campaignWebsiteSample->delete();
 
         return redirect()->route('campaign-website-samples.index')
             ->with('success', 'Website sample removed.');
     }
 }
-

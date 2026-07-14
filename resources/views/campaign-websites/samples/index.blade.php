@@ -13,7 +13,7 @@
         <a href="{{ route('campaign-website-requests.index') }}" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-2xl text-sm font-medium"><i class="fas fa-list mr-2"></i> Requests</a>
     </div>
 
-    <form method="POST" action="{{ route('campaign-website-samples.store') }}" class="mb-8 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 grid md:grid-cols-2 gap-4">
+    <form method="POST" action="{{ route('campaign-website-samples.store') }}" enctype="multipart/form-data" class="mb-8 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 grid md:grid-cols-2 gap-4">
         @csrf
         <div>
             <label class="block text-sm text-zinc-400 mb-2">Title</label>
@@ -26,9 +26,10 @@
             @error('website_url')<p class="text-red-400 text-sm mt-2">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label class="block text-sm text-zinc-400 mb-2">PNG / Image URL</label>
-            <input name="image_url" value="{{ old('image_url') }}" placeholder="https://.../sample.png or /storage/..." class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-            @error('image_url')<p class="text-red-400 text-sm mt-2">{{ $message }}</p>@enderror
+            <label class="block text-sm text-zinc-400 mb-2">PNG / Preview Image</label>
+            <input type="file" name="preview_image" accept="image/png,image/jpeg,image/webp" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white file:mr-4 file:rounded-xl file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-white">
+            <p class="mt-2 text-xs text-zinc-500">Upload PNG, JPG, JPEG, or WEBP up to 5MB.</p>
+            @error('preview_image')<p class="text-red-400 text-sm mt-2">{{ $message }}</p>@enderror
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div>
@@ -87,3 +88,4 @@
     </div>
 </div>
 @endsection
+
