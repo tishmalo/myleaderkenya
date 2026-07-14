@@ -104,14 +104,62 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                     @endif
 
                     @if($module['key'] === 'campaign-website')
-                        <p class="tool-note">Manage the public-facing campaign profile for {{ $candidate->name }}. This tool uses aspirant profile data and does not expose voter records.</p>
-                        <div class="tool-actions">
-                            @if(($candidate->approval_status ?? 'approved') === 'approved')
-                                <a href="{{ route('aspirants.show', $candidate) }}" class="tool-btn primary"><i class="fas fa-eye"></i> View Public Profile</a>
-                            @endif
-                            <a href="/aspirant/dashboard" class="tool-btn"><i class="fas fa-user-pen"></i> Review Profile</a>
-                        </div>
-                    @elseif($module['key'] === 'opinion-polls')
+                        @if($websiteRequest)
+                            <div class="tool-success">
+                                Latest request status: <strong>{{ str_replace('_', ' ', ucfirst($websiteRequest->status)) }}</strong>
+                                @if($websiteRequest->admin_notes)
+                                    <br>{{ $websiteRequest->admin_notes }}
+                                @endif
+                            </div>
+                        @endif
+
+                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.campaign-website.request') }}" data-loading-form>
+                            @csrf
+                            <label>Candidate / Campaign Name
+                                <input type="text" name="candidate_name" value="{{ old('candidate_name', $websiteRequest->candidate_name ?? $candidate->name) }}" required maxlength="255">
+                            </label>
+                            @error('candidate_name')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                            <label>Phone
+                                <input type="text" name="phone" value="{{ old('phone', $websiteRequest->phone ?? $candidate->phone) }}" maxlength="50">
+                            </label>
+                            @error('phone')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                            <label>Email
+                                <input type="email" name="email" value="{{ old('email', $websiteRequest->email ?? $candidate->email) }}" maxlength="255">
+                            </label>
+                            @error('email')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                            <label>Preferred Domain / Website Name
+                                <input type="text" name="preferred_domain" value="{{ old('preferred_domain', $websiteRequest->preferred_domain ?? '') }}" placeholder="example.co.ke or candidate name" maxlength="255">
+                            </label>
+                            @error('preferred_domain')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                            <label>Website Package
+                                <select name="website_type" required>
+                                    @php($selectedType = old('website_type', $websiteRequest->website_type ?? 'standard'))
+                                    <option value="standard" {{ $selectedType === 'standard' ? 'selected' : '' }}>Standard campaign website</option>
+                                    <option value="premium" {{ $selectedType === 'premium' ? 'selected' : '' }}>Premium campaign website</option>
+                                    <option value="custom" {{ $selectedType === 'custom' ? 'selected' : '' }}>Custom website</option>
+                                </select>
+                            </label>
+                            @error('website_type')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                            <label>Reference Link
+                                <input type="url" name="reference_url" value="{{ old('reference_url', $websiteRequest->reference_url ?? '') }}" placeholder="https://..." maxlength="500">
+                            </label>
+                            @error('reference_url')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                            <label>Notes For Admin
+                                <textarea name="notes" rows="6" maxlength="2000" placeholder="Share colors, sections, donation links, photos needed, timeline, or any special request.">{{ old('notes', $websiteRequest->notes ?? '') }}</textarea>
+                            </label>
+                            @error('notes')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                            <div class="tool-actions">
+                                <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Submitting..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-paper-plane" data-loading-icon></i> <span data-loading-label>Submit Request</span></button>
+                                <a href="{{ route('aspirant.campaign-website.samples') }}" class="tool-btn"><i class="fas fa-images"></i> View Samples</a>
+                            </div>
+                        </form>                    @elseif($module['key'] === 'opinion-polls')
                         <form class="tool-form" method="POST" action="{{ route('aspirant.tools.polls.store') }}" data-loading-form data-poll-form>
                             @csrf
                             <label>Poll Question
@@ -305,6 +353,7 @@ document.querySelectorAll('[data-poll-form]').forEach((form) => {
 </script>
 
 @endsection
+
 
 
 

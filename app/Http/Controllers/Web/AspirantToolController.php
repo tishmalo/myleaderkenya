@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendCandidateBulkSms;
 use App\Http\Requests\Web\SendBulkSmsRequest;
 use App\Models\AspirantPoll;
+use App\Models\CampaignWebsiteRequest;
+use App\Models\CampaignWebsiteSample;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupMessage;
@@ -35,7 +37,7 @@ class AspirantToolController extends Controller
 
         $tool = $this->workspaceService->publishedToolForKey($key);
 
-        if (! $tool) {
+        if (! $tool && $key !== 'campaign-website') {
             return redirect('/aspirant/dashboard')
                 ->with('warning', 'That campaign tool is not enabled yet. Ask an admin to publish it first.');
         }
@@ -76,6 +78,12 @@ class AspirantToolController extends Controller
                 ->take(8)
                 ->get()
             : collect();
+        $websiteRequest = $key === 'campaign-website'
+            ? CampaignWebsiteRequest::where('candidate_id', $candidate->id)->latest()->first()
+            : null;
+        $websiteSamples = $key === 'campaign-website'
+            ? CampaignWebsiteSample::published()->ordered()->take(6)->get()
+            : collect();
 
         return view('aspirants.tools.show', [
             'candidate' => $candidate,
@@ -85,6 +93,8 @@ class AspirantToolController extends Controller
             'voterCount' => $voterCount,
             'recentVoters' => $recentVoters,
             'polls' => $polls,
+            'websiteRequest' => $websiteRequest,
+            'websiteSamples' => $websiteSamples,
         ]);
     }
 
@@ -242,6 +252,48 @@ class AspirantToolController extends Controller
             ->with('success', $message);
     }
 
+    public function storeWebsiteRequest(Request $request): RedirectResponse
+    {
+        if (! $this->workspaceService->publishedToolForKey('campaign-website')) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'Campaign Website is not enabled yet. Ask an admin to publish the tool first.');
+        }
+
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $validated = $request->validate([
+            'candidate_name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'preferred_domain' => ['nullable', 'string', 'max:255'],
+            'website_type' => ['required', 'in:standard,premium,custom'],
+            'reference_url' => ['nullable', 'url', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        CampaignWebsiteRequest::updateOrCreate(
+            ['candidate_id' => $candidate->id],
+            array_merge($validated, [
+                'user_id' => $request->user()->id,
+                'status' => 'new',
+            ])
+        );
+
+        return redirect()->route('aspirant.tools.show', 'campaign-website')
+            ->with('success', 'Campaign website request submitted. An admin will review it and follow up.');
+    }
+
+    public function websiteSamples(): View
+    {
+        $samples = CampaignWebsiteSample::published()->ordered()->get();
+
+        return view('aspirants.tools.website-samples', compact('samples'));
+    }
     private function scopedPollGroup(Request $request, array $scope): Group
     {
         $name = $scope['label'] . ' Opinion Polls';
@@ -280,4 +332,7 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
+
+
+
 

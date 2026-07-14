@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\PoliticalPartyController;
 use App\Http\Controllers\Admin\CoalitionController;
 use App\Http\Controllers\Admin\CandidateController;
 use App\Http\Controllers\Admin\CampaignToolController;
+use App\Http\Controllers\Admin\CampaignWebsiteRequestController;
+use App\Http\Controllers\Admin\CampaignWebsiteSampleController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
@@ -94,8 +96,10 @@ Route::middleware('throttle:web')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
     Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
+    Route::get('/aspirant/campaign-website/samples', [AspirantToolController::class, 'websiteSamples'])->name('aspirant.campaign-website.samples');
     Route::post('/aspirant/tools/bulk-sms/send', [AspirantToolController::class, 'sendBulkSms'])->name('aspirant.tools.bulk-sms.send');
     Route::post('/aspirant/tools/opinion-polls/polls', [AspirantToolController::class, 'storePoll'])->name('aspirant.tools.polls.store');
+    Route::post('/aspirant/tools/campaign-website/request', [AspirantToolController::class, 'storeWebsiteRequest'])->name('aspirant.tools.campaign-website.request');
 
     // --- Core Admin & Dashboard ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -139,6 +143,11 @@ Route::middleware('auth')->group(function () {
         ->parameters(['campaign-tools' => 'campaignTool'])
         ->names('campaign-tools')
         ->except(['show']);
+    Route::get('/admin/campaign-website-requests', [CampaignWebsiteRequestController::class, 'index'])->name('campaign-website-requests.index');
+    Route::patch('/admin/campaign-website-requests/{campaignWebsiteRequest}', [CampaignWebsiteRequestController::class, 'update'])->name('campaign-website-requests.update');
+    Route::get('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'index'])->name('campaign-website-samples.index');
+    Route::post('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'store'])->name('campaign-website-samples.store');
+    Route::delete('/admin/campaign-website-samples/{campaignWebsiteSample}', [CampaignWebsiteSampleController::class, 'destroy'])->name('campaign-website-samples.destroy');
     Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->name('frontend-pages.index');
     Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->name('frontend-pages.edit');
     Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->name('frontend-pages.update');
@@ -178,3 +187,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+

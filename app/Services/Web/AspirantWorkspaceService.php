@@ -201,6 +201,10 @@ class AspirantWorkspaceService
     private function toolAvailability(string $key, ?CampaignTool $tool, ?Candidate $candidate): array
     {
         if (! $tool) {
+            if ($key === 'campaign-website') {
+                return ['available' => true, 'reason' => null];
+            }
+
             return ['available' => false, 'reason' => 'Ask an admin to publish this campaign tool.'];
         }
 
@@ -248,3 +252,4 @@ class AspirantWorkspaceService
         ];
     }
 }
+

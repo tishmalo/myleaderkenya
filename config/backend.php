@@ -45,6 +45,8 @@ return [
                 'items' => [
                     ['label' => 'Frontend Pages', 'route' => 'frontend-pages.index', 'icon' => 'fas fa-file-alt', 'active' => ['frontend-pages.*']],
                     ['label' => 'Campaign Tools', 'route' => 'campaign-tools.index', 'icon' => 'fas fa-bullhorn', 'active' => ['campaign-tools.*']],
+                    ['label' => 'Website Requests', 'route' => 'campaign-website-requests.index', 'icon' => 'fas fa-globe', 'active' => ['campaign-website-requests.*']],
+                    ['label' => 'Website Samples', 'route' => 'campaign-website-samples.index', 'icon' => 'fas fa-images', 'active' => ['campaign-website-samples.*']],
                     ['label' => 'Donor Settings', 'route' => 'payment-methods.index', 'icon' => 'fas fa-money-bill-wave', 'active' => ['payment-methods.*', 'donors.*']],
                     ['label' => 'News', 'route' => 'news.index', 'icon' => 'fas fa-newspaper', 'active' => ['news.*']],
                     ['label' => 'Tags', 'route' => 'tags.index', 'icon' => 'fas fa-tags', 'active' => ['tags.*']],
@@ -63,5 +65,6 @@ return [
         ],
     ],
 ];
+
 
 
