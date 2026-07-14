@@ -27,6 +27,7 @@ use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageControl
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
+use App\Http\Controllers\Web\CandidateClaimController;
 use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantToolController;
 use Illuminate\Support\Facades\Route;
@@ -87,6 +88,8 @@ Route::middleware('throttle:web')->group(function () {
     
     Route::get('/aspirants/register', [AspirantRegistrationController::class, 'create'])->name('aspirants.register');
     Route::post('/aspirants/register', [AspirantRegistrationController::class, 'store'])->name('aspirants.register.store');
+    Route::get('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'show'])->name('aspirants.claim.show');
+    Route::post('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'store'])->middleware('throttle:6,1')->name('aspirants.claim.store');
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->name('aspirants.public');
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->name('aspirants.show');
 });
@@ -126,6 +129,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/candidates/search', [CandidateController::class, 'search'])->name('candidates.search');
         Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->name('candidates.featured');
         Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->name('candidates.approval');
+        Route::post('/candidates/{candidate}/claim-link', [CandidateController::class, 'sendClaimLink'])->middleware('throttle:30,1')->name('candidates.claim-link');
         Route::resource('candidates', CandidateController::class);
         Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
         Route::resource('/admin/political-parties', PoliticalPartyController::class)
@@ -192,6 +196,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 require __DIR__.'/auth.php';
+
 
 
 

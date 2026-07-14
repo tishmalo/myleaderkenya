@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CandidateStoreRequest;
 use App\Http\Requests\Admin\CandidateUpdateRequest;
 use App\Models\Candidate;
+use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 class CandidateController extends Controller
 {
@@ -107,6 +110,33 @@ class CandidateController extends Controller
             'approval_status' => $candidate->approval_status,
         ]);
     }
+
+    public function sendClaimLink(Candidate $candidate)
+    {
+        if ($candidate->user_id || $candidate->claimed_at) {
+            return back()->with('warning', 'This aspirant account has already been claimed.');
+        }
+
+        if (blank($candidate->email)) {
+            return back()->with('warning', 'Add an email address before sending a claim link.');
+        }
+
+        $token = Str::random(64);
+        $expiresAt = now()->addDays(7);
+
+        $candidate->forceFill([
+            'claim_token_hash' => hash('sha256', $token),
+            'claim_token_expires_at' => $expiresAt,
+            'claim_sent_at' => now(),
+        ])->save();
+
+        $claimUrl = route('aspirants.claim.show', [$candidate, $token]);
+
+        Notification::route('mail', $candidate->email)
+            ->notify(new CandidateClaimLinkNotification($candidate->name, $claimUrl, $expiresAt));
+
+        return back()->with('success', 'Claim link queued for ' . $candidate->email . '.');
+    }
     public function destroy(Candidate $candidate)
     {
         $this->candidateService->deleteCandidate($candidate);
@@ -133,3 +163,4 @@ class CandidateController extends Controller
         return view('aspirants.public.show', compact('candidate'));
     }
 }
+

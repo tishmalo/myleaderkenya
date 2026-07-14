@@ -16,6 +16,14 @@
         </a>
     </div>
 
+
+    @foreach(['success' => 'emerald', 'warning' => 'amber', 'error' => 'red'] as $flashKey => $flashColor)
+        @if(session($flashKey))
+            <div class="mb-6 rounded-2xl border border-{{ $flashColor }}-700/60 bg-{{ $flashColor }}-950/50 px-5 py-4 text-{{ $flashColor }}-100">
+                {{ session($flashKey) }}
+            </div>
+        @endif
+    @endforeach
     <form method="GET" action="{{ route('candidates.index') }}" class="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
@@ -73,6 +81,7 @@
                     <th class="px-6 py-4 text-left">Jurisdiction</th>
                     <th class="px-6 py-4 text-center">Approval</th>
                     <th class="px-6 py-4 text-center">Featured</th>
+                    <th class="px-6 py-4 text-center">Account Claim</th>
                     <th class="px-6 py-4 text-center">Actions</th>
                 </tr>
             </thead>
@@ -131,6 +140,28 @@
                         </label>
                     </td>
                     <td class="px-6 py-4 text-center">
+                        @if($candidate->user_id || $candidate->claimed_at)
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-900/50 px-3 py-1 text-xs font-semibold text-emerald-300">
+                                <i class="fas fa-check-circle"></i> Claimed
+                            </span>
+                        @elseif(blank($candidate->email))
+                            <span class="inline-flex items-center gap-2 rounded-full bg-amber-900/50 px-3 py-1 text-xs font-semibold text-amber-300" title="Add an email address before sending a claim link.">
+                                <i class="fas fa-triangle-exclamation"></i> Needs Email
+                            </span>
+                        @else
+                            <form method="POST" action="{{ route('candidates.claim-link', $candidate) }}" class="inline">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-emerald-700 px-3 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-950">
+                                    <i class="fas fa-envelope"></i>
+                                    {{ $candidate->claim_sent_at ? 'Resend Link' : 'Send Link' }}
+                                </button>
+                            </form>
+                            @if($candidate->claim_sent_at)
+                                <p class="mt-2 text-xs text-zinc-500">Sent {{ $candidate->claim_sent_at->diffForHumans() }}</p>
+                            @endif
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 text-center">
                         <div class="flex gap-4 justify-center">
                             <a href="{{ route('candidates.edit', $candidate) }}"
                                class="text-blue-400 hover:text-blue-500 transition-colors">
@@ -145,7 +176,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-16 text-center text-zinc-500">
+                    <td colspan="8" class="px-6 py-16 text-center text-zinc-500">
                         No candidates found.
                     </td>
                 </tr>
@@ -234,3 +265,6 @@ document.querySelectorAll('[data-approval-select]').forEach(function (select) {
 });
 </script>
 @endpush
+
+
+

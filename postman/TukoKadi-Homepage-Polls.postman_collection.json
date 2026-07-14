@@ -1,0 +1,208 @@
+{
+  "info": {
+    "_postman_id": "c8a6a4a2-8f25-4e93-8f4f-1a74d48d9b4e",
+    "name": "Tuko Kadi - Homepage Polls by User Location",
+    "description": "Use this collection in the mobile app flow to fetch published aspirant polls for the logged-in user's homepage. Polls are created on the web by aspirants. The API matches published polls against the app user's county, constituency, ward, plus national polls. Poll payloads include location and match metadata so the app can show where the poll applies.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://nikokadi.digitallyfit.top/api" },
+    { "key": "username", "value": "voter_username" },
+    { "key": "password", "value": "password" },
+    { "key": "auth_token", "value": "" },
+    { "key": "poll_id", "value": "" },
+    { "key": "group_id", "value": "" },
+    { "key": "option_index", "value": "0" },
+    { "key": "limit", "value": "20" }
+  ],
+  "item": [
+    {
+      "name": "1. Login as app user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const token = json.token || json.access_token || json.data?.token;",
+              "if (token) pm.collectionVariables.set('auth_token', token);",
+              "pm.test('Login returns a token', function () {",
+              "  pm.expect(pm.collectionVariables.get('auth_token')).to.not.eql('');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Logs in the app user and stores auth_token for protected requests. The user's county, constituency, and ward are used by /polls/home for matching."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get my profile / location context",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/profile",
+          "host": ["{{base_url}}"],
+          "path": ["profile"]
+        },
+        "description": "Optional debug step. Confirm the logged-in app user has county, constituency, and ward values. These fields determine which local polls appear on the homepage."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Homepage polls matched to app user location",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const polls = json.polls || [];",
+              "const firstPoll = polls[0];",
+              "if (firstPoll?.id) pm.collectionVariables.set('poll_id', firstPoll.id);",
+              "pm.test('Response has polls array', function () {",
+              "  pm.expect(Array.isArray(polls)).to.eql(true);",
+              "});",
+              "pm.test('Polls include location metadata when present', function () {",
+              "  if (polls.length) {",
+              "    pm.expect(firstPoll).to.have.property('location');",
+              "    pm.expect(firstPoll).to.have.property('match');",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/polls/home?limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["polls", "home"],
+          "query": [{ "key": "limit", "value": "{{limit}}" }]
+        },
+        "description": "Use this on the app homepage. Returns published polls that match the logged-in user's county, constituency, ward, and all national polls. Each poll includes location and match metadata for display and local filtering."
+      },
+      "response": [
+        {
+          "name": "Example homepage polls response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/polls/home?limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["polls", "home"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"success\": true,\n  \"match_location\": {\n    \"country\": \"Kenya\",\n    \"county\": \"Nandi\",\n    \"constituency\": \"Aldai\",\n    \"ward\": \"Kembu\"\n  },\n  \"polls\": [\n    {\n      \"id\": 12,\n      \"question\": \"What issue should our campaign prioritize first?\",\n      \"scope_type\": \"ward\",\n      \"scope_column\": \"ward\",\n      \"scope_value\": \"Kembu\",\n      \"location\": {\n        \"country\": \"Kenya\",\n        \"county\": \"Nandi\",\n        \"constituency\": \"Aldai\",\n        \"ward\": \"Kembu\"\n      },\n      \"match\": {\n        \"level\": \"ward\",\n        \"field\": \"ward\",\n        \"value\": \"Kembu\",\n        \"label\": \"Kembu\"\n      },\n      \"status\": \"published\",\n      \"published_at\": \"2026-07-14T06:12:29.000000Z\",\n      \"total_responses\": 1,\n      \"selected_option_index\": null,\n      \"aspirant\": {\n        \"id\": 4,\n        \"name\": \"Jonathan Kilonzo\",\n        \"position\": \"President\"\n      },\n      \"options\": [\n        {\n          \"index\": 0,\n          \"label\": \"Roads and transport\",\n          \"response_count\": 1,\n          \"response_percent\": 100\n        }\n      ]\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Respond to homepage poll",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"option_index\": {{option_index}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/groups/polls/{{poll_id}}/respond",
+          "host": ["{{base_url}}"],
+          "path": ["groups", "polls", "{{poll_id}}", "respond"]
+        },
+        "description": "Records or updates the logged-in user's response to a poll. The response returns the same enriched poll shape with selected_option_index, location, match, totals, and options."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Get my groups",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const groups = Array.isArray(json) ? json : (json.groups || json.data || []);",
+              "if (groups.length && groups[0].id) pm.collectionVariables.set('group_id', groups[0].id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/groups/my-groups",
+          "host": ["{{base_url}}"],
+          "path": ["groups", "my-groups"]
+        },
+        "description": "Optional chat flow. Use this to pick a group id before fetching group chat messages."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Get group chat messages with enriched poll payload",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const messages = pm.response.json();",
+              "const pollMessage = Array.isArray(messages) ? messages.find((message) => message.type === 'poll' && message.poll) : null;",
+              "if (pollMessage?.poll?.id) pm.collectionVariables.set('poll_id', pollMessage.poll.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/groups/{{group_id}}/messages",
+          "host": ["{{base_url}}"],
+          "path": ["groups", "{{group_id}}", "messages"]
+        },
+        "description": "Existing chat endpoint. Poll messages now include the same location and match metadata used by /polls/home."
+      },
+      "response": []
+    }
+  ]
+}
