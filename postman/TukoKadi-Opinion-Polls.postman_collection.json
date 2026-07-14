@@ -1,0 +1,201 @@
+{
+  "info": {
+    "_postman_id": "7efb9e63-4a97-4d11-ae50-8c248e4f7f0d",
+    "name": "Tuko Kadi - Opinion Polls in Group Chats",
+    "description": "Opinion polls are created and published from the web aspirant dashboard. The app uses this API collection to login, fetch the user's groups, fetch group chat messages, detect messages where type is poll, and submit poll responses. Polls are added to chats by the web flow creating a group_messages row with message_type = poll and aspirant_poll_id linked to aspirant_polls.id.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://nikokadi.digitallyfit.top/api" },
+    { "key": "username", "value": "voter_username" },
+    { "key": "password", "value": "password" },
+    { "key": "auth_token", "value": "" },
+    { "key": "group_id", "value": "" },
+    { "key": "poll_id", "value": "" },
+    { "key": "option_index", "value": "0" }
+  ],
+  "item": [
+    {
+      "name": "1. Login as voter/app user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.token) {",
+              "  pm.collectionVariables.set('auth_token', json.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Logs in the app user and stores token as auth_token for protected requests."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get my groups",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const groups = Array.isArray(json) ? json : (json.groups || json.data || []);",
+              "if (groups.length && groups[0].id) {",
+              "  pm.collectionVariables.set('group_id', groups[0].id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/groups/my-groups",
+          "host": ["{{base_url}}"],
+          "path": ["groups", "my-groups"]
+        },
+        "description": "Returns groups the app user belongs to. A web-published poll is only visible/respondable if the user is a member of the poll group."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get group chat messages and extract poll id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const messages = pm.response.json();",
+              "const pollMessage = Array.isArray(messages) ? messages.find((message) => message.type === 'poll' && message.poll) : null;",
+              "if (pollMessage && pollMessage.poll && pollMessage.poll.id) {",
+              "  pm.collectionVariables.set('poll_id', pollMessage.poll.id);",
+              "}",
+              "pm.test('Response is a message array', function () {",
+              "  pm.expect(Array.isArray(messages)).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/groups/{{group_id}}/messages",
+          "host": ["{{base_url}}"],
+          "path": ["groups", "{{group_id}}", "messages"]
+        },
+        "description": "Use this in the app chat screen. Normal messages return type: text. Poll chat messages return type: poll and include a nested poll object with id, question, selected_option_index, total_responses, and options. The app should render those messages as poll cards and use poll.id when responding."
+      },
+      "response": [
+        {
+          "name": "Example poll message response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/groups/{{group_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["groups", "{{group_id}}", "messages"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "[\n  {\n    \"id\": 101,\n    \"type\": \"poll\",\n    \"username\": \"Aspirant\",\n    \"message\": \"[POLL #12]\\nWhat issue should our campaign prioritize first?\\n1. Roads and transport\\n2. Water access\",\n    \"latitude\": null,\n    \"longitude\": null,\n    \"created_at\": \"2026-07-14T08:00:00.000000Z\",\n    \"poll\": {\n      \"id\": 12,\n      \"question\": \"What issue should our campaign prioritize first?\",\n      \"scope_type\": \"national\",\n      \"scope_value\": null,\n      \"status\": \"published\",\n      \"total_responses\": 3,\n      \"selected_option_index\": null,\n      \"options\": [\n        {\n          \"index\": 0,\n          \"label\": \"Roads and transport\",\n          \"response_count\": 2,\n          \"response_percent\": 67\n        },\n        {\n          \"index\": 1,\n          \"label\": \"Water access\",\n          \"response_count\": 1,\n          \"response_percent\": 33\n        }\n      ]\n    }\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "4. Respond to poll",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"option_index\": {{option_index}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/groups/polls/{{poll_id}}/respond",
+          "host": ["{{base_url}}"],
+          "path": ["groups", "polls", "{{poll_id}}", "respond"]
+        },
+        "description": "Records or updates the logged-in user's vote for the selected option. option_index is zero-based and must match one of the option indexes from the poll payload in group messages."
+      },
+      "response": [
+        {
+          "name": "Example poll response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"option_index\": 0\n}" },
+            "url": {
+              "raw": "{{base_url}}/groups/polls/{{poll_id}}/respond",
+              "host": ["{{base_url}}"],
+              "path": ["groups", "polls", "{{poll_id}}", "respond"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"message\": \"Poll response recorded\",\n  \"poll\": {\n    \"id\": 12,\n    \"question\": \"What issue should our campaign prioritize first?\",\n    \"selected_option_index\": 0,\n    \"total_responses\": 4,\n    \"options\": [\n      {\n        \"index\": 0,\n        \"label\": \"Roads and transport\",\n        \"response_count\": 3,\n        \"response_percent\": 75\n      },\n      {\n        \"index\": 1,\n        \"label\": \"Water access\",\n        \"response_count\": 1,\n        \"response_percent\": 25\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Send normal text group message",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }] },
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"group_id\": {{group_id}},\n  \"message\": \"This is a normal chat message from the app.\",\n  \"latitude\": null,\n  \"longitude\": null\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/groups/send-message",
+          "host": ["{{base_url}}"],
+          "path": ["groups", "send-message"]
+        },
+        "description": "Included for comparison. This creates message_type: text. Poll chat messages are not created by this app endpoint; they are created when the aspirant publishes a poll from the web dashboard."
+      },
+      "response": []
+    }
+  ]
+}

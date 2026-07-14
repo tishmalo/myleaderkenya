@@ -18,6 +18,8 @@ use App\Http\Requests\Api\SendLocationMessageRequest;
 use App\Http\Requests\Api\SendMessageRequest;
 use App\Http\Requests\Api\StoreMessageFromWebRequest;
 use App\Http\Requests\Api\UpdateVoterStatusRequest;
+use App\Http\Requests\Api\RespondToPollRequest;
+use App\Models\AspirantPoll;
 use App\Services\Api\GroupService;
 use App\Services\Api\MessageService;
 use App\Services\Api\PollingStationService;
@@ -336,3 +338,4 @@ class MessageController extends Controller
         }
     }
 }
+
