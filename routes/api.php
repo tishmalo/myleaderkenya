@@ -80,6 +80,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/auth/refresh-token', [AuthController::class, 'refresh']);
 
+    // Homepage
+    Route::get('/polls/home', [MessageController::class, 'getHomePolls']);
+
     // Profile
     Route::prefix('profile')->group(function () {
         Route::get('/', [AuthController::class, 'profile']);

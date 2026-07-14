@@ -8,6 +8,7 @@ use App\Contracts\Repositories\Api\GroupMessageRepositoryInterface;
 use App\Models\AspirantPoll;
 use App\Models\AspirantPollResponse;
 use App\Models\User;
+use App\Support\AspirantPollPresenter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -135,22 +136,7 @@ class GroupService
 
         return [
             'message' => 'Poll response recorded',
-            'poll' => [
-                'id' => $poll->id,
-                'question' => $poll->question,
-                'selected_option_index' => $optionIndex,
-                'total_responses' => $totalResponses,
-                'options' => collect($options)->map(function (string $option, int $index) use ($poll, $totalResponses): array {
-                    $count = $poll->responses->where('option_index', $index)->count();
-
-                    return [
-                        'index' => $index,
-                        'label' => $option,
-                        'response_count' => $count,
-                        'response_percent' => $totalResponses > 0 ? round(($count / $totalResponses) * 100) : 0,
-                    ];
-                })->values(),
-            ],
+            'poll' => AspirantPollPresenter::format($poll, $user->id),
         ];
     }
 
