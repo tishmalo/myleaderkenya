@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendCandidateBulkSms;
 use App\Http\Requests\Web\SendBulkSmsRequest;
 use App\Models\AspirantPoll;
+use App\Models\CandidateCallLog;
+use App\Models\CandidateCallScript;
 use App\Models\CampaignWebsiteRequest;
 use App\Models\CampaignWebsiteSample;
 use App\Models\Group;
@@ -84,6 +86,25 @@ class AspirantToolController extends Controller
         $websiteSamples = $key === 'campaign-website'
             ? CampaignWebsiteSample::published()->ordered()->take(6)->get()
             : collect();
+        $callScript = $key === 'call-center'
+            ? CandidateCallScript::where('candidate_id', $candidate->id)->first()
+            : null;
+        $callListActive = $key === 'call-center' && $request->boolean('call_list');
+        $callListContacts = $callListActive
+            ? (clone $voterQuery)
+                ->whereNotNull('phone')
+                ->select('id', 'name', 'username', 'phone', 'county', 'constituency', 'ward', 'polling_station', 'created_at')
+                ->latest()
+                ->take(100)
+                ->get()
+            : collect();
+        $callLogs = $key === 'call-center'
+            ? CandidateCallLog::with(['caller', 'voter'])
+                ->where('candidate_id', $candidate->id)
+                ->latest('called_at')
+                ->take(12)
+                ->get()
+            : collect();
 
         return view('aspirants.tools.show', [
             'candidate' => $candidate,
@@ -95,6 +116,10 @@ class AspirantToolController extends Controller
             'polls' => $polls,
             'websiteRequest' => $websiteRequest,
             'websiteSamples' => $websiteSamples,
+            'callScript' => $callScript,
+            'callListActive' => $callListActive,
+            'callListContacts' => $callListContacts,
+            'callLogs' => $callLogs,
         ]);
     }
 
@@ -252,6 +277,105 @@ class AspirantToolController extends Controller
             ->with('success', $message);
     }
 
+
+    public function saveCallScript(Request $request): RedirectResponse
+    {
+        if (! $this->workspaceService->publishedToolForKey('call-center')) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'Call Center is not enabled yet. Ask an admin to publish the tool first.');
+        }
+
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $scope = $this->workspaceService->scopeForCandidate($candidate);
+
+        if ($scope['missing']) {
+            return redirect()->route('aspirant.tools.show', 'call-center')
+                ->with('warning', $scope['message']);
+        }
+
+        $validated = $request->validate([
+            'script' => ['required', 'string', 'min:20', 'max:5000'],
+            'callback_priority' => ['required', 'in:undecided,supporters,volunteers'],
+        ]);
+
+        CandidateCallScript::updateOrCreate(
+            ['candidate_id' => $candidate->id],
+            [
+                'user_id' => $request->user()->id,
+                'script' => $validated['script'],
+                'callback_priority' => $validated['callback_priority'],
+                'scope_type' => $scope['type'],
+                'scope_column' => $scope['column'],
+                'scope_value' => $scope['value'],
+            ]
+        );
+
+        return redirect()->route('aspirant.tools.show', 'call-center')
+            ->with('success', 'Call script saved. You can now start the scoped call list.');
+    }
+
+    public function storeCallLog(Request $request): RedirectResponse
+    {
+        if (! $this->workspaceService->publishedToolForKey('call-center')) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'Call Center is not enabled yet. Ask an admin to publish the tool first.');
+        }
+
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect('/aspirant/dashboard')
+                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $scope = $this->workspaceService->scopeForCandidate($candidate);
+
+        if ($scope['missing']) {
+            return redirect()->route('aspirant.tools.show', 'call-center')
+                ->with('warning', $scope['message']);
+        }
+
+        $validated = $request->validate([
+            'voter_user_id' => ['required', 'integer'],
+            'outcome' => ['required', 'in:reached,no_answer,busy,wrong_number,callback,not_interested,supporter,volunteer'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'callback_at' => ['nullable', 'date'],
+        ]);
+
+        $voter = $this->workspaceService->registeredVotersQuery($scope)
+            ->whereKey($validated['voter_user_id'])
+            ->whereNotNull('phone')
+            ->first();
+
+        if (! $voter) {
+            return redirect()->route('aspirant.tools.show', ['key' => 'call-center', 'call_list' => 1])
+                ->with('warning', 'That voter is not available in your scoped call list.');
+        }
+
+        CandidateCallLog::create([
+            'candidate_id' => $candidate->id,
+            'user_id' => $request->user()->id,
+            'voter_user_id' => $voter->id,
+            'voter_name' => $voter->name ?: $voter->username,
+            'voter_phone' => $voter->phone,
+            'outcome' => $validated['outcome'],
+            'notes' => $validated['notes'] ?? null,
+            'callback_at' => $validated['callback_at'] ?? null,
+            'scope_type' => $scope['type'],
+            'scope_column' => $scope['column'],
+            'scope_value' => $scope['value'],
+            'called_at' => now(),
+        ]);
+
+        return redirect()->route('aspirant.tools.show', ['key' => 'call-center', 'call_list' => 1])
+            ->with('success', 'Call log recorded.');
+    }
     public function storeWebsiteRequest(Request $request): RedirectResponse
     {
 
@@ -328,6 +452,7 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
+
 
 
 

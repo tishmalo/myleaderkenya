@@ -49,6 +49,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .tool-form label { display:grid; gap:7px; color:rgba(245,245,240,.58); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .tool-form input,.tool-form textarea,.tool-form select { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; }
 .tool-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:4px; }
+.call-log-form { display:grid; gap:8px; min-width:260px; }
+.call-log-form .call-log-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.call-log-form input,.call-log-form select { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:8px 9px; font:inherit; }
 .tool-table { width:100%; border-collapse:collapse; }
 .tool-table th,.tool-table td { padding:12px 10px; border-top:1px solid rgba(255,255,255,.06); text-align:left; font-size:13px; }
 .tool-table th { color:rgba(245,245,240,.48); font-size:11px; text-transform:uppercase; letter-spacing:.09em; }
@@ -249,18 +252,131 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                             </div>
                         </form>
                     @elseif($module['key'] === 'call-center')
-                        <form class="tool-form">
+                        @php
+                            $savedPriority = old('callback_priority', $callScript->callback_priority ?? 'undecided');
+                            $defaultScript = "Hello, this is the campaign team for {$candidate->name}. We are listening to voters in {$scope['label']} and would like to hear what matters most to you.";
+                        @endphp
+                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.call-center.script') }}" data-loading-form>
+                            @csrf
                             <label>Call Script
-                                <textarea rows="6">Hello, this is the campaign team for {{ $candidate->name }}. We are listening to voters in {{ $scope['label'] }} and would like to hear what matters most to you.</textarea>
+                                <textarea name="script" rows="6" required maxlength="5000">{{ old('script', $callScript->script ?? $defaultScript) }}</textarea>
                             </label>
+                            @error('script')
+                                <div class="tool-alert">{{ $message }}</div>
+                            @enderror
                             <label>Callback Priority
-                                <select><option>Undecided voters</option><option>Registered supporters</option><option>Volunteer leads</option></select>
+                                <select name="callback_priority" required>
+                                    <option value="undecided" {{ $savedPriority === 'undecided' ? 'selected' : '' }}>Undecided voters</option>
+                                    <option value="supporters" {{ $savedPriority === 'supporters' ? 'selected' : '' }}>Registered supporters</option>
+                                    <option value="volunteers" {{ $savedPriority === 'volunteers' ? 'selected' : '' }}>Volunteer leads</option>
+                                </select>
                             </label>
+                            @error('callback_priority')
+                                <div class="tool-alert">{{ $message }}</div>
+                            @enderror
                             <div class="tool-actions">
-                                <button type="button" class="tool-btn primary"><i class="fas fa-save"></i> Save Script</button>
-                                <button type="button" class="tool-btn"><i class="fas fa-phone"></i> Start Call List</button>
+                                <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Saving..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-save" data-loading-icon></i> <span data-loading-label>Save Script</span></button>
+                                <a href="{{ route('aspirant.tools.show', ['key' => 'call-center', 'call_list' => 1]) }}" class="tool-btn"><i class="fas fa-phone"></i> Start Call List</a>
                             </div>
                         </form>
+
+                        @if($callListActive)
+                            <div class="poll-list">
+                                <div class="poll-card">
+                                    <div class="poll-card-top">
+                                        <h3>Call List</h3>
+                                        <span class="poll-status">{{ number_format($callListContacts->count()) }} ready</span>
+                                    </div>
+                                    @if($callScript)
+                                        <p class="tool-note" style="margin-top:0;">Use the saved script above while calling voters in {{ $scope['label'] }}.</p>
+                                    @else
+                                        <div class="tool-alert" style="margin-bottom:12px;">Save the script first so the call team has the latest talking points.</div>
+                                    @endif
+
+                                    @if($callListContacts->isEmpty())
+                                        <p class="tool-empty">No callable contacts with phone numbers were found in {{ $scope['label'] }}.</p>
+                                    @else
+                                        <div style="overflow-x:auto;">
+                                            <table class="tool-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Phone</th>
+                                                        <th>Ward</th>
+                                                        <th>Log Call</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($callListContacts as $contact)
+                                                        <tr>
+                                                            <td>{{ $contact->name ?: $contact->username }}</td>
+                                                            <td>{{ $contact->phone }}</td>
+                                                            <td>{{ $contact->ward ?: '-' }}</td>
+                                                            <td>
+                                                                <form class="call-log-form" method="POST" action="{{ route('aspirant.tools.call-center.calls') }}" data-loading-form>
+                                                                    @csrf
+                                                                    <input type="hidden" name="voter_user_id" value="{{ $contact->id }}">
+                                                                    <div class="call-log-row">
+                                                                        <a class="tool-btn" style="padding:8px 10px; justify-content:center;" href="tel:{{ preg_replace('/\s+/', '', $contact->phone) }}"><i class="fas fa-phone"></i> Call</a>
+                                                                        <select name="outcome" required>
+                                                                            <option value="reached">Reached</option>
+                                                                            <option value="no_answer">No answer</option>
+                                                                            <option value="busy">Busy</option>
+                                                                            <option value="callback">Callback</option>
+                                                                            <option value="supporter">Supporter</option>
+                                                                            <option value="volunteer">Volunteer</option>
+                                                                            <option value="not_interested">Not interested</option>
+                                                                            <option value="wrong_number">Wrong number</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="call-log-row">
+                                                                        <input type="datetime-local" name="callback_at" aria-label="Callback time">
+                                                                        <input type="text" name="notes" maxlength="1000" placeholder="Notes">
+                                                                    </div>
+                                                                    <button type="submit" class="tool-btn primary" style="padding:8px 10px; justify-content:center;" data-loading-button data-loading-text="Logging..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-check" data-loading-icon></i> <span data-loading-label>Log Call</span></button>
+                                                                </form>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                        @if($callLogs->isNotEmpty())
+                            <div class="poll-list">
+                                <div class="poll-card">
+                                    <div class="poll-card-top">
+                                        <h3>Recent Call Logs</h3>
+                                        <span class="poll-status">{{ number_format($callLogs->count()) }} latest</span>
+                                    </div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="tool-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Voter</th>
+                                                    <th>Outcome</th>
+                                                    <th>Callback</th>
+                                                    <th>Notes</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($callLogs as $log)
+                                                    <tr>
+                                                        <td>{{ $log->voter_name ?: ($log->voter->name ?? $log->voter->username ?? '-') }}</td>
+                                                        <td>{{ str_replace('_', ' ', ucfirst($log->outcome)) }}</td>
+                                                        <td>{{ $log->callback_at ? $log->callback_at->format('M j, H:i') : '-' }}</td>
+                                                        <td>{{ $log->notes ?: '-' }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @else
                         <p class="tool-note">Use this workspace to inspect and organize registered voters inside {{ $scope['label'] }}. The list below is already restricted to your voting bloc.</p>
                     @endif
@@ -356,9 +472,4 @@ document.querySelectorAll('[data-poll-form]').forEach((form) => {
 </script>
 
 @endsection
-
-
-
-
-
 
