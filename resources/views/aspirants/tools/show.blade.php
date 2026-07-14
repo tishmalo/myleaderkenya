@@ -33,6 +33,18 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .poll-result { margin-top:14px; border-top:1px solid rgba(255,255,255,.07); padding-top:14px; }
 .poll-bar { height:8px; border-radius:999px; overflow:hidden; background:#242424; margin-top:7px; }
 .poll-bar span { display:block; height:100%; background:#00A86B; }
+.poll-preview { display:none; margin-top:18px; border:1px solid rgba(0,168,107,.25); border-radius:8px; background:#0b0f0d; padding:18px; }
+.poll-preview.is-visible { display:block; }
+.poll-preview h3 { margin:0 0 10px; font-size:20px; }
+.poll-preview p { margin:0 0 14px; color:rgba(245,245,240,.84); font-weight:800; line-height:1.45; }
+.poll-preview ol { margin:0; padding-left:20px; color:rgba(245,245,240,.72); line-height:1.75; }
+.poll-list { display:grid; gap:12px; margin-top:22px; }
+.poll-card { border:1px solid rgba(255,255,255,.07); border-radius:8px; background:#0d0d0d; padding:15px; }
+.poll-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.poll-card h3 { margin:0; font-size:18px; color:#fff; line-height:1.3; }
+.poll-status { border-radius:999px; padding:4px 8px; color:#bbf7d0; background:rgba(34,197,94,.12); font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.poll-status.draft { color:#fde68a; background:rgba(245,158,11,.12); }
+.poll-options { margin:0; padding-left:20px; color:rgba(245,245,240,.68); line-height:1.7; }
 .tool-form { display:grid; gap:14px; }
 .tool-form label { display:grid; gap:7px; color:rgba(245,245,240,.58); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .tool-form input,.tool-form textarea,.tool-form select { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; }
@@ -100,21 +112,62 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                             <a href="/aspirant/dashboard" class="tool-btn"><i class="fas fa-user-pen"></i> Review Profile</a>
                         </div>
                     @elseif($module['key'] === 'opinion-polls')
-                        <form class="tool-form">
+                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.polls.store') }}" data-loading-form data-poll-form>
+                            @csrf
                             <label>Poll Question
-                                <input type="text" value="What issue should our campaign prioritize first?">
+                                <input type="text" name="question" value="{{ old('question', 'What issue should our campaign prioritize first?') }}" required maxlength="255" data-poll-question>
                             </label>
+                            @error('question')
+                                <div class="tool-alert">{{ $message }}</div>
+                            @enderror
                             <label>Audience
                                 <input type="text" value="{{ $scope['label'] }}" readonly>
                             </label>
                             <label>Options
-                                <textarea rows="5">Roads and transport&#10;Water access&#10;Jobs and business support&#10;Education services</textarea>
+                                <textarea rows="5" name="options" required data-poll-options>{{ old('options', "Roads and transport\nWater access\nJobs and business support\nEducation services") }}</textarea>
                             </label>
+                            @error('options')
+                                <div class="tool-alert">{{ $message }}</div>
+                            @enderror
                             <div class="tool-actions">
-                                <button type="button" class="tool-btn primary"><i class="fas fa-save"></i> Save Draft</button>
-                                <button type="button" class="tool-btn"><i class="fas fa-chart-simple"></i> Preview Poll</button>
+                                <button type="submit" name="status" value="draft" class="tool-btn primary" data-loading-button data-loading-text="Saving..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-save" data-loading-icon></i> <span data-loading-label>Save Draft</span></button>
+                                <button type="submit" name="status" value="published" class="tool-btn"><i class="fas fa-paper-plane"></i> Publish Poll</button>
+                                <button type="button" class="tool-btn" data-preview-poll><i class="fas fa-chart-simple"></i> Preview Poll</button>
+                            </div>
+                            <div class="poll-preview" data-poll-preview aria-live="polite">
+                                <h3>Poll Preview</h3>
+                                <p data-preview-question></p>
+                                <ol data-preview-options></ol>
                             </div>
                         </form>
+
+                        @if($polls->isNotEmpty())
+                            <div class="poll-list">
+                                @foreach($polls as $poll)
+                                    @php
+                                        $totalResponses = $poll->responses->count();
+                                    @endphp
+                                    <article class="poll-card">
+                                        <div class="poll-card-top">
+                                            <h3>{{ $poll->question }}</h3>
+                                            <span class="poll-status {{ $poll->status === 'draft' ? 'draft' : '' }}">{{ $poll->status }}</span>
+                                        </div>
+                                        <ol class="poll-options">
+                                            @foreach($poll->options ?? [] as $index => $option)
+                                                @php
+                                                    $count = $poll->responses->where('option_index', $index)->count();
+                                                    $percent = $totalResponses > 0 ? round(($count / $totalResponses) * 100) : 0;
+                                                @endphp
+                                                <li>
+                                                    {{ $option }} - {{ number_format($count) }} votes
+                                                    <div class="poll-bar"><span style="width:{{ $percent }}%;"></span></div>
+                                                </li>
+                                            @endforeach
+                                        </ol>
+                                    </article>
+                                @endforeach
+                            </div>
+                        @endif
                     @elseif($module['key'] === 'bulk-sms')
                         <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.send') }}" data-loading-form>
                             @csrf
@@ -202,7 +255,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 <script>
 document.querySelectorAll('[data-loading-form]').forEach((form) => {
     form.addEventListener('submit', () => {
-        const button = form.querySelector('[data-loading-button]');
+        const button = document.activeElement?.matches('[data-loading-button]')
+            ? document.activeElement
+            : null;
         if (!button) return;
 
         const label = button.querySelector('[data-loading-label]');
@@ -213,6 +268,43 @@ document.querySelectorAll('[data-loading-form]').forEach((form) => {
         if (label) label.textContent = button.dataset.loadingText || 'Working...';
     });
 });
+
+document.querySelectorAll('[data-poll-form]').forEach((form) => {
+    const previewButton = form.querySelector('[data-preview-poll]');
+    const preview = form.querySelector('[data-poll-preview]');
+    const previewQuestion = form.querySelector('[data-preview-question]');
+    const previewOptions = form.querySelector('[data-preview-options]');
+
+    if (!previewButton || !preview || !previewQuestion || !previewOptions) return;
+
+    previewButton.addEventListener('click', () => {
+        const question = form.querySelector('[data-poll-question]').value.trim();
+        const options = form.querySelector('[data-poll-options]').value
+            .split(/\r\n|\r|\n/)
+            .map((option) => option.trim())
+            .filter(Boolean);
+
+        previewQuestion.textContent = question || 'Add a poll question to preview it here.';
+        previewOptions.innerHTML = '';
+
+        if (options.length === 0) {
+            const item = document.createElement('li');
+            item.textContent = 'Add at least two options, one per line.';
+            previewOptions.appendChild(item);
+        } else {
+            options.forEach((option) => {
+                const item = document.createElement('li');
+                item.textContent = option;
+                previewOptions.appendChild(item);
+            });
+        }
+
+        preview.classList.add('is-visible');
+    });
+});
 </script>
 
 @endsection
+
+
+

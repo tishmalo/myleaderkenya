@@ -168,7 +168,10 @@ class AspirantToolController extends Controller
         $validated = $request->validate([
             'question' => ['required', 'string', 'max:255'],
             'options' => ['required', 'string'],
+            'status' => ['nullable', 'in:draft,published'],
         ]);
+
+        $status = $validated['status'] ?? 'draft';
 
         $options = collect(preg_split('/\r\n|\r|\n/', $validated['options']))
             ->map(fn (string $option): string => trim($option))
@@ -181,50 +184,62 @@ class AspirantToolController extends Controller
                 ->with('warning', 'Add at least two poll options.');
         }
 
-        DB::transaction(function () use ($request, $candidate, $scope, $validated, $options): void {
-            $group = $this->scopedPollGroup($request, $scope);
+        DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status): void {
+            $group = null;
 
-            GroupMember::firstOrCreate([
-                'group_id' => $group->id,
-                'user_id' => $request->user()->id,
-            ]);
+            if ($status === 'published') {
+                $group = $this->scopedPollGroup($request, $scope);
 
-            $this->workspaceService->registeredVotersQuery($scope)
-                ->select('id')
-                ->orderBy('id')
-                ->chunkById(200, function ($voters) use ($group): void {
-                    foreach ($voters as $voter) {
-                        GroupMember::firstOrCreate([
-                            'group_id' => $group->id,
-                            'user_id' => $voter->id,
-                        ]);
-                    }
-                });
+                GroupMember::firstOrCreate([
+                    'group_id' => $group->id,
+                    'user_id' => $request->user()->id,
+                ]);
+
+                $this->workspaceService->registeredVotersQuery($scope)
+                    ->select('id')
+                    ->orderBy('id')
+                    ->chunkById(200, function ($voters) use ($group): void {
+                        foreach ($voters as $voter) {
+                            GroupMember::firstOrCreate([
+                                'group_id' => $group->id,
+                                'user_id' => $voter->id,
+                            ]);
+                        }
+                    });
+            }
 
             $poll = AspirantPoll::create([
                 'candidate_id' => $candidate->id,
                 'user_id' => $request->user()->id,
-                'group_id' => $group->id,
+                'group_id' => $group?->id,
                 'question' => $validated['question'],
                 'options' => $options->all(),
                 'scope_type' => $scope['type'],
                 'scope_column' => $scope['column'],
                 'scope_value' => $scope['value'],
-                'status' => 'published',
-                'published_at' => now(),
+                'status' => $status,
+                'published_at' => $status === 'published' ? now() : null,
             ]);
 
-            GroupMessage::create([
-                'group_id' => $group->id,
-                'username' => $request->user()->username ?? $request->user()->name ?? 'Aspirant',
-                'message' => $this->pollMessage($poll),
-                'latitude' => null,
-                'longitude' => null,
-            ]);
+            if ($group) {
+                GroupMessage::create([
+                    'group_id' => $group->id,
+                    'username' => $request->user()->username ?? $request->user()->name ?? 'Aspirant',
+                    'message' => $this->pollMessage($poll),
+                    'message_type' => 'poll',
+                    'aspirant_poll_id' => $poll->id,
+                    'latitude' => null,
+                    'longitude' => null,
+                ]);
+            }
         });
 
+        $message = $status === 'published'
+            ? 'Poll published to the ' . $scope['label'] . ' chat group.'
+            : 'Poll draft saved. Publish it when you are ready to send it to voters.';
+
         return redirect()->route('aspirant.tools.show', 'opinion-polls')
-            ->with('success', 'Poll published to the ' . $scope['label'] . ' chat group.');
+            ->with('success', $message);
     }
 
     private function scopedPollGroup(Request $request, array $scope): Group
@@ -265,3 +280,4 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
+
