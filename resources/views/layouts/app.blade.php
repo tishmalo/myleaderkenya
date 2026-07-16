@@ -55,7 +55,7 @@
     @include('components.admin-sidebar')
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="min-w-0 flex-1 flex flex-col overflow-hidden">
         <header class="bg-zinc-900 border-b border-zinc-800 px-8 py-5 flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <h2 class="text-2xl font-semibold text-white">@yield('page_title', 'Dashboard Overview')</h2>
@@ -71,7 +71,7 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-auto p-8 bg-zinc-950">
+        <main class="min-w-0 flex-1 overflow-auto p-8 bg-zinc-950">
             @yield('content')
         </main>
     </div>
@@ -145,5 +145,6 @@ function confirmDelete() {
 @stack('scripts')
 </body>
 </html>
+
 
 
