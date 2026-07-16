@@ -208,7 +208,8 @@ class CandidateService
 
     public function getPublicIndex(array $filters, int $perPage = 16): array
     {
-        $showCountyGroups = ! empty($filters['bloc']) && empty($filters['county']);
+        $showCountyGroups = empty($filters['county'])
+            && (! empty($filters['bloc']) || $this->isMpPositionFilter($filters['position'] ?? null));
 
         return [
             'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
@@ -225,8 +226,36 @@ class CandidateService
         ];
     }
 
+    private function isMpPositionFilter($position): bool
+    {
+        if (blank($position)) {
+            return false;
+        }
+
+        $position = trim((string) $position);
+
+        if (! is_numeric($position)) {
+            $positionKey = strtolower(str_replace(['_', ' '], '-', $position));
+
+            return in_array($positionKey, ['mp', 'member-of-parliament'], true);
+        }
+
+        $matchedPosition = $this->candidateRepository->allPositions()
+            ->firstWhere('id', (int) $position);
+
+        if (! $matchedPosition) {
+            return false;
+        }
+
+        $name = strtolower(trim($matchedPosition->name));
+
+        return $name === 'mp'
+            || str_contains($name, 'member of parliament');
+    }
+
     public function getPublicShow(Candidate $candidate): Candidate
     {
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
