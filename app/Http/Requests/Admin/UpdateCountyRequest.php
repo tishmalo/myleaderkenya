@@ -30,6 +30,8 @@ class UpdateCountyRequest extends FormRequest
             'capital' => 'nullable|string',
             'registered_voters' => 'nullable|integer|min:0',
             'postal_abbreviation' => 'nullable|string|max:10',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ];
     }
 }
+

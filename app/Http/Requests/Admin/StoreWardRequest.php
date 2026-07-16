@@ -27,6 +27,8 @@ class StoreWardRequest extends FormRequest
             'constituency_id' => 'required|exists:constituencies,id',
             'population' => 'nullable|integer|min:0',
             'registered_voters' => 'nullable|integer|min:0',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ];
     }
 }
+

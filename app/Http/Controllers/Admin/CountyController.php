@@ -7,8 +7,9 @@ use App\Http\Requests\Admin\ImportCountyRequest;
 use App\Http\Requests\Admin\StoreCountyRequest;
 use App\Http\Requests\Admin\UpdateCountyRequest;
 use App\Models\County;
-use App\Models\Bloc;
 use App\Services\Admin\CountyService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class CountyController extends Controller
 {
@@ -31,7 +32,8 @@ class CountyController extends Controller
 
     public function store(StoreCountyRequest $request)
     {
-        $this->countyService->createCounty($request->validated());
+        $data = $this->withStoredImage($request->validated(), $request->file('image'), 'counties');
+        $this->countyService->createCounty($data);
 
         return redirect()->route('counties.index')
             ->with('success', 'County created successfully');
@@ -45,7 +47,16 @@ class CountyController extends Controller
 
     public function update(UpdateCountyRequest $request, County $county)
     {
-        $this->countyService->updateCounty($county, $request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $this->deleteImage($county->image);
+            $data = $this->withStoredImage($data, $request->file('image'), 'counties');
+        } else {
+            unset($data['image']);
+        }
+
+        $this->countyService->updateCounty($county, $data);
 
         return redirect()->route('counties.index')
             ->with('success', 'County updated successfully');
@@ -53,6 +64,7 @@ class CountyController extends Controller
 
     public function destroy(County $county)
     {
+        $this->deleteImage($county->image);
         $this->countyService->deleteCounty($county);
 
         return redirect()->route('counties.index')
@@ -67,5 +79,21 @@ class CountyController extends Controller
             'message' => 'Counties imported successfully',
             'imported' => $imported
         ]);
+    }
+
+    private function withStoredImage(array $data, ?UploadedFile $image, string $directory): array
+    {
+        if ($image) {
+            $data['image'] = $image->store($directory, 'public');
+        }
+
+        return $data;
+    }
+
+    private function deleteImage(?string $path): void
+    {
+        if ($path) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

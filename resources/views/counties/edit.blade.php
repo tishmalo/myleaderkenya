@@ -7,11 +7,19 @@
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-10">
         <h1 class="text-3xl font-semibold mb-8">Edit County: {{ $county->name }}</h1>
 
-        <form action="{{ route('counties.update', $county) }}" method="POST">
+        <form action="{{ route('counties.update', $county) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
             <div class="space-y-8">
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Image</label>
+                    @if($county->image)
+                        <img src="{{ Storage::url($county->image) }}" alt="{{ $county->name }}" class="mb-3 h-36 w-full rounded-2xl object-cover border border-zinc-700">
+                    @endif
+                    <input type="file" name="image" accept="image/*" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500">
+                    <p class="mt-2 text-xs text-zinc-500">Leave blank to keep the current county image. JPG, PNG, or WebP up to 4MB.</p>
+                </div>
                 
                 <!-- County Name -->
                 <div>
@@ -104,3 +112,5 @@
     </div>
 </div>
 @endsection
+
+

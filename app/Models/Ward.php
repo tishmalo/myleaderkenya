@@ -14,6 +14,7 @@ class Ward extends Model
         'constituency_id',
         'population',
         'registered_voters',
+        'image',
     ];
 
     // Relationship: Ward belongs to one Constituency
@@ -31,3 +32,4 @@ class Ward extends Model
 //     return $this->hasMany(\App\Models\PollingStation::class);
 // }
 }
+

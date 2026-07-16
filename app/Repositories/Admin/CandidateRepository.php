@@ -13,6 +13,7 @@ use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class CandidateRepository implements CandidateRepositoryInterface
 {
@@ -113,7 +114,7 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
-    public function publicCountyGroups(array $filters, int $limit = 5): Collection
+    public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection
     {
         $counties = $this->countiesForPublicFilters($filters);
 
@@ -123,14 +124,17 @@ class CandidateRepository implements CandidateRepositoryInterface
                 unset($countyFilters['bloc']);
 
                 $baseQuery = $this->publicQuery($countyFilters);
+                $countyModel = County::where('name', $county)->first();
 
                 return [
                     'county' => $county,
+                    'image' => $countyModel?->image,
+                    'image_url' => $countyModel?->image ? Storage::url($countyModel->image) : null,
                     'total' => (clone $baseQuery)->count(),
                     'candidates' => $baseQuery->latest()->take($limit)->get(),
                 ];
             })
-            ->filter(fn (array $group) => $group['total'] > 0)
+            ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
             ->values();
     }
 
@@ -252,3 +256,5 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
+

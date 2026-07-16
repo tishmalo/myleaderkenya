@@ -29,6 +29,8 @@ class StoreConstituencyRequest extends FormRequest
             'number_of_seats' => 'required|integer|min:1',
             'registered_voters' => 'nullable|integer|min:0',
             'position_name' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ];
     }
 }
+

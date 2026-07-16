@@ -209,12 +209,13 @@ class CandidateService
     public function getPublicIndex(array $filters, int $perPage = 16): array
     {
         $showCountyGroups = empty($filters['county'])
-            && (! empty($filters['bloc']) || $this->isMpPositionFilter($filters['position'] ?? null));
+            && ! empty($filters['bloc'])
+            && $this->usesCountyLanding($filters['position'] ?? null);
 
         return [
             'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
             'countyGroups' => $showCountyGroups
-                ? $this->candidateRepository->publicCountyGroups($filters, 5)
+                ? $this->candidateRepository->publicCountyGroups($filters, 5, true)
                 : collect(),
             'showCountyGroups' => $showCountyGroups,
             'positions'  => $this->candidateRepository->allPositions(),
@@ -226,7 +227,7 @@ class CandidateService
         ];
     }
 
-    private function isMpPositionFilter($position): bool
+    private function usesCountyLanding($position): bool
     {
         if (blank($position)) {
             return false;
@@ -237,7 +238,7 @@ class CandidateService
         if (! is_numeric($position)) {
             $positionKey = strtolower(str_replace(['_', ' '], '-', $position));
 
-            return in_array($positionKey, ['mp', 'member-of-parliament'], true);
+            return in_array($positionKey, ['mp', 'member-of-parliament', 'mca', 'member-of-county-assembly'], true);
         }
 
         $matchedPosition = $this->candidateRepository->allPositions()
@@ -250,7 +251,9 @@ class CandidateService
         $name = strtolower(trim($matchedPosition->name));
 
         return $name === 'mp'
-            || str_contains($name, 'member of parliament');
+            || $name === 'mca'
+            || str_contains($name, 'member of parliament')
+            || str_contains($name, 'member of county assembly');
     }
 
     public function getPublicShow(Candidate $candidate): Candidate

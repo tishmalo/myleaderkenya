@@ -17,6 +17,7 @@ class County extends Model
         'capital',
         'registered_voters',
         'postal_abbreviation',
+        'image',
     ];
 
     // Relationship: County belongs to one Bloc

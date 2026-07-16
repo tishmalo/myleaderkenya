@@ -134,43 +134,66 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     gap: 24px;
 }
 
-.asp-county-groups {
+.location-card-grid {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 28px;
 }
-.asp-county-row {
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding-top: 22px;
+.location-card {
+    position: relative;
+    min-height: 220px;
+    border-radius: 18px;
+    overflow: hidden;
+    display: block;
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.08);
+    text-decoration: none;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
 }
-.asp-county-row-head {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; margin-bottom: 16px;
+.location-card img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease;
 }
-.asp-county-row-title {
+.location-card:hover img { transform: scale(1.05); }
+.location-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.28));
+}
+.location-card-label {
+    position: absolute; top: 24px; left: 24px; z-index: 2;
+    background: #fff;
+    color: #050505;
+    border-radius: 10px;
+    padding: 14px 34px;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: 0 18px 32px rgba(0,0,0,0.18);
+}
+.location-card-meta {
+    position: absolute; left: 24px; bottom: 18px; z-index: 2;
+    color: #fff;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-size: 13px;
+    backdrop-filter: blur(8px);
+}
+.location-card-placeholder {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(0,102,0,0.95), rgba(187,0,0,0.9));
+    color: rgba(255,255,255,0.24);
     font-family: 'Oswald', sans-serif;
-    font-size: 28px; font-weight: 700;
-    color: var(--kenya-white);
+    font-size: 72px;
+    font-weight: 800;
 }
-.asp-county-row-meta { color: rgba(245,245,240,0.38); font-size: 13px; }
-.asp-county-row-link {
-    display: inline-flex; align-items: center; gap: 8px;
-    color: var(--green-bright); text-decoration: none;
-    font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
-}
-.asp-county-row-link:hover { color: var(--kenya-white); }
-.asp-county-row-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 16px;
-}
-.asp-county-row-grid .asp-card-photo { height: 180px; }
-.asp-county-row-grid .asp-card-body { padding: 16px; }
-.asp-county-row-grid .asp-card-name { font-size: 18px; }
-.asp-county-row-grid .asp-card-action { padding: 10px 12px; }
-
 /* ── CANDIDATE CARD ── */
 .asp-card {
     background: #141414;
@@ -352,13 +375,13 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
     .asp-grid { grid-template-columns: 1fr; padding: 0 16px 60px; }
-    .asp-county-groups { padding: 0 16px 60px; }
-    .asp-county-row-head { align-items: flex-start; flex-direction: column; }
-    .asp-county-row-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .location-card-grid { padding: 0 16px 60px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .location-card { min-height: 190px; }
+    .location-card-label { font-size: 20px; padding: 12px 26px; }
     .results-meta { padding: 0 16px; }
 }
 @media (max-width: 480px) {
-    .asp-county-row-grid { grid-template-columns: 1fr; }
+    .location-card-grid { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -379,7 +402,14 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 <div class="results-meta">
     <div class="results-count">
-        Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
+        @if($showCountyGroups ?? false)
+            Showing <strong>{{ count($countyGroups) }}</strong> count{{ count($countyGroups) != 1 ? 'ies' : 'y' }}
+            @if(request('bloc'))
+                in selected region
+            @endif
+        @else
+            Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
+        @endif
         @if($candidateFilter)
             matching <strong>{{ $candidateFilter }}</strong>
         @endif
@@ -391,7 +421,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         @endif
         @if(request('county'))
             in <strong>{{ request('county') }}</strong>
-        @elseif(request('bloc'))
+        @elseif(request('bloc') && !($showCountyGroups ?? false))
             grouped by county
         @endif
         @if(request('constituency'))
@@ -406,28 +436,21 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 <!-- GRID -->
 @if($showCountyGroups ?? false)
-    <div class="asp-county-groups">
+    <div class="location-card-grid">
         @forelse($countyGroups as $group)
-            <section class="asp-county-row">
-                <div class="asp-county-row-head">
-                    <div>
-                        <div class="asp-county-row-title">{{ $group['county'] }}</div>
-                        <div class="asp-county-row-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</div>
-                    </div>
-                    <a href="{{ route('aspirants.public', array_merge(request()->except('page'), ['county' => $group['county']])) }}" class="asp-county-row-link">
-                        View more <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="asp-county-row-grid">
-                    @foreach($group['candidates'] as $candidate)
-                        @include('aspirants.public._card', ['candidate' => $candidate])
-                    @endforeach
-                </div>
-            </section>
+            <a href="{{ route('aspirants.public', array_merge(request()->except('page'), ['county' => $group['county']])) }}" class="location-card">
+                @if(!empty($group['image_url']))
+                    <img src="{{ $group['image_url'] }}" alt="{{ $group['county'] }}">
+                @else
+                    <div class="location-card-placeholder">{{ substr($group['county'], 0, 1) }}</div>
+                @endif
+                <span class="location-card-label">{{ $group['county'] }}</span>
+                <span class="location-card-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</span>
+            </a>
         @empty
             <div class="asp-empty">
                 <div class="asp-empty-icon"></div>
-                <h3>No aspirants found</h3>
+                <h3>No counties found</h3>
                 <p>Try another region or check back soon.</p>
             </div>
         @endforelse

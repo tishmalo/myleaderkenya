@@ -17,6 +17,7 @@ class Constituency extends Model
         'number_of_seats',
     
         'position_name',
+        'image',
     ];
 
     // Relationship: Constituency belongs to one County
@@ -36,3 +37,4 @@ class Constituency extends Model
     return $this->hasMany(PollingStation::class, 'constituency', 'name');
 }
 }
+
