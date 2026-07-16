@@ -32,6 +32,11 @@ interface CandidateRepositoryInterface
 
     public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection;
 
+    public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection;
+
+    public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection;
+
     public function loadPublicShow(Candidate $candidate): Candidate;
 }
+
 

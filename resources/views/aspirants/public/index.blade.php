@@ -464,8 +464,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
             @if(request('bloc'))
                 in selected region
             @endif
-        @elseif($showCountyAspirantGroups ?? false)
-            Showing <strong>{{ count($countyGroups) }}</strong> count{{ count($countyGroups) != 1 ? 'ies' : 'y' }} grouped by aspirants
+        @elseif($showAspirantGroups ?? false)
+            Showing <strong>{{ count($aspirantGroups) }}</strong> section{{ count($aspirantGroups) != 1 ? 's' : '' }} grouped by location
         @else
             Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
         @endif
@@ -497,13 +497,13 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @if($showCountyGroups ?? false)
     <div class="location-card-grid">
         @forelse($countyGroups as $group)
-            <a href="{{ route('aspirants.public', array_merge(request()->except('page'), ['county' => $group['county']])) }}" class="location-card">
+            <a href="{{ route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="location-card">
                 @if(!empty($group['image_url']))
-                    <img src="{{ $group['image_url'] }}" alt="{{ $group['county'] }}">
+                    <img src="{{ $group['image_url'] }}" alt="{{ $group['label'] }}">
                 @else
                     <div class="location-card-placeholder">{{ substr($group['county'], 0, 1) }}</div>
                 @endif
-                <span class="location-card-label">{{ $group['county'] }}</span>
+                <span class="location-card-label">{{ $group['label'] }}</span>
                 <span class="location-card-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</span>
             </a>
         @empty
@@ -514,16 +514,16 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
             </div>
         @endforelse
     </div>
-@elseif($showCountyAspirantGroups ?? false)
+@elseif($showAspirantGroups ?? false)
     <div class="county-aspirant-groups">
-        @forelse($countyGroups as $group)
+        @forelse($aspirantGroups as $group)
             <section class="county-aspirant-section">
                 <div class="county-aspirant-head">
                     <div>
-                        <div class="county-aspirant-title">{{ $group['county'] }}</div>
+                        <div class="county-aspirant-title">{{ $group['label'] }}</div>
                         <div class="county-aspirant-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</div>
                     </div>
-                    <a href="{{ route('aspirants.public', array_merge(request()->except('page'), ['county' => $group['county']])) }}" class="county-aspirant-link">
+                    <a href="{{ route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="county-aspirant-link">
                         View all <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -563,6 +563,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
+
 
 
 

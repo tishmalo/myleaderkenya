@@ -216,13 +216,38 @@ class CandidateService
             && ! $showCountyGroups
             && $this->usesCountyAspirantGroups($filters['position'] ?? null);
 
+        $showConstituencyAspirantGroups = ! empty($filters['county'])
+            && empty($filters['constituency'])
+            && $this->isMpPosition($filters['position'] ?? null);
+
+        $showWardAspirantGroups = ! empty($filters['constituency'])
+            && empty($filters['ward'])
+            && $this->isMcaPosition($filters['position'] ?? null);
+
+        $showAspirantGroups = $showCountyAspirantGroups
+            || $showConstituencyAspirantGroups
+            || $showWardAspirantGroups;
+
+        $aspirantGroups = collect();
+        if ($showCountyAspirantGroups) {
+            $aspirantGroups = $this->candidateRepository->publicCountyGroups($filters, 5);
+        } elseif ($showConstituencyAspirantGroups) {
+            $aspirantGroups = $this->candidateRepository->publicConstituencyGroups($filters, 5);
+        } elseif ($showWardAspirantGroups) {
+            $aspirantGroups = $this->candidateRepository->publicWardGroups($filters, 5);
+        }
+
         return [
             'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
-            'countyGroups' => ($showCountyGroups || $showCountyAspirantGroups)
-                ? $this->candidateRepository->publicCountyGroups($filters, 5, $showCountyGroups)
+            'countyGroups' => $showCountyGroups
+                ? $this->candidateRepository->publicCountyGroups($filters, 5, true)
                 : collect(),
+            'aspirantGroups' => $aspirantGroups,
             'showCountyGroups' => $showCountyGroups,
             'showCountyAspirantGroups' => $showCountyAspirantGroups,
+            'showConstituencyAspirantGroups' => $showConstituencyAspirantGroups,
+            'showWardAspirantGroups' => $showWardAspirantGroups,
+            'showAspirantGroups' => $showAspirantGroups,
             'positions'  => $this->candidateRepository->allPositions(),
             'politicalParties' => $this->candidateRepository->allPoliticalParties(),
             'countries' => $this->candidateRepository->allCountries(),
@@ -260,7 +285,47 @@ class CandidateService
             || str_contains($name, 'member of parliament')
             || str_contains($name, 'member of county assembly');
     }
+    private function isMpPosition($position): bool
+    {
+        return $this->positionMatches($position, ['mp', 'member-of-parliament'], ['mp', 'member of parliament']);
+    }
 
+    private function isMcaPosition($position): bool
+    {
+        return $this->positionMatches($position, ['mca', 'member-of-county-assembly'], ['mca', 'member of county assembly']);
+    }
+
+    private function positionMatches($position, array $keys, array $names): bool
+    {
+        if (blank($position)) {
+            return false;
+        }
+
+        $position = trim((string) $position);
+
+        if (! is_numeric($position)) {
+            $positionKey = strtolower(str_replace(['_', ' '], '-', $position));
+
+            return in_array($positionKey, $keys, true);
+        }
+
+        $matchedPosition = $this->candidateRepository->allPositions()
+            ->firstWhere('id', (int) $position);
+
+        if (! $matchedPosition) {
+            return false;
+        }
+
+        $name = strtolower(trim($matchedPosition->name));
+
+        foreach ($names as $needle) {
+            if ($name === $needle || str_contains($name, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     private function usesCountyAspirantGroups($position): bool
     {
         if (blank($position)) {
@@ -304,6 +369,9 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
+
+
 
 
 

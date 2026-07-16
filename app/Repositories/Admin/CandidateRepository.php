@@ -127,9 +127,64 @@ class CandidateRepository implements CandidateRepositoryInterface
                 $countyModel = County::where('name', $county)->first();
 
                 return [
+                    'label' => $county,
                     'county' => $county,
+                    'filter_key' => 'county',
+                    'filter_value' => $county,
                     'image' => $countyModel?->image,
                     'image_url' => $countyModel?->image ? Storage::url($countyModel->image) : null,
+                    'total' => (clone $baseQuery)->count(),
+                    'candidates' => $baseQuery->latest()->take($limit)->get(),
+                ];
+            })
+            ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
+            ->values();
+    }
+
+    public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection
+    {
+        $constituencies = $this->constituenciesForPublicFilters($filters);
+
+        return $constituencies
+            ->map(function (string $constituency) use ($filters, $limit) {
+                $groupFilters = array_merge($filters, ['constituency' => $constituency]);
+
+                $baseQuery = $this->publicQuery($groupFilters);
+                $constituencyModel = Constituency::where('name', $constituency)->first();
+
+                return [
+                    'label' => $constituency,
+                    'constituency' => $constituency,
+                    'filter_key' => 'constituency',
+                    'filter_value' => $constituency,
+                    'image' => $constituencyModel?->image,
+                    'image_url' => $constituencyModel?->image ? Storage::url($constituencyModel->image) : null,
+                    'total' => (clone $baseQuery)->count(),
+                    'candidates' => $baseQuery->latest()->take($limit)->get(),
+                ];
+            })
+            ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
+            ->values();
+    }
+
+    public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection
+    {
+        $wards = $this->wardsForPublicFilters($filters);
+
+        return $wards
+            ->map(function (string $ward) use ($filters, $limit) {
+                $groupFilters = array_merge($filters, ['ward' => $ward]);
+
+                $baseQuery = $this->publicQuery($groupFilters);
+                $wardModel = Ward::where('name', $ward)->first();
+
+                return [
+                    'label' => $ward,
+                    'ward' => $ward,
+                    'filter_key' => 'ward',
+                    'filter_value' => $ward,
+                    'image' => $wardModel?->image,
+                    'image_url' => $wardModel?->image ? Storage::url($wardModel->image) : null,
                     'total' => (clone $baseQuery)->count(),
                     'candidates' => $baseQuery->latest()->take($limit)->get(),
                 ];
@@ -239,6 +294,30 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->pluck('county');
     }
 
+    private function constituenciesForPublicFilters(array $filters): Collection
+    {
+        if (!empty($filters['constituency'])) {
+            return collect([$filters['constituency']]);
+        }
+
+        return Constituency::query()
+            ->when(!empty($filters['county']), fn ($query) => $query->whereHas('county', fn ($countyQuery) => $countyQuery->where('name', $filters['county'])))
+            ->orderBy('name')
+            ->pluck('name');
+    }
+
+    private function wardsForPublicFilters(array $filters): Collection
+    {
+        if (!empty($filters['ward'])) {
+            return collect([$filters['ward']]);
+        }
+
+        return Ward::query()
+            ->when(!empty($filters['constituency']), fn ($query) => $query->whereHas('constituency', fn ($constituencyQuery) => $constituencyQuery->where('name', $filters['constituency'])))
+            ->pluck('name')
+            ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+    }
     public function loadPublicShow(Candidate $candidate): Candidate
     {
         $candidate->load('position', 'politicalParty');
@@ -256,5 +335,7 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
+
+
 
 
