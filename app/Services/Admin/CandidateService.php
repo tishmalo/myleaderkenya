@@ -212,17 +212,36 @@ class CandidateService
             && ! empty($filters['bloc'])
             && $this->usesCountyLanding($filters['position'] ?? null);
 
+        $showConstituencyGroups = ! empty($filters['county'])
+            && empty($filters['constituency'])
+            && ($this->isMpPosition($filters['position'] ?? null) || $this->isMcaPosition($filters['position'] ?? null));
+
+        $showWardGroups = ! empty($filters['constituency'])
+            && empty($filters['ward'])
+            && $this->isMcaPosition($filters['position'] ?? null);
+
+        $showLocationGroups = $showCountyGroups || $showConstituencyGroups || $showWardGroups;
+
+        $locationGroups = collect();
+        $locationGroupLabel = 'counties';
+        if ($showCountyGroups) {
+            $locationGroups = $this->candidateRepository->publicCountyGroups($filters, 5, true);
+            $locationGroupLabel = 'counties';
+        } elseif ($showConstituencyGroups) {
+            $locationGroups = $this->candidateRepository->publicConstituencyGroups($filters, 5, true);
+            $locationGroupLabel = 'constituencies';
+        } elseif ($showWardGroups) {
+            $locationGroups = $this->candidateRepository->publicWardGroups($filters, 5, true);
+            $locationGroupLabel = 'wards';
+        }
+
         $showCountyAspirantGroups = empty($filters['county'])
             && ! $showCountyGroups
             && $this->usesCountyAspirantGroups($filters['position'] ?? null);
 
-        $showConstituencyAspirantGroups = ! empty($filters['county'])
-            && empty($filters['constituency'])
-            && $this->isMpPosition($filters['position'] ?? null);
+        $showConstituencyAspirantGroups = false;
 
-        $showWardAspirantGroups = ! empty($filters['constituency'])
-            && empty($filters['ward'])
-            && $this->isMcaPosition($filters['position'] ?? null);
+        $showWardAspirantGroups = false;
 
         $showAspirantGroups = $showCountyAspirantGroups
             || $showConstituencyAspirantGroups
@@ -242,8 +261,13 @@ class CandidateService
             'countyGroups' => $showCountyGroups
                 ? $this->candidateRepository->publicCountyGroups($filters, 5, true)
                 : collect(),
+            'locationGroups' => $locationGroups,
+            'locationGroupLabel' => $locationGroupLabel,
+            'showLocationGroups' => $showLocationGroups,
             'aspirantGroups' => $aspirantGroups,
             'showCountyGroups' => $showCountyGroups,
+            'showConstituencyGroups' => $showConstituencyGroups,
+            'showWardGroups' => $showWardGroups,
             'showCountyAspirantGroups' => $showCountyAspirantGroups,
             'showConstituencyAspirantGroups' => $showConstituencyAspirantGroups,
             'showWardAspirantGroups' => $showWardAspirantGroups,
@@ -369,6 +393,15 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 

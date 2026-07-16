@@ -463,8 +463,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 <div class="results-meta">
     <div class="results-count">
-        @if($showCountyGroups ?? false)
-            Showing <strong>{{ count($countyGroups) }}</strong> count{{ count($countyGroups) != 1 ? 'ies' : 'y' }}
+        @if($showLocationGroups ?? false)
+            Showing <strong>{{ count($locationGroups) }}</strong> {{ $locationGroupLabel }}
             @if(request('bloc'))
                 in selected region
             @endif
@@ -498,14 +498,14 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- GRID -->
-@if($showCountyGroups ?? false)
+@if($showLocationGroups ?? false)
     <div class="location-card-grid">
-        @forelse($countyGroups as $group)
+        @forelse($locationGroups as $group)
             <a href="{{ route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="location-card">
                 @if(!empty($group['image_url']))
                     <img src="{{ $group['image_url'] }}" alt="{{ $group['label'] }}">
                 @else
-                    <div class="location-card-placeholder">{{ substr($group['county'], 0, 1) }}</div>
+                    <div class="location-card-placeholder">{{ substr($group['label'], 0, 1) }}</div>
                 @endif
                 <span class="location-card-label">{{ $group['label'] }}</span>
                 <span class="location-card-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</span>
@@ -513,7 +513,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         @empty
             <div class="asp-empty">
                 <div class="asp-empty-icon"></div>
-                <h3>No counties found</h3>
+                <h3>No {{ $locationGroupLabel }} found</h3>
                 <p>Try another region or check back soon.</p>
             </div>
         @endforelse
@@ -567,6 +567,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
 
 
 
