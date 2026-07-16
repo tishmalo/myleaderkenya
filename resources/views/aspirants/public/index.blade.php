@@ -195,6 +195,59 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     font-weight: 800;
 }
 /* ── CANDIDATE CARD ── */
+.county-aspirant-groups {
+    max-width: 1280px; margin: 0 auto;
+    padding: 0 32px 80px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+}
+.county-aspirant-section {
+    background: rgba(20,20,20,0.78);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    overflow: hidden;
+}
+.county-aspirant-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    padding: 24px 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.county-aspirant-title {
+    font-family: 'Oswald', sans-serif;
+    color: var(--kenya-white);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+}
+.county-aspirant-meta {
+    margin-top: 8px;
+    color: rgba(245,245,240,0.42);
+    font-size: 13px;
+}
+.county-aspirant-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--green-bright);
+    text-decoration: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.county-aspirant-link:hover { color: var(--kenya-white); }
+.county-aspirant-grid {
+    padding: 24px 28px 28px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 18px;
+}
+.county-aspirant-grid .asp-card-photo { height: 210px; }
+.county-aspirant-grid .asp-card-body { padding: 16px; }
+.county-aspirant-grid .asp-card-name { font-size: 20px; }
+.county-aspirant-grid .asp-card-action { padding: 10px 12px; }
 .asp-card {
     background: #141414;
     border: 1px solid rgba(255,255,255,0.07);
@@ -378,10 +431,14 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     .location-card-grid { padding: 0 16px 60px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .location-card { min-height: 190px; }
     .location-card-label { font-size: 20px; padding: 12px 26px; }
+    .county-aspirant-groups { padding: 0 16px 60px; }
+    .county-aspirant-head { padding: 20px; }
+    .county-aspirant-grid { padding: 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .results-meta { padding: 0 16px; }
 }
 @media (max-width: 480px) {
     .location-card-grid { grid-template-columns: 1fr; }
+    .county-aspirant-grid { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -407,6 +464,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
             @if(request('bloc'))
                 in selected region
             @endif
+        @elseif($showCountyAspirantGroups ?? false)
+            Showing <strong>{{ count($countyGroups) }}</strong> count{{ count($countyGroups) != 1 ? 'ies' : 'y' }} grouped by aspirants
         @else
             Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
         @endif
@@ -455,6 +514,33 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
             </div>
         @endforelse
     </div>
+@elseif($showCountyAspirantGroups ?? false)
+    <div class="county-aspirant-groups">
+        @forelse($countyGroups as $group)
+            <section class="county-aspirant-section">
+                <div class="county-aspirant-head">
+                    <div>
+                        <div class="county-aspirant-title">{{ $group['county'] }}</div>
+                        <div class="county-aspirant-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</div>
+                    </div>
+                    <a href="{{ route('aspirants.public', array_merge(request()->except('page'), ['county' => $group['county']])) }}" class="county-aspirant-link">
+                        View all <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="county-aspirant-grid">
+                    @foreach($group['candidates'] as $candidate)
+                        @include('aspirants.public._card', ['candidate' => $candidate])
+                    @endforeach
+                </div>
+            </section>
+        @empty
+            <div class="asp-empty">
+                <div class="asp-empty-icon"></div>
+                <h3>No aspirants found</h3>
+                <p>Try another county or check back soon.</p>
+            </div>
+        @endforelse
+    </div>
 @else
     <div class="asp-grid">
         @forelse($candidates as $candidate)
@@ -477,6 +563,10 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
+
+
+
 
 
 

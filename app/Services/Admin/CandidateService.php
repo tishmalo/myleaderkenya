@@ -212,12 +212,17 @@ class CandidateService
             && ! empty($filters['bloc'])
             && $this->usesCountyLanding($filters['position'] ?? null);
 
+        $showCountyAspirantGroups = empty($filters['county'])
+            && ! $showCountyGroups
+            && $this->usesCountyAspirantGroups($filters['position'] ?? null);
+
         return [
             'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
-            'countyGroups' => $showCountyGroups
-                ? $this->candidateRepository->publicCountyGroups($filters, 5, true)
+            'countyGroups' => ($showCountyGroups || $showCountyAspirantGroups)
+                ? $this->candidateRepository->publicCountyGroups($filters, 5, $showCountyGroups)
                 : collect(),
             'showCountyGroups' => $showCountyGroups,
+            'showCountyAspirantGroups' => $showCountyAspirantGroups,
             'positions'  => $this->candidateRepository->allPositions(),
             'politicalParties' => $this->candidateRepository->allPoliticalParties(),
             'countries' => $this->candidateRepository->allCountries(),
@@ -256,9 +261,50 @@ class CandidateService
             || str_contains($name, 'member of county assembly');
     }
 
+    private function usesCountyAspirantGroups($position): bool
+    {
+        if (blank($position)) {
+            return false;
+        }
+
+        $position = trim((string) $position);
+
+        if (! is_numeric($position)) {
+            $positionKey = strtolower(str_replace(['_', ' '], '-', $position));
+
+            return in_array($positionKey, [
+                'governor',
+                'senator',
+                'women-rep',
+                'woman-rep',
+                'women-representative',
+                'woman-representative',
+            ], true);
+        }
+
+        $matchedPosition = $this->candidateRepository->allPositions()
+            ->firstWhere('id', (int) $position);
+
+        if (! $matchedPosition) {
+            return false;
+        }
+
+        $name = strtolower(trim($matchedPosition->name));
+
+        return $name === 'governor'
+            || $name === 'senator'
+            || str_contains($name, 'women rep')
+            || str_contains($name, 'woman rep')
+            || str_contains($name, 'women representative')
+            || str_contains($name, 'woman representative');
+    }
+
     public function getPublicShow(Candidate $candidate): Candidate
     {
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
+
+
 
