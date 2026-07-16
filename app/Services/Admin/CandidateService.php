@@ -27,13 +27,17 @@ class CandidateService
         return $this->candidateRepository->paginate($perPage, $filters);
     }
 
-    public function createCandidate(array $data, ?UploadedFile $picture = null): Candidate
+    public function createCandidate(array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null): Candidate
     {
         $smsSettings = $this->extractSmsSettings($data);
         $data = $this->normalizeCandidateData($data);
 
         if ($picture) {
-            $data['profile_picture'] = $this->storeCandidatePicture($picture);
+            $data['profile_picture'] = $this->storeCandidateImage($picture, 'candidates');
+        }
+
+        if ($coverPhoto) {
+            $data['cover_photo'] = $this->storeCandidateImage($coverPhoto, 'candidates/covers');
         }
 
         $candidate = $this->candidateRepository->create($data);
@@ -42,7 +46,7 @@ class CandidateService
         return $candidate;
     }
 
-    public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null): bool
+    public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null): bool
     {
         $smsSettings = $this->extractSmsSettings($data);
         $data = $this->normalizeCandidateData($data);
@@ -51,7 +55,14 @@ class CandidateService
             if ($candidate->profile_picture) {
                 $this->deleteCandidatePicture($candidate->profile_picture);
             }
-            $data['profile_picture'] = $this->storeCandidatePicture($picture);
+            $data['profile_picture'] = $this->storeCandidateImage($picture, 'candidates');
+        }
+
+        if ($coverPhoto) {
+            if ($candidate->cover_photo) {
+                $this->deleteCandidatePicture($candidate->cover_photo);
+            }
+            $data['cover_photo'] = $this->storeCandidateImage($coverPhoto, 'candidates/covers');
         }
 
         $updated = $this->candidateRepository->update($candidate, $data);
@@ -66,12 +77,15 @@ class CandidateService
             $this->deleteCandidatePicture($candidate->profile_picture);
         }
 
+        if ($candidate->cover_photo) {
+            $this->deleteCandidatePicture($candidate->cover_photo);
+        }
+
         return $this->candidateRepository->delete($candidate);
     }
-
-    private function storeCandidatePicture(UploadedFile $picture): string
+    private function storeCandidateImage(UploadedFile $picture, string $directoryName): string
     {
-        $directory = storage_path('app/public/candidates');
+        $directory = storage_path('app/public/' . trim($directoryName, '/'));
 
         if (! File::isDirectory($directory)) {
             File::makeDirectory($directory, 0755, true);
@@ -82,7 +96,7 @@ class CandidateService
 
         $picture->move($directory, $filename);
 
-        return 'candidates/' . $filename;
+        return trim($directoryName, '/') . '/' . $filename;
     }
 
     private function deleteCandidatePicture(?string $path): void
@@ -100,7 +114,7 @@ class CandidateService
 
     private function normalizeCandidateData(array $data): array
     {
-        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_username'], $data['sms_password']);
+        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_username'], $data['sms_password'], $data['profile_picture'], $data['cover_photo']);
 
         if (! Schema::hasColumn('candidates', 'political_party_id')) {
             unset($data['political_party_id']);
@@ -393,6 +407,12 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
+
+
+
+
+
 
 
 

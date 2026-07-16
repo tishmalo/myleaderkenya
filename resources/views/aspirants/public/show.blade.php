@@ -2,489 +2,250 @@
 @section('content')
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 :root {
-    --kenya-red:    #BB0000;
-    --kenya-black:  #111111;
-    --kenya-white:  #F5F5F0;
+    --kenya-red: #BB0000;
+    --kenya-black: #111111;
+    --kenya-white: #F5F5F0;
     --green-bright: #00A86B;
-    --kenya-green:  #006600;
+    --kenya-green: #006600;
 }
 
 * { box-sizing: border-box; }
-body { font-family: 'Barlow', sans-serif; background: #0a0a0a; color: var(--kenya-white); }
-h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
+body { font-family: 'Barlow', sans-serif; background:#080808; color:var(--kenya-white); }
+h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 
-/* ── TOP STRIPE ── */
-.flag-stripe {
-    height: 4px;
-    background: linear-gradient(90deg, var(--kenya-green) 33%, #1a1a1a 33% 66%, var(--kenya-red) 66%);
-}
-
-/* ── BACK NAV ── */
-.asp-back-bar {
-    max-width: 1280px; margin: 0 auto;
-    padding: 28px 32px 0;
-}
-.asp-back-link {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 13px; font-weight: 700;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    color: rgba(245,245,240,0.35);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-.asp-back-link:hover { color: var(--green-bright); }
-.asp-back-link i { font-size: 11px; }
-
-/* ── HERO BANNER ── */
-.asp-profile-hero {
-    position: relative;
-    height: 260px; overflow: hidden;
-    margin-bottom: 0;
-}
-.asp-profile-hero-bg {
-    position: absolute; inset: 0;
+.profile-page {
+    min-height: 100vh;
     background:
-        radial-gradient(ellipse 60% 100% at 30% 50%, rgba(187,0,0,0.2) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 100% at 70% 50%, rgba(0,102,0,0.2) 0%, transparent 60%),
-        #0d0d0d;
+        radial-gradient(900px 420px at 18% 18%, rgba(187,0,0,.16), transparent 60%),
+        radial-gradient(900px 420px at 86% 12%, rgba(0,102,0,.18), transparent 62%),
+        #080808;
 }
-.asp-profile-hero-pattern {
-    position: absolute; inset: 0;
-    background-image: repeating-linear-gradient(
-        -45deg, transparent, transparent 40px,
-        rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px
-    );
-}
-
-/* ── MAIN LAYOUT ── */
-.asp-profile-wrap {
-    max-width: 1280px; margin: 0 auto;
-    padding: 0 32px 80px;
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 32px;
-    margin-top: -120px;
-    position: relative; z-index: 10;
-}
-
-/* ── SIDEBAR ── */
-.asp-sidebar { display: flex; flex-direction: column; gap: 20px; }
-
-/* Photo card */
-.asp-photo-card {
-    background: #141414;
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
-}
-.asp-photo-wrap {
+.profile-shell { max-width: 1280px; margin: 0 auto; padding: 0 32px 80px; }
+.profile-cover {
     position: relative;
-    aspect-ratio: 4/5;
+    min-height: 420px;
+    border-radius: 0 0 24px 24px;
     overflow: hidden;
-}
-.asp-photo-wrap img {
-    width: 100%; height: 100%;
-    object-fit: cover; object-position: top center;
-}
-.asp-photo-placeholder {
-    width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(187,0,0,0.15) 0%, rgba(0,102,0,0.15) 100%);
-    display: flex; align-items: center; justify-content: center;
-}
-.asp-photo-placeholder .initials {
-    font-family: 'Oswald', sans-serif;
-    font-size: 80px; font-weight: 700;
-    color: rgba(255,255,255,0.1);
-}
-.asp-photo-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, #141414 0%, rgba(20,20,20,0.1) 50%, transparent 100%);
-}
-.asp-photo-position {
-    position: absolute; top: 14px; left: 14px;
-    background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px; padding: 5px 12px;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    color: rgba(245,245,240,0.75);
-}
-.asp-photo-body {
-    padding: 20px 22px 24px;
-}
-.asp-candidate-name {
-    font-size: 26px; font-weight: 700;
-    line-height: 1.05; color: var(--kenya-white);
-    margin-bottom: 4px;
-}
-.asp-candidate-nick {
-    font-size: 14px; color: rgba(0,168,107,0.8);
-    font-style: italic; margin-bottom: 16px;
-}
-.asp-photo-divider {
-    height: 1px;
-    background: linear-gradient(90deg, rgba(0,168,107,0.3), rgba(187,0,0,0.2), transparent);
-    margin-bottom: 16px;
-}
-
-/* Location pills */
-.asp-location-pills {
-    display: flex; flex-wrap: wrap; gap: 8px;
-}
-.asp-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 6px; padding: 5px 10px;
-    font-size: 12px; color: rgba(245,245,240,0.55);
-}
-.asp-pill i { font-size: 9px; color: var(--green-bright); }
-
-/* Info card */
-.asp-info-card {
     background: #141414;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.07);
+    border-top: 0;
+    box-shadow: 0 30px 90px rgba(0,0,0,.55);
+}
+.profile-cover img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.profile-cover-fallback {
+    position:absolute; inset:0;
+    background:
+        linear-gradient(135deg, rgba(187,0,0,.48), rgba(0,102,0,.46)),
+        repeating-linear-gradient(-45deg, rgba(255,255,255,.025) 0 1px, transparent 1px 42px),
+        #121212;
+}
+.profile-cover::after {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(0,0,0,.05) 40%, rgba(8,8,8,.82) 100%);
+}
+.cover-label {
+    position:absolute; right:28px; bottom:28px; z-index:2;
+    display:inline-flex; align-items:center; gap:9px;
+    padding:11px 15px; border-radius:12px;
+    background:rgba(0,0,0,.58); border:1px solid rgba(255,255,255,.14);
+    color:rgba(245,245,240,.86); font-size:13px; font-weight:700;
+    backdrop-filter: blur(10px);
+}
+.profile-header-card {
+    position: relative; z-index:3;
+    margin: -86px 0 28px;
+    min-height: 160px;
+    display: grid;
+    grid-template-columns: 190px 1fr auto;
+    align-items: end;
+    gap: 28px;
+    padding: 0 32px 28px;
+}
+.profile-avatar {
+    width: 190px; height: 190px;
+    border-radius: 50%;
+    border: 5px solid #101010;
+    outline: 2px solid rgba(0,168,107,.75);
     overflow: hidden;
+    background: #151515;
+    box-shadow: 0 22px 55px rgba(0,0,0,.65);
+    display:flex; align-items:center; justify-content:center;
 }
-.asp-info-card-header {
-    padding: 14px 18px;
-    background: rgba(255,255,255,0.03);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    font-family: 'Oswald', sans-serif;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 2.5px; text-transform: uppercase;
-    color: rgba(245,245,240,0.3);
-}
-.asp-info-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 13px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    font-size: 13px;
-}
-.asp-info-row:last-child { border-bottom: none; }
-.asp-info-label { color: rgba(245,245,240,0.35); }
-.asp-info-value { color: var(--kenya-white); font-weight: 600; text-align: right; max-width: 60%; }
-.asp-info-value.green { color: var(--green-bright); }
+.profile-avatar img { width:100%; height:100%; object-fit:cover; object-position:top center; }
+.avatar-initials { font-family:'Oswald',sans-serif; font-size:64px; color:rgba(255,255,255,.22); }
+.profile-identity { padding-bottom: 10px; }
+.profile-name-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.profile-name { font-size:46px; line-height:1; font-weight:700; color:white; text-shadow:0 12px 30px rgba(0,0,0,.55); }
+.verified-dot { width:28px; height:28px; border-radius:50%; background:var(--green-bright); color:white; display:grid; place-items:center; font-size:13px; }
+.profile-subtitle { margin-top:10px; color:rgba(245,245,240,.68); font-size:17px; }
+.profile-subtitle strong { color:var(--green-bright); font-weight:700; }
+.profile-chips { margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; }
+.profile-chip { display:inline-flex; align-items:center; gap:8px; padding:9px 13px; border-radius:10px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.045); color:rgba(245,245,240,.72); font-size:13px; }
+.profile-chip i { color:var(--green-bright); }
+.profile-actions { display:flex; gap:12px; padding-bottom:12px; }
+.profile-action { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-width:118px; padding:14px 18px; border-radius:12px; text-decoration:none; font-weight:800; color:white; border:1px solid rgba(255,255,255,.13); background:rgba(255,255,255,.05); }
+.profile-action.primary { background:linear-gradient(135deg,#00A86B,#007a4f); border-color:rgba(0,168,107,.7); }
+.profile-action:hover { transform: translateY(-1px); border-color:rgba(0,168,107,.45); }
+.profile-content { display:grid; grid-template-columns: 340px 1fr; gap:28px; }
+.profile-card { background:rgba(20,20,20,.86); border:1px solid rgba(255,255,255,.075); border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.26); }
+.profile-card-head { display:flex; align-items:center; gap:12px; padding:22px 24px; border-bottom:1px solid rgba(255,255,255,.06); }
+.profile-card-head .bar { width:4px; height:28px; border-radius:99px; background:linear-gradient(180deg,var(--kenya-red),var(--kenya-green)); }
+.profile-card-title { font-size:22px; color:white; font-weight:700; }
+.profile-card-body { padding:22px 24px 26px; }
+.summary-list { display:flex; flex-direction:column; gap:14px; }
+.summary-item { display:flex; gap:13px; align-items:flex-start; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,.055); }
+.summary-item:last-child { padding-bottom:0; border-bottom:0; }
+.summary-icon { width:38px; height:38px; border-radius:12px; background:rgba(0,168,107,.12); border:1px solid rgba(0,168,107,.18); display:grid; place-items:center; color:var(--green-bright); flex-shrink:0; }
+.summary-label { font-size:12px; color:rgba(245,245,240,.36); margin-bottom:3px; }
+.summary-value { font-size:14px; color:var(--kenya-white); font-weight:700; overflow-wrap:anywhere; }
+.about-text { color:rgba(245,245,240,.68); font-size:16px; line-height:1.85; }
+.priority-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.priority { padding:18px; border:1px solid rgba(255,255,255,.075); border-radius:16px; background:rgba(255,255,255,.035); color:rgba(245,245,240,.72); font-weight:700; font-size:13px; }
+.priority i { display:block; color:var(--green-bright); font-size:22px; margin-bottom:12px; }
+.news-list { display:grid; gap:14px; }
+.news-row { display:flex; gap:14px; align-items:center; padding:12px; border:1px solid rgba(255,255,255,.07); border-radius:15px; color:inherit; text-decoration:none; background:rgba(255,255,255,.03); }
+.news-row:hover { border-color:rgba(0,168,107,.35); }
+.news-thumb { width:86px; height:64px; border-radius:11px; overflow:hidden; flex-shrink:0; background:#101010; }
+.news-thumb img { width:100%; height:100%; object-fit:cover; }
+.news-title { font-family:'Oswald',sans-serif; color:white; font-size:16px; line-height:1.25; }
+.news-date { margin-top:5px; color:rgba(245,245,240,.35); font-size:12px; }
+.empty-note { color:rgba(245,245,240,.4); font-size:14px; }
 
-/* ── MAIN CONTENT ── */
-.asp-main { display: flex; flex-direction: column; gap: 24px; }
-
-/* Section card */
-.asp-section-card {
-    background: #141414;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 20px;
-    overflow: hidden;
+@media (max-width: 980px) {
+    .profile-shell { padding:0 16px 56px; }
+    .profile-cover { min-height:300px; }
+    .profile-header-card { grid-template-columns:1fr; margin-top:-70px; padding:0 18px 24px; gap:14px; }
+    .profile-avatar { width:150px; height:150px; }
+    .profile-name { font-size:34px; }
+    .profile-actions { flex-wrap:wrap; }
+    .profile-content { grid-template-columns:1fr; }
+    .priority-grid { grid-template-columns:1fr 1fr; }
 }
-.asp-section-head {
-    padding: 24px 28px 0;
-    display: flex; align-items: center; gap: 12px;
-    margin-bottom: 20px;
+@media (max-width: 560px) {
+    .profile-cover { min-height:240px; }
+    .profile-avatar { width:128px; height:128px; }
+    .profile-actions { flex-direction:column; }
+    .profile-action { width:100%; }
+    .priority-grid { grid-template-columns:1fr; }
 }
-.asp-section-head-bar {
-    width: 3px; height: 24px; border-radius: 2px;
-    background: linear-gradient(180deg, var(--kenya-red), var(--kenya-green));
-    flex-shrink: 0;
-}
-.asp-section-title {
-    font-size: 20px; font-weight: 700;
-    letter-spacing: 0.5px; color: var(--kenya-white);
-}
-.asp-section-body { padding: 0 28px 28px; }
-
-/* About text */
-.asp-about-text {
-    font-size: 16px; line-height: 1.85;
-    color: rgba(245,245,240,0.6);
-}
-.asp-about-text p { margin-bottom: 16px; }
-.asp-about-text p:last-child { margin-bottom: 0; }
-
-/* Contact grid */
-.asp-contact-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 14px;
-}
-.asp-contact-item {
-    display: flex; align-items: center; gap: 14px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px; padding: 14px 16px;
-    transition: border-color 0.2s;
-}
-.asp-contact-item:hover { border-color: rgba(0,168,107,0.25); }
-.asp-contact-icon {
-    width: 40px; height: 40px; flex-shrink: 0;
-    border-radius: 10px;
-    background: rgba(0,168,107,0.1);
-    border: 1px solid rgba(0,168,107,0.15);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--green-bright); font-size: 14px;
-}
-.asp-contact-label { font-size: 11px; color: rgba(245,245,240,0.3); letter-spacing: 0.5px; margin-bottom: 2px; }
-.asp-contact-value { font-size: 14px; font-weight: 600; color: var(--kenya-white); }
-
-/* News articles */
-.asp-news-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
-.asp-news-card {
-    background: #0e0e0e;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px; overflow: hidden;
-    text-decoration: none;
-    transition: border-color 0.25s, transform 0.25s;
-    display: flex; flex-direction: column;
-}
-.asp-news-card:hover {
-    border-color: rgba(0,168,107,0.3);
-    transform: translateY(-2px);
-}
-.asp-news-card-img {
-    height: 150px; overflow: hidden;
-}
-.asp-news-card-img img {
-    width: 100%; height: 100%; object-fit: cover;
-    transition: transform 0.4s;
-}
-.asp-news-card:hover .asp-news-card-img img { transform: scale(1.05); }
-.asp-news-card-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; }
-.asp-news-card-title {
-    font-family: 'Oswald', sans-serif;
-    font-size: 15px; font-weight: 600;
-    color: var(--kenya-white); line-height: 1.3;
-    display: -webkit-box; -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical; overflow: hidden;
-    margin-bottom: 10px;
-}
-.asp-news-card-date {
-    margin-top: auto;
-    font-size: 11px; color: rgba(245,245,240,0.25);
-    letter-spacing: 0.5px;
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-    .asp-profile-wrap {
-        grid-template-columns: 1fr;
-        margin-top: -60px;
-        padding: 0 16px 60px;
-    }
-    .asp-photo-wrap { aspect-ratio: 3/2; }
-    .asp-contact-grid { grid-template-columns: 1fr; }
-    .asp-news-grid { grid-template-columns: 1fr; }
-    .asp-back-bar { padding: 20px 16px 0; }
-}
-.pp-nav {
-        background: rgba(10,10,10,0.97);
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        backdrop-filter: blur(16px);
-        position: sticky; top: 5px; z-index: 100;
-    }
-    .pp-nav-inner {
-        max-width: 1100px; margin: 0 auto; padding: 18px 32px;
-        display: flex; align-items: center; justify-content: space-between;
-    }
-    .pp-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-    .pp-brand-logo {
-        width: 38px; height: 38px; border-radius: 9px;
-        background: var(--kenya-red);
-        display: flex; align-items: center; justify-content: center;
-        font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 700; color: white;
-        position: relative; overflow: hidden;
-    }
-    .pp-brand-logo::after {
-        content: ''; position: absolute; top: 0; right: 0;
-        width: 50%; height: 100%; background: var(--kenya-green);
-    }
-    .pp-brand-logo span { position: relative; z-index: 1; }
-    .pp-brand-name {
-        font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 700;
-        color: white; letter-spacing: 1px;
-    }
-    .pp-back {
-        display: inline-flex; align-items: center; gap: 8px;
-        font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-        color: rgba(255,255,255,0.35); text-decoration: none;
-        transition: color 0.2s;
-    }
-    .pp-back:hover { color: var(--green-bright); }
 </style>
 
-<div class="flag-stripe"></div>
-
-<!-- BACK NAV -->
-<!-- <div class="asp-back-bar"> -->
-    
-    <!-- <a href="{{ route('aspirants.public') }}" class="asp-back-link">
-        <i class="fas fa-arrow-left"></i> All Aspirants
-    </a> -->
-<!-- </div> -->
 @include('components.frontend-nav')
-<!-- HERO BANNER -->
-<div class="asp-profile-hero">
-    <div class="asp-profile-hero-bg"></div>
-    <div class="asp-profile-hero-pattern"></div>
-</div>
 
-<!-- PROFILE LAYOUT -->
-<div class="asp-profile-wrap">
+@php
+    $relatedArticles = $candidate->relatedArticles ?? collect();
+    $initials = strtoupper(substr($candidate->name, 0, 1)) . strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1));
+    $positionLabel = $candidate->position?->name;
+    $partyLabel = $candidate->politicalParty?->abbreviation ?: $candidate->politicalParty?->name;
+@endphp
 
-    <!-- ── SIDEBAR ── -->
-    <div class="asp-sidebar">
+<div class="profile-page">
+    <div class="profile-shell">
+        <div class="profile-cover">
+            @if($candidate->cover_photo)
+                <img src="{{ Storage::url($candidate->cover_photo) }}" alt="{{ $candidate->name }} cover photo">
+            @else
+                <div class="profile-cover-fallback"></div>
+            @endif
+            <div class="cover-label"><i class="fas fa-camera"></i> Cover photo</div>
+        </div>
 
-        <!-- Photo Card -->
-        <div class="asp-photo-card">
-            <div class="asp-photo-wrap">
+        <section class="profile-header-card">
+            <div class="profile-avatar">
                 @if($candidate->profile_picture)
-                    <img src="{{ Storage::url($candidate->profile_picture) }}"
-                         alt="{{ $candidate->name }}">
+                    <img src="{{ Storage::url($candidate->profile_picture) }}" alt="{{ $candidate->name }}">
                 @else
-                    <div class="asp-photo-placeholder">
-                        <span class="initials">
-                            {{ strtoupper(substr($candidate->name, 0, 1)) }}{{ strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1)) }}
-                        </span>
-                    </div>
-                @endif
-                <div class="asp-photo-overlay"></div>
-                @if($candidate->position)
-                    <div class="asp-photo-position">{{ $candidate->position->name }}</div>
+                    <span class="avatar-initials">{{ $initials }}</span>
                 @endif
             </div>
-            <div class="asp-photo-body">
-                <div class="asp-candidate-name">{{ $candidate->name }}</div>
-                @if($candidate->nick_name)
-                    <div class="asp-candidate-nick">"{{ $candidate->nick_name }}"</div>
-                @endif
-                <div class="asp-photo-divider"></div>
-                <div class="asp-location-pills">
-                    @if($candidate->county)
-                        <span class="asp-pill"><i class="fas fa-map-marker-alt"></i> {{ $candidate->county }}</span>
-                    @endif
-                    @if($candidate->constituency)
-                        <span class="asp-pill"><i class="fas fa-circle" style="font-size:4px"></i> {{ $candidate->constituency }}</span>
-                    @endif
-                    @if($candidate->ward)
-                        <span class="asp-pill"><i class="fas fa-circle" style="font-size:4px"></i> {{ $candidate->ward }}</span>
+
+            <div class="profile-identity">
+                <div class="profile-name-row">
+                    <h1 class="profile-name">{{ $candidate->name }}</h1>
+                    @if($candidate->approval_status === 'approved')
+                        <span class="verified-dot"><i class="fas fa-check"></i></span>
                     @endif
                 </div>
-            </div>
-        </div>
-
-        <!-- Details Card -->
-        @if($candidate->politicalParty || $candidate->position)
-        <div class="asp-info-card">
-            <div class="asp-info-card-header">Details</div>
-            @if($candidate->position)
-            <div class="asp-info-row">
-                <span class="asp-info-label">Running for</span>
-                <span class="asp-info-value green">{{ $candidate->position->name }}</span>
-            </div>
-            @endif
-            @if($candidate->politicalParty)
-            <div class="asp-info-row">
-                <span class="asp-info-label">Political Party</span>
-                <span class="asp-info-value">{{ $candidate->politicalParty->name }}</span>
-            </div>
-            @endif
-            @if($candidate->county)
-            <div class="asp-info-row">
-                <span class="asp-info-label">County</span>
-                <span class="asp-info-value">{{ $candidate->county }}</span>
-            </div>
-            @endif
-        </div>
-        @endif
-
-    </div>
-
-    <!-- ── MAIN CONTENT ── -->
-    <div class="asp-main">
-
-        <!-- About -->
-        @if($candidate->about)
-        <div class="asp-section-card">
-            <div class="asp-section-head">
-                <div class="asp-section-head-bar"></div>
-                <div class="asp-section-title">About {{ $candidate->name }}</div>
-            </div>
-            <div class="asp-section-body">
-                <div class="asp-about-text">
-                    {!! nl2br(e($candidate->about)) !!}
+                <div class="profile-subtitle">
+                    {{ $positionLabel ?? 'Aspirant' }}@if($candidate->county), {{ $candidate->county }}@endif
+                    @if($partyLabel)<span>&nbsp;&bull;&nbsp;</span><strong>{{ $partyLabel }}</strong>@endif
+                </div>
+                <div class="profile-chips">
+                    @if($candidate->county)<span class="profile-chip"><i class="fas fa-map-marker-alt"></i>{{ $candidate->county }}</span>@endif
+                    @if($candidate->constituency)<span class="profile-chip"><i class="fas fa-flag"></i>{{ $candidate->constituency }}</span>@endif
+                    @if($candidate->ward)<span class="profile-chip"><i class="fas fa-location-dot"></i>{{ $candidate->ward }}</span>@endif
+                    @if($candidate->politicalParty)<span class="profile-chip"><i class="fas fa-landmark"></i>{{ $candidate->politicalParty->name }}</span>@endif
                 </div>
             </div>
-        </div>
-        @endif
 
-        <!-- Contact -->
-        @if($candidate->phone || $candidate->email)
-        <div class="asp-section-card">
-            <div class="asp-section-head">
-                <div class="asp-section-head-bar"></div>
-                <div class="asp-section-title">Contact Information</div>
+            <div class="profile-actions">
+                @if($candidate->phone)<a class="profile-action primary" href="tel:{{ $candidate->phone }}"><i class="fas fa-heart"></i> Support</a>@endif
+                <a class="profile-action" href="{{ route('aspirants.public') }}"><i class="fas fa-arrow-left"></i> Aspirants</a>
+                @if($candidate->email)<a class="profile-action" href="mailto:{{ $candidate->email }}"><i class="fas fa-envelope"></i> Contact</a>@endif
             </div>
-            <div class="asp-section-body">
-                <div class="asp-contact-grid">
-                    @if($candidate->phone)
-                    <div class="asp-contact-item">
-                        <div class="asp-contact-icon"><i class="fas fa-phone"></i></div>
-                        <div>
-                            <div class="asp-contact-label">Phone</div>
-                            <div class="asp-contact-value">{{ $candidate->phone }}</div>
-                        </div>
-                    </div>
-                    @endif
-                    @if($candidate->email)
-                    <div class="asp-contact-item">
-                        <div class="asp-contact-icon"><i class="fas fa-envelope"></i></div>
-                        <div>
-                            <div class="asp-contact-label">Email</div>
-                            <div class="asp-contact-value">{{ $candidate->email }}</div>
-                        </div>
-                    </div>
-                    @endif
+        </section>
+
+        <div class="profile-content">
+            <aside class="profile-card">
+                <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Profile Summary</div></div>
+                <div class="profile-card-body summary-list">
+                    @if($positionLabel)<div class="summary-item"><span class="summary-icon"><i class="fas fa-briefcase"></i></span><div><div class="summary-label">Position</div><div class="summary-value">{{ $positionLabel }}</div></div></div>@endif
+                    @if($candidate->politicalParty)<div class="summary-item"><span class="summary-icon"><i class="fas fa-flag"></i></span><div><div class="summary-label">Party</div><div class="summary-value">{{ $candidate->politicalParty->name }}</div></div></div>@endif
+                    @if($candidate->county)<div class="summary-item"><span class="summary-icon"><i class="fas fa-map"></i></span><div><div class="summary-label">County</div><div class="summary-value">{{ $candidate->county }}</div></div></div>@endif
+                    @if($candidate->constituency)<div class="summary-item"><span class="summary-icon"><i class="fas fa-location-crosshairs"></i></span><div><div class="summary-label">Constituency</div><div class="summary-value">{{ $candidate->constituency }}</div></div></div>@endif
+                    @if($candidate->ward)<div class="summary-item"><span class="summary-icon"><i class="fas fa-location-dot"></i></span><div><div class="summary-label">Ward</div><div class="summary-value">{{ $candidate->ward }}</div></div></div>@endif
+                    @if($candidate->phone)<div class="summary-item"><span class="summary-icon"><i class="fas fa-phone"></i></span><div><div class="summary-label">Phone</div><div class="summary-value">{{ $candidate->phone }}</div></div></div>@endif
+                    @if($candidate->email)<div class="summary-item"><span class="summary-icon"><i class="fas fa-envelope"></i></span><div><div class="summary-label">Email</div><div class="summary-value">{{ $candidate->email }}</div></div></div>@endif
                 </div>
-            </div>
-        </div>
-        @endif
+            </aside>
 
-        <!-- Related News -->
-        @if(isset($relatedArticles) && $relatedArticles->count() > 0)
-        <div class="asp-section-card">
-            <div class="asp-section-head">
-                <div class="asp-section-head-bar"></div>
-                <div class="asp-section-title">Featured in News</div>
-            </div>
-            <div class="asp-section-body">
-                <div class="asp-news-grid">
-                    @foreach($relatedArticles as $article)
-                    <a href="{{ route('news.public.show', $article->slug) }}" class="asp-news-card">
-                        @if($article->featured_image)
-                        <div class="asp-news-card-img">
-                            <img src="{{ Storage::url($article->featured_image) }}"
-                                 alt="{{ $article->title }}" loading="lazy">
-                        </div>
+            <main style="display:flex;flex-direction:column;gap:22px;">
+                <section class="profile-card">
+                    <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">About {{ $candidate->name }}</div></div>
+                    <div class="profile-card-body">
+                        @if($candidate->about)
+                            <div class="about-text">{!! nl2br(e($candidate->about)) !!}</div>
+                        @else
+                            <div class="empty-note">No biography has been added yet.</div>
                         @endif
-                        <div class="asp-news-card-body">
-                            <div class="asp-news-card-title">{{ $article->title }}</div>
-                            <div class="asp-news-card-date">
-                                <i class="fas fa-calendar-alt" style="font-size:9px;margin-right:4px"></i>
-                                {{ $article->created_at->format('d M Y') }}
-                            </div>
-                        </div>
-                    </a>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        @endif
+                    </div>
+                </section>
 
+                <section class="profile-card">
+                    <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Campaign Priorities</div></div>
+                    <div class="profile-card-body priority-grid">
+                        <div class="priority"><i class="fas fa-seedling"></i>Community Development</div>
+                        <div class="priority"><i class="fas fa-briefcase"></i>Jobs & Empowerment</div>
+                        <div class="priority"><i class="fas fa-graduation-cap"></i>Education & Youth</div>
+                        <div class="priority"><i class="fas fa-shield-halved"></i>Accountable Leadership</div>
+                    </div>
+                </section>
+
+                @if($relatedArticles->count() > 0)
+                <section class="profile-card">
+                    <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Latest Updates</div></div>
+                    <div class="profile-card-body news-list">
+                        @foreach($relatedArticles as $article)
+                            <a href="{{ route('news.public.show', $article->slug) }}" class="news-row">
+                                <div class="news-thumb">
+                                    @if($article->featured_image)
+                                        <img src="{{ Storage::url($article->featured_image) }}" alt="{{ $article->title }}">
+                                    @endif
+                                </div>
+                                <div>
+                                    <div class="news-title">{{ $article->title }}</div>
+                                    <div class="news-date">{{ $article->created_at->format('d M Y') }}</div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+                @endif
+            </main>
+        </div>
     </div>
 </div>
 

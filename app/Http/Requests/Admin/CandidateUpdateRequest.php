@@ -27,6 +27,7 @@ class CandidateUpdateRequest extends FormRequest
             'position_id'     => 'required|exists:positions,id',
             'political_party_id' => 'nullable|exists:political_parties,id',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'cover_photo'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'about'           => 'nullable|string',
             'county'          => 'nullable|string',
             'constituency'    => 'nullable|string',
@@ -40,3 +41,4 @@ class CandidateUpdateRequest extends FormRequest
         ];
     }
 }
+

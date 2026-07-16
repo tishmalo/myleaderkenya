@@ -59,7 +59,8 @@ class CandidateController extends Controller
     {
         $this->candidateService->createCandidate(
             $request->validated(),
-            $request->file('profile_picture')
+            $request->file('profile_picture'),
+            $request->file('cover_photo')
         );
 
         return redirect()->route('candidates.index')
@@ -76,7 +77,8 @@ class CandidateController extends Controller
         $this->candidateService->updateCandidate(
             $candidate,
             $request->validated(),
-            $request->file('profile_picture')
+            $request->file('profile_picture'),
+            $request->file('cover_photo')
         );
 
         return redirect()->route('candidates.index')
@@ -163,4 +165,5 @@ class CandidateController extends Controller
         return view('aspirants.public.show', compact('candidate'));
     }
 }
+
 

@@ -99,6 +99,20 @@
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
             </div>
 
+
+            <!-- Cover Photo -->
+            <div class="mt-6">
+                <label class="block text-sm text-zinc-400 mb-2">Cover Photo</label>
+                @if($candidate->cover_photo)
+                    <div class="mb-3">
+                        <img src="{{ Storage::url($candidate->cover_photo) }}"
+                             alt="Cover" class="w-full h-40 object-cover rounded-2xl border border-zinc-700">
+                    </div>
+                @endif
+                <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp"
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                <p class="mt-2 text-xs text-zinc-500">Leave blank to keep the current cover photo. JPG, PNG, or WebP up to 5MB.</p>
+            </div>
             <!-- About -->
             <div class="mt-6">
                 <label class="block text-sm text-zinc-400 mb-2">About Candidate</label>

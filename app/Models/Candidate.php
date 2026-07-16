@@ -13,7 +13,7 @@ class Candidate extends Model
 
     protected $fillable = [
         'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id', 'user_id',
-        'profile_picture', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward',
+        'profile_picture', 'cover_photo', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward',
         'claim_token_hash', 'claim_token_expires_at', 'claim_sent_at', 'claimed_at',
     ];
 
@@ -49,5 +49,6 @@ class Candidate extends Model
         return $this->hasMany(CandidateSmsMessage::class);
     }
 }
+
 
 
