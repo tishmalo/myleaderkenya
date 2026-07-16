@@ -443,13 +443,17 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </style>
 
 <!-- HERO -->
+@php
+    $heroLocation = request('ward') ?: request('constituency') ?: request('county') ?: 'Kenya';
+    $heroPossessive = \Illuminate\Support\Str::endsWith($heroLocation, 's') ? $heroLocation . "'" : $heroLocation . "'s";
+@endphp
     <div class="asp-hero-stripe"></div>
     @include('components.frontend-nav')
 <div class="asp-hero">
     
     <div class="asp-hero-eyebrow"><span class="dot"></span> General Election 2027</div>
-    <h1>Kenya's <em>Aspirants</em></h1>
-    <p>Meet the men and women seeking to lead Kenya into its next chapter.</p>
+    <h1>{{ $heroPossessive }} <em>Aspirants</em></h1>
+    <p>Meet the men and women seeking to lead {{ $heroLocation }} into its next chapter.</p>
 </div>
 
 <!-- RESULTS META -->
@@ -563,6 +567,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
+
 
 
 
