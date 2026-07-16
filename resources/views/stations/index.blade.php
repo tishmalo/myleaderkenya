@@ -28,7 +28,8 @@
 
     <!-- Updated Table -->
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <table class="w-full">
+        <div class="w-full max-w-full overflow-x-auto">
+        <table class="min-w-[900px] w-full">
             <thead class="bg-zinc-950">
                 <tr class="border-b border-zinc-800">
                     <th class="px-8 py-5 text-left text-sm font-semibold text-zinc-400">Bloc / County</th>
@@ -72,6 +73,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 

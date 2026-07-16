@@ -48,9 +48,9 @@
         }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100">
+<body class="bg-zinc-950 text-zinc-100 overflow-x-hidden">
 
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen w-screen max-w-full overflow-hidden">
 
     @include('components.admin-sidebar')
 
@@ -71,7 +71,7 @@
             </div>
         </header>
 
-        <main class="min-w-0 flex-1 overflow-auto p-8 bg-zinc-950">
+        <main class="min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-8 bg-zinc-950">
             @yield('content')
         </main>
     </div>
@@ -145,6 +145,7 @@ function confirmDelete() {
 @stack('scripts')
 </body>
 </html>
+
 
 
 

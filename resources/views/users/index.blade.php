@@ -20,8 +20,8 @@
     <!-- You can add your search/filter here later -->
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full min-w-[1200px]"> <!-- min-width ensures horizontal scroll -->
+        <div class="w-full max-w-full overflow-x-auto">
+            <table class="min-w-[1200px] w-full">
                 <thead class="bg-zinc-950 sticky top-0 z-10">
                     <tr class="border-b border-zinc-800">
                         <th class="px-6 py-4 text-left">Username</th>

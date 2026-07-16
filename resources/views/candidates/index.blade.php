@@ -72,8 +72,8 @@
         </div>
     </form>
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <div class="overflow-x-auto">
-        <table class="min-w-[1500px] w-full">
+        <div class="w-full max-w-full overflow-x-auto">
+        <table class="min-w-[1200px] w-full">
             <thead class="bg-zinc-950 sticky top-0">
                 <tr class="border-b border-zinc-800">
                     <th class="px-6 py-4 text-left">Candidate</th>
@@ -267,6 +267,7 @@ document.querySelectorAll('[data-approval-select]').forEach(function (select) {
 });
 </script>
 @endpush
+
 
 
 

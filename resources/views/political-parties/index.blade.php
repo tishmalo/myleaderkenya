@@ -20,7 +20,8 @@
     </form>
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <table class="w-full">
+        <div class="w-full max-w-full overflow-x-auto">
+        <table class="min-w-[900px] w-full">
             <thead class="bg-zinc-950"><tr><th class="px-6 py-4 text-left">Party</th><th class="px-6 py-4 text-left">URL</th><th class="px-6 py-4 text-center">Order</th><th class="px-6 py-4 text-center">Status</th><th class="px-6 py-4 text-center">Actions</th></tr></thead>
             <tbody class="divide-y divide-zinc-800">
                 @forelse($politicalParties as $party)
@@ -39,6 +40,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 
     <div class="mt-8 flex justify-center">{{ $politicalParties->appends(request()->query())->links() }}</div>
@@ -50,3 +52,4 @@
 function deletePoliticalParty(slug, name) { showDeleteModal(`/admin/political-parties/${slug}`, `Delete political party <strong>${name}</strong>?`); }
 </script>
 @endpush
+

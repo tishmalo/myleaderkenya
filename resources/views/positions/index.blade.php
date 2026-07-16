@@ -17,7 +17,7 @@
     </div>
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <div class="overflow-x-auto">
+        <div class="w-full max-w-full overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-zinc-950">
                     <tr class="border-b border-zinc-800">
