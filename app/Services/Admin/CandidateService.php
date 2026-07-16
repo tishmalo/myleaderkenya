@@ -210,7 +210,7 @@ class CandidateService
     {
         $showCountyGroups = empty($filters['county'])
             && ! empty($filters['bloc'])
-            && $this->usesCountyLanding($filters['position'] ?? null);
+            && ($this->usesCountyLanding($filters['position'] ?? null) || $this->usesCountyAspirantGroups($filters['position'] ?? null));
 
         $showConstituencyGroups = ! empty($filters['county'])
             && empty($filters['constituency'])
@@ -393,6 +393,7 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
 
 
 
