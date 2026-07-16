@@ -108,91 +108,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     max-width: 460px; margin: 0 auto;
 }
 
-/* ── FILTER BAR ── */
-.filter-bar-wrap {
-    max-width: 1280px; margin: 0 auto;
-    padding: 0 32px; position: relative; z-index: 10;
-    margin-top: -28px; margin-bottom: 48px;
-}
-.filter-bar {
-    background: #161616;
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 16px;
-    padding: 16px 20px;
-    display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
-.filter-bar-label {
-    font-family: 'Oswald', sans-serif;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(245,245,240,0.25);
-    white-space: nowrap; padding-right: 4px;
-    border-right: 1px solid rgba(255,255,255,0.07);
-    margin-right: 4px;
-    flex-shrink: 0;
-}
-.filter-divider {
-    width: 1px; height: 32px;
-    background: rgba(255,255,255,0.07);
-    flex-shrink: 0;
-}
-.filter-input-wrap {
-    position: relative; flex: 2; min-width: 0;
-}
-.filter-select-wrap {
-    position: relative; flex: 1; min-width: 0;
-}
-.filter-icon {
-    position: absolute; left: 14px; top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255,255,255,0.2); font-size: 13px;
-    pointer-events: none; transition: color 0.2s;
-}
-.filter-input-wrap:focus-within .filter-icon,
-.filter-select-wrap:focus-within .filter-icon { color: var(--green-bright); }
-
-.filter-bar input,
-.filter-bar select {
-    width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 11px 14px 11px 38px;
-    color: white; font-size: 14px;
-    font-family: 'Barlow', sans-serif;
-    transition: border-color 0.2s, background 0.2s;
-    appearance: none; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
-}
-.filter-bar input:focus,
-.filter-bar select:focus {
-    outline: none;
-    border-color: var(--green-bright);
-    background: rgba(0,168,107,0.06);
-}
-.filter-bar input::placeholder { color: rgba(255,255,255,0.2); }
-.filter-bar select option { background: #1c1c1c; }
-
-.filter-btn {
-    flex-shrink: 0;
-    padding: 11px 28px;
-    font-family: 'Oswald', sans-serif;
-    font-size: 13px; font-weight: 700;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    background: var(--kenya-red); color: white;
-    border: none; border-radius: 10px; cursor: pointer;
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-    white-space: nowrap;
-    box-shadow: 0 0 20px rgba(187,0,0,0.3);
-    display: flex; align-items: center; gap: 8px;
-}
-.filter-btn:hover {
-    background: #cc0000; transform: translateY(-1px);
-    box-shadow: 0 0 32px rgba(187,0,0,0.5);
-}
-
-/* ── RESULTS META ── */
+/* -- RESULTS META -- */
 .results-meta {
     max-width: 1280px; margin: 0 auto 28px;
     padding: 0 32px;
@@ -435,22 +351,13 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-    .filter-bar {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    .filter-bar-label, .filter-divider { display: none; }
-    .filter-input-wrap, .filter-select-wrap { flex: 1 1 calc(50% - 5px); }
-    .filter-btn { width: 100%; justify-content: center; }
     .asp-grid { grid-template-columns: 1fr; padding: 0 16px 60px; }
     .asp-county-groups { padding: 0 16px 60px; }
     .asp-county-row-head { align-items: flex-start; flex-direction: column; }
     .asp-county-row-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .filter-bar-wrap { padding: 0 16px; }
     .results-meta { padding: 0 16px; }
 }
 @media (max-width: 480px) {
-    .filter-input-wrap, .filter-select-wrap { flex: 1 1 100%; }
     .asp-county-row-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -463,87 +370,6 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     <div class="asp-hero-eyebrow"><span class="dot"></span> General Election 2027</div>
     <h1>Kenya's <em>Aspirants</em></h1>
     <p>Meet the men and women seeking to lead Kenya into its next chapter.</p>
-</div>
-
-<!-- FILTER BAR -->
-
-<div class="filter-bar-wrap">
-    <form method="GET">
-        <div class="filter-bar" data-aspirant-filter>
-            <span class="filter-bar-label">Filter</span>
-
-            <div class="filter-input-wrap">
-                <span class="filter-icon"><i class="fas fa-search"></i></span>
-                <input type="text" name="candidate" value="{{ request('candidate', request('search')) }}"
-                       placeholder="Search candidate by name or nickname...">
-            </div>
-
-            <div class="filter-divider"></div>
-
-            <div class="filter-select-wrap">
-                <span class="filter-icon"><i class="fas fa-briefcase"></i></span>
-                <select name="position" data-position-filter>
-                    <option value="" data-position-key="">All Positions</option>
-                    @foreach($positions as $pos)
-                        @php
-                            $positionKey = strtolower(str_replace([' ', '_'], '-', $pos->name));
-                        @endphp
-                        <option value="{{ $pos->id }}" data-position-key="{{ $positionKey }}" {{ request('position') == $pos->id ? 'selected' : '' }}>
-                            {{ $pos->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="filter-divider" data-location-divider></div>
-
-            <div class="filter-select-wrap" data-location-filter="country">
-                <span class="filter-icon"><i class="fas fa-globe-africa"></i></span>
-                <select name="country">
-                    <option value="">Country</option>
-                    @foreach(($countries ?? collect(['Kenya'])) as $country)
-                        <option value="{{ $country }}" {{ request('country') == $country ? 'selected' : '' }}>{{ $country }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="filter-select-wrap" data-location-filter="county">
-                <span class="filter-icon"><i class="fas fa-map-marker-alt"></i></span>
-                <select name="county" data-county-filter>
-                    <option value="">County</option>
-                    @foreach($counties as $county)
-                        <option value="{{ $county }}" {{ request('county') == $county ? 'selected' : '' }}>{{ $county }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="filter-select-wrap" data-location-filter="constituency">
-                <span class="filter-icon"><i class="fas fa-location-arrow"></i></span>
-                <select name="constituency" data-constituency-filter data-selected="{{ request('constituency') }}">
-                    <option value="">Constituency</option>
-                    @foreach($constituencies as $constituency)
-                        <option value="{{ $constituency }}" {{ request('constituency') == $constituency ? 'selected' : '' }}>{{ $constituency }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="filter-select-wrap" data-location-filter="ward">
-                <span class="filter-icon"><i class="fas fa-map-pin"></i></span>
-                <select name="ward" data-ward-filter data-selected="{{ request('ward') }}">
-                    <option value="">Ward</option>
-                    @foreach($wards as $ward)
-                        <option value="{{ $ward }}" {{ request('ward') == $ward ? 'selected' : '' }}>{{ $ward }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="filter-divider"></div>
-
-            <button type="submit" class="filter-btn">
-                <i class="fas fa-bolt"></i> Search
-            </button>
-        </div>
-    </form>
 </div>
 
 <!-- RESULTS META -->
@@ -614,7 +440,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
             <div class="asp-empty">
                 <div class="asp-empty-icon"></div>
                 <h3>No aspirants found</h3>
-                <p>Try adjusting your filters or check back soon.</p>
+                <p>No aspirants found. Check back soon.</p>
             </div>
         @endforelse
     </div>
@@ -627,87 +453,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     @endif
 @endif
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var root = document.querySelector('[data-aspirant-filter]');
-    if (!root) return;
-
-    var positionSelect = root.querySelector('[data-position-filter]');
-    var countySelect = root.querySelector('[data-county-filter]');
-    var constituencySelect = root.querySelector('[data-constituency-filter]');
-    var wardSelect = root.querySelector('[data-ward-filter]');
-    var locationGroups = root.querySelectorAll('[data-location-filter]');
-
-    function selectedPositionKey() {
-        var option = positionSelect.options[positionSelect.selectedIndex];
-        return (option && option.dataset.positionKey || '').toLowerCase();
-    }
-
-    function positionScope(key) {
-        if (!key || key.indexOf('president') !== -1) return ['country'];
-        if (key.indexOf('mca') !== -1 || key.indexOf('county-assembly') !== -1) return ['county', 'constituency', 'ward'];
-        if (key === 'mp' || key.indexOf('parliament') !== -1) return ['county', 'constituency'];
-        if (key.indexOf('governor') !== -1 || key.indexOf('senator') !== -1 || key.indexOf('woman') !== -1 || key.indexOf('women') !== -1) return ['county'];
-        return ['country'];
-    }
-
-    function setSelectOptions(select, values, placeholder, selectedValue) {
-        select.innerHTML = '';
-        select.appendChild(new Option(placeholder, ''));
-        values.forEach(function (item) {
-            var value = typeof item === 'string' ? item : (item.name || item.value || '');
-            if (!value) return;
-            var option = new Option(value, value);
-            if (value === selectedValue) option.selected = true;
-            select.appendChild(option);
-        });
-    }
-
-    function fetchOptions(url, select, placeholder, selectedValue) {
-        fetch(url, { headers: { Accept: 'application/json' } })
-            .then(function (response) { return response.ok ? response.json() : []; })
-            .then(function (data) { setSelectOptions(select, Array.isArray(data) ? data : [], placeholder, selectedValue || ''); })
-            .catch(function () { setSelectOptions(select, [], placeholder, ''); });
-    }
-
-    function applyScope() {
-        var allowed = positionScope(selectedPositionKey());
-        locationGroups.forEach(function (group) {
-            var visible = allowed.indexOf(group.dataset.locationFilter) !== -1;
-            group.style.display = visible ? '' : 'none';
-            var select = group.querySelector('select');
-            if (select) {
-                select.disabled = !visible;
-                if (!visible) select.value = '';
-            }
-        });
-    }
-
-    positionSelect.addEventListener('change', function () {
-        countySelect.value = '';
-        setSelectOptions(constituencySelect, [], 'Constituency', '');
-        setSelectOptions(wardSelect, [], 'Ward', '');
-        applyScope();
-    });
-
-    countySelect.addEventListener('change', function () {
-        setSelectOptions(wardSelect, [], 'Ward', '');
-        if (!countySelect.value) {
-            setSelectOptions(constituencySelect, [], 'Constituency', '');
-            return;
-        }
-        fetchOptions('/api/locations/constituencies/by-county?county=' + encodeURIComponent(countySelect.value), constituencySelect, 'Constituency', '');
-    });
-
-    constituencySelect.addEventListener('change', function () {
-        if (!constituencySelect.value) {
-            setSelectOptions(wardSelect, [], 'Ward', '');
-            return;
-        }
-        fetchOptions('/api/locations/wards/by-constituency?constituency=' + encodeURIComponent(constituencySelect.value), wardSelect, 'Ward', '');
-    });
-
-    applyScope();
-});
-</script>
 @endsection
+
+
+
