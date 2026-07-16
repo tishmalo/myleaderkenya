@@ -19,18 +19,18 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Tribes (comma separated)</label>
+                    <label class="block text-sm text-zinc-400 mb-2">Counties / notes (comma separated)</label>
                     <input type="text" name="tribes" 
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500"
-                           placeholder="Kikuyu, Meru, Embu">
-                    <p class="text-xs text-zinc-500 mt-2">Optional: Enter tribes separated by commas</p>
+                           placeholder="Nairobi, Kiambu, Nakuru">
+                    <p class="text-xs text-zinc-500 mt-2">Optional: enter counties, communities, or regional notes separated by commas</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Tribe Population</label>
+                    <label class="block text-sm text-zinc-400 mb-2">Estimated Population</label>
                     <input type="number" name="tribe_population" 
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500"
-                           placeholder="Total population of these tribes">
+                           placeholder="Estimated population for this region">
                 </div>
 
                 <div>
@@ -55,3 +55,4 @@
     </div>
 </div>
 @endsection
+

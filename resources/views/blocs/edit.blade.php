@@ -18,13 +18,13 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Tribes (comma separated)</label>
+                    <label class="block text-sm text-zinc-400 mb-2">Counties / notes (comma separated)</label>
                     <input type="text" name="tribes" value="{{ old('tribes', implode(', ', $bloc->tribes ?? [])) }}" 
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500">
                 </div>
 
                 <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Tribe Population</label>
+                    <label class="block text-sm text-zinc-400 mb-2">Estimated Population</label>
                     <input type="number" name="tribe_population" value="{{ old('tribe_population', $bloc->tribe_population) }}" 
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500">
                 </div>
@@ -44,4 +44,5 @@
     </div>
 </div>
 @endsection
+
 

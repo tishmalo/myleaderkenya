@@ -5,14 +5,15 @@ namespace App\Repositories\Admin;
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
 use App\Models\Bloc;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class BlocRepository implements BlocRepositoryInterface
 {
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return Bloc::withCount('counties')
-            ->latest()
+        return $this->canonicalQuery()
+            ->withCount('counties')
             ->paginate($perPage);
     }
 
@@ -52,6 +53,26 @@ class BlocRepository implements BlocRepositoryInterface
 
     public function all(): Collection
     {
-        return Bloc::orderBy('name')->get();
+        return $this->canonicalQuery()->get();
+    }
+
+    private function canonicalQuery(): Builder
+    {
+        $names = config('regional-blocs.names', []);
+
+        $query = Bloc::query();
+
+        if ($names !== []) {
+            $quotedNames = collect($names)
+                ->map(fn (string $name) => "'" . str_replace("'", "''", $name) . "'")
+                ->implode(',');
+
+            $query->whereIn('name', $names)
+                ->orderByRaw("FIELD(name, {$quotedNames})");
+        } else {
+            $query->orderBy('name');
+        }
+
+        return $query;
     }
 }

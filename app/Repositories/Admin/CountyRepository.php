@@ -3,6 +3,7 @@
 namespace App\Repositories\Admin;
 
 use App\Contracts\Repositories\Admin\CountyRepositoryInterface;
+use App\Models\Bloc;
 use App\Models\County;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -39,8 +40,23 @@ class CountyRepository implements CountyRepositoryInterface
     }
 
 
-    public function getOrderedBlocs(): Collection{
-        return County::with('bloc')->orderBy('name')->get()->pluck('bloc')->unique('id')->values();
+    public function getOrderedBlocs(): Collection
+    {
+        $names = config('regional-blocs.names', []);
+
+        $query = Bloc::query();
+
+        if ($names !== []) {
+            $quotedNames = collect($names)
+                ->map(fn (string $name) => "'" . str_replace("'", "''", $name) . "'")
+                ->implode(',');
+
+            return $query->whereIn('name', $names)
+                ->orderByRaw("FIELD(name, {$quotedNames})")
+                ->get();
+        }
+
+        return $query->orderBy('name')->get();
     }
 
     public function import(array $counties): int
@@ -70,3 +86,4 @@ class CountyRepository implements CountyRepositoryInterface
         return County::with('bloc')->orderBy('name')->get();
     }
 }
+

@@ -24,8 +24,13 @@
                     ->all();
             }
             if ($dynamicType === 'positions' && class_exists(\App\Models\Position::class) && Route::has('aspirants.public')) {
+                $regionalBlocNames = config('regional-blocs.names', []);
                 $regionalBlocs = class_exists(\App\Models\Bloc::class)
-                    ? \App\Models\Bloc::orderBy('name')->get(['id', 'name'])
+                    ? \App\Models\Bloc::query()
+                        ->when($regionalBlocNames, fn ($query) => $query->whereIn('name', $regionalBlocNames))
+                        ->get(['id', 'name'])
+                        ->sortBy(fn ($bloc) => array_search($bloc->name, $regionalBlocNames, true))
+                        ->values()
                     : collect();
 
                 $menuItem['children'] = \App\Models\Position::ordered()
@@ -493,3 +498,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
