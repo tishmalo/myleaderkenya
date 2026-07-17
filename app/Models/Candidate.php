@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 
 class Candidate extends Model
 {
@@ -23,6 +26,51 @@ class Candidate extends Model
         'claim_sent_at' => 'datetime',
         'claimed_at' => 'datetime',
     ];
+
+    public function getEmailAttribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setEmailAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['email'] = null;
+            return;
+        }
+
+        $email = Str::lower(trim((string) $value));
+        $this->attributes['email'] = Crypt::encryptString($email);
+    }
+
+    public function getPhoneAttribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setPhoneAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['phone'] = null;
+            return;
+        }
+
+        $phone = trim((string) $value);
+        $this->attributes['phone'] = Crypt::encryptString($phone);
+    }
+
+    private function decryptNullableString($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return Crypt::decryptString($value);
+        } catch (DecryptException) {
+            return (string) $value;
+        }
+    }
 
     public function position()
     {
@@ -49,6 +97,4 @@ class Candidate extends Model
         return $this->hasMany(CandidateSmsMessage::class);
     }
 }
-
-
 
