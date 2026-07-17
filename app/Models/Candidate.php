@@ -59,6 +59,16 @@ class Candidate extends Model
         $this->attributes['phone'] = Crypt::encryptString($phone);
     }
 
+    public function maskedEmail(): ?string
+    {
+        return $this->maskEmail($this->email);
+    }
+
+    public function maskedPhone(): ?string
+    {
+        return $this->maskPhone($this->phone);
+    }
+
     private function decryptNullableString($value): ?string
     {
         if ($value === null || $value === '') {
@@ -70,6 +80,56 @@ class Candidate extends Model
         } catch (DecryptException) {
             return (string) $value;
         }
+    }
+
+    private function maskEmail(?string $email): ?string
+    {
+        if ($email === null || $email === '') {
+            return null;
+        }
+
+        $email = trim($email);
+        if (! str_contains($email, '@')) {
+            return $this->maskString($email, 2, 2);
+        }
+
+        [$local, $domain] = explode('@', $email, 2);
+        $domainParts = explode('.', $domain);
+        $extension = count($domainParts) > 1 ? array_pop($domainParts) : null;
+        $domainName = implode('.', $domainParts) ?: $domain;
+
+        $masked = $this->maskString($local, 2, 1) . '@' . $this->maskString($domainName, 1, 0);
+
+        return $extension ? $masked . '.' . $extension : $masked;
+    }
+
+    private function maskPhone(?string $phone): ?string
+    {
+        if ($phone === null || $phone === '') {
+            return null;
+        }
+
+        $phone = trim($phone);
+        $digits = preg_replace('/\D+/', '', $phone) ?: '';
+
+        if (strlen($digits) < 7) {
+            return $this->maskString($phone, 2, 1);
+        }
+
+        return substr($digits, 0, 3) . str_repeat('*', max(strlen($digits) - 5, 3)) . substr($digits, -2);
+    }
+
+    private function maskString(string $value, int $visibleStart = 1, int $visibleEnd = 1): string
+    {
+        $length = strlen($value);
+
+        if ($length <= $visibleStart + $visibleEnd) {
+            return str_repeat('*', max($length, 3));
+        }
+
+        return substr($value, 0, $visibleStart)
+            . str_repeat('*', max($length - $visibleStart - $visibleEnd, 3))
+            . ($visibleEnd > 0 ? substr($value, -$visibleEnd) : '');
     }
 
     public function position()
@@ -97,4 +157,3 @@ class Candidate extends Model
         return $this->hasMany(CandidateSmsMessage::class);
     }
 }
-

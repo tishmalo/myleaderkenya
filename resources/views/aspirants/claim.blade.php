@@ -10,7 +10,7 @@
         @if($candidate->politicalParty)
             <p class="mt-1 text-sm text-gray-600">{{ $candidate->politicalParty->name }}</p>
         @endif
-        <p class="mt-1 text-sm text-gray-600">{{ $candidate->email }}</p>
+        <p class="mt-1 text-sm text-gray-600">{{ $candidate->maskedEmail() }}</p>
     </div>
 
     <form method="POST" action="{{ route('aspirants.claim.store', [$candidate, $token]) }}" class="space-y-5">

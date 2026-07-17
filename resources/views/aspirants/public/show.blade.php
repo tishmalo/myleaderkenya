@@ -140,6 +140,8 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     $initials = strtoupper(substr($candidate->name, 0, 1)) . strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1));
     $positionLabel = $candidate->position?->name;
     $partyLabel = $candidate->politicalParty?->abbreviation ?: $candidate->politicalParty?->name;
+    $maskedPhone = $candidate->maskedPhone();
+    $maskedEmail = $candidate->maskedEmail();
 @endphp
 
 <div class="profile-page">
@@ -182,9 +184,9 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
             </div>
 
             <div class="profile-actions">
-                @if($candidate->phone)<a class="profile-action primary" href="tel:{{ $candidate->phone }}"><i class="fas fa-heart"></i> Support</a>@endif
+                @if($maskedPhone)<span class="profile-action primary"><i class="fas fa-heart"></i> Support</span>@endif
                 <a class="profile-action" href="{{ route('aspirants.public') }}"><i class="fas fa-arrow-left"></i> Aspirants</a>
-                @if($candidate->email)<a class="profile-action" href="mailto:{{ $candidate->email }}"><i class="fas fa-envelope"></i> Contact</a>@endif
+                @if($maskedEmail)<span class="profile-action"><i class="fas fa-envelope"></i> Contact</span>@endif
             </div>
         </section>
 
@@ -197,8 +199,8 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                     @if($candidate->county)<div class="summary-item"><span class="summary-icon"><i class="fas fa-map"></i></span><div><div class="summary-label">County</div><div class="summary-value">{{ $candidate->county }}</div></div></div>@endif
                     @if($candidate->constituency)<div class="summary-item"><span class="summary-icon"><i class="fas fa-location-crosshairs"></i></span><div><div class="summary-label">Constituency</div><div class="summary-value">{{ $candidate->constituency }}</div></div></div>@endif
                     @if($candidate->ward)<div class="summary-item"><span class="summary-icon"><i class="fas fa-location-dot"></i></span><div><div class="summary-label">Ward</div><div class="summary-value">{{ $candidate->ward }}</div></div></div>@endif
-                    @if($candidate->phone)<div class="summary-item"><span class="summary-icon"><i class="fas fa-phone"></i></span><div><div class="summary-label">Phone</div><div class="summary-value">{{ $candidate->phone }}</div></div></div>@endif
-                    @if($candidate->email)<div class="summary-item"><span class="summary-icon"><i class="fas fa-envelope"></i></span><div><div class="summary-label">Email</div><div class="summary-value">{{ $candidate->email }}</div></div></div>@endif
+                    @if($maskedPhone)<div class="summary-item"><span class="summary-icon"><i class="fas fa-phone"></i></span><div><div class="summary-label">Phone</div><div class="summary-value">{{ $maskedPhone }}</div></div></div>@endif
+                    @if($maskedEmail)<div class="summary-item"><span class="summary-icon"><i class="fas fa-envelope"></i></span><div><div class="summary-label">Email</div><div class="summary-value">{{ $maskedEmail }}</div></div></div>@endif
                 </div>
             </aside>
 
