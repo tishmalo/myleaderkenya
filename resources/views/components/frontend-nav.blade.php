@@ -222,6 +222,13 @@
     transform: translateY(6px);
     transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
 }
+.frontend-nav-subdropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.frontend-nav-subdropdown::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+}
 .frontend-nav-item:hover > .frontend-nav-dropdown,
 .frontend-nav-item:focus-within > .frontend-nav-dropdown {
     opacity: 1;
@@ -261,6 +268,9 @@
     top: -8px;
     left: calc(100% + 8px);
     min-width: 240px;
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 8px;
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
@@ -489,11 +499,43 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-frontend-nav]').forEach(function (nav) {
         var toggle = nav.querySelector('[data-frontend-nav-toggle]');
         var panel = nav.querySelector('[data-frontend-nav-panel]');
-        if (!toggle || !panel) return;
 
-        toggle.addEventListener('click', function () {
-            var isOpen = panel.classList.toggle('open');
-            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        if (toggle && panel) {
+            toggle.addEventListener('click', function () {
+                var isOpen = panel.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        }
+
+        nav.querySelectorAll('.frontend-nav-dropdown-row.has-children').forEach(function (row) {
+            var subdropdown = row.querySelector('.frontend-nav-subdropdown');
+            if (!subdropdown) return;
+
+            function fitSubdropdown() {
+                var viewportPadding = 16;
+                subdropdown.style.top = '-8px';
+                subdropdown.style.maxHeight = 'calc(100vh - 32px)';
+
+                window.requestAnimationFrame(function () {
+                    var rect = subdropdown.getBoundingClientRect();
+                    var topOffset = -8;
+                    var bottomOverflow = rect.bottom - (window.innerHeight - viewportPadding);
+
+                    if (bottomOverflow > 0) {
+                        topOffset -= bottomOverflow;
+                    }
+
+                    if (rect.top + topOffset + 8 < viewportPadding) {
+                        topOffset += viewportPadding - (rect.top + topOffset + 8);
+                    }
+
+                    subdropdown.style.top = topOffset + 'px';
+                    subdropdown.style.maxHeight = Math.max(180, window.innerHeight - viewportPadding - subdropdown.getBoundingClientRect().top) + 'px';
+                });
+            }
+
+            row.addEventListener('mouseenter', fitSubdropdown);
+            row.addEventListener('focusin', fitSubdropdown);
         });
     });
 });
