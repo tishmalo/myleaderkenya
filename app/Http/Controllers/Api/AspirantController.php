@@ -118,6 +118,8 @@ class AspirantController extends Controller
             'featured' => (bool) $candidate->featured,
             'profile_picture' => $candidate->profile_picture,
             'profile_picture_url' => $this->storageUrl($candidate->profile_picture),
+            'cover_photo' => $candidate->cover_photo,
+            'cover_photo_url' => $this->storageUrl($candidate->cover_photo),
             'country' => $this->formatLocationValue($candidate->country),
             'county' => $this->formatLocationValue($candidate->county),
             'constituency' => $this->formatLocationValue($candidate->constituency),
