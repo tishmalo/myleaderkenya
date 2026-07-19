@@ -114,12 +114,12 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
-    public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection
+    public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
     {
         $counties = $this->countiesForPublicFilters($filters);
 
         return $counties
-            ->map(function (string $county) use ($filters, $limit) {
+            ->map(function (string $county) use ($filters, $limit, $withCandidates) {
                 $countyFilters = array_merge($filters, ['county' => $county]);
                 unset($countyFilters['bloc']);
 
@@ -134,19 +134,19 @@ class CandidateRepository implements CandidateRepositoryInterface
                     'image' => $countyModel?->image,
                     'image_url' => $countyModel?->image ? Storage::url($countyModel->image) : null,
                     'total' => (clone $baseQuery)->count(),
-                    'candidates' => $baseQuery->latest()->take($limit)->get(),
+                    'candidates' => $withCandidates ? $baseQuery->latest()->take($limit)->get() : collect(),
                 ];
             })
             ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
             ->values();
     }
 
-    public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection
+    public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
     {
         $constituencies = $this->constituenciesForPublicFilters($filters);
 
         return $constituencies
-            ->map(function (string $constituency) use ($filters, $limit) {
+            ->map(function (string $constituency) use ($filters, $limit, $withCandidates) {
                 $groupFilters = array_merge($filters, ['constituency' => $constituency]);
 
                 $baseQuery = $this->publicQuery($groupFilters);
@@ -160,19 +160,19 @@ class CandidateRepository implements CandidateRepositoryInterface
                     'image' => $constituencyModel?->image,
                     'image_url' => $constituencyModel?->image ? Storage::url($constituencyModel->image) : null,
                     'total' => (clone $baseQuery)->count(),
-                    'candidates' => $baseQuery->latest()->take($limit)->get(),
+                    'candidates' => $withCandidates ? $baseQuery->latest()->take($limit)->get() : collect(),
                 ];
             })
             ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
             ->values();
     }
 
-    public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false): Collection
+    public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
     {
         $wards = $this->wardsForPublicFilters($filters);
 
         return $wards
-            ->map(function (string $ward) use ($filters, $limit) {
+            ->map(function (string $ward) use ($filters, $limit, $withCandidates) {
                 $groupFilters = array_merge($filters, ['ward' => $ward]);
 
                 $baseQuery = $this->publicQuery($groupFilters);
@@ -186,7 +186,7 @@ class CandidateRepository implements CandidateRepositoryInterface
                     'image' => $wardModel?->image,
                     'image_url' => $wardModel?->image ? Storage::url($wardModel->image) : null,
                     'total' => (clone $baseQuery)->count(),
-                    'candidates' => $baseQuery->latest()->take($limit)->get(),
+                    'candidates' => $withCandidates ? $baseQuery->latest()->take($limit)->get() : collect(),
                 ];
             })
             ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
@@ -335,7 +335,4 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
-
-
-
 

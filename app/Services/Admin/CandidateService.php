@@ -223,8 +223,7 @@ class CandidateService
     public function getPublicIndex(array $filters, int $perPage = 16): array
     {
         $showCountyGroups = empty($filters['county'])
-            && ! empty($filters['bloc'])
-            && ($this->usesCountyLanding($filters['position'] ?? null) || $this->usesCountyAspirantGroups($filters['position'] ?? null));
+            && $this->usesCountyLanding($filters['position'] ?? null);
 
         $showConstituencyGroups = ! empty($filters['county'])
             && empty($filters['constituency'])
@@ -239,13 +238,13 @@ class CandidateService
         $locationGroups = collect();
         $locationGroupLabel = 'counties';
         if ($showCountyGroups) {
-            $locationGroups = $this->candidateRepository->publicCountyGroups($filters, 5, true);
+            $locationGroups = $this->candidateRepository->publicCountyGroups($filters, 5, true, false);
             $locationGroupLabel = 'counties';
         } elseif ($showConstituencyGroups) {
-            $locationGroups = $this->candidateRepository->publicConstituencyGroups($filters, 5, true);
+            $locationGroups = $this->candidateRepository->publicConstituencyGroups($filters, 5, true, false);
             $locationGroupLabel = 'constituencies';
         } elseif ($showWardGroups) {
-            $locationGroups = $this->candidateRepository->publicWardGroups($filters, 5, true);
+            $locationGroups = $this->candidateRepository->publicWardGroups($filters, 5, true, false);
             $locationGroupLabel = 'wards';
         }
 
@@ -271,10 +270,10 @@ class CandidateService
         }
 
         return [
-            'candidates' => $this->candidateRepository->filterPublic($filters, $perPage),
-            'countyGroups' => $showCountyGroups
-                ? $this->candidateRepository->publicCountyGroups($filters, 5, true)
-                : collect(),
+            'candidates' => $showLocationGroups || $showAspirantGroups
+                ? new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, $perPage)
+                : $this->candidateRepository->filterPublic($filters, $perPage),
+            'countyGroups' => $showCountyGroups ? $locationGroups : collect(),
             'locationGroups' => $locationGroups,
             'locationGroupLabel' => $locationGroupLabel,
             'showLocationGroups' => $showLocationGroups,
@@ -297,6 +296,11 @@ class CandidateService
 
     private function usesCountyLanding($position): bool
     {
+        return filled($position) && ! $this->isPresidentialPosition($position);
+    }
+
+    private function isPresidentialPosition($position): bool
+    {
         if (blank($position)) {
             return false;
         }
@@ -306,7 +310,7 @@ class CandidateService
         if (! is_numeric($position)) {
             $positionKey = strtolower(str_replace(['_', ' '], '-', $position));
 
-            return in_array($positionKey, ['mp', 'member-of-parliament', 'mca', 'member-of-county-assembly'], true);
+            return in_array($positionKey, ['president', 'presidential'], true);
         }
 
         $matchedPosition = $this->candidateRepository->allPositions()
@@ -318,11 +322,9 @@ class CandidateService
 
         $name = strtolower(trim($matchedPosition->name));
 
-        return $name === 'mp'
-            || $name === 'mca'
-            || str_contains($name, 'member of parliament')
-            || str_contains($name, 'member of county assembly');
+        return $name === 'president' || str_contains($name, 'president');
     }
+
     private function isMpPosition($position): bool
     {
         return $this->positionMatches($position, ['mp', 'member-of-parliament'], ['mp', 'member of parliament']);
@@ -407,26 +409,4 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
