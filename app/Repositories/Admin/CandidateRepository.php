@@ -116,7 +116,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
     {
-        $counties = $this->countiesForPublicFilters($filters);
+        $counties = $includeEmpty ? $this->allCountyNamesForPublicFilters($filters) : $this->countiesForPublicFilters($filters);
 
         return $counties
             ->map(function (string $county) use ($filters, $limit, $withCandidates) {
@@ -267,6 +267,18 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         return $query;
+    }
+
+    private function allCountyNamesForPublicFilters(array $filters): Collection
+    {
+        if (! empty($filters['county'])) {
+            return collect([$filters['county']]);
+        }
+
+        return County::query()
+            ->when(! empty($filters['bloc']), fn ($query) => $query->where('bloc_id', $filters['bloc']))
+            ->orderBy('name')
+            ->pluck('name');
     }
 
     private function countiesForPublicFilters(array $filters): Collection
