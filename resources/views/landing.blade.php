@@ -334,7 +334,14 @@
                                                 <tr>
                                                     <td>
                                                         <a href="{{ route('aspirants.show', $candidate) }}" class="aspirants-name-link">
-                                                            {{ $candidate->name }}
+                                                            <span class="aspirants-avatar" aria-hidden="true">
+                                                                @if($candidate->profile_picture)
+                                                                    <img src="{{ Storage::url($candidate->profile_picture) }}" alt="">
+                                                                @else
+                                                                    {{ strtoupper(substr($candidate->name, 0, 1)) }}
+                                                                @endif
+                                                            </span>
+                                                            <span>{{ $candidate->name }}</span>
                                                         </a>
                                                     </td>
                                                     <td>{{ $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? '-' }}</td>
