@@ -446,13 +446,21 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @php
     $heroLocation = request('ward') ?: request('constituency') ?: request('county') ?: 'Kenya';
     $heroPossessive = \Illuminate\Support\Str::endsWith($heroLocation, 's') ? $heroLocation . "'" : $heroLocation . "'s";
+    $positionFilter = request('position');
+    $positionKey = strtolower(str_replace(['_', ' '], '-', (string) $positionFilter));
+    $selectedPosition = $positionFilter
+        ? collect($positions ?? [])->first(fn ($position) => (string) $position->id === (string) $positionFilter
+            || strtolower(str_replace(['_', ' '], '-', $position->name)) === $positionKey
+            || strtolower((string) ($position->slug ?? '')) === $positionKey)
+        : null;
+    $heroSubject = $selectedPosition?->name ? $selectedPosition->name . ' Aspirants' : 'Aspirants';
 @endphp
     <div class="asp-hero-stripe"></div>
     @include('components.frontend-nav')
 <div class="asp-hero">
     
     <div class="asp-hero-eyebrow"><span class="dot"></span> General Election 2027</div>
-    <h1>{{ $heroPossessive }} <em>Aspirants</em></h1>
+    <h1>{{ $heroPossessive }} <em>{{ $heroSubject }}</em></h1>
     <p>Meet the men and women seeking to lead {{ $heroLocation }} into its next chapter.</p>
 </div>
 
@@ -567,15 +575,4 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
-
-
-
-
-
-
-
-
-
-
-
 
