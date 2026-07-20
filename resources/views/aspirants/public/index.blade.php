@@ -1,4 +1,12 @@
 @extends('layouts.landing')
+@php($aspirantSeo = $aspirantSeo ?? [
+    'heading' => 'Kenya Presidential Aspirants',
+    'description' => 'Meet the candidates and aspirants seeking to lead Kenya into its next chapter.',
+    'meta_title' => 'Kenya Presidential Candidates and Aspirants 2027 Kenya Elections',
+    'meta_description' => 'Find Kenya presidential candidates and aspirants for the 2027 Kenya elections.',
+])
+@section('title', $aspirantSeo['meta_title'])
+@section('meta_description', $aspirantSeo['meta_description'])
 @section('content')
 
 <style>
@@ -445,24 +453,18 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 <!-- HERO -->
 @php
-    $heroLocation = request('ward') ?: request('constituency') ?: request('county') ?: 'Kenya';
-    $heroPossessive = \Illuminate\Support\Str::endsWith($heroLocation, 's') ? $heroLocation . "'" : $heroLocation . "'s";
-    $positionFilter = request('position');
-    $positionKey = strtolower(str_replace(['_', ' '], '-', (string) $positionFilter));
-    $selectedPosition = $positionFilter
-        ? collect($positions ?? [])->first(fn ($position) => (string) $position->id === (string) $positionFilter
-            || strtolower(str_replace(['_', ' '], '-', $position->name)) === $positionKey
-            || strtolower((string) ($position->slug ?? '')) === $positionKey)
-        : null;
-    $heroSubject = $selectedPosition?->name ? $selectedPosition->name . ' Aspirants' : 'Aspirants';
+    $heroHeading = trim($aspirantSeo['heading']);
+    $heroHeadingWords = preg_split('/\s+/', $heroHeading) ?: [];
+    $heroHeadingEmphasis = count($heroHeadingWords) > 1 ? array_pop($heroHeadingWords) : $heroHeading;
+    $heroHeadingPrefix = count($heroHeadingWords) > 0 ? implode(' ', $heroHeadingWords) : '';
 @endphp
     <div class="asp-hero-stripe"></div>
     @include('components.frontend-nav')
 <div class="asp-hero">
     
     <div class="asp-hero-eyebrow"><span class="dot"></span> General Election 2027</div>
-    <h1>{{ $heroPossessive }} <em>{{ $heroSubject }}</em></h1>
-    <p>Meet the men and women seeking to lead {{ $heroLocation }} into its next chapter.</p>
+    <h1>@if($heroHeadingPrefix){{ $heroHeadingPrefix }} @endif<em>{{ $heroHeadingEmphasis }}</em></h1>
+    <p>{{ $aspirantSeo['description'] }}</p>
 </div>
 
 <!-- RESULTS META -->

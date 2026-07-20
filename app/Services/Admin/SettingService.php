@@ -68,6 +68,20 @@ class SettingService
                 'cta_url' => 'mailto:info@myleader.co.ke',
             ],
         ],
+        'aspirants' => [
+            'label' => 'Aspirants Directory SEO',
+            'route' => 'aspirants.public',
+            'defaults' => [
+                'title' => 'Aspirants Directory',
+                'hero_title' => '{region} {position} Aspirants',
+                'excerpt' => 'Meet the candidates and aspirants seeking to represent {region} in the 2027 Kenya elections.',
+                'content' => 'Use {region}, {area}, {position}, and {year} to generate SEO headings and metadata for aspirant listing pages.',
+                'meta_title' => '{region} {position} Candidates and Aspirants {year} Kenya Elections',
+                'meta_description' => 'Find {region} {position} candidates and aspirants for the {year} Kenya elections. Compare aspirant profiles, regions, parties, and campaign updates.',
+                'cta_label' => 'View Aspirants',
+                'cta_url' => '/aspirants',
+            ],
+        ],
     ];
 
     public function getDonateSettings(): array

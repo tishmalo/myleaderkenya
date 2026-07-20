@@ -4,7 +4,11 @@ namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
+use App\Models\Bloc;
 use App\Models\Candidate;
+use App\Models\Constituency;
+use App\Models\County;
+use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -15,7 +19,8 @@ class CandidateService
 {
     public function __construct(
         private CandidateRepositoryInterface $candidateRepository,
-        private CandidateSmsSettingRepositoryInterface $smsSettingRepository
+        private CandidateSmsSettingRepositoryInterface $smsSettingRepository,
+        private SettingService $settingService
     ) {}
 
     // -------------------------------------------------------------------------
@@ -291,6 +296,7 @@ class CandidateService
             'counties'   => $this->candidateRepository->allCounties(),
             'constituencies' => $this->candidateRepository->allConstituencies($filters['county'] ?? null),
             'wards' => $this->candidateRepository->allWards($filters['constituency'] ?? null),
+            'aspirantSeo' => $this->aspirantSeo($filters),
         ];
     }
 
@@ -404,6 +410,119 @@ class CandidateService
             || str_contains($name, 'woman representative');
     }
 
+    private function aspirantSeo(array $filters): array
+    {
+        $page = $this->settingService->getFrontendPage('aspirants');
+        $content = $page['content'];
+        $tokens = $this->aspirantSeoTokens($filters);
+
+        $heading = $this->replaceSeoTokens($content['hero_title'] ?? '', $tokens);
+        $description = $this->replaceSeoTokens($content['excerpt'] ?? '', $tokens);
+        $metaTitle = $this->replaceSeoTokens($content['meta_title'] ?? '', $tokens);
+        $metaDescription = $this->replaceSeoTokens($content['meta_description'] ?? '', $tokens);
+
+        return [
+            'heading' => $heading ?: $tokens['region'] . ' ' . $tokens['position'] . ' Aspirants',
+            'description' => $description ?: 'Meet the candidates and aspirants seeking to represent ' . $tokens['region'] . '.',
+            'meta_title' => $metaTitle ?: $tokens['region'] . ' ' . $tokens['position'] . ' Candidates and Aspirants ' . $tokens['year'] . ' Kenya Elections',
+            'meta_description' => $metaDescription ?: 'Find ' . $tokens['region'] . ' ' . $tokens['position'] . ' candidates and aspirants for the ' . $tokens['year'] . ' Kenya elections.',
+        ];
+    }
+
+    private function aspirantSeoTokens(array $filters): array
+    {
+        $region = $this->seoRegionLabel($filters);
+        $position = $this->seoPositionLabel($filters['position'] ?? null);
+
+        return [
+            'region' => $region,
+            'area' => $region,
+            'position' => $position,
+            'year' => '2027',
+        ];
+    }
+
+    private function replaceSeoTokens(string $template, array $tokens): string
+    {
+        if ($template === '') {
+            return '';
+        }
+
+        return trim(strtr($template, [
+            '{region}' => $tokens['region'],
+            '{area}' => $tokens['area'],
+            '{position}' => $tokens['position'],
+            '{year}' => $tokens['year'],
+        ]));
+    }
+
+    private function seoRegionLabel(array $filters): string
+    {
+        if (! empty($filters['ward'])) {
+            return $this->modelName(Ward::class, $filters['ward']) ?: trim((string) $filters['ward']);
+        }
+
+        if (! empty($filters['constituency'])) {
+            $name = $this->modelName(Constituency::class, $filters['constituency']) ?: trim((string) $filters['constituency']);
+            return Str::contains(Str::lower($name), 'constituency') ? $name : $name . ' Constituency';
+        }
+
+        if (! empty($filters['county'])) {
+            $name = $this->modelName(County::class, $filters['county']) ?: trim((string) $filters['county']);
+            return Str::contains(Str::lower($name), 'county') ? $name : $name . ' County';
+        }
+
+        if (! empty($filters['bloc'])) {
+            return $this->modelName(Bloc::class, $filters['bloc']) ?: 'Selected Region';
+        }
+
+        if (! empty($filters['country'])) {
+            return trim((string) $filters['country']);
+        }
+
+        return 'Kenya';
+    }
+
+    private function modelName(string $modelClass, $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $query = $modelClass::query();
+
+        if (is_numeric($value)) {
+            return $query->whereKey((int) $value)->value('name');
+        }
+
+        return $query->where('name', $value)->value('name');
+    }
+
+    private function seoPositionLabel($position): string
+    {
+        if (blank($position)) {
+            return 'Presidential';
+        }
+
+        $positionName = trim((string) $position);
+        if (is_numeric($position)) {
+            $matchedPosition = $this->candidateRepository->allPositions()
+                ->firstWhere('id', (int) $position);
+            $positionName = trim((string) ($matchedPosition->name ?? $positionName));
+        }
+
+        $key = strtolower(str_replace(['_', ' '], '-', $positionName));
+
+        return match (true) {
+            in_array($key, ['president', 'presidential'], true) || str_contains($key, 'president') => 'Presidential',
+            str_contains($key, 'governor') => 'Gubernatorial',
+            str_contains($key, 'senator') => 'Senatorial',
+            str_contains($key, 'women-rep'), str_contains($key, 'woman-rep'), str_contains($key, 'representative') => 'Women Representative',
+            $key === 'mp' || str_contains($key, 'member-of-parliament') => 'Parliamentary',
+            $key === 'mca' || str_contains($key, 'county-assembly') => 'MCA',
+            default => Str::headline(str_replace('-', ' ', $key)),
+        };
+    }
     public function getPublicShow(Candidate $candidate): Candidate
     {
         return $this->candidateRepository->loadPublicShow($candidate);
