@@ -67,7 +67,7 @@
     }
     unset($menuItem);
 
-    $joinNowUrl = Route::has('aspirants.register') ? route('aspirants.register') : url('/aspirants/register');
+    $joinNowUrl = config('constants.app_download_link');
     $buildMenuUrl = function (array $item): string {
         $query = $item['query'] ?? [];
 
@@ -433,7 +433,7 @@
         <div class="frontend-nav-actions">
             @guest
                 <button class="btn-ghost" onclick="window.openFrontendAuth('login')">Login</button>
-                <a href="{{ $joinNowUrl }}" class="btn-primary">Join Now</a>
+                <a href="{{ $joinNowUrl }}" class="btn-primary" target="_blank" rel="noopener noreferrer">Join Now</a>
             @else
                 <a href="{{ route('dashboard') }}" class="btn-primary">Dashboard</a>
             @endguest
@@ -479,7 +479,7 @@
 
         @guest
             <button class="frontend-nav-mobile-link" type="button" onclick="window.openFrontendAuth('login')">Login</button>
-            <a href="{{ $joinNowUrl }}" class="frontend-nav-mobile-link">Join Now</a>
+            <a href="{{ $joinNowUrl }}" class="frontend-nav-mobile-link" target="_blank" rel="noopener noreferrer">Join Now</a>
         @else
             <a href="{{ route('dashboard') }}" class="frontend-nav-mobile-link">Dashboard</a>
         @endguest
@@ -540,4 +540,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
 
