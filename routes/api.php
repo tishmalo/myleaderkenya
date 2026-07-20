@@ -67,6 +67,7 @@ Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'sh
 Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
 Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
 Route::get('/aspirants', [AspirantController::class, 'list']);
+Route::post('/aspirants/register', [AspirantController::class, 'store']);
 Route::post('/aspirants', [AspirantController::class, 'store']);
 Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
 // Donations

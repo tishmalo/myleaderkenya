@@ -32,7 +32,7 @@ class CandidateService
         return $this->candidateRepository->paginate($perPage, $filters);
     }
 
-    public function createCandidate(array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null): Candidate
+    public function createCandidate(array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): Candidate
     {
         $smsSettings = $this->extractSmsSettings($data);
         $data = $this->normalizeCandidateData($data);
@@ -45,13 +45,25 @@ class CandidateService
             $data['cover_photo'] = $this->storeCandidateImage($coverPhoto, 'candidates/covers');
         }
 
+        if ($campaignPoster) {
+            $data['campaign_poster'] = $this->storeCandidateImage($campaignPoster, 'candidates/posters');
+        }
+
+        if ($campaignVideo) {
+            $data['campaign_video'] = $this->storeCandidateImage($campaignVideo, 'candidates/videos');
+        }
+
+        if ($campaignSkizaAudio) {
+            $data['campaign_skiza_audio'] = $this->storeCandidateImage($campaignSkizaAudio, 'candidates/audio');
+        }
+
         $candidate = $this->candidateRepository->create($data);
         $this->saveSmsSettings($candidate, $smsSettings);
 
         return $candidate;
     }
 
-    public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null): bool
+    public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): bool
     {
         $smsSettings = $this->extractSmsSettings($data);
         $data = $this->normalizeCandidateData($data);
@@ -70,6 +82,27 @@ class CandidateService
             $data['cover_photo'] = $this->storeCandidateImage($coverPhoto, 'candidates/covers');
         }
 
+        if ($campaignPoster) {
+            if ($candidate->campaign_poster) {
+                $this->deleteCandidatePicture($candidate->campaign_poster);
+            }
+            $data['campaign_poster'] = $this->storeCandidateImage($campaignPoster, 'candidates/posters');
+        }
+
+        if ($campaignVideo) {
+            if ($candidate->campaign_video) {
+                $this->deleteCandidatePicture($candidate->campaign_video);
+            }
+            $data['campaign_video'] = $this->storeCandidateImage($campaignVideo, 'candidates/videos');
+        }
+
+        if ($campaignSkizaAudio) {
+            if ($candidate->campaign_skiza_audio) {
+                $this->deleteCandidatePicture($candidate->campaign_skiza_audio);
+            }
+            $data['campaign_skiza_audio'] = $this->storeCandidateImage($campaignSkizaAudio, 'candidates/audio');
+        }
+
         $updated = $this->candidateRepository->update($candidate, $data);
         $this->saveSmsSettings($candidate, $smsSettings);
 
@@ -84,6 +117,18 @@ class CandidateService
 
         if ($candidate->cover_photo) {
             $this->deleteCandidatePicture($candidate->cover_photo);
+        }
+
+        if ($candidate->campaign_poster) {
+            $this->deleteCandidatePicture($candidate->campaign_poster);
+        }
+
+        if ($candidate->campaign_video) {
+            $this->deleteCandidatePicture($candidate->campaign_video);
+        }
+
+        if ($candidate->campaign_skiza_audio) {
+            $this->deleteCandidatePicture($candidate->campaign_skiza_audio);
         }
 
         return $this->candidateRepository->delete($candidate);
@@ -119,7 +164,7 @@ class CandidateService
 
     private function normalizeCandidateData(array $data): array
     {
-        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_username'], $data['sms_password'], $data['profile_picture'], $data['cover_photo']);
+        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_username'], $data['sms_password'], $data['profile_picture'], $data['cover_photo'], $data['campaign_poster'], $data['campaign_video'], $data['campaign_skiza_audio']);
 
         if (! Schema::hasColumn('candidates', 'political_party_id')) {
             unset($data['political_party_id']);
@@ -528,4 +573,5 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
+
 

@@ -83,38 +83,76 @@ class AspirantController extends Controller
     public function store(AspirantSubmissionRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $relationship = $validated['relationship'] ?? $validated['user_type'] ?? 'aspirant';
 
-        $candidate = DB::transaction(function () use ($request, $validated): Candidate {
+        [$user, $candidate] = DB::transaction(function () use ($request, $validated, $relationship): array {
             $user = User::create([
-                'name' => $validated['name'],
-                'username' => $this->uniqueUsername($validated['name']),
-                'email' => $validated['email'],
+                'name' => $validated['user_name'] ?? $validated['name'],
+                'username' => $this->uniqueUsername($validated['user_name'] ?? $validated['name']),
+                'email' => $validated['user_email'] ?? $validated['email_1'] ?? $validated['email'],
                 'password' => $validated['password'],
                 'role' => 'user',
-                'phone' => $validated['phone'] ?? null,
-                'is_aspirant' => true,
+                'phone' => $validated['user_phone'] ?? $validated['phone_1'] ?? $validated['phone'] ?? null,
+                'relationship' => $relationship,
+                'is_aspirant' => $relationship === 'aspirant',
             ]);
 
-            $candidateData = collect($validated)
-                ->only([
-                    'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id',
-                    'about', 'county', 'constituency', 'ward',
-                ])
-                ->all();
+            $phone1 = $validated['phone_1'] ?? $validated['phone'] ?? null;
+            $email1 = $validated['email_1'] ?? $validated['email'] ?? null;
 
-            $candidateData['user_id'] = $user->id;
-            $candidateData['approval_status'] = 'pending';
+            $candidateData = [
+                'name' => $validated['name'],
+                'nick_name' => $validated['nick_name'] ?? null,
+                'phone' => $phone1,
+                'phone_1' => $phone1,
+                'phone_2' => $validated['phone_2'] ?? null,
+                'email' => $email1,
+                'email_1' => $email1,
+                'email_2' => $validated['email_2'] ?? null,
+                'position_id' => $validated['position_id'],
+                'political_party_id' => $validated['political_party_id'] ?? $validated['party'] ?? null,
+                'about' => $validated['about'] ?? null,
+                'county' => $validated['county'] ?? null,
+                'constituency' => $validated['constituency'] ?? null,
+                'ward' => $validated['ward'] ?? null,
+                'approval_status' => 'pending',
+            ];
 
-            return $this->candidateService->createCandidate(
+            if ($relationship === 'aspirant') {
+                $candidateData['user_id'] = $user->id;
+            }
+
+            $candidate = $this->candidateService->createCandidate(
                 $candidateData,
-                $request->file('profile_picture')
+                $request->file('profile_picture') ?? $request->file('profile_pic'),
+                $request->file('cover_photo'),
+                $request->file('campaign_poster'),
+                $request->file('campaign_video'),
+                $request->file('campaign_skiza_audio')
             );
+
+            $user->relatedCandidates()->syncWithoutDetaching([
+                $candidate->id => ['relationship' => $relationship],
+            ]);
+
+            return [$user, $candidate];
         });
 
         $candidate->load(['position', 'politicalParty']);
+        $user->load('relatedCandidates');
 
         return response()->json([
             'message' => 'Aspirant registration submitted successfully. An admin will review it before it appears publicly.',
+            'relationship' => $relationship,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'user_type' => $user->user_type,
+                'relationship' => $user->relationship,
+                'candidate_ids' => $user->relatedCandidates->pluck('id')->values(),
+            ],
             'data' => $this->formatAspirant($candidate, true),
         ], 201);
     }
@@ -167,6 +205,16 @@ class AspirantController extends Controller
             'profile_picture_url' => $this->storageUrl($candidate->profile_picture),
             'cover_photo' => $candidate->cover_photo,
             'cover_photo_url' => $this->storageUrl($candidate->cover_photo),
+            'campaign_poster' => $candidate->campaign_poster,
+            'campaign_poster_url' => $this->storageUrl($candidate->campaign_poster),
+            'campaign_video' => $candidate->campaign_video,
+            'campaign_video_url' => $this->storageUrl($candidate->campaign_video),
+            'campaign_skiza_audio' => $candidate->campaign_skiza_audio,
+            'campaign_skiza_audio_url' => $this->storageUrl($candidate->campaign_skiza_audio),
+            'phone_1' => $candidate->phone_1,
+            'phone_2' => $candidate->phone_2,
+            'email_1' => $candidate->email_1,
+            'email_2' => $candidate->email_2,
             'country' => $this->formatLocationValue($candidate->country),
             'county' => $this->formatLocationValue($candidate->county),
             'constituency' => $this->formatLocationValue($candidate->constituency),

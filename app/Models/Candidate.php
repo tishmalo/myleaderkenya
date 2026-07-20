@@ -17,7 +17,8 @@ class Candidate extends Model
 
     protected $fillable = [
         'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id', 'user_id',
-        'profile_picture', 'cover_photo', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward',
+        'profile_picture', 'cover_photo', 'campaign_poster', 'campaign_video', 'campaign_skiza_audio',
+        'phone_1', 'phone_2', 'email_1', 'email_2', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward',
         'claim_token_hash', 'claim_token_expires_at', 'claim_sent_at', 'claimed_at',
     ];
 

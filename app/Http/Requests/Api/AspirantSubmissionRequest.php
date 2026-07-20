@@ -6,6 +6,7 @@ use App\Models\Position;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 
 class AspirantSubmissionRequest extends FormRequest
@@ -18,27 +19,30 @@ class AspirantSubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'user_name' => ['nullable', 'string', 'max:255'],
+            'user_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
+            'user_phone' => ['nullable', 'string', 'max:20'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'relationship' => ['nullable', Rule::in(User::USER_TYPES)],
+            'user_type' => ['nullable', Rule::in(User::USER_TYPES)],
+
             'name' => ['required', 'string', 'max:255'],
             'nick_name' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    $hash = hash('sha256', Str::lower(trim((string) $value)));
-
-                    if (User::where('email_hash', $hash)->exists()) {
-                        $fail('The email has already been taken.');
-                    }
-                },
-            ],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone_1' => ['nullable', 'string', 'max:20'],
+            'phone_2' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
+            'email_1' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
+            'email_2' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
             'position_id' => ['required', 'exists:positions,id'],
             'political_party_id' => ['nullable', 'exists:political_parties,id'],
+            'party' => ['nullable', 'exists:political_parties,id'],
             'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'profile_pic' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'campaign_poster' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'campaign_video' => ['nullable', 'file', 'mimes:mp4,mov,avi,webm', 'max:51200'],
+            'campaign_skiza_audio' => ['nullable', 'file', 'mimes:mp3,wav,m4a,aac,ogg', 'max:20480'],
             'about' => ['nullable', 'string'],
             'county' => ['nullable', 'string', 'max:255'],
             'constituency' => ['nullable', 'string', 'max:255'],
@@ -50,6 +54,14 @@ class AspirantSubmissionRequest extends FormRequest
     {
         $validator->after(function ($validator): void {
             $position = $this->positionName();
+
+            $submitterEmail = $this->submitterEmail();
+
+            if (blank($submitterEmail)) {
+                $validator->errors()->add('user_email', 'Enter the submitter email address.');
+            } elseif ($this->emailIsTaken($submitterEmail)) {
+                $validator->errors()->add('user_email', 'The email has already been taken.');
+            }
 
             if ($position === '') {
                 return;
@@ -67,6 +79,19 @@ class AspirantSubmissionRequest extends FormRequest
                 $validator->errors()->add('ward', 'Select the ward for this aspirant position.');
             }
         });
+    }
+
+
+    private function submitterEmail(): ?string
+    {
+        return $this->input('user_email') ?: $this->input('email_1') ?: $this->input('email');
+    }
+
+    private function emailIsTaken(string $email): bool
+    {
+        $hash = hash('sha256', Str::lower(trim($email)));
+
+        return User::where('email_hash', $hash)->exists();
     }
 
     private function positionName(): string
@@ -97,3 +122,5 @@ class AspirantSubmissionRequest extends FormRequest
             || str_contains($position, 'county assembly');
     }
 }
+
+
