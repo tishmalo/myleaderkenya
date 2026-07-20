@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table): void {
             if (! Schema::hasColumn('users', 'relationship')) {
-                $table->string('relationship')->nullable()->after('is_aspirant');
+                $table->enum('relationship', ['PA', 'campaign_manager', 'aspirant', 'voter'])->nullable()->after('is_aspirant');
             }
         });
 
@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->foreignId('candidate_id')->constrained()->cascadeOnDelete();
-                $table->string('relationship')->nullable();
+                $table->enum('relationship', ['PA', 'campaign_manager', 'aspirant', 'voter'])->nullable();
                 $table->timestamps();
 
                 $table->unique(['user_id', 'candidate_id']);

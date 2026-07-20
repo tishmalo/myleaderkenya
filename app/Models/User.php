@@ -16,6 +16,8 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    public const USER_TYPES = ['PA', 'campaign_manager', 'aspirant', 'voter'];
+
     /**
      * The attributes that are mass assignable.
      *

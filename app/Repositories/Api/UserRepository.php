@@ -97,10 +97,7 @@ class UserRepository implements UserRepositoryInterface
             return null;
         }
 
-        $reservedTypes = ['admin', 'aspirant', 'user', 'voter'];
-        $normalized = strtolower(trim((string) $relationship));
-
-        return in_array($normalized, $reservedTypes, true) ? null : trim((string) $relationship);
+        return trim((string) $relationship);
     }
 
     private function syncCandidateRelationships(User $user, ?array $candidateIds, ?string $relationship): void
