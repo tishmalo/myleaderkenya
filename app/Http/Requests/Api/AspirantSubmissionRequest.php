@@ -3,11 +3,8 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Position;
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules;
 
 class AspirantSubmissionRequest extends FormRequest
 {
@@ -19,12 +16,6 @@ class AspirantSubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_name' => ['nullable', 'string', 'max:255'],
-            'user_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
-            'user_phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'relationship' => ['nullable', Rule::in(User::USER_TYPES)],
-            'user_type' => ['nullable', Rule::in(User::USER_TYPES)],
 
             'name' => ['required', 'string', 'max:255'],
             'nick_name' => ['nullable', 'string', 'max:100'],
@@ -55,13 +46,6 @@ class AspirantSubmissionRequest extends FormRequest
         $validator->after(function ($validator): void {
             $position = $this->positionName();
 
-            $submitterEmail = $this->submitterEmail();
-
-            if (blank($submitterEmail)) {
-                $validator->errors()->add('user_email', 'Enter the submitter email address.');
-            } elseif ($this->emailIsTaken($submitterEmail)) {
-                $validator->errors()->add('user_email', 'The email has already been taken.');
-            }
 
             if ($position === '') {
                 return;
@@ -82,17 +66,6 @@ class AspirantSubmissionRequest extends FormRequest
     }
 
 
-    private function submitterEmail(): ?string
-    {
-        return $this->input('user_email') ?: $this->input('email_1') ?: $this->input('email');
-    }
-
-    private function emailIsTaken(string $email): bool
-    {
-        $hash = hash('sha256', Str::lower(trim($email)));
-
-        return User::where('email_hash', $hash)->exists();
-    }
 
     private function positionName(): string
     {
@@ -122,5 +95,4 @@ class AspirantSubmissionRequest extends FormRequest
             || str_contains($position, 'county assembly');
     }
 }
-
 

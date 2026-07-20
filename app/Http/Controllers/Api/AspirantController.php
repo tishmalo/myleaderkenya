@@ -6,14 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AspirantSubmissionRequest;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
-use App\Models\User;
 use App\Services\Admin\CandidateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 class AspirantController extends Controller
 {
@@ -83,24 +80,11 @@ class AspirantController extends Controller
     public function store(AspirantSubmissionRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $relationship = $validated['relationship'] ?? $validated['user_type'] ?? 'aspirant';
+        $phone1 = $validated['phone_1'] ?? $validated['phone'] ?? null;
+        $email1 = $validated['email_1'] ?? $validated['email'] ?? null;
 
-        [$user, $candidate] = DB::transaction(function () use ($request, $validated, $relationship): array {
-            $user = User::create([
-                'name' => $validated['user_name'] ?? $validated['name'],
-                'username' => $this->uniqueUsername($validated['user_name'] ?? $validated['name']),
-                'email' => $validated['user_email'] ?? $validated['email_1'] ?? $validated['email'],
-                'password' => $validated['password'],
-                'role' => 'user',
-                'phone' => $validated['user_phone'] ?? $validated['phone_1'] ?? $validated['phone'] ?? null,
-                'relationship' => $relationship,
-                'is_aspirant' => $relationship === 'aspirant',
-            ]);
-
-            $phone1 = $validated['phone_1'] ?? $validated['phone'] ?? null;
-            $email1 = $validated['email_1'] ?? $validated['email'] ?? null;
-
-            $candidateData = [
+        $candidate = $this->candidateService->createCandidate(
+            [
                 'name' => $validated['name'],
                 'nick_name' => $validated['nick_name'] ?? null,
                 'phone' => $phone1,
@@ -116,43 +100,18 @@ class AspirantController extends Controller
                 'constituency' => $validated['constituency'] ?? null,
                 'ward' => $validated['ward'] ?? null,
                 'approval_status' => 'pending',
-            ];
-
-            if ($relationship === 'aspirant') {
-                $candidateData['user_id'] = $user->id;
-            }
-
-            $candidate = $this->candidateService->createCandidate(
-                $candidateData,
-                $request->file('profile_picture') ?? $request->file('profile_pic'),
-                $request->file('cover_photo'),
-                $request->file('campaign_poster'),
-                $request->file('campaign_video'),
-                $request->file('campaign_skiza_audio')
-            );
-
-            $user->relatedCandidates()->syncWithoutDetaching([
-                $candidate->id => ['relationship' => $relationship],
-            ]);
-
-            return [$user, $candidate];
-        });
+            ],
+            $request->file('profile_picture') ?? $request->file('profile_pic'),
+            $request->file('cover_photo'),
+            $request->file('campaign_poster'),
+            $request->file('campaign_video'),
+            $request->file('campaign_skiza_audio')
+        );
 
         $candidate->load(['position', 'politicalParty']);
-        $user->load('relatedCandidates');
 
         return response()->json([
             'message' => 'Aspirant registration submitted successfully. An admin will review it before it appears publicly.',
-            'relationship' => $relationship,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'user_type' => $user->user_type,
-                'relationship' => $user->relationship,
-                'candidate_ids' => $user->relatedCandidates->pluck('id')->values(),
-            ],
             'data' => $this->formatAspirant($candidate, true),
         ], 201);
     }
@@ -276,21 +235,5 @@ class AspirantController extends Controller
         return $path ? asset(Storage::url($path)) : null;
     }
 
-    private function uniqueUsername(string $name): string
-    {
-        $base = Str::limit(Str::slug($name, '_'), 40, '');
-
-        if ($base === '') {
-            $base = 'aspirant';
-        }
-
-        $username = $base;
-        $suffix = 1;
-
-        while (User::where('username', $username)->exists()) {
-            $username = $base . '_' . $suffix++;
-        }
-
-        return $username;
-    }
 }
+
