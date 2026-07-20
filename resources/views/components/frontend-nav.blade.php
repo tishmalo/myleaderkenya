@@ -121,7 +121,7 @@
     border-bottom: 1px solid rgba(255,255,255,0.07);
     backdrop-filter: blur(16px);
     position: sticky;
-    top: 5px;
+    top: 0;
     z-index: 100;
 }
 .frontend-nav-inner {

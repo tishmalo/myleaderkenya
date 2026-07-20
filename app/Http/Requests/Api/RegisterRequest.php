@@ -34,6 +34,10 @@ class RegisterRequest extends FormRequest
             'ward'           => 'nullable|string|max:100',
             'polling_station'=> 'nullable|string|max:255',
             'country_of_residence' => 'nullable|string|max:100',
+            'relationship'    => 'nullable|string|max:100',
+            'user_type'       => 'nullable|string|max:100',
+            'candidate_ids'   => 'nullable|array',
+            'candidate_ids.*' => 'integer|exists:candidates,id',
             'password'       => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
         ];
     }

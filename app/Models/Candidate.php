@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Crypt;
@@ -155,5 +156,12 @@ class Candidate extends Model
     public function smsMessages(): HasMany
     {
         return $this->hasMany(CandidateSmsMessage::class);
+    }
+
+    public function relatedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'candidate_user_relationships')
+            ->withPivot('relationship')
+            ->withTimestamps();
     }
 }

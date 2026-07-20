@@ -3,15 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\AspirantSubmissionRequest;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
+use App\Models\User;
+use App\Services\Admin\CandidateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class AspirantController extends Controller
 {
+    public function __construct(private CandidateService $candidateService) {}
+
     public function list(Request $request): JsonResponse
     {
         $perPage = min((int) $request->query('per_page', 12), 50);
@@ -70,6 +77,46 @@ class AspirantController extends Controller
             ->through(fn (Candidate $candidate) => $this->formatAspirant($candidate));
 
         return response()->json($aspirants);
+    }
+
+
+    public function store(AspirantSubmissionRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        $candidate = DB::transaction(function () use ($request, $validated): Candidate {
+            $user = User::create([
+                'name' => $validated['name'],
+                'username' => $this->uniqueUsername($validated['name']),
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+                'role' => 'user',
+                'phone' => $validated['phone'] ?? null,
+                'is_aspirant' => true,
+            ]);
+
+            $candidateData = collect($validated)
+                ->only([
+                    'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id',
+                    'about', 'county', 'constituency', 'ward',
+                ])
+                ->all();
+
+            $candidateData['user_id'] = $user->id;
+            $candidateData['approval_status'] = 'pending';
+
+            return $this->candidateService->createCandidate(
+                $candidateData,
+                $request->file('profile_picture')
+            );
+        });
+
+        $candidate->load(['position', 'politicalParty']);
+
+        return response()->json([
+            'message' => 'Aspirant registration submitted successfully. An admin will review it before it appears publicly.',
+            'data' => $this->formatAspirant($candidate, true),
+        ], 201);
     }
 
     public function show(Candidate $candidate): JsonResponse
@@ -179,5 +226,23 @@ class AspirantController extends Controller
     private function storageUrl(?string $path): ?string
     {
         return $path ? asset(Storage::url($path)) : null;
+    }
+
+    private function uniqueUsername(string $name): string
+    {
+        $base = Str::limit(Str::slug($name, '_'), 40, '');
+
+        if ($base === '') {
+            $base = 'aspirant';
+        }
+
+        $username = $base;
+        $suffix = 1;
+
+        while (User::where('username', $username)->exists()) {
+            $username = $base . '_' . $suffix++;
+        }
+
+        return $username;
     }
 }

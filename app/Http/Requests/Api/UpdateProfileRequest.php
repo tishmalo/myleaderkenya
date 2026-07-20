@@ -32,6 +32,10 @@ class UpdateProfileRequest extends FormRequest
             'phone'           => 'nullable|string|max:20',
             'is_voter'        => 'boolean',
             'country_of_residence' => 'nullable|string|max:100',
+            'relationship'     => 'nullable|string|max:100',
+            'user_type'        => 'nullable|string|max:100',
+            'candidate_ids'    => 'nullable|array',
+            'candidate_ids.*'  => 'integer|exists:candidates,id',
         ];
     }
 }

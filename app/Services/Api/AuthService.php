@@ -36,6 +36,8 @@ class AuthService
             throw new \Exception('Invalid username or password', 401);
         }
 
+        $user->loadMissing('relatedCandidates');
+
         // Revoke all previous tokens
         $user->tokens()->delete();
 
@@ -46,6 +48,12 @@ class AuthService
             'id'        => $user->id,
             'username'  => $user->username,
             'user_type' => $user->user_type,
+            'candidate_ids' => $user->relatedCandidates->pluck('id')->values(),
+            'candidates' => $user->relatedCandidates->map(fn ($candidate) => [
+                'id' => $candidate->id,
+                'name' => $candidate->name,
+                'relationship' => $candidate->pivot?->relationship,
+            ])->values(),
             'email_verified' => !is_null($user->email_verified_at),
             'email_verified_at' => $user->email_verified_at,
             'token'     => $token,
@@ -293,12 +301,20 @@ class AuthService
 
     private function userPayload(User $user): array
     {
+        $user->loadMissing('relatedCandidates');
+
         return array_merge($user->only([
             'id', 'username', 'name', 'email', 'phone', 'gender', 'year_of_birth',
             'county', 'constituency', 'ward', 'polling_station',
-            'country_of_residence', 'is_voter', 'is_registered', 'email_verified_at'
+            'country_of_residence', 'is_voter', 'is_registered', 'relationship', 'email_verified_at'
         ]), [
             'user_type' => $user->user_type,
+            'candidate_ids' => $user->relatedCandidates->pluck('id')->values(),
+            'candidates' => $user->relatedCandidates->map(fn ($candidate) => [
+                'id' => $candidate->id,
+                'name' => $candidate->name,
+                'relationship' => $candidate->pivot?->relationship,
+            ])->values(),
             'email_verified' => !is_null($user->email_verified_at),
         ]);
     }

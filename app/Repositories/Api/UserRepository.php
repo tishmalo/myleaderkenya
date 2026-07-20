@@ -11,11 +11,18 @@ class UserRepository implements UserRepositoryInterface
 {
     public function create(array $data): User
     {
+        $candidateIds = $data['candidate_ids'] ?? null;
+        $data['relationship'] = $this->relationshipFrom($data);
+        unset($data['candidate_ids'], $data['user_type']);
+
         $data['password'] = Hash::make($data['password']);
         $data['email'] = $data['email'] ?? $data['username'] . '@regista.local';
         $data['is_voter'] = $data['is_voter'] ?? false;
 
-        return User::create($data);
+        $user = User::create($data);
+        $this->syncCandidateRelationships($user, $candidateIds, $data['relationship'] ?? null);
+
+        return $user;
     }
 
     public function findByUsername(string $username): ?User
@@ -30,7 +37,19 @@ class UserRepository implements UserRepositoryInterface
 
     public function update(User $user, array $data): bool
     {
-        return $user->update($data);
+        $candidateIds = $data['candidate_ids'] ?? null;
+        $hasRelationshipInput = array_key_exists('relationship', $data) || array_key_exists('user_type', $data);
+
+        if ($hasRelationshipInput) {
+            $data['relationship'] = $this->relationshipFrom($data);
+        }
+
+        unset($data['candidate_ids'], $data['user_type']);
+
+        $updated = $user->update($data);
+        $this->syncCandidateRelationships($user, $candidateIds, $hasRelationshipInput ? $data['relationship'] : $user->relationship);
+
+        return $updated;
     }
 
     public function updatePassword(User $user, string $password): bool
@@ -68,5 +87,35 @@ class UserRepository implements UserRepositoryInterface
     public function countVoters(): int
     {
         return User::where('is_voter', true)->count();
+    }
+
+    private function relationshipFrom(array $data): ?string
+    {
+        $relationship = $data['relationship'] ?? $data['user_type'] ?? null;
+
+        if ($relationship === null || $relationship === '') {
+            return null;
+        }
+
+        $reservedTypes = ['admin', 'aspirant', 'user', 'voter'];
+        $normalized = strtolower(trim((string) $relationship));
+
+        return in_array($normalized, $reservedTypes, true) ? null : trim((string) $relationship);
+    }
+
+    private function syncCandidateRelationships(User $user, ?array $candidateIds, ?string $relationship): void
+    {
+        if ($candidateIds === null) {
+            return;
+        }
+
+        $syncData = collect($candidateIds)
+            ->unique()
+            ->mapWithKeys(fn (int $candidateId) => [
+                $candidateId => ['relationship' => $relationship],
+            ])
+            ->all();
+
+        $user->relatedCandidates()->sync($syncData);
     }
 }

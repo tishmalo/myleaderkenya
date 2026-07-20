@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
@@ -38,6 +39,7 @@ class User extends Authenticatable
         'is_voter',
         'is_registered',
         'is_aspirant',
+        'relationship',
         'email_verified_at',
     ];
 
@@ -132,6 +134,10 @@ class User extends Authenticatable
             return 'aspirant';
         }
 
+        if (!empty($this->relationship)) {
+            return $this->relationship;
+        }
+
         if (empty($this->email) && empty($this->phone)) {
             return 'user';
         }
@@ -162,5 +168,12 @@ class User extends Authenticatable
     return $this->belongsToMany(Group::class, 'group_members')
                 ->withTimestamps();
 }
+
+    public function relatedCandidates(): BelongsToMany
+    {
+        return $this->belongsToMany(Candidate::class, 'candidate_user_relationships')
+            ->withPivot('relationship')
+            ->withTimestamps();
+    }
 }
 
