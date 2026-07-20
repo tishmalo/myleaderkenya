@@ -61,6 +61,46 @@ class Candidate extends Model
         $this->attributes['phone'] = Crypt::encryptString($phone);
     }
 
+
+    public function getPhone1Attribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setPhone1Attribute($value): void
+    {
+        $this->attributes['phone_1'] = $this->encryptNullableString($value);
+    }
+
+    public function getPhone2Attribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setPhone2Attribute($value): void
+    {
+        $this->attributes['phone_2'] = $this->encryptNullableString($value);
+    }
+
+    public function getEmail1Attribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setEmail1Attribute($value): void
+    {
+        $this->attributes['email_1'] = $this->encryptNullableString($this->normalizeEmail($value));
+    }
+
+    public function getEmail2Attribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setEmail2Attribute($value): void
+    {
+        $this->attributes['email_2'] = $this->encryptNullableString($this->normalizeEmail($value));
+    }
     public function maskedEmail(): ?string
     {
         return $this->maskEmail($this->email);
@@ -69,6 +109,24 @@ class Candidate extends Model
     public function maskedPhone(): ?string
     {
         return $this->maskPhone($this->phone);
+    }
+
+    private function encryptNullableString($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return Crypt::encryptString(trim((string) $value));
+    }
+
+    private function normalizeEmail($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return Str::lower(trim((string) $value));
     }
 
     private function decryptNullableString($value): ?string
@@ -166,3 +224,4 @@ class Candidate extends Model
             ->withTimestamps();
     }
 }
+
