@@ -6,71 +6,82 @@
 <style>
 body { background:#080808; color:#f5f5f0; }
 .asp-dash { min-height:100vh; background:#080808; }
-.asp-shell { max-width:1360px; margin:0 auto; padding:30px 28px 80px; }
-.asp-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:18px; }
-.asp-kicker { color:#00A86B; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.14em; }
-.asp-title { margin:8px 0 0; font-family:'Oswald',sans-serif; font-size:40px; line-height:1; }
-.asp-scope { margin-top:10px; color:rgba(245,245,240,.64); font-size:14px; }
-.asp-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.asp-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:0 15px; border-radius:8px; border:1px solid rgba(255,255,255,.12); color:white; text-decoration:none; font-weight:900; font-size:13px; background:#151515; white-space:nowrap; }
-.asp-btn.primary { background:#d60000; border-color:#d60000; color:white; }
-.asp-btn.danger { color:#ffb4b4; }
-.asp-alert { margin-bottom:16px; border-radius:8px; padding:14px 16px; color:#fde68a; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.28); }
-.asp-stat-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
-.asp-stat { min-height:98px; border:1px solid rgba(255,255,255,.08); background:#121212; border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; }
-.asp-stat span { color:rgba(245,245,240,.52); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; }
-.asp-stat strong { margin-top:8px; display:block; color:white; font-size:26px; line-height:1.1; font-weight:900; overflow-wrap:anywhere; }
-.asp-stat.scope strong { font-size:20px; line-height:1.2; }
-.asp-stat small { color:#00A86B; font-size:12px; font-weight:800; }
-.asp-main { display:grid; grid-template-columns:minmax(0,1.12fr) minmax(360px,.88fr); gap:18px; align-items:start; }
-.asp-panel { border:1px solid rgba(255,255,255,.08); background:#111; border-radius:8px; padding:22px; }
-.asp-panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
-.asp-panel-head > div { min-width:0; }
-.asp-panel h2 { margin:0; font-family:'Oswald',sans-serif; font-size:25px; line-height:1.1; }
-.asp-panel-note { margin:0; color:rgba(245,245,240,.5); font-size:13px; }
-.asp-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
-.asp-tool { min-height:218px; display:flex; flex-direction:column; gap:13px; border:1px solid rgba(255,255,255,.08); background:#151515; border-radius:8px; padding:18px; text-decoration:none; color:white; transition:transform .18s,border-color .18s,background .18s; }
-.asp-tool:hover { transform:translateY(-2px); border-color:rgba(0,168,107,.55); background:#181818; }
-.asp-tool.disabled { opacity:.48; cursor:not-allowed; pointer-events:none; }
-.asp-tool.disabled:hover { transform:none; border-color:rgba(255,255,255,.08); }
-.asp-tool-icon { width:44px; height:44px; border-radius:8px; display:grid; place-items:center; background:rgba(0,168,107,.13); color:#00A86B; font-size:18px; }
-.asp-tool h3 { margin:0; font-family:'Oswald',sans-serif; font-size:24px; line-height:1.15; }
-.asp-tool p { margin:0; color:rgba(245,245,240,.62); line-height:1.45; font-size:14px; }
-.asp-tool-foot { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; color:#00A86B; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
-.asp-chip { color:rgba(245,245,240,.62); font-size:11px; border:1px solid rgba(255,255,255,.13); border-radius:999px; padding:5px 10px; }
-.asp-profile-card { border:1px solid rgba(255,255,255,.08); background:#151515; border-radius:8px; padding:22px; }
-.asp-profile { display:flex; gap:18px; align-items:center; }
-.asp-avatar { width:100px; height:100px; border-radius:8px; overflow:hidden; background:#242424; display:grid; place-items:center; color:#8b8b8b; flex:0 0 auto; font-size:26px; }
+.asp-shell { max-width:1380px; margin:0 auto; padding:28px 32px 72px; }
+.asp-top { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:22px; }
+.asp-identity { display:flex; align-items:center; gap:18px; min-width:0; }
+.asp-avatar { width:86px; height:86px; border-radius:8px; overflow:hidden; background:#242424; display:grid; place-items:center; color:#8b8b8b; flex:0 0 auto; font-size:24px; }
 .asp-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
-.asp-status { display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:8px 14px; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
+.asp-kicker { margin:0 0 10px; color:rgba(245,245,240,.55); font-size:13px; font-weight:800; letter-spacing:.04em; }
+.asp-title { margin:0; font-family:'Oswald',sans-serif; font-size:34px; line-height:1.05; }
+.asp-role { margin:9px 0 0; color:rgba(245,245,240,.65); font-size:15px; }
+.asp-status { display:inline-flex; align-items:center; gap:8px; min-height:28px; border-radius:999px; padding:0 12px; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+.asp-status i { font-size:8px; }
 .asp-status.approved { background:rgba(0,168,107,.14); color:#4ade80; }
 .asp-status.pending { background:rgba(250,204,21,.14); color:#fde047; }
 .asp-status.rejected { background:rgba(239,68,68,.14); color:#fca5a5; }
-.asp-name { margin:12px 0 4px; font-size:28px; line-height:1.1; font-weight:900; }
-.asp-role { margin:0; color:rgba(245,245,240,.62); font-size:15px; }
-.asp-meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:20px; }
-.asp-meta div { min-height:92px; background:#101010; border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:15px; }
-.asp-label { display:block; color:rgba(245,245,240,.48); font-size:11px; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
-.asp-value { color:white; font-weight:900; line-height:1.35; }
-.asp-side-stack { display:grid; gap:14px; }
-.asp-table { width:100%; border-collapse:collapse; }
-.asp-table th { color:rgba(245,245,240,.45); font-size:11px; text-transform:uppercase; letter-spacing:.08em; text-align:left; padding:0 0 10px; }
-.asp-table td { border-top:1px solid rgba(255,255,255,.07); padding:12px 0; color:rgba(245,245,240,.8); font-size:13px; }
-.asp-badge { display:inline-flex; align-items:center; min-height:24px; padding:0 9px; border-radius:999px; background:rgba(0,168,107,.13); color:#4ade80; font-size:11px; font-weight:900; text-transform:uppercase; }
+.asp-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+.asp-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; padding:0 14px; border-radius:8px; border:1px solid rgba(255,255,255,.12); color:white; text-decoration:none; font-weight:800; font-size:13px; background:#151515; white-space:nowrap; }
+.asp-btn.primary { background:#d60000; border-color:#d60000; color:white; }
+.asp-btn.ghost { color:rgba(245,245,240,.72); }
+.asp-btn.danger { color:#ffb4b4; }
+.asp-btn:hover { border-color:rgba(255,255,255,.24); }
+.asp-alert { margin-bottom:16px; border-radius:8px; padding:13px 15px; color:#fde68a; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.28); }
+.asp-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+.asp-kpi { display:flex; align-items:center; gap:14px; min-height:76px; border:1px solid rgba(255,255,255,.09); background:#111; border-radius:8px; padding:14px 16px; }
+.asp-kpi-icon { width:44px; height:44px; border-radius:8px; display:grid; place-items:center; background:rgba(0,168,107,.12); color:#00A86B; font-size:18px; flex:0 0 auto; }
+.asp-kpi span { display:block; color:rgba(245,245,240,.58); font-size:12px; }
+.asp-kpi strong { display:block; margin-top:2px; color:white; font-size:24px; line-height:1; font-weight:900; }
+.asp-main { display:grid; grid-template-columns:minmax(0,1.28fr) minmax(360px,.72fr); gap:16px; align-items:start; }
+.asp-panel { border:1px solid rgba(255,255,255,.09); background:#101010; border-radius:8px; padding:20px; }
+.asp-panel + .asp-panel { margin-top:14px; }
+.asp-panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; }
+.asp-panel-head > div { min-width:0; }
+.asp-panel h2 { margin:0; font-family:'Oswald',sans-serif; font-size:23px; line-height:1.1; }
+.asp-panel-note { margin:6px 0 0; color:rgba(245,245,240,.5); font-size:13px; }
+.asp-badge { display:inline-flex; align-items:center; gap:7px; min-height:25px; padding:0 10px; border-radius:999px; background:rgba(0,168,107,.13); color:#4ade80; font-size:11px; font-weight:900; text-transform:uppercase; white-space:nowrap; }
+.asp-badge.warn { background:rgba(245,158,11,.13); color:#fbbf24; }
+.asp-tool-groups { display:grid; gap:20px; }
+.asp-tool-group-title { margin:0 0 10px; color:#00A86B; font-size:13px; font-weight:900; }
+.asp-tool-group-title.warn { color:#fbbf24; }
+.asp-tool-list { border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden; background:#111; }
+.asp-tool-row { display:grid; grid-template-columns:54px minmax(160px,.9fr) minmax(220px,1.4fr) auto; align-items:center; gap:16px; min-height:76px; padding:13px 16px; border-top:1px solid rgba(255,255,255,.07); color:white; text-decoration:none; }
+.asp-tool-row:first-child { border-top:0; }
+.asp-tool-row:hover { background:#151515; }
+.asp-tool-row.disabled { opacity:.55; cursor:not-allowed; pointer-events:none; }
+.asp-tool-icon { width:44px; height:44px; border-radius:8px; display:grid; place-items:center; background:rgba(0,168,107,.13); color:#00A86B; font-size:18px; }
+.asp-tool-title { font-weight:900; font-size:16px; }
+.asp-tool-summary { margin:0; color:rgba(245,245,240,.58); line-height:1.35; font-size:13px; }
+.asp-tool-action { display:inline-flex; align-items:center; gap:8px; justify-content:center; min-width:94px; min-height:34px; padding:0 11px; border-radius:8px; border:1px solid rgba(255,255,255,.12); color:#4ade80; font-weight:900; font-size:12px; }
+.asp-tool-action.warn { color:#fbbf24; }
+.asp-profile-compact { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+.asp-profile-compact .asp-avatar { width:70px; height:70px; }
+.asp-name { margin:8px 0 3px; font-size:24px; line-height:1.08; font-weight:900; }
+.asp-meta-list { display:grid; gap:0; border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden; }
+.asp-meta-row { display:grid; grid-template-columns:150px 1fr; gap:14px; padding:12px 14px; border-top:1px solid rgba(255,255,255,.07); }
+.asp-meta-row:first-child { border-top:0; }
+.asp-label { color:rgba(245,245,240,.48); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+.asp-value { color:rgba(245,245,240,.88); font-weight:800; line-height:1.35; overflow-wrap:anywhere; }
+.asp-profile-note { margin:14px 0 0; color:rgba(245,245,240,.62); line-height:1.5; font-size:13px; }
 .asp-empty { color:rgba(245,245,240,.55); line-height:1.55; margin:0; }
-.asp-profile-note { margin:16px 0 0; color:rgba(245,245,240,.62); line-height:1.55; font-size:13px; }
+.asp-activity { display:grid; gap:0; border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden; }
+.asp-activity-row { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:12px; border-top:1px solid rgba(255,255,255,.07); }
+.asp-activity-row:first-child { border-top:0; }
+.asp-activity-icon { width:34px; height:34px; border-radius:8px; display:grid; place-items:center; background:rgba(0,168,107,.13); color:#00A86B; font-size:14px; }
+.asp-activity-title { color:white; font-weight:900; font-size:13px; }
+.asp-activity-meta { margin-top:2px; color:rgba(245,245,240,.52); font-size:12px; }
+.asp-activity-time { color:rgba(245,245,240,.58); font-size:12px; white-space:nowrap; }
 .asp-bars { display:grid; gap:12px; }
 .asp-poll-question { margin:0 0 14px; color:rgba(245,245,240,.86); font-weight:800; line-height:1.45; }
-.asp-bar-row { display:grid; grid-template-columns:minmax(82px,1fr) 1.5fr 70px; align-items:center; gap:10px; color:rgba(245,245,240,.74); font-size:13px; }
+.asp-bar-row { display:grid; grid-template-columns:minmax(80px,1fr) 1.4fr 62px; align-items:center; gap:10px; color:rgba(245,245,240,.74); font-size:12px; }
 .asp-bar-row span { overflow-wrap:anywhere; }
 .asp-bar-row strong { text-align:right; color:white; font-size:12px; }
-.asp-bar-track { height:9px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
+.asp-bar-track { height:8px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
 .asp-bar-fill { height:100%; border-radius:999px; background:#00A86B; }
 .asp-bars .asp-bar-row:nth-child(2) .asp-bar-fill { background:#ef4444; }
 .asp-bars .asp-bar-row:nth-child(3) .asp-bar-fill { background:#f59e0b; }
 .asp-bars .asp-bar-row:nth-child(4) .asp-bar-fill { background:#3b82f6; }
-@media (max-width:1100px) { .asp-stat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .asp-main { grid-template-columns:1fr; } }
-@media (max-width:760px) { .asp-shell { padding:24px 16px 64px; } .asp-hero { align-items:flex-start; flex-direction:column; } .asp-stat-grid,.asp-tools,.asp-meta { grid-template-columns:1fr; } .asp-profile { align-items:flex-start; flex-direction:column; } }
+@media (max-width:1100px) { .asp-main { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:50px minmax(150px,.8fr) minmax(200px,1.2fr) auto; } }
+@media (max-width:760px) { .asp-shell { padding:24px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -79,23 +90,36 @@ body { background:#080808; color:#f5f5f0; }
 @php
     $status = $candidate?->approval_status ?? 'approved';
     $scopeLabel = $voterScope['label'] ?? 'Kenya';
-    $smsReady = collect($toolModules)->firstWhere('key', 'bulk-sms')['available'] ?? false;
     $scopeMissing = (bool) ($voterScope['missing'] ?? false);
+    $readyModules = collect($toolModules)->where('available', true)->values();
+    $setupModules = collect($toolModules)->where('available', false)->values();
 @endphp
 
 <main class="asp-dash">
     <div class="asp-shell">
-        <div class="asp-hero">
-            <div>
-                <div class="asp-kicker">Aspirant Workspace</div>
-                <h1 class="asp-title">Campaign Dashboard</h1>
-                <div class="asp-scope">Voting bloc: {{ $scopeLabel }}</div>
+        <div class="asp-top">
+            <div class="asp-identity">
+                <div class="asp-avatar">
+                    @if($candidate?->profile_picture)
+                        <img src="{{ Storage::url($candidate->profile_picture) }}" alt="{{ $candidate->name }}">
+                    @else
+                        <i class="fas fa-user"></i>
+                    @endif
+                </div>
+                <div>
+                    <p class="asp-kicker">Aspirant Dashboard</p>
+                    <h1 class="asp-title">{{ $candidate?->name ?? $user->name }}</h1>
+                    <p class="asp-role">{{ $candidate?->position?->name ?? 'Campaign workspace' }} · {{ $scopeLabel }}</p>
+                </div>
             </div>
             <div class="asp-actions">
-                <a href="{{ route('campaign-tools.public') }}" class="asp-btn"><i class="fas fa-toolbox"></i> All Tools</a>
+                @if($candidate)
+                    <span class="asp-status {{ $status }}"><i class="fas fa-circle"></i> {{ ucfirst($status) }}</span>
+                @endif
                 @if($candidate && $status === 'approved')
                     <a href="{{ route('aspirants.show', $candidate) }}" class="asp-btn primary"><i class="fas fa-eye"></i> Public Profile</a>
                 @endif
+                <a href="{{ route('campaign-tools.public') }}" class="asp-btn ghost"><i class="fas fa-toolbox"></i> All Tools</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="asp-btn danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -111,12 +135,10 @@ body { background:#080808; color:#f5f5f0; }
             <div class="asp-alert">{{ $voterScope['message'] ?? 'Ask an admin to complete your campaign jurisdiction before using voter-facing tools.' }}</div>
         @endif
 
-        <section class="asp-stat-grid" aria-label="Campaign summary">
-            <div class="asp-stat scope"><span>Voting Bloc</span><strong>{{ $scopeLabel }}</strong><small>Locked audience</small></div>
-            <div class="asp-stat"><span>Scoped Voters</span><strong>{{ number_format($dashboardStats['scoped_voters'] ?? 0) }}</strong><small>Registered voters</small></div>
-            <div class="asp-stat"><span>Reachable Phones</span><strong>{{ number_format($dashboardStats['reachable_voters'] ?? 0) }}</strong><small>SMS eligible</small></div>
-            <div class="asp-stat"><span>Active Polls</span><strong>{{ number_format($dashboardStats['active_polls'] ?? 0) }}</strong><small>Bloc analytics</small></div>
-            <div class="asp-stat"><span>Bulk SMS</span><strong>{{ $smsReady ? 'Ready' : 'Setup' }}</strong><small>{{ $smsReady ? 'Credentials active' : 'Admin required' }}</small></div>
+        <section class="asp-kpis" aria-label="Campaign summary">
+            <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-users"></i></div><div><span>Voters</span><strong>{{ number_format($dashboardStats['scoped_voters'] ?? 0) }}</strong></div></div>
+            <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-phone"></i></div><div><span>Reachable phones</span><strong>{{ number_format($dashboardStats['reachable_voters'] ?? 0) }}</strong></div></div>
+            <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-square-poll-vertical"></i></div><div><span>Active polls</span><strong>{{ number_format($dashboardStats['active_polls'] ?? 0) }}</strong></div></div>
         </section>
 
         <div class="asp-main">
@@ -124,30 +146,58 @@ body { background:#080808; color:#f5f5f0; }
                 <div class="asp-panel-head">
                     <div>
                         <h2>Campaign Tools</h2>
-                        <p class="asp-panel-note">Only enabled tools open. Disabled tools stay visible for setup tracking.</p>
+                        <p class="asp-panel-note">Ready tools are available now. Setup items stay visible without taking over the page.</p>
                     </div>
-                    <span class="asp-badge">{{ $dashboardStats['enabled_tools'] ?? 0 }} Ready</span>
+                    <span class="asp-badge"><i class="fas fa-circle"></i> {{ $dashboardStats['enabled_tools'] ?? 0 }} Ready</span>
                 </div>
 
-                <div class="asp-tools">
-                    @foreach($toolModules as $module)
-                        <a href="{{ $module['url'] }}" class="asp-tool {{ $module['available'] ? '' : 'disabled' }}" title="{{ $module['disabled_reason'] ?? '' }}" aria-disabled="{{ $module['available'] ? 'false' : 'true' }}">
-                            <div class="asp-tool-icon"><i class="{{ str_starts_with($module['icon'], 'fa-brands') ? $module['icon'] : 'fas ' . $module['icon'] }}"></i></div>
-                            <h3>{{ $module['title'] }}</h3>
-                            <p>{{ $module['summary'] }}</p>
-                            <div class="asp-tool-foot">
-                                <span>{{ $module['available'] ? 'Open Tool' : 'Setup Required' }}</span>
-                                <span class="asp-chip">{{ $module['available'] ? 'Ready' : 'Setup' }}</span>
+                <div class="asp-tool-groups">
+                    <div>
+                        <p class="asp-tool-group-title">Ready</p>
+                        @if($readyModules->isNotEmpty())
+                            <div class="asp-tool-list">
+                                @foreach($readyModules as $module)
+                                    <a href="{{ $module['url'] }}" class="asp-tool-row" title="{{ $module['disabled_reason'] ?? '' }}">
+                                        <div class="asp-tool-icon"><i class="{{ str_starts_with($module['icon'], 'fa-brands') ? $module['icon'] : 'fas ' . $module['icon'] }}"></i></div>
+                                        <div class="asp-tool-title">{{ $module['title'] }}</div>
+                                        <p class="asp-tool-summary">{{ $module['summary'] }}</p>
+                                        <span class="asp-tool-action">Open <i class="fas fa-chevron-right"></i></span>
+                                    </a>
+                                @endforeach
                             </div>
-                        </a>
-                    @endforeach
+                        @else
+                            <p class="asp-empty">No tools are ready yet. Setup items are listed below.</p>
+                        @endif
+                    </div>
+
+                    @if($setupModules->isNotEmpty())
+                        <div>
+                            <p class="asp-tool-group-title warn">Setup needed</p>
+                            <div class="asp-tool-list">
+                                @foreach($setupModules as $module)
+                                    <a href="#" class="asp-tool-row disabled" title="{{ $module['disabled_reason'] ?? '' }}" aria-disabled="true">
+                                        <div class="asp-tool-icon"><i class="{{ str_starts_with($module['icon'], 'fa-brands') ? $module['icon'] : 'fas ' . $module['icon'] }}"></i></div>
+                                        <div class="asp-tool-title">{{ $module['title'] }}</div>
+                                        <p class="asp-tool-summary">{{ $module['disabled_reason'] ?: $module['summary'] }}</p>
+                                        <span class="asp-tool-action warn">Setup <i class="fas fa-chevron-right"></i></span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </section>
 
-            <aside class="asp-side-stack">
-                <section class="asp-profile-card">
+            <aside>
+                <section class="asp-panel">
+                    <div class="asp-panel-head">
+                        <h2>Candidate Profile</h2>
+                        @if($candidate)
+                            <span class="asp-status {{ $status }}"><i class="fas fa-circle"></i> {{ ucfirst($status) }}</span>
+                        @endif
+                    </div>
                     @if($candidate)
-                        <div class="asp-profile">
+                        <div class="asp-profile-compact">
                             <div class="asp-avatar">
                                 @if($candidate->profile_picture)
                                     <img src="{{ Storage::url($candidate->profile_picture) }}" alt="{{ $candidate->name }}">
@@ -156,17 +206,16 @@ body { background:#080808; color:#f5f5f0; }
                                 @endif
                             </div>
                             <div>
-                                <span class="asp-status {{ $status }}"><i class="fas fa-circle"></i> {{ ucfirst($status) }}</span>
-                                <h2 class="asp-name">{{ $candidate->name }}</h2>
+                                <h3 class="asp-name">{{ $candidate->name }}</h3>
                                 <p class="asp-role">{{ $candidate->position->name ?? 'Aspirant' }}</p>
                             </div>
                         </div>
 
-                        <div class="asp-meta">
-                            <div><span class="asp-label">Political Party</span><span class="asp-value">{{ $candidate->politicalParty->name ?? 'Independent / Not set' }}</span></div>
-                            <div><span class="asp-label">County</span><span class="asp-value">{{ $candidate->county ?: '-' }}</span></div>
-                            <div><span class="asp-label">Constituency</span><span class="asp-value">{{ $candidate->constituency ?: '-' }}</span></div>
-                            <div><span class="asp-label">Ward</span><span class="asp-value">{{ $candidate->ward ?: '-' }}</span></div>
+                        <div class="asp-meta-list">
+                            <div class="asp-meta-row"><span class="asp-label">Political Party</span><span class="asp-value">{{ $candidate->politicalParty->name ?? 'Independent / Not set' }}</span></div>
+                            <div class="asp-meta-row"><span class="asp-label">County</span><span class="asp-value">{{ $candidate->county ?: '-' }}</span></div>
+                            <div class="asp-meta-row"><span class="asp-label">Constituency</span><span class="asp-value">{{ $candidate->constituency ?: '-' }}</span></div>
+                            <div class="asp-meta-row"><span class="asp-label">Ward</span><span class="asp-value">{{ $candidate->ward ?: '-' }}</span></div>
                         </div>
 
                         @if($status === 'pending')
@@ -186,19 +235,18 @@ body { background:#080808; color:#f5f5f0; }
                         <span class="asp-badge">Live</span>
                     </div>
                     @if(! empty($recentOutreach))
-                        <table class="asp-table">
-                            <thead><tr><th>Channel</th><th>Audience</th><th>Status</th><th>Sent</th></tr></thead>
-                            <tbody>
-                                @foreach($recentOutreach as $item)
-                                    <tr>
-                                        <td>{{ $item['channel'] }}</td>
-                                        <td>{{ $item['audience'] }}<br><span style="color:rgba(245,245,240,.42);">{{ number_format($item['recipients']) }} recipients</span></td>
-                                        <td><span class="asp-badge">{{ $item['status'] }}</span></td>
-                                        <td>{{ $item['last_sent'] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div class="asp-activity">
+                            @foreach($recentOutreach as $item)
+                                <div class="asp-activity-row">
+                                    <div class="asp-activity-icon"><i class="fas fa-comment-sms"></i></div>
+                                    <div>
+                                        <div class="asp-activity-title">{{ $item['channel'] }} {{ strtolower($item['status']) }}</div>
+                                        <div class="asp-activity-meta">{{ $item['audience'] }} · {{ number_format($item['recipients']) }} recipients</div>
+                                    </div>
+                                    <div class="asp-activity-time">{{ $item['last_sent'] }}</div>
+                                </div>
+                            @endforeach
+                        </div>
                     @else
                         <p class="asp-empty">Queued SMS and campaign activity will appear here after the first outreach job.</p>
                     @endif
@@ -221,12 +269,12 @@ body { background:#080808; color:#f5f5f0; }
                                 <div class="asp-bar-row">
                                     <span>{{ $option['label'] }}</span>
                                     <div class="asp-bar-track"><div class="asp-bar-fill" style="width:{{ $option['percentage'] }}%"></div></div>
-                                    <strong>{{ $option['percentage'] }}% / {{ number_format($option['count']) }}</strong>
+                                    <strong>{{ $option['percentage'] }}%</strong>
                                 </div>
                             @endforeach
                         </div>
                     @else
-                        <p class="asp-empty">Poll results will appear here once you publish a poll and voters in {{ $scopeLabel }} start responding.</p>
+                        <p class="asp-empty">Poll results will appear here once voters in {{ $scopeLabel }} start responding.</p>
                     @endif
                 </section>
             </aside>
