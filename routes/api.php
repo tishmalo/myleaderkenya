@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\DonorController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\CoalitionController as ApiCoalitionController;
 use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyController;
+use App\Http\Controllers\Api\PositionController as ApiPositionController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\AspirantController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -64,6 +65,7 @@ Route::get('/parties', [ApiPoliticalPartyController::class, 'list']);
 Route::get('/parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
 Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
 Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+Route::get('/positions', [ApiPositionController::class, 'list']);
 Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
 Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
 Route::get('/aspirants', [AspirantController::class, 'list']);
@@ -125,4 +127,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
+
 

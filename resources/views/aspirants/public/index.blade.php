@@ -1,12 +1,17 @@
 @extends('layouts.landing')
-@php($aspirantSeo = $aspirantSeo ?? [
-    'heading' => 'Kenya Presidential Aspirants',
-    'description' => 'Meet the candidates and aspirants seeking to lead Kenya into its next chapter.',
-    'meta_title' => 'Kenya Presidential Candidates and Aspirants 2027 Kenya Elections',
-    'meta_description' => 'Find Kenya presidential candidates and aspirants for the 2027 Kenya elections.',
-])
-@section('title', $aspirantSeo['meta_title'])
-@section('meta_description', $aspirantSeo['meta_description'])
+
+@php
+    $aspirantSeo = $aspirantSeo ?? [
+        'heading' => 'Kenya Presidential Aspirants',
+        'description' => 'Meet the candidates and aspirants seeking to lead Kenya into its next chapter.',
+        'meta_title' => 'Kenya Presidential Candidates and Aspirants 2027 Kenya Elections',
+        'meta_description' => 'Find Kenya presidential candidates and aspirants for the 2027 Kenya elections.',
+    ];
+@endphp
+
+@section('title'){{ $aspirantSeo['meta_title'] }}@endsection
+@section('meta_description'){{ $aspirantSeo['meta_description'] }}@endsection
+
 @section('content')
 
 <style>
@@ -462,10 +467,6 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- RESULTS META -->
-@php
-    $candidateFilter = request('candidate') ?: request('search');
-@endphp
-
 <div class="results-meta">
     <div class="results-count">
         @if($showLocationGroups ?? false)
@@ -572,6 +573,4 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
-
-
 
