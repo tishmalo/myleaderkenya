@@ -452,18 +452,12 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </style>
 
 <!-- HERO -->
-@php
-    $heroHeading = trim($aspirantSeo['heading']);
-    $heroHeadingWords = preg_split('/\s+/', $heroHeading) ?: [];
-    $heroHeadingEmphasis = count($heroHeadingWords) > 1 ? array_pop($heroHeadingWords) : $heroHeading;
-    $heroHeadingPrefix = count($heroHeadingWords) > 0 ? implode(' ', $heroHeadingWords) : '';
-@endphp
     <div class="asp-hero-stripe"></div>
     @include('components.frontend-nav')
 <div class="asp-hero">
     
     <div class="asp-hero-eyebrow"><span class="dot"></span> General Election 2027</div>
-    <h1>@if($heroHeadingPrefix){{ $heroHeadingPrefix }} @endif<em>{{ $heroHeadingEmphasis }}</em></h1>
+    <h1>{{ $aspirantSeo['heading'] }}</h1>
     <p>{{ $aspirantSeo['description'] }}</p>
 </div>
 
@@ -578,4 +572,5 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
 
