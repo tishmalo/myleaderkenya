@@ -478,8 +478,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         @else
             Showing <strong>{{ $candidates->total() }}</strong> aspirant{{ $candidates->total() != 1 ? 's' : '' }}
         @endif
-        @if($candidateFilter)
-            matching <strong>{{ $candidateFilter }}</strong>
+        @if(request('candidate') ?: request('search'))
+            matching <strong>{{ request('candidate') ?: request('search') }}</strong>
         @endif
         @if(request('position'))
             for selected position
@@ -572,5 +572,6 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
 
 
