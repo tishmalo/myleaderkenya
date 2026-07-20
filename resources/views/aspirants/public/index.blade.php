@@ -130,8 +130,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
 }
 
 .location-card-grid {
@@ -265,7 +265,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* Photo area */
 .asp-card-photo {
-    position: relative; height: 220px; overflow: hidden;
+    position: relative; height: 180px; overflow: hidden;
 }
 .asp-card-photo img {
     width: 100%; height: 100%;
@@ -320,23 +320,23 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* Card body */
 .asp-card-body {
-    padding: 20px 22px 22px;
+    padding: 16px;
     flex: 1; display: flex; flex-direction: column;
 }
 .asp-card-name {
     font-family: 'Oswald', sans-serif;
-    font-size: 22px; font-weight: 700;
+    font-size: 20px; font-weight: 700;
     line-height: 1.1; margin-bottom: 4px;
     color: var(--kenya-white);
 }
 .asp-card-nick {
     font-size: 13px; color: rgba(0,168,107,0.8);
-    font-style: italic; margin-bottom: 14px;
+    font-style: italic; margin-bottom: 10px;
 }
 .asp-card-location {
     display: flex; align-items: center; gap: 6px;
     font-size: 12px; color: rgba(245,245,240,0.35);
-    margin-bottom: 18px;
+    margin-bottom: 12px;
 }
 .asp-card-location i { font-size: 10px; }
 
@@ -344,12 +344,12 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 .asp-card-divider {
     height: 1px;
     background: linear-gradient(90deg, rgba(0,168,107,0.2), rgba(187,0,0,0.2), transparent);
-    margin-bottom: 18px;
+    margin-bottom: 12px;
 }
 
 .asp-card-action {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px;
+    padding: 10px 12px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 10px;
@@ -427,7 +427,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-    .asp-grid { grid-template-columns: 1fr; padding: 0 16px 60px; }
+    .asp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px 60px; }
     .location-card-grid { padding: 0 16px 60px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .location-card { min-height: 190px; }
     .location-card-label { font-size: 20px; padding: 12px 26px; }
@@ -437,6 +437,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     .results-meta { padding: 0 16px; }
 }
 @media (max-width: 480px) {
+    .asp-grid { grid-template-columns: 1fr; }
     .location-card-grid { grid-template-columns: 1fr; }
     .county-aspirant-grid { grid-template-columns: 1fr; }
 }

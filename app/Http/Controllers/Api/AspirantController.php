@@ -31,7 +31,7 @@ class AspirantController extends Controller
             ->when($request->query('county'), fn ($query, $county) => $query->where('county', $county))
             ->when($request->query('constituency'), fn ($query, $constituency) => $query->where('constituency', $constituency))
             ->when($request->query('ward'), fn ($query, $ward) => $query->where('ward', $ward))
-            ->when($request->query('position'), function ($query, $position) {
+            ->when($request->query('position', 'president'), function ($query, $position) {
                 if (is_numeric($position)) {
                     $query->where('position_id', $position);
                     return;

@@ -151,7 +151,11 @@ class CandidateController extends Controller
 
     public function publicIndex(Request $request)
     {
-        $data = $this->candidateService->getPublicIndex($request->only(['candidate', 'search', 'position', 'political_party', 'country', 'county', 'constituency', 'ward', 'bloc']), 12);
+        if (! $request->filled('position')) {
+            $request->merge(['position' => 'president']);
+        }
+
+        $data = $this->candidateService->getPublicIndex($request->only(['candidate', 'search', 'position', 'political_party', 'country', 'county', 'constituency', 'ward', 'bloc']), 4);
         return view('aspirants.public.index', $data);
     }
 
