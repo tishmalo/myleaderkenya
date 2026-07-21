@@ -5,7 +5,19 @@
 @section('content')
 <style>
 body { background:#090909; color:#f5f5f0; }
-.token-wrap { max-width:1180px; margin:0 auto; padding:38px 24px 80px; }
+.token-wrap { max-width:1440px; margin:0 auto; padding:26px 32px 80px; display:grid; grid-template-columns:280px minmax(0,1fr); gap:22px; align-items:start; }
+.token-content { min-width:0; }
+.asp-sidebar { position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; border:1px solid rgba(255,255,255,.09); border-radius:8px; background:#101010; padding:18px; display:flex; flex-direction:column; }
+.asp-sidebar-brand { border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:16px; margin-bottom:14px; }
+.asp-sidebar-brand span { display:block; color:#00A86B; font-size:11px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+.asp-sidebar-brand strong { display:block; margin-top:4px; color:#fff; font-family:'Oswald',sans-serif; font-size:25px; line-height:1; }
+.asp-sidebar-nav { display:grid; gap:7px; flex:1; }
+.asp-sidebar-link { display:flex; align-items:center; gap:11px; min-height:42px; padding:0 12px; border:1px solid transparent; border-radius:8px; color:rgba(245,245,240,.66); text-decoration:none; font-weight:800; font-size:13px; }
+.asp-sidebar-link i { width:18px; color:#00A86B; text-align:center; }
+.asp-sidebar-link:hover,.asp-sidebar-link.active { color:#fff; background:#171717; border-color:rgba(0,168,107,.26); }
+.asp-sidebar-footer { margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08); }
+.asp-sidebar-logout { width:100%; display:flex; align-items:center; gap:11px; min-height:42px; padding:0 12px; border:1px solid rgba(239,68,68,.22); border-radius:8px; background:rgba(239,68,68,.08); color:#ffb4b4; font:inherit; font-size:13px; font-weight:900; cursor:pointer; }
+.asp-sidebar-logout i { width:18px; text-align:center; }
 .token-top { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:24px; }
 .token-title { margin:0; font-family:'Oswald',sans-serif; font-size:38px; color:#fff; }
 .token-sub { margin:8px 0 0; color:rgba(245,245,240,.62); }
@@ -24,11 +36,16 @@ body { background:#090909; color:#f5f5f0; }
 .token-table th,.token-table td { padding:10px; border-top:1px solid rgba(255,255,255,.07); text-align:left; font-size:13px; }
 .token-table th { color:rgba(245,245,240,.48); text-transform:uppercase; font-size:11px; }
 .token-alert { margin-bottom:14px; border:1px solid rgba(34,197,94,.3); border-radius:8px; background:rgba(34,197,94,.12); color:#bbf7d0; padding:14px; }
+@media (max-width:1100px) { .token-wrap { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } }
 @media (max-width:900px) { .token-grid,.package-grid { grid-template-columns:1fr; } .token-top { flex-direction:column; } }
+@media (max-width:760px) { .token-wrap { padding:22px 16px 64px; } }
 </style>
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
 <main class="token-wrap">
+    @include('components.aspirant-sidebar')
+
+    <div class="token-content">
     <div class="token-top">
         <div>
             <h1 class="token-title">Campaign Tokens</h1>
@@ -89,5 +106,7 @@ body { background:#090909; color:#f5f5f0; }
             </tbody>
         </table>
     </section>
+    </div>
 </main>
 @endsection
+
