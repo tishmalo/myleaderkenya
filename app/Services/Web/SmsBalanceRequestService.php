@@ -6,10 +6,14 @@ use App\Contracts\Repositories\Admin\CandidateSmsBalanceRequestRepositoryInterfa
 use App\Models\Candidate;
 use App\Models\CandidateSmsBalanceRequest;
 use App\Models\User;
+use App\Services\Sms\InfobipSmsService;
 
 class SmsBalanceRequestService
 {
-    public function __construct(private CandidateSmsBalanceRequestRepositoryInterface $requests) {}
+    public function __construct(
+        private CandidateSmsBalanceRequestRepositoryInterface $requests,
+        private InfobipSmsService $smsService
+    ) {}
 
     public function createForAspirant(Candidate $candidate, User $user, array $data): CandidateSmsBalanceRequest
     {
@@ -37,3 +41,4 @@ class SmsBalanceRequestService
         return $this->requests->paginate($filters);
     }
 }
+

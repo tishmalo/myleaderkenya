@@ -15,6 +15,7 @@ use App\Models\CandidateSmsBalanceRequest;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupMessage;
+use App\Services\Sms\InfobipSmsService;
 use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +32,8 @@ class AspirantToolController extends Controller
     public function __construct(
         private AspirantWorkspaceService $workspaceService,
         private CandidateSmsMessageRepositoryInterface $smsMessageRepository,
-        private AspirantTokenService $tokenService
+        private AspirantTokenService $tokenService,
+        private InfobipSmsService $smsService
     ) {}
 
     public function show(Request $request, string $key): View|RedirectResponse
@@ -111,6 +113,9 @@ class AspirantToolController extends Controller
         $smsBalanceRequest = $key === 'bulk-sms'
             ? CandidateSmsBalanceRequest::where('candidate_id', $candidate->id)->latest()->first()
             : null;
+        $smsProviderBalance = $key === 'bulk-sms' && $candidate->smsSetting?->isReady()
+            ? $this->smsService->accountBalance($candidate->smsSetting)
+            : null;
 
         $callLogs = $key === 'call-center'
             ? CandidateCallLog::with(['caller', 'voter'])
@@ -138,6 +143,7 @@ class AspirantToolController extends Controller
             'tokenRates' => $tokenRates,
             'bulkSmsQuote' => $bulkSmsQuote,
             'smsBalanceRequest' => $smsBalanceRequest,
+            'smsProviderBalance' => $smsProviderBalance,
         ]);
     }
 
@@ -559,6 +565,7 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
+
 
 
 

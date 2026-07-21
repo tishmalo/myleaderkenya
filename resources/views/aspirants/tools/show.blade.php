@@ -122,8 +122,15 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                     @if($module['key'] === 'bulk-sms')
                         <div class="tool-balance-card">
                             <span>SMS Balance</span>
-                            <strong>{{ $smsBalanceRequest ? str_replace('_', ' ', ucfirst($smsBalanceRequest->status)) : 'Admin managed' }}</strong>
-                            <small>{{ $smsBalanceRequest?->admin_notes ?: 'Provider SMS balance is separate from tokens. Request admin support below.' }}</small>
+                            <strong>{{ $smsProviderBalance['formatted'] ?? 'Unavailable' }}</strong>
+                            <small>
+                                Pulled from the Bulk SMS provider account.
+                                @if(! empty($smsProviderBalance['error']))
+                                    {{ $smsProviderBalance['error'] }}
+                                @elseif($smsBalanceRequest)
+                                    Latest support request: {{ str_replace('_', ' ', ucfirst($smsBalanceRequest->status)) }}.
+                                @endif
+                            </small>
                         </div>
                     @else
                         <div class="tool-balance-card">
