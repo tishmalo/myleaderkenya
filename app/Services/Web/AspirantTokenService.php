@@ -10,6 +10,7 @@ use App\Contracts\Repositories\Web\CandidateTokenWalletRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\CandidateSmsMessage;
 use App\Models\CandidateTokenPackage;
+use App\Models\CandidateTokenRate;
 use App\Models\CandidateTokenTransaction;
 use App\Models\CandidateTokenWallet;
 use App\Models\User;
@@ -44,12 +45,28 @@ class AspirantTokenService
 
     public function activePackages()
     {
-        return $this->packageRepository->active();
+        $packages = $this->packageRepository->active();
+
+        if ($packages->isEmpty()) {
+            $this->ensureDefaultPackages();
+
+            return $this->packageRepository->active();
+        }
+
+        return $packages;
     }
 
     public function activeRates()
     {
-        return $this->rateRepository->active();
+        $rates = $this->rateRepository->active();
+
+        if ($rates->isEmpty()) {
+            $this->ensureDefaultRates();
+
+            return $this->rateRepository->active();
+        }
+
+        return $rates;
     }
 
     public function quoteFixed(string $actionKey, int $quantity = 1): array
@@ -304,9 +321,55 @@ class AspirantTokenService
         $rate = $this->rateRepository->findActiveByActionKey($actionKey);
 
         if (! $rate) {
+            $this->ensureDefaultRates();
+            $rate = $this->rateRepository->findActiveByActionKey($actionKey);
+        }
+
+        if (! $rate) {
             throw new RuntimeException("No active token rate is configured for {$actionKey}.");
         }
 
         return $rate;
+    }
+
+    private function ensureDefaultPackages(): void
+    {
+        foreach ($this->defaultPackages() as $package) {
+            CandidateTokenPackage::firstOrCreate(
+                ['name' => $package['name']],
+                $package + ['is_active' => true]
+            );
+        }
+    }
+
+    private function ensureDefaultRates(): void
+    {
+        foreach ($this->defaultRates() as $rate) {
+            CandidateTokenRate::firstOrCreate(
+                ['action_key' => $rate['action_key']],
+                $rate + ['is_active' => true]
+            );
+        }
+    }
+
+    private function defaultPackages(): array
+    {
+        return [
+            ['name' => 'Starter', 'token_amount' => 100, 'price' => 1000, 'currency' => 'KES', 'description' => 'Entry package for light campaign activity.', 'sort_order' => 10],
+            ['name' => 'Growth', 'token_amount' => 300, 'price' => 2500, 'currency' => 'KES', 'description' => 'Useful for weekly voter engagement.', 'sort_order' => 20],
+            ['name' => 'Campaign', 'token_amount' => 800, 'price' => 6000, 'currency' => 'KES', 'description' => 'Larger package for active outreach teams.', 'sort_order' => 30],
+        ];
+    }
+
+    private function defaultRates(): array
+    {
+        return [
+            ['action_key' => 'bulk-sms', 'label' => 'Bulk SMS', 'calculation_type' => 'per_sms_unit', 'token_amount' => 1, 'description' => 'Charged per valid recipient per SMS segment.', 'sort_order' => 10],
+            ['action_key' => 'poll-draft', 'label' => 'Poll Draft Save', 'calculation_type' => 'fixed', 'token_amount' => 1, 'description' => 'Charged when saving an opinion poll draft.', 'sort_order' => 20],
+            ['action_key' => 'poll-publish', 'label' => 'Poll Publish', 'calculation_type' => 'per_recipient', 'token_amount' => 1, 'description' => 'Charged per voter in the scoped poll audience.', 'sort_order' => 30],
+            ['action_key' => 'call-script-save', 'label' => 'Call Script Save', 'calculation_type' => 'fixed', 'token_amount' => 1, 'description' => 'Charged when saving a call center script.', 'sort_order' => 40],
+            ['action_key' => 'call-log', 'label' => 'Call Log', 'calculation_type' => 'fixed', 'token_amount' => 1, 'description' => 'Charged for each recorded call outcome.', 'sort_order' => 50],
+            ['action_key' => 'campaign-website-request', 'label' => 'Campaign Website Request', 'calculation_type' => 'fixed', 'token_amount' => 10, 'description' => 'Charged when submitting a campaign website request.', 'sort_order' => 60],
+        ];
     }
 }
