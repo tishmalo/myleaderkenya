@@ -51,4 +51,15 @@
             </a>
         @endforeach
     </nav>
+
+    <div class="asp-sidebar-footer">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="asp-sidebar-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </form>
+    </div>
 </aside>
+

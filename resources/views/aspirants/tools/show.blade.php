@@ -9,7 +9,19 @@ body { font-family:'Barlow',sans-serif; background:#090909; color:#f5f5f0; }
 h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .flag-stripe { height:4px; background:linear-gradient(90deg,#006600 33%,#111 33% 66%,#BB0000 66%); }
 .tool-page { min-height:100vh; background:#090909; }
-.tool-wrap { max-width:1280px; margin:0 auto; padding:42px 28px 84px; }
+.tool-wrap { max-width:1440px; margin:0 auto; padding:26px 32px 84px; display:grid; grid-template-columns:280px minmax(0,1fr); gap:22px; align-items:start; }
+.tool-content { min-width:0; }
+.asp-sidebar { position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; border:1px solid rgba(255,255,255,.09); border-radius:8px; background:#101010; padding:18px; display:flex; flex-direction:column; }
+.asp-sidebar-brand { border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:16px; margin-bottom:14px; }
+.asp-sidebar-brand span { display:block; color:#00A86B; font-size:11px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+.asp-sidebar-brand strong { display:block; margin-top:4px; color:#fff; font-family:'Oswald',sans-serif; font-size:25px; line-height:1; }
+.asp-sidebar-nav { display:grid; gap:7px; flex:1; }
+.asp-sidebar-link { display:flex; align-items:center; gap:11px; min-height:42px; padding:0 12px; border:1px solid transparent; border-radius:8px; color:rgba(245,245,240,.66); text-decoration:none; font-weight:800; font-size:13px; }
+.asp-sidebar-link i { width:18px; color:#00A86B; text-align:center; }
+.asp-sidebar-link:hover,.asp-sidebar-link.active { color:#fff; background:#171717; border-color:rgba(0,168,107,.26); }
+.asp-sidebar-footer { margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08); }
+.asp-sidebar-logout { width:100%; display:flex; align-items:center; gap:11px; min-height:42px; padding:0 12px; border:1px solid rgba(239,68,68,.22); border-radius:8px; background:rgba(239,68,68,.08); color:#ffb4b4; font:inherit; font-size:13px; font-weight:900; cursor:pointer; }
+.asp-sidebar-logout i { width:18px; text-align:center; }
 .tool-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:24px; }
 .tool-kicker { color:#00A86B; font-size:12px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; }
 .tool-title { margin:8px 0 0; color:#fff; font-size:42px; line-height:1; }
@@ -76,7 +88,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .sms-cost-grid div { border:1px solid rgba(0,168,107,.18); border-radius:8px; background:#0b0f0d; padding:12px; }
 .sms-cost-grid span { display:block; color:rgba(245,245,240,.5); font-size:10px; text-transform:uppercase; font-weight:800; }
 .sms-cost-grid strong { display:block; margin-top:4px; color:#fff; font-size:17px; }
+@media (max-width:1100px) { .tool-wrap { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } }
 @media (max-width:980px) { .tool-grid,.tool-stats,.tool-balance-strip,.sms-cost-grid { grid-template-columns:1fr; } .tool-top { flex-direction:column; } }
+@media (max-width:760px) { .tool-wrap { padding:22px 16px 64px; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -84,6 +98,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 
 <main class="tool-page">
     <div class="tool-wrap">
+        @include('components.aspirant-sidebar')
+
+        <div class="tool-content">
         <div class="tool-top">
             <div>
                 <div class="tool-kicker">Aspirant Tool</div>
@@ -499,6 +516,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
             </aside>
         </div>
     </div>
+    </div>
 </main>
 
 <script>
@@ -685,6 +703,8 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
 </script>
 
 @endsection
+
+
 
 
 

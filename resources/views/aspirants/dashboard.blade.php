@@ -7,14 +7,17 @@
 body { background:#080808; color:#f5f5f0; }
 .asp-dash { min-height:100vh; background:#080808; }
 .asp-layout { max-width:1440px; margin:0 auto; padding:26px 32px 72px; display:grid; grid-template-columns:280px minmax(0,1fr); gap:22px; align-items:start; }
-.asp-sidebar { position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; border:1px solid rgba(255,255,255,.09); border-radius:8px; background:#101010; padding:18px; }
+.asp-sidebar { position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; border:1px solid rgba(255,255,255,.09); border-radius:8px; background:#101010; padding:18px; display:flex; flex-direction:column; }
 .asp-sidebar-brand { border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:16px; margin-bottom:14px; }
 .asp-sidebar-brand span { display:block; color:#00A86B; font-size:11px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
 .asp-sidebar-brand strong { display:block; margin-top:4px; color:#fff; font-family:'Oswald',sans-serif; font-size:25px; line-height:1; }
-.asp-sidebar-nav { display:grid; gap:7px; }
+.asp-sidebar-nav { display:grid; gap:7px; flex:1; }
 .asp-sidebar-link { display:flex; align-items:center; gap:11px; min-height:42px; padding:0 12px; border:1px solid transparent; border-radius:8px; color:rgba(245,245,240,.66); text-decoration:none; font-weight:800; font-size:13px; }
 .asp-sidebar-link i { width:18px; color:#00A86B; text-align:center; }
 .asp-sidebar-link:hover,.asp-sidebar-link.active { color:#fff; background:#171717; border-color:rgba(0,168,107,.26); }
+.asp-sidebar-footer { margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08); }
+.asp-sidebar-logout { width:100%; display:flex; align-items:center; gap:11px; min-height:42px; padding:0 12px; border:1px solid rgba(239,68,68,.22); border-radius:8px; background:rgba(239,68,68,.08); color:#ffb4b4; font:inherit; font-size:13px; font-weight:900; cursor:pointer; }
+.asp-sidebar-logout i { width:18px; text-align:center; }
 .asp-content { min-width:0; }
 .asp-top { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:18px; }
 .asp-identity { display:flex; align-items:center; gap:16px; min-width:0; }
@@ -88,7 +91,7 @@ body { background:#080808; color:#f5f5f0; }
 .asp-bars .asp-bar-row:nth-child(2) .asp-bar-fill { background:#ef4444; }
 .asp-bars .asp-bar-row:nth-child(3) .asp-bar-fill { background:#f59e0b; }
 .asp-bars .asp-bar-row:nth-child(4) .asp-bar-fill { background:#3b82f6; }
-@media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
+@media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
 @media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } }
 </style>
 
@@ -136,10 +139,6 @@ body { background:#080808; color:#f5f5f0; }
                     @endif
                     <a href="{{ route('aspirant.tokens.index') }}" class="asp-btn primary"><i class="fas fa-coins"></i> Buy Tokens</a>
                     <a href="{{ route('campaign-tools.public') }}" class="asp-btn ghost"><i class="fas fa-toolbox"></i> All Tools</a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="asp-btn danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                    </form>
                 </div>
             </div>
 
@@ -348,4 +347,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 @endsection
+
 
