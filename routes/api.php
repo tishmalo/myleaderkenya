@@ -71,6 +71,8 @@ Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
 Route::get('/aspirants', [AspirantController::class, 'list']);
 Route::post('/aspirants/register', [AspirantController::class, 'store']);
 Route::post('/aspirants', [AspirantController::class, 'store']);
+Route::match(['put', 'patch'], '/aspirants/{candidate}', [AspirantController::class, 'update']);
+Route::post('/aspirants/{candidate}/update', [AspirantController::class, 'update']);
 Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
 // Donations
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
@@ -127,5 +129,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
+
 
 

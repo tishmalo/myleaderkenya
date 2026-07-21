@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AspirantSubmissionRequest;
+use App\Http\Requests\Api\AspirantUpdateRequest;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
 use App\Services\Admin\CandidateService;
@@ -116,6 +117,38 @@ class AspirantController extends Controller
         ], 201);
     }
 
+    public function update(AspirantUpdateRequest $request, Candidate $candidate): JsonResponse
+    {
+        if (Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status === 'approved') {
+            return response()->json([
+                'message' => 'Approved aspirants cannot be updated through the public API. Ask an admin to make changes.',
+            ], 403);
+        }
+
+        $validated = $request->validated();
+        $candidateData = $this->candidateUpdateData($validated);
+
+        if (Schema::hasColumn('candidates', 'approval_status')) {
+            $candidateData['approval_status'] = 'pending';
+        }
+
+        $this->candidateService->updateCandidate(
+            $candidate,
+            $candidateData,
+            $request->file('profile_picture') ?? $request->file('profile_pic'),
+            $request->file('cover_photo'),
+            $request->file('campaign_poster'),
+            $request->file('campaign_video'),
+            $request->file('campaign_skiza_audio')
+        );
+
+        $candidate->refresh()->load(['position', 'politicalParty']);
+
+        return response()->json([
+            'message' => 'Aspirant submission updated successfully. An admin will review it before it appears publicly.',
+            'data' => $this->formatAspirant($candidate, true),
+        ]);
+    }
     public function show(Candidate $candidate): JsonResponse
     {
         if (Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
@@ -151,6 +184,44 @@ class AspirantController extends Controller
         ]);
     }
 
+    private function candidateUpdateData(array $validated): array
+    {
+        $data = [];
+
+        foreach ([
+            'name',
+            'nick_name',
+            'phone_2',
+            'email_2',
+            'position_id',
+            'about',
+            'county',
+            'constituency',
+            'ward',
+        ] as $field) {
+            if (array_key_exists($field, $validated)) {
+                $data[$field] = $validated[$field];
+            }
+        }
+
+        if (array_key_exists('phone_1', $validated) || array_key_exists('phone', $validated)) {
+            $phone1 = $validated['phone_1'] ?? $validated['phone'] ?? null;
+            $data['phone'] = $phone1;
+            $data['phone_1'] = $phone1;
+        }
+
+        if (array_key_exists('email_1', $validated) || array_key_exists('email', $validated)) {
+            $email1 = $validated['email_1'] ?? $validated['email'] ?? null;
+            $data['email'] = $email1;
+            $data['email_1'] = $email1;
+        }
+
+        if (array_key_exists('political_party_id', $validated) || array_key_exists('party', $validated)) {
+            $data['political_party_id'] = $validated['political_party_id'] ?? $validated['party'] ?? null;
+        }
+
+        return $data;
+    }
     private function formatAspirant(Candidate $candidate, bool $includeAbout = false): array
     {
         $data = [
@@ -236,4 +307,5 @@ class AspirantController extends Controller
     }
 
 }
+
 
