@@ -217,6 +217,26 @@ class Candidate extends Model
         return $this->hasMany(CandidateSmsMessage::class);
     }
 
+    public function tokenWallet(): HasOne
+    {
+        return $this->hasOne(CandidateTokenWallet::class);
+    }
+
+    public function tokenTransactions(): HasMany
+    {
+        return $this->hasMany(CandidateTokenTransaction::class);
+    }
+
+    public function tokenPurchases(): HasMany
+    {
+        return $this->hasMany(CandidateTokenPurchase::class);
+    }
+
+    public function smsBalanceRequests(): HasMany
+    {
+        return $this->hasMany(CandidateSmsBalanceRequest::class);
+    }
+
     public function relatedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'candidate_user_relationships')
@@ -224,4 +244,5 @@ class Candidate extends Model
             ->withTimestamps();
     }
 }
+
 

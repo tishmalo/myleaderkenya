@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\CampaignTool;
+use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 
 class AspirantDashboardController extends Controller
 {
-    public function __construct(private AspirantWorkspaceService $workspaceService) {}
+    public function __construct(private AspirantWorkspaceService $workspaceService, private AspirantTokenService $tokenService) {}
 
     public function __invoke(Request $request): View
     {
@@ -25,6 +26,7 @@ class AspirantDashboardController extends Controller
         $voterQuery = $this->workspaceService->registeredVotersQuery($scope);
         $scopedVoterCount = $scopeMissing ? 0 : (clone $voterQuery)->count();
         $reachableVoterCount = $scopeMissing ? 0 : (clone $voterQuery)->whereNotNull('phone')->count();
+        $tokenWallet = $candidate ? $this->tokenService->walletForCandidate($candidate) : null;
 
         return view('aspirants.dashboard', [
             'user' => $user,
@@ -41,6 +43,7 @@ class AspirantDashboardController extends Controller
             ],
             'recentOutreach' => $this->recentOutreach($candidate?->id),
             'pollSnapshot' => $this->pollSnapshot($candidate?->id),
+            'tokenWallet' => $tokenWallet,
         ]);
     }
 

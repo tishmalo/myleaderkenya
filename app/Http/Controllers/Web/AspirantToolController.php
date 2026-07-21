@@ -14,6 +14,7 @@ use App\Models\CampaignWebsiteSample;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupMessage;
+use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,12 +23,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use RuntimeException;
 
 class AspirantToolController extends Controller
 {
     public function __construct(
         private AspirantWorkspaceService $workspaceService,
-        private CandidateSmsMessageRepositoryInterface $smsMessageRepository
+        private CandidateSmsMessageRepositoryInterface $smsMessageRepository,
+        private AspirantTokenService $tokenService
     ) {}
 
     public function show(Request $request, string $key): View|RedirectResponse
@@ -99,6 +102,12 @@ class AspirantToolController extends Controller
                 ->paginate(10, ['*'], 'call_page')
                 ->withQueryString()
             : collect();
+        $tokenWallet = $this->tokenService->walletForCandidate($candidate);
+        $tokenRates = $this->tokenService->activeRates()->keyBy('action_key');
+        $bulkSmsQuote = $key === 'bulk-sms' && ! $isBlocked
+            ? $this->tokenService->quoteBulkSms((string) old('message', ''), (int) ($voterCount ?? 0))
+            : null;
+
         $callLogs = $key === 'call-center'
             ? CandidateCallLog::with(['caller', 'voter'])
                 ->where('candidate_id', $candidate->id)
@@ -121,6 +130,9 @@ class AspirantToolController extends Controller
             'callListActive' => $callListActive,
             'callListContacts' => $callListContacts,
             'callLogs' => $callLogs,
+            'tokenWallet' => $tokenWallet,
+            'tokenRates' => $tokenRates,
+            'bulkSmsQuote' => $bulkSmsQuote,
         ]);
     }
 
@@ -153,16 +165,47 @@ class AspirantToolController extends Controller
             ->whereNotNull('phone')
             ->count();
 
-        $smsMessage = $this->smsMessageRepository->create([
-            'candidate_id' => $candidate->id,
-            'user_id' => $request->user()->id,
-            'message' => $validated['message'],
-            'scope_type' => $scope['type'],
-            'scope_column' => $scope['column'],
-            'scope_value' => $scope['value'],
-            'recipient_count' => $recipientCount,
-            'status' => 'queued',
-        ]);
+        $quote = $this->tokenService->quoteBulkSms($validated['message'], $recipientCount);
+
+        if ($quote['sms_units'] <= 0) {
+            return redirect()->route('aspirant.tools.show', 'bulk-sms')
+                ->withInput()
+                ->with('warning', 'No valid phone numbers were found for your scoped voters.');
+        }
+
+        try {
+            $reservation = $this->tokenService->reserveBulkSms($candidate, $request->user(), $quote);
+        } catch (RuntimeException $exception) {
+            return redirect()->route('aspirant.tools.show', 'bulk-sms')
+                ->withInput()
+                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
+        }
+
+        try {
+            $smsMessage = $this->smsMessageRepository->create([
+                'candidate_id' => $candidate->id,
+                'user_id' => $request->user()->id,
+                'message' => $validated['message'],
+                'scope_type' => $scope['type'],
+                'scope_column' => $scope['column'],
+                'scope_value' => $scope['value'],
+                'recipient_count' => $recipientCount,
+                'status' => 'queued',
+                'token_transaction_id' => $reservation->id,
+                'sms_character_count' => $quote['character_count'],
+                'sms_encoding' => $quote['encoding'],
+                'sms_segment_count' => $quote['segment_count'],
+                'sms_unit_count' => $quote['sms_units'],
+                'token_cost' => $quote['tokens_required'],
+            ]);
+            $this->tokenService->attachReservationToSms($reservation, $smsMessage);
+        } catch (RuntimeException $exception) {
+            $this->tokenService->refundReservation($reservation, 'Bulk SMS could not be queued.');
+
+            return redirect()->route('aspirant.tools.show', 'bulk-sms')
+                ->withInput()
+                ->with('warning', 'Bulk SMS could not be queued. Your reserved tokens were refunded.');
+        }
 
         SendCandidateBulkSms::dispatch($smsMessage->id);
 
@@ -170,16 +213,14 @@ class AspirantToolController extends Controller
             'sms_message_id' => $smsMessage->id,
             'candidate_id' => $candidate->id,
             'user_id' => $request->user()->id,
-            'scope_type' => $scope['type'],
-            'scope_column' => $scope['column'],
-            'scope_value' => $scope['value'],
             'recipient_count' => $recipientCount,
+            'sms_units' => $quote['sms_units'],
+            'token_cost' => $quote['tokens_required'],
         ]);
 
         return redirect()->route('aspirant.tools.show', 'bulk-sms')
-            ->with('success', 'Bulk SMS queued for ' . number_format($recipientCount) . ' voters in ' . $scope['label'] . '. Delivery will be confirmed after Infobip processes the job.');
+            ->with('success', 'Bulk SMS queued for ' . number_format($recipientCount) . ' voters. ' . number_format($quote['tokens_required']) . ' tokens reserved for ' . number_format($quote['sms_units']) . ' SMS units.');
     }
-
     public function storePoll(Request $request): RedirectResponse
     {
         if (! $this->workspaceService->publishedToolForKey('opinion-polls')) {
@@ -220,7 +261,12 @@ class AspirantToolController extends Controller
                 ->with('warning', 'Add at least two poll options.');
         }
 
-        DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status): void {
+        $pollQuote = $status === 'published'
+            ? $this->tokenService->quoteFixed('poll-publish', $this->workspaceService->registeredVotersQuery($scope)->count())
+            : $this->tokenService->quoteFixed('poll-draft');
+
+        try {
+            DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status, $pollQuote): void {
             $group = null;
 
             if ($status === 'published') {
@@ -257,6 +303,8 @@ class AspirantToolController extends Controller
                 'published_at' => $status === 'published' ? now() : null,
             ]);
 
+            $this->tokenService->debitAction($candidate, $request->user(), $pollQuote, $poll);
+
             if ($group) {
                 GroupMessage::create([
                     'group_id' => $group->id,
@@ -268,7 +316,12 @@ class AspirantToolController extends Controller
                     'longitude' => null,
                 ]);
             }
-        });
+            });
+        } catch (RuntimeException $exception) {
+            return redirect()->route('aspirant.tools.show', 'opinion-polls')
+                ->withInput()
+                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
+        }
 
         $message = $status === 'published'
             ? 'Poll published to the ' . $scope['label'] . ' chat group.'
@@ -305,8 +358,11 @@ class AspirantToolController extends Controller
             'callback_priority' => ['required', 'in:undecided,supporters,volunteers'],
         ]);
 
-        CandidateCallScript::updateOrCreate(
-            ['candidate_id' => $candidate->id],
+        $callScriptQuote = $this->tokenService->quoteFixed('call-script-save');
+
+        try {
+            $callScript = CandidateCallScript::updateOrCreate(
+                ['candidate_id' => $candidate->id],
             [
                 'user_id' => $request->user()->id,
                 'script' => $validated['script'],
@@ -314,8 +370,14 @@ class AspirantToolController extends Controller
                 'scope_type' => $scope['type'],
                 'scope_column' => $scope['column'],
                 'scope_value' => $scope['value'],
-            ]
-        );
+                ]
+            );
+            $this->tokenService->debitAction($candidate, $request->user(), $callScriptQuote, $callScript);
+        } catch (RuntimeException $exception) {
+            return redirect()->route('aspirant.tools.show', 'call-center')
+                ->withInput()
+                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
+        }
 
         return redirect()->route('aspirant.tools.show', 'call-center')
             ->with('success', 'Call script saved. You can now start the scoped call list.');
@@ -355,21 +417,32 @@ class AspirantToolController extends Controller
             return $this->callLogFailure($request, 'That voter is not available in your scoped call list.', 404);
         }
 
-        $callLog = CandidateCallLog::create([
-            'candidate_id' => $candidate->id,
-            'user_id' => $request->user()->id,
-            'voter_user_id' => $voter->id,
-            'voter_name' => $voter->name ?: $voter->username,
-            'voter_phone' => $voter->phone,
-            'outcome' => $validated['outcome'],
-            'notes' => $validated['notes'] ?? null,
-            'callback_at' => $validated['callback_at'] ?? null,
-            'scope_type' => $scope['type'],
-            'scope_column' => $scope['column'],
-            'scope_value' => $scope['value'],
-            'called_at' => now(),
-        ]);
+        $callLogQuote = $this->tokenService->quoteFixed('call-log');
 
+        try {
+            $callLog = DB::transaction(function () use ($candidate, $request, $voter, $validated, $scope, $callLogQuote): CandidateCallLog {
+                $callLog = CandidateCallLog::create([
+                    'candidate_id' => $candidate->id,
+                    'user_id' => $request->user()->id,
+                    'voter_user_id' => $voter->id,
+                    'voter_name' => $voter->name ?: $voter->username,
+                    'voter_phone' => $voter->phone,
+                    'outcome' => $validated['outcome'],
+                    'notes' => $validated['notes'] ?? null,
+                    'callback_at' => $validated['callback_at'] ?? null,
+                    'scope_type' => $scope['type'],
+                    'scope_column' => $scope['column'],
+                    'scope_value' => $scope['value'],
+                    'called_at' => now(),
+                ]);
+
+                $this->tokenService->debitAction($candidate, $request->user(), $callLogQuote, $callLog);
+
+                return $callLog;
+            });
+        } catch (RuntimeException $exception) {
+            return $this->callLogFailure($request, $exception->getMessage() . ' Buy more tokens to continue.', 402);
+        }
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Call log recorded.',
@@ -416,13 +489,22 @@ class AspirantToolController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        CampaignWebsiteRequest::updateOrCreate(
-            ['candidate_id' => $candidate->id],
-            array_merge($validated, [
-                'user_id' => $request->user()->id,
-                'status' => 'new',
-            ])
-        );
+        $websiteQuote = $this->tokenService->quoteFixed('campaign-website-request');
+
+        try {
+            $websiteRequest = CampaignWebsiteRequest::updateOrCreate(
+                ['candidate_id' => $candidate->id],
+                array_merge($validated, [
+                    'user_id' => $request->user()->id,
+                    'status' => 'new',
+                ])
+            );
+            $this->tokenService->debitAction($candidate, $request->user(), $websiteQuote, $websiteRequest);
+        } catch (RuntimeException $exception) {
+            return redirect()->route('aspirant.tools.show', 'campaign-website')
+                ->withInput()
+                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
+        }
 
         return redirect()->route('aspirant.tools.show', 'campaign-website')
             ->with('success', 'Campaign website request submitted. An admin will review it and follow up.');
@@ -472,6 +554,12 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
+
+
+
+
+
+
 
 
 

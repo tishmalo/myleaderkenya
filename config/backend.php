@@ -31,6 +31,11 @@ return [
                 'items' => [
                     ['label' => 'Positions', 'route' => 'positions.index', 'icon' => 'fas fa-user-tie', 'active' => ['positions.*']],
                     ['label' => 'Candidates', 'route' => 'candidates.index', 'icon' => 'fas fa-id-badge', 'active' => ['candidates.*']],
+                    ['label' => 'Token Packages', 'route' => 'candidate-token-packages.index', 'icon' => 'fas fa-box', 'active' => ['candidate-token-packages.*']],
+                    ['label' => 'Token Rates', 'route' => 'candidate-token-rates.index', 'icon' => 'fas fa-sliders', 'active' => ['candidate-token-rates.*']],
+                    ['label' => 'Token Purchases', 'route' => 'candidate-token-purchases.index', 'icon' => 'fas fa-receipt', 'active' => ['candidate-token-purchases.*']],
+                    ['label' => 'Token Ledger', 'route' => 'candidate-token-ledger.index', 'icon' => 'fas fa-list', 'active' => ['candidate-token-ledger.*']],
+                    ['label' => 'SMS Balance Requests', 'route' => 'sms-balance-requests.index', 'icon' => 'fas fa-comment-sms', 'active' => ['sms-balance-requests.*']],
                 ],
             ],
             [
@@ -65,6 +70,7 @@ return [
         ],
     ],
 ];
+
 
 
 

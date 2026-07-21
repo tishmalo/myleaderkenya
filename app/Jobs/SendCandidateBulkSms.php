@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Models\CandidateSmsMessage;
 use App\Models\User;
 use App\Services\Sms\InfobipSmsService;
+use App\Services\Web\AspirantTokenService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,9 +28,10 @@ class SendCandidateBulkSms implements ShouldQueue
 
     public function handle(
         InfobipSmsService $smsService,
-        CandidateSmsMessageRepositoryInterface $messages
+        CandidateSmsMessageRepositoryInterface $messages,
+        AspirantTokenService $tokenService
     ): void {
-        $smsMessage = CandidateSmsMessage::with('candidate.smsSetting')->find($this->smsMessageId);
+        $smsMessage = CandidateSmsMessage::with(['candidate.smsSetting', 'tokenTransaction'])->find($this->smsMessageId);
 
         if (! $smsMessage) {
             Log::warning('Bulk SMS job skipped because the SMS log was not found.', [
@@ -51,6 +53,7 @@ class SendCandidateBulkSms implements ShouldQueue
                 'status' => 'failed',
                 'provider_response' => ['message' => 'Candidate Bulk SMS settings are incomplete.'],
             ]);
+            $tokenService->refundReservation($smsMessage->tokenTransaction, 'Candidate Bulk SMS settings are incomplete.');
 
             return;
         }
@@ -81,6 +84,12 @@ class SendCandidateBulkSms implements ShouldQueue
                 'provider_response' => $result,
             ]);
 
+            if ($result['success']) {
+                $tokenService->finalizeReservation($smsMessage->tokenTransaction);
+            } else {
+                $tokenService->refundReservation($smsMessage->tokenTransaction, $result['message'] ?? 'Bulk SMS provider did not accept the request.');
+            }
+
             Log::info('Bulk SMS provider request completed.', [
                 'sms_message_id' => $smsMessage->id,
                 'candidate_id' => $smsMessage->candidate_id,
@@ -92,6 +101,7 @@ class SendCandidateBulkSms implements ShouldQueue
                 'status' => 'failed',
                 'provider_response' => $exception->response?->json() ?? ['message' => $exception->getMessage()],
             ]);
+            $tokenService->refundReservation($smsMessage->tokenTransaction, $exception->getMessage());
 
             Log::warning('Bulk SMS provider rejected the request.', [
                 'sms_message_id' => $smsMessage->id,
@@ -104,6 +114,7 @@ class SendCandidateBulkSms implements ShouldQueue
                 'status' => 'failed',
                 'provider_response' => ['message' => $exception->getMessage()],
             ]);
+            $tokenService->refundReservation($smsMessage->tokenTransaction, $exception->getMessage());
 
             Log::error('Bulk SMS job failed unexpectedly.', [
                 'sms_message_id' => $smsMessage->id,
@@ -129,3 +140,6 @@ class SendCandidateBulkSms implements ShouldQueue
             ->get();
     }
 }
+
+
+

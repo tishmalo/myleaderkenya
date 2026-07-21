@@ -62,6 +62,14 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .tool-table th { color:rgba(245,245,240,.48); font-size:11px; text-transform:uppercase; letter-spacing:.09em; }
 .tool-table td { color:rgba(245,245,240,.74); }
 .tool-empty { color:rgba(245,245,240,.5); line-height:1.6; }
+.token-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
+.token-summary div { border:1px solid rgba(255,255,255,.07); border-radius:8px; background:#0d0d0d; padding:12px; }
+.token-summary span { display:block; color:rgba(245,245,240,.5); font-size:11px; text-transform:uppercase; font-weight:800; }
+.token-summary strong { display:block; margin-top:4px; color:#fff; font-size:18px; }
+.sms-cost-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:14px 0; }
+.sms-cost-grid div { border:1px solid rgba(0,168,107,.18); border-radius:8px; background:#0b0f0d; padding:12px; }
+.sms-cost-grid span { display:block; color:rgba(245,245,240,.5); font-size:10px; text-transform:uppercase; font-weight:800; }
+.sms-cost-grid strong { display:block; margin-top:4px; color:#fff; font-size:17px; }
 @media (max-width:980px) { .tool-grid,.tool-stats { grid-template-columns:1fr; } .tool-top { flex-direction:column; } }
 </style>
 
@@ -240,7 +248,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <div class="tool-alert">{{ $message }}</div>
                             @enderror
                             <div class="tool-actions">
-                                <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Queueing..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-paper-plane" data-loading-icon></i> <span data-loading-label>Queue SMS</span></button>
+                                <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Queueing..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-paper-plane" data-loading-icon></i> <span data-loading-label>Queue SMS</span></button><a href="{{ route('aspirant.tokens.index') }}" class="tool-btn"><i class="fas fa-coins"></i> Buy Tokens</a>
                             </div>
                         </form>
                     @elseif($module['key'] === 'bulk-whatsapp')
@@ -571,9 +579,49 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
         }
     });
 });
+
+function smsDetails(message) {
+    const basic = "@£$•ËÈ˘ÏÚ«\nÿ¯\r≈Â?_FG?O??ST? !\"#§%&'()*+,-./0123456789:;<=>?°ABCDEFGHIJKLMNOPQRSTUVWXYZƒ÷—‹`øabcdefghijklmnopqrstuvwxyz‰ˆÒ¸‡";
+    const extended = "^{}\\[~]|Ä";
+    let gsm = true;
+    let length = 0;
+    Array.from(message).forEach((character) => {
+        if (extended.includes(character)) length += 2;
+        else if (basic.includes(character)) length += 1;
+        else { gsm = false; length += 1; }
+    });
+    const encoding = gsm ? 'GSM-7' : 'Unicode';
+    const count = gsm ? length : Array.from(message).length;
+    const segments = count === 0 ? 0 : (gsm ? (count <= 160 ? 1 : Math.ceil(count / 153)) : (count <= 70 ? 1 : Math.ceil(count / 67)));
+    return { count, encoding, segments };
+}
+
+document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
+    const textarea = document.querySelector('[data-sms-message]');
+    if (!textarea) return;
+    const recipients = Number(panel.dataset.recipientCount || 0);
+    const unitTokens = Number(panel.dataset.unitTokens || 1);
+    const balance = Number(panel.dataset.walletBalance || 0);
+    const set = (selector, value) => { const node = panel.querySelector(selector); if (node) node.textContent = value; };
+    const render = () => {
+        const details = smsDetails(textarea.value || '');
+        const units = recipients * details.segments;
+        const tokens = units * unitTokens;
+        set('[data-sms-characters]', details.count.toLocaleString());
+        set('[data-sms-encoding]', details.encoding);
+        set('[data-sms-segments]', details.segments.toLocaleString());
+        set('[data-sms-units]', units.toLocaleString());
+        set('[data-sms-tokens]', tokens.toLocaleString());
+        set('[data-sms-after]', Math.max(0, balance - tokens).toLocaleString());
+    };
+    textarea.addEventListener('input', render);
+    render();
+});
 </script>
 
 @endsection
+
+
 
 
 

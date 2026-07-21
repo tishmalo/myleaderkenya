@@ -26,7 +26,7 @@ body { background:#080808; color:#f5f5f0; }
 .asp-btn.danger { color:#ffb4b4; }
 .asp-btn:hover { border-color:rgba(255,255,255,.24); }
 .asp-alert { margin-bottom:16px; border-radius:8px; padding:13px 15px; color:#fde68a; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.28); }
-.asp-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+.asp-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
 .asp-kpi { display:flex; align-items:center; gap:14px; min-height:76px; border:1px solid rgba(255,255,255,.09); background:#111; border-radius:8px; padding:14px 16px; }
 .asp-kpi-icon { width:44px; height:44px; border-radius:8px; display:grid; place-items:center; background:rgba(0,168,107,.12); color:#00A86B; font-size:18px; flex:0 0 auto; }
 .asp-kpi span { display:block; color:rgba(245,245,240,.58); font-size:12px; }
@@ -119,6 +119,7 @@ body { background:#080808; color:#f5f5f0; }
                 @if($candidate && $status === 'approved')
                     <a href="{{ route('aspirants.show', $candidate) }}" class="asp-btn primary"><i class="fas fa-eye"></i> Public Profile</a>
                 @endif
+                <a href="{{ route('aspirant.tokens.index') }}" class="asp-btn primary"><i class="fas fa-coins"></i> Buy Tokens</a>
                 <a href="{{ route('campaign-tools.public') }}" class="asp-btn ghost"><i class="fas fa-toolbox"></i> All Tools</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -139,6 +140,7 @@ body { background:#080808; color:#f5f5f0; }
             <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-users"></i></div><div><span>Voters</span><strong>{{ number_format($dashboardStats['scoped_voters'] ?? 0) }}</strong></div></div>
             <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-phone"></i></div><div><span>Reachable phones</span><strong>{{ number_format($dashboardStats['reachable_voters'] ?? 0) }}</strong></div></div>
             <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-square-poll-vertical"></i></div><div><span>Active polls</span><strong>{{ number_format($dashboardStats['active_polls'] ?? 0) }}</strong></div></div>
+            <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-coins"></i></div><div><span>Token balance</span><strong>{{ number_format($tokenWallet?->balance ?? 0) }}</strong></div></div>
         </section>
 
         <div class="asp-main">
@@ -282,3 +284,4 @@ body { background:#080808; color:#f5f5f0; }
     </div>
 </main>
 @endsection
+

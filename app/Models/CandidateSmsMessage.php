@@ -16,6 +16,12 @@ class CandidateSmsMessage extends Model
         'scope_value',
         'recipient_count',
         'status',
+        'token_transaction_id',
+        'sms_character_count',
+        'sms_encoding',
+        'sms_segment_count',
+        'sms_unit_count',
+        'token_cost',
         'provider_response',
         'sent_at',
     ];
@@ -34,4 +40,11 @@ class CandidateSmsMessage extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function tokenTransaction(): BelongsTo
+    {
+        return $this->belongsTo(CandidateTokenTransaction::class, 'token_transaction_id');
+    }
 }
+
+

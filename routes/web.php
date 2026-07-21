@@ -30,6 +30,13 @@ use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\CandidateClaimController;
 use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantToolController;
+use App\Http\Controllers\Admin\CandidateTokenPackageController;
+use App\Http\Controllers\Admin\CandidateTokenRateController;
+use App\Http\Controllers\Admin\CandidateTokenPurchaseController;
+use App\Http\Controllers\Admin\CandidateTokenLedgerController;
+use App\Http\Controllers\Admin\SmsBalanceRequestController;
+use App\Http\Controllers\Web\AspirantTokenController;
+use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -100,6 +107,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('aspirant')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
         Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
+        Route::get('/aspirant/tokens', [AspirantTokenController::class, 'index'])->name('aspirant.tokens.index');
+        Route::post('/aspirant/tokens/purchase', [AspirantTokenController::class, 'purchase'])->name('aspirant.tokens.purchase');
+        Route::post('/aspirant/sms-balance-requests', [AspirantSmsBalanceRequestController::class, 'store'])->middleware('throttle:6,10')->name('aspirant.sms-balance-requests.store');
         Route::get('/aspirant/campaign-website/samples', [AspirantToolController::class, 'websiteSamples'])->name('aspirant.campaign-website.samples');
         Route::post('/aspirant/tools/bulk-sms/send', [AspirantToolController::class, 'sendBulkSms'])->name('aspirant.tools.bulk-sms.send');
         Route::post('/aspirant/tools/opinion-polls/polls', [AspirantToolController::class, 'storePoll'])->name('aspirant.tools.polls.store');
@@ -147,6 +157,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/news/{news}/edit', [NewsArticleController::class, 'edit'])->name('news.edit');
         Route::put('/news/{news}', [NewsArticleController::class, 'update'])->name('news.update');
         Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->name('news.destroy');
+
+        Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show']);
+        Route::resource('candidate-token-rates', CandidateTokenRateController::class)->except(['show']);
+        Route::get('/candidate-token-purchases', [CandidateTokenPurchaseController::class, 'index'])->name('candidate-token-purchases.index');
+        Route::get('/candidate-token-ledger', [CandidateTokenLedgerController::class, 'index'])->name('candidate-token-ledger.index');
+        Route::get('/sms-balance-requests', [SmsBalanceRequestController::class, 'index'])->name('sms-balance-requests.index');
+        Route::patch('/sms-balance-requests/{candidateSmsBalanceRequest}', [SmsBalanceRequestController::class, 'update'])->name('sms-balance-requests.update');
 
         Route::resource('/admin/campaign-tools', CampaignToolController::class)
             ->parameters(['campaign-tools' => 'campaignTool'])
@@ -196,6 +213,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 require __DIR__.'/auth.php';
+
 
 
 

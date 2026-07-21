@@ -4,6 +4,11 @@ namespace App\Providers;
 
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateSmsBalanceRequestRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenPackageRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenPurchaseRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenRateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenTransactionRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
 use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
 use App\Contracts\Repositories\Admin\CoalitionRepositoryInterface;
@@ -31,6 +36,11 @@ use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
 use App\Repositories\Admin\BlocRepository;
 use App\Repositories\Admin\CandidateRepository;
+use App\Repositories\Admin\CandidateSmsBalanceRequestRepository;
+use App\Repositories\Admin\CandidateTokenPackageRepository;
+use App\Repositories\Admin\CandidateTokenPurchaseRepository;
+use App\Repositories\Admin\CandidateTokenRateRepository;
+use App\Repositories\Admin\CandidateTokenTransactionRepository;
 use App\Repositories\Admin\CandidateSmsSettingRepository;
 use App\Repositories\Admin\CampaignToolRepository;
 use App\Repositories\Admin\CoalitionRepository;
@@ -58,8 +68,10 @@ use App\Repositories\Api\UserRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
 use App\Contracts\Repositories\Web\LandingRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateTokenWalletRepositoryInterface;
 use App\Repositories\Web\LandingRepository;
 use App\Repositories\Web\CandidateSmsMessageRepository;
+use App\Repositories\Web\CandidateTokenWalletRepository;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -75,6 +87,11 @@ class AppServiceProvider extends ServiceProvider
         // Register Admin Repositories
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
         $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
+        $this->app->bind(CandidateSmsBalanceRequestRepositoryInterface::class, CandidateSmsBalanceRequestRepository::class);
+        $this->app->bind(CandidateTokenPackageRepositoryInterface::class, CandidateTokenPackageRepository::class);
+        $this->app->bind(CandidateTokenPurchaseRepositoryInterface::class, CandidateTokenPurchaseRepository::class);
+        $this->app->bind(CandidateTokenRateRepositoryInterface::class, CandidateTokenRateRepository::class);
+        $this->app->bind(CandidateTokenTransactionRepositoryInterface::class, CandidateTokenTransactionRepository::class);
         $this->app->bind(CandidateSmsSettingRepositoryInterface::class, CandidateSmsSettingRepository::class);
         $this->app->bind(CampaignToolRepositoryInterface::class, CampaignToolRepository::class);
         $this->app->bind(CoalitionRepositoryInterface::class, CoalitionRepository::class);
@@ -115,6 +132,7 @@ class AppServiceProvider extends ServiceProvider
         // Register Web Repositories
         $this->app->bind(LandingRepositoryInterface::class, LandingRepository::class);
         $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);
+        $this->app->bind(CandidateTokenWalletRepositoryInterface::class, CandidateTokenWalletRepository::class);
     }
 
     /**
@@ -156,6 +174,7 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
+
 
 
 
