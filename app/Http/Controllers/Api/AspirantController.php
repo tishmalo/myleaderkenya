@@ -8,6 +8,7 @@ use App\Http\Requests\Api\AspirantUpdateRequest;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
 use App\Services\Admin\CandidateService;
+use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,10 @@ use Illuminate\Support\Facades\Schema;
 
 class AspirantController extends Controller
 {
-    public function __construct(private CandidateService $candidateService) {}
+    public function __construct(
+        private CandidateService $candidateService,
+        private AspirantWorkspaceService $workspaceService
+    ) {}
 
     public function list(Request $request): JsonResponse
     {
@@ -149,6 +153,24 @@ class AspirantController extends Controller
             'data' => $this->formatAspirant($candidate, true),
         ]);
     }
+
+    public function profile(Request $request): JsonResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return response()->json([
+                'message' => 'No aspirant profile is linked to this account yet.',
+                'data' => null,
+            ], 404);
+        }
+
+        $candidate->loadMissing(['position', 'politicalParty']);
+
+        return response()->json([
+            'data' => $this->formatAspirant($candidate, true),
+        ]);
+    }
     public function show(Candidate $candidate): JsonResponse
     {
         if (Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
@@ -228,6 +250,9 @@ class AspirantController extends Controller
             'id' => $candidate->id,
             'name' => $candidate->name,
             'nick_name' => $candidate->nick_name,
+            'position_id' => $candidate->position_id,
+            'political_party_id' => $candidate->political_party_id,
+            'party' => $candidate->political_party_id,
             'phone' => $candidate->maskedPhone(),
             'email' => $candidate->maskedEmail(),
             'featured' => (bool) $candidate->featured,
@@ -307,5 +332,6 @@ class AspirantController extends Controller
     }
 
 }
+
 
 
