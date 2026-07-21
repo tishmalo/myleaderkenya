@@ -11,6 +11,7 @@ use App\Models\CandidateCallLog;
 use App\Models\CandidateCallScript;
 use App\Models\CampaignWebsiteRequest;
 use App\Models\CampaignWebsiteSample;
+use App\Models\CandidateSmsBalanceRequest;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupMessage;
@@ -107,6 +108,9 @@ class AspirantToolController extends Controller
         $bulkSmsQuote = $key === 'bulk-sms' && ! $isBlocked
             ? $this->tokenService->quoteBulkSms((string) old('message', ''), (int) ($voterCount ?? 0))
             : null;
+        $smsBalanceRequest = $key === 'bulk-sms'
+            ? CandidateSmsBalanceRequest::where('candidate_id', $candidate->id)->latest()->first()
+            : null;
 
         $callLogs = $key === 'call-center'
             ? CandidateCallLog::with(['caller', 'voter'])
@@ -133,6 +137,7 @@ class AspirantToolController extends Controller
             'tokenWallet' => $tokenWallet,
             'tokenRates' => $tokenRates,
             'bulkSmsQuote' => $bulkSmsQuote,
+            'smsBalanceRequest' => $smsBalanceRequest,
         ]);
     }
 
@@ -554,6 +559,7 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
+
 
 
 

@@ -62,6 +62,12 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .tool-table th { color:rgba(245,245,240,.48); font-size:11px; text-transform:uppercase; letter-spacing:.09em; }
 .tool-table td { color:rgba(245,245,240,.74); }
 .tool-empty { color:rgba(245,245,240,.5); line-height:1.6; }
+.tool-balance-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 20px; }
+.tool-balance-card { border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#0d0d0d; padding:15px; }
+.tool-balance-card span { display:block; color:rgba(245,245,240,.48); font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.tool-balance-card strong { display:block; margin-top:6px; color:#fff; font-size:24px; line-height:1; }
+.tool-balance-card a { color:#4ade80; text-decoration:none; }
+.tool-balance-card small { display:block; margin-top:8px; color:rgba(245,245,240,.55); line-height:1.35; }
 .token-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
 .token-summary div { border:1px solid rgba(255,255,255,.07); border-radius:8px; background:#0d0d0d; padding:12px; }
 .token-summary span { display:block; color:rgba(245,245,240,.5); font-size:11px; text-transform:uppercase; font-weight:800; }
@@ -70,7 +76,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .sms-cost-grid div { border:1px solid rgba(0,168,107,.18); border-radius:8px; background:#0b0f0d; padding:12px; }
 .sms-cost-grid span { display:block; color:rgba(245,245,240,.5); font-size:10px; text-transform:uppercase; font-weight:800; }
 .sms-cost-grid strong { display:block; margin-top:4px; color:#fff; font-size:17px; }
-@media (max-width:980px) { .tool-grid,.tool-stats { grid-template-columns:1fr; } .tool-top { flex-direction:column; } }
+@media (max-width:980px) { .tool-grid,.tool-stats,.tool-balance-strip,.sms-cost-grid { grid-template-columns:1fr; } .tool-top { flex-direction:column; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -98,6 +104,33 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
         <div class="tool-grid">
             <section class="tool-panel">
                 <h2>Workspace</h2>
+
+                <div class="tool-balance-strip" data-tool-balance-strip>
+                    <div class="tool-balance-card">
+                        <span>Remaining Tokens</span>
+                        <strong>{{ number_format($tokenWallet?->balance ?? 0) }}</strong>
+                        <small><a href="{{ route('aspirant.tokens.index') }}">Buy tokens</a> before running paid actions.</small>
+                    </div>
+                    <div class="tool-balance-card">
+                        <span>This Tool Rate</span>
+                        @php($currentRate = $module['key'] === 'bulk-sms' ? $tokenRates->get('bulk-sms') : null)
+                        <strong>{{ $currentRate ? number_format($currentRate->token_amount) : '-' }}</strong>
+                        <small>{{ $currentRate ? str_replace('_', ' ', $currentRate->calculation_type) : 'Configured by admin' }}</small>
+                    </div>
+                    @if($module['key'] === 'bulk-sms')
+                        <div class="tool-balance-card">
+                            <span>SMS Balance</span>
+                            <strong>{{ $smsBalanceRequest ? str_replace('_', ' ', ucfirst($smsBalanceRequest->status)) : 'Admin managed' }}</strong>
+                            <small>{{ $smsBalanceRequest?->admin_notes ?: 'Provider SMS balance is separate from tokens. Request admin support below.' }}</small>
+                        </div>
+                    @else
+                        <div class="tool-balance-card">
+                            <span>Token Ledger</span>
+                            <strong><a href="{{ route('aspirant.tokens.index') }}">View</a></strong>
+                            <small>See purchases, debits, and remaining balance.</small>
+                        </div>
+                    @endif
+                </div>
 
                 @if($isBlocked)
                     <div class="tool-alert">{{ $scope['message'] }}</div>
@@ -242,8 +275,16 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <input type="text" value="{{ number_format($voterCount ?? 0) }} registered voters in {{ $scope['label'] }}" readonly>
                             </label>
                             <label>Message
-                                <textarea name="message" rows="6" maxlength="918" required placeholder="Write a focused SMS update for voters in your bloc.">{{ old('message') }}</textarea>
+                                <textarea name="message" rows="6" maxlength="918" required placeholder="Write a focused SMS update for voters in your bloc." data-sms-message>{{ old('message') }}</textarea>
                             </label>
+                            <div class="sms-cost-grid" data-sms-cost data-recipient-count="{{ $voterCount ?? 0 }}" data-token-rate="{{ $tokenRates->get('bulk-sms')?->token_amount ?? 0 }}" data-token-balance="{{ $tokenWallet?->balance ?? 0 }}">
+                                <div><span>Characters</span><strong data-sms-characters>0</strong></div>
+                                <div><span>Encoding</span><strong data-sms-encoding>GSM-7</strong></div>
+                                <div><span>Segments</span><strong data-sms-segments>0</strong></div>
+                                <div><span>SMS Units</span><strong data-sms-units>0</strong></div>
+                                <div><span>Required Tokens</span><strong data-sms-tokens>0</strong></div>
+                                <div><span>After Send</span><strong data-sms-projected>{{ number_format($tokenWallet?->balance ?? 0) }}</strong></div>
+                            </div>
                             @error('message')
                                 <div class="tool-alert">{{ $message }}</div>
                             @enderror
@@ -251,6 +292,21 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Queueing..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-paper-plane" data-loading-icon></i> <span data-loading-label>Queue SMS</span></button><a href="{{ route('aspirant.tokens.index') }}" class="tool-btn"><i class="fas fa-coins"></i> Buy Tokens</a>
                             </div>
                         </form>
+
+                        <div class="poll-card" style="margin-top:18px;">
+                            <div class="poll-card-top"><h3>SMS Provider Balance Support</h3><span class="poll-status draft">Admin follow-up</span></div>
+                            <p class="tool-note">SMS provider balance is separate from tokens. Send this to admin when the SMS account needs top-up or support.</p>
+                            <form class="tool-form" method="POST" action="{{ route('aspirant.sms-balance-requests.store') }}">
+                                @csrf
+                                <label>Requested Amount
+                                    <input type="number" name="requested_amount" min="1" placeholder="Optional amount">
+                                </label>
+                                <label>Notes
+                                    <textarea name="message" rows="3" maxlength="1000" placeholder="Explain the SMS balance/top-up issue for admin."></textarea>
+                                </label>
+                                <button type="submit" class="tool-btn"><i class="fas fa-paper-plane"></i> Request Support</button>
+                            </form>
+                        </div>
                     @elseif($module['key'] === 'bulk-whatsapp')
                         <form class="tool-form">
                             <label>Group / Segment
@@ -620,6 +676,8 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
 </script>
 
 @endsection
+
+
 
 
 
