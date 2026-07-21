@@ -113,7 +113,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                     </div>
                     <div class="tool-balance-card">
                         <span>This Tool Rate</span>
-                        @php($currentRate = $module['key'] === 'bulk-sms' ? $tokenRates->get('bulk-sms') : null)
+                        @php
+                            $currentRate = $module['key'] === 'bulk-sms' ? $tokenRates->get('bulk-sms') : null;
+                        @endphp
                         <strong>{{ $currentRate ? number_format($currentRate->token_amount) : '-' }}</strong>
                         <small>{{ $currentRate ? str_replace('_', ' ', $currentRate->calculation_type) : 'Configured by admin' }}</small>
                     </div>
@@ -656,8 +658,8 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
     const textarea = document.querySelector('[data-sms-message]');
     if (!textarea) return;
     const recipients = Number(panel.dataset.recipientCount || 0);
-    const unitTokens = Number(panel.dataset.unitTokens || 1);
-    const balance = Number(panel.dataset.walletBalance || 0);
+    const unitTokens = Number(panel.dataset.tokenRate || 1);
+    const balance = Number(panel.dataset.tokenBalance || 0);
     const set = (selector, value) => { const node = panel.querySelector(selector); if (node) node.textContent = value; };
     const render = () => {
         const details = smsDetails(textarea.value || '');
@@ -668,7 +670,7 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
         set('[data-sms-segments]', details.segments.toLocaleString());
         set('[data-sms-units]', units.toLocaleString());
         set('[data-sms-tokens]', tokens.toLocaleString());
-        set('[data-sms-after]', Math.max(0, balance - tokens).toLocaleString());
+        set('[data-sms-projected]', Math.max(0, balance - tokens).toLocaleString());
     };
     textarea.addEventListener('input', render);
     render();
@@ -676,6 +678,7 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
 </script>
 
 @endsection
+
 
 
 
