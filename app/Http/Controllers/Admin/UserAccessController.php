@@ -29,6 +29,8 @@ class UserAccessController extends Controller
             ->get()
             ->sortBy(fn (Role $role) => array_search($role->name, [Role::USER, Role::ADMIN, Role::SUPERADMIN], true));
 
+        $permissionRoles = $roles->reject(fn (Role $role) => $role->name === Role::SUPERADMIN);
+
         $permissions = Permission::query()
             ->orderBy('sort_order')
             ->get()
@@ -49,7 +51,7 @@ class UserAccessController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('admin.user-access.index', compact('admins', 'permissions', 'roles', 'users'));
+        return view('admin.user-access.index', compact('admins', 'permissionRoles', 'permissions', 'roles', 'users'));
     }
 
     public function store(StoreUserAccessAdminRequest $request): RedirectResponse

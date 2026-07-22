@@ -47,7 +47,7 @@
             </div>
 
             <div class="divide-y divide-zinc-800">
-                @foreach($roles as $role)
+                @foreach($permissionRoles as $role)
                     <form action="{{ route('user-access.permissions.update', $role) }}" method="POST" class="p-6 space-y-6">
                         @csrf
                         @method('PATCH')
@@ -55,15 +55,13 @@
                         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                             <div>
                                 <h2 class="text-xl font-semibold text-white">{{ $role->label }}</h2>
-                                <p class="text-sm text-zinc-500">{{ $role->name === \App\Models\Role::SUPERADMIN ? 'Always has every permission.' : 'Tick the activities this role can perform.' }}</p>
+                                <p class="text-sm text-zinc-500">Tick the activities this role can perform.</p>
                             </div>
 
                             @can('managePermissions', \App\Models\Role::class)
-                                @if($role->name !== \App\Models\Role::SUPERADMIN)
                                     <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl font-medium">
                                         Save {{ $role->label }} Permissions
                                     </button>
-                                @endif
                             @endcan
                         </div>
 
@@ -80,8 +78,8 @@
                                                        name="permissions[]"
                                                        value="{{ $permission->id }}"
                                                        class="h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-emerald-500 focus:ring-emerald-500"
-                                                       {{ $role->name === \App\Models\Role::SUPERADMIN || $role->permissions->contains('id', $permission->id) ? 'checked' : '' }}
-                                                       {{ $role->name === \App\Models\Role::SUPERADMIN || \Illuminate\Support\Facades\Gate::denies('managePermissions', \App\Models\Role::class) ? 'disabled' : '' }}>
+                                                       {{ $role->permissions->contains('id', $permission->id) ? 'checked' : '' }}
+                                                       {{ \Illuminate\Support\Facades\Gate::denies('managePermissions', \App\Models\Role::class) ? 'disabled' : '' }}>
                                                 <span>{{ $permission->label }}</span>
                                             </label>
                                         @endforeach
