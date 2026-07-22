@@ -48,7 +48,7 @@
     };
 @endphp
 
-<div class="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+<div id="adminSidebar" class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full bg-zinc-900 border-r border-zinc-800 flex flex-col transition-transform duration-200 md:static md:z-auto md:translate-x-0">
     <div class="p-6 border-b border-zinc-800 flex items-center gap-3">
         <div class="w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0">
             <img
