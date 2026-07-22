@@ -121,95 +121,95 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('admin')->group(function () {
         // --- Core Admin & Dashboard ---
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
-        Route::get('/dashboard/stations', [DashboardController::class, 'stations'])->name('dashboard.stations');
-        Route::post('/stations', [DashboardController::class, 'storeStation'])->name('stations.store');
-        Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->name('dashboard.messages');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->middleware('permission:voters.view')->name('dashboard.stats');
+        Route::get('/dashboard/stations', [DashboardController::class, 'stations'])->middleware('permission:data.view')->name('dashboard.stations');
+        Route::post('/stations', [DashboardController::class, 'storeStation'])->middleware('permission:data.create')->name('stations.store');
+        Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->middleware('permission:messages.view')->name('dashboard.messages');
         Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->name('dashboard.donors');
-        Route::get('/live-stat-figures', [LiveStatFigureController::class, 'index'])->name('live-stat-figures.index');
-        Route::post('/live-stat-figures', [LiveStatFigureController::class, 'store'])->name('live-stat-figures.store');
-        Route::delete('/live-stat-figures/batches/{batchId}', [LiveStatFigureController::class, 'destroyBatch'])->name('live-stat-figures.batches.destroy');
-        Route::delete('/live-stat-figures/{liveStatFigure}', [LiveStatFigureController::class, 'destroy'])->name('live-stat-figures.destroy');
+        Route::get('/live-stat-figures', [LiveStatFigureController::class, 'index'])->middleware('permission:live-stats.view')->name('live-stat-figures.index');
+        Route::post('/live-stat-figures', [LiveStatFigureController::class, 'store'])->middleware('permission:live-stats.create')->name('live-stat-figures.store');
+        Route::delete('/live-stat-figures/batches/{batchId}', [LiveStatFigureController::class, 'destroyBatch'])->middleware('permission:live-stats.delete')->name('live-stat-figures.batches.destroy');
+        Route::delete('/live-stat-figures/{liveStatFigure}', [LiveStatFigureController::class, 'destroy'])->middleware('permission:live-stats.delete')->name('live-stat-figures.destroy');
         
         Route::get('/smtp', [SmtpController::class, 'index'])->name('admin.smtp');
         Route::post('/smtp', [SmtpController::class, 'update'])->name('admin.smtp.update');
 
         // --- Content Management ---
-        Route::resource('positions', PositionController::class)->except(['show']);
-        Route::get('/candidates/search', [CandidateController::class, 'search'])->name('candidates.search');
-        Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->name('candidates.featured');
-        Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->name('candidates.approval');
-        Route::post('/candidates/{candidate}/claim-link', [CandidateController::class, 'sendClaimLink'])->middleware('throttle:30,1')->name('candidates.claim-link');
-        Route::resource('candidates', CandidateController::class);
-        Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
+        Route::resource('positions', PositionController::class)->except(['show'])->middleware('permission:aspirants.view');
+        Route::get('/candidates/search', [CandidateController::class, 'search'])->middleware('permission:aspirants.view')->name('candidates.search');
+        Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->middleware('permission:aspirants.update')->name('candidates.featured');
+        Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->middleware('permission:aspirants.approve')->name('candidates.approval');
+        Route::post('/candidates/{candidate}/claim-link', [CandidateController::class, 'sendClaimLink'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidates.claim-link');
+        Route::resource('candidates', CandidateController::class)->middleware('permission:aspirants.view');
+        Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy'])->middleware('permission:frontend.view');
         Route::resource('/admin/political-parties', PoliticalPartyController::class)
             ->parameters(['political-parties' => 'politicalParty'])
             ->names('political-parties')
-            ->except(['show']);
+            ->except(['show'])->middleware('permission:parties.view');
         Route::resource('/admin/coalitions', CoalitionController::class)
             ->parameters(['coalitions' => 'coalition'])
             ->names('coalitions')
-            ->except(['show']);
+            ->except(['show'])->middleware('permission:parties.view');
         
-        Route::get('/news', [NewsArticleController::class, 'index'])->name('news.index');
-        Route::get('/news.create', [NewsArticleController::class, 'create'])->name('news.create');
-        Route::post('/news', [NewsArticleController::class, 'store'])->name('news.store');
-        Route::get('/news/{news}/edit', [NewsArticleController::class, 'edit'])->name('news.edit');
-        Route::put('/news/{news}', [NewsArticleController::class, 'update'])->name('news.update');
-        Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->name('news.destroy');
+        Route::get('/news', [NewsArticleController::class, 'index'])->middleware('permission:frontend.view')->name('news.index');
+        Route::get('/news.create', [NewsArticleController::class, 'create'])->middleware('permission:frontend.view')->name('news.create');
+        Route::post('/news', [NewsArticleController::class, 'store'])->middleware('permission:frontend.update')->name('news.store');
+        Route::get('/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:frontend.view')->name('news.edit');
+        Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
+        Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
 
         Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show']);
         Route::resource('candidate-token-rates', CandidateTokenRateController::class)->except(['show']);
         Route::get('/candidate-token-purchases', [CandidateTokenPurchaseController::class, 'index'])->name('candidate-token-purchases.index');
         Route::get('/candidate-token-ledger', [CandidateTokenLedgerController::class, 'index'])->name('candidate-token-ledger.index');
-        Route::get('/sms-balance-requests', [SmsBalanceRequestController::class, 'index'])->name('sms-balance-requests.index');
-        Route::patch('/sms-balance-requests/{candidateSmsBalanceRequest}', [SmsBalanceRequestController::class, 'update'])->name('sms-balance-requests.update');
+        Route::get('/sms-balance-requests', [SmsBalanceRequestController::class, 'index'])->middleware('permission:messages.view')->name('sms-balance-requests.index');
+        Route::patch('/sms-balance-requests/{candidateSmsBalanceRequest}', [SmsBalanceRequestController::class, 'update'])->middleware('permission:messages.create')->name('sms-balance-requests.update');
 
         Route::resource('/admin/campaign-tools', CampaignToolController::class)
             ->parameters(['campaign-tools' => 'campaignTool'])
             ->names('campaign-tools')
-            ->except(['show']);
-        Route::get('/admin/campaign-website-requests', [CampaignWebsiteRequestController::class, 'index'])->name('campaign-website-requests.index');
+            ->except(['show'])->middleware('permission:aspirants.view');
+        Route::get('/admin/campaign-website-requests', [CampaignWebsiteRequestController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-website-requests.index');
         Route::patch('/admin/campaign-website-requests/{campaignWebsiteRequest}', [CampaignWebsiteRequestController::class, 'update'])->middleware('throttle:30,1')->name('campaign-website-requests.update');
-        Route::get('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'index'])->name('campaign-website-samples.index');
+        Route::get('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-website-samples.index');
         Route::post('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'store'])->middleware('throttle:10,10')->name('campaign-website-samples.store');
         Route::delete('/admin/campaign-website-samples/{campaignWebsiteSample}', [CampaignWebsiteSampleController::class, 'destroy'])->middleware('throttle:30,1')->name('campaign-website-samples.destroy');
-        Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->name('frontend-pages.index');
-        Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->name('frontend-pages.edit');
-        Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->name('frontend-pages.update');
+        Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->middleware('permission:frontend.view')->name('frontend-pages.index');
+        Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->middleware('permission:frontend.view')->name('frontend-pages.edit');
+        Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->middleware('permission:frontend.update')->name('frontend-pages.update');
 
         // --- Finance & Donors ---
         Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods');
         Route::resource('donors', DonorController::class)->names('donors');
 
         // --- Geography (Core Data) ---
-        Route::resource('/blocs', BlocController::class)->names('blocs');
-        Route::resource('/counties', CountyController::class)->names('counties');
-        Route::resource('/constituencies', ConstituencyController::class)->names('constituencies');
-        Route::resource('/wards', WardController::class)->names('wards');
-        Route::get('/locations', [LocationController::class, 'adminIndex'])->name('locations.index');
+        Route::resource('/blocs', BlocController::class)->names('blocs')->middleware('permission:data.view');
+        Route::resource('/counties', CountyController::class)->names('counties')->middleware('permission:data.view');
+        Route::resource('/constituencies', ConstituencyController::class)->names('constituencies')->middleware('permission:data.view');
+        Route::resource('/wards', WardController::class)->names('wards')->middleware('permission:data.view');
+        Route::get('/locations', [LocationController::class, 'adminIndex'])->middleware('permission:voters.view')->name('locations.index');
 
         // Geography Imports
-        Route::post('/blocs/import', [BlocController::class, 'import'])->name('blocs.import');
-        Route::post('/counties/import', [CountyController::class, 'import'])->name('counties.import');
-        Route::post('/constituencies/import', [ConstituencyController::class, 'import'])->name('constituencies.import');
-        Route::post('/wards/import', [WardController::class, 'import'])->name('wards.import');
-        Route::post('/stations/import', [DashboardController::class, 'importStations'])->name('stations.import');
+        Route::post('/blocs/import', [BlocController::class, 'import'])->middleware('permission:data.import')->name('blocs.import');
+        Route::post('/counties/import', [CountyController::class, 'import'])->middleware('permission:data.import')->name('counties.import');
+        Route::post('/constituencies/import', [ConstituencyController::class, 'import'])->middleware('permission:data.import')->name('constituencies.import');
+        Route::post('/wards/import', [WardController::class, 'import'])->middleware('permission:data.import')->name('wards.import');
+        Route::post('/stations/import', [DashboardController::class, 'importStations'])->middleware('permission:data.import')->name('stations.import');
 
         // --- User Access, Voter & Group Management ---
         Route::get('/user-access', [UserAccessController::class, 'index'])->name('user-access.index');
         Route::post('/user-access/admins', [UserAccessController::class, 'store'])->name('user-access.admins.store');
         Route::patch('/user-access/users/{user}/role', [UserAccessController::class, 'updateRole'])->name('user-access.roles.update');
         Route::patch('/user-access/roles/{role}/permissions', [UserAccessController::class, 'updatePermissions'])->name('user-access.permissions.update');
-        Route::resource('users', UserController::class)->except(['show']);
-        Route::resource('groups', GroupController::class)->only(['create', 'store', 'show']);
-        Route::post('/groups/{group}/messages', [GroupController::class, 'sendMessage'])->name('groups.messages.store');
+        Route::resource('users', UserController::class)->except(['show'])->middleware('permission:voters.view');
+        Route::resource('groups', GroupController::class)->only(['create', 'store', 'show'])->middleware('permission:messages.create');
+        Route::post('/groups/{group}/messages', [GroupController::class, 'sendMessage'])->middleware('permission:messages.create')->name('groups.messages.store');
 
         // --- Messages Management ---
-        Route::get('/messages/create', [MessageController::class, 'createMessageForm'])->name('messages.create');
-        Route::post('/messages', [MessageController::class, 'storeMessageFromWeb'])->name('messages.store');
-        Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/create', [MessageController::class, 'createMessageForm'])->middleware('permission:messages.create')->name('messages.create');
+        Route::post('/messages', [MessageController::class, 'storeMessageFromWeb'])->middleware('permission:messages.create')->name('messages.store');
+        Route::get('/messages', [MessageController::class, 'index'])->middleware('permission:messages.view')->name('messages.index');
     });
 
     // --- Profile Management ---
@@ -218,9 +218,3 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 require __DIR__.'/auth.php';
-
-
-
-
-
-

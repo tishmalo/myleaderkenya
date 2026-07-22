@@ -5,6 +5,17 @@
     $brand = $sidebar['brand'] ?? [];
     $overview = $sidebar['overview'] ?? null;
     $sections = $sidebar['sections'] ?? [];
+    $currentUser = Auth::user();
+
+    $canSeeItem = function (?array $item) use ($currentUser): bool {
+        if (! $item) {
+            return false;
+        }
+
+        $permission = $item['permission'] ?? null;
+
+        return ! $permission || ($currentUser && $currentUser->canAccess($permission));
+    };
 
     $isActive = function (array $item): bool {
         foreach ($item['active'] ?? [] as $pattern) {
@@ -16,8 +27,8 @@
         return isset($item['route']) && $item['route'] && request()->routeIs($item['route']);
     };
 
-    $sectionIsActive = function (array $section) use ($isActive): bool {
-        foreach ($section['items'] ?? [] as $item) {
+    $sectionIsActive = function ($items) use ($isActive): bool {
+        foreach ($items as $item) {
             if ($isActive($item)) {
                 return true;
             }
@@ -54,7 +65,7 @@
 
     <nav class="flex-1 p-5 overflow-y-auto">
         <ul class="space-y-2">
-            @if($overview && ($href = $itemHref($overview)))
+            @if($overview && $canSeeItem($overview) && ($href = $itemHref($overview)))
                 <li>
                     <a href="{{ $href }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-300 {{ $isActive($overview) ? 'active' : '' }}">
                         <i class="{{ $overview['icon'] ?? 'fas fa-circle' }} w-5"></i>
@@ -64,7 +75,13 @@
             @endif
 
             @foreach($sections as $section)
-                @php($isSectionActive = $sectionIsActive($section))
+                @php
+                    $visibleItems = collect($section['items'] ?? [])->filter(fn ($item) => $canSeeItem($item))->values();
+                    $isSectionActive = $sectionIsActive($visibleItems);
+                @endphp
+
+                @continue($visibleItems->isEmpty())
+
                 <li>
                     <details class="sidebar-dropdown group" {{ $isSectionActive ? 'open' : '' }}>
                         <summary class="sidebar-dropdown-summary flex cursor-pointer select-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white">
@@ -76,7 +93,7 @@
                         </summary>
 
                         <ul class="mt-2 space-y-1 border-l border-zinc-800 pl-3 ml-5">
-                            @foreach($section['items'] ?? [] as $item)
+                            @foreach($visibleItems as $item)
                                 @php($href = $itemHref($item))
                                 <li>
                                     @if($href)
@@ -106,7 +123,7 @@
             </div>
             <div>
                 <p class="font-medium">{{ Auth::user()->name }}</p>
-                <p class="text-xs text-zinc-500">Administrator</p>
+                <p class="text-xs text-zinc-500">{{ Auth::user()->roleLabel() }}</p>
             </div>
         </div>
     </div>
