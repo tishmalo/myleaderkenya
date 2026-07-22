@@ -327,6 +327,26 @@
     .hero-headline .line-1 { color: var(--kenya-white); display: block; }
     .hero-headline .line-2 { display: block; }
     .hero-headline .line-2 span { background: linear-gradient(135deg, var(--green-bright), var(--kenya-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .typing-headline {
+        width: max-content;
+        max-width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        border-right: 0.08em solid var(--green-bright);
+        animation: typingCandidates 3.2s steps(21, end) infinite alternate, typingCursor 720ms step-end infinite;
+    }
+    .typing-headline span { display: inline-block; }
+    @keyframes typingCandidates {
+        from { width: 0; }
+        78%, to { width: 18ch; }
+    }
+    @keyframes typingCursor {
+        0%, 100% { border-color: transparent; }
+        50% { border-color: var(--green-bright); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .typing-headline { width: auto; animation: none; border-right: 0; white-space: normal; }
+    }
 
     .hero-sub { font-size: 19px; line-height: 1.65; color: rgba(245,245,240,0.65); max-width: 480px; margin-bottom: 44px; }
 
