@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Position;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules;
 use Illuminate\Support\Str;
 
 class AspirantSubmissionRequest extends FormRequest
@@ -25,6 +27,8 @@ class AspirantSubmissionRequest extends FormRequest
             'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
             'email_1' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
             'email_2' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
+            'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'position_id' => ['required', 'exists:positions,id'],
             'political_party_id' => ['nullable', 'exists:political_parties,id'],
             'party' => ['nullable', 'exists:political_parties,id'],
@@ -44,6 +48,17 @@ class AspirantSubmissionRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
+            foreach (['email', 'email_1'] as $emailField) {
+                if (blank($this->input($emailField))) {
+                    continue;
+                }
+
+                $hash = hash('sha256', Str::lower(trim((string) $this->input($emailField))));
+
+                if (User::where('email_hash', $hash)->exists()) {
+                    $validator->errors()->add($emailField, 'The email has already been taken.');
+                }
+            }
             $position = $this->positionName();
 
 

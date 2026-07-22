@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AspirantSubmissionRequest;
 use App\Http\Requests\Api\AspirantUpdateRequest;
 use App\Models\Candidate;
+use App\Models\User;
 use App\Models\NewsArticle;
 use App\Services\Admin\CandidateService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class AspirantController extends Controller
 {
@@ -87,36 +90,70 @@ class AspirantController extends Controller
         $validated = $request->validated();
         $phone1 = $validated['phone_1'] ?? $validated['phone'] ?? null;
         $email1 = $validated['email_1'] ?? $validated['email'] ?? null;
+        $username = $this->uniqueUsername($validated['username'] ?? null, $validated['name']);
+        $userEmail = $email1 ?: $username . '@regista.local';
+        $user = null;
 
-        $candidate = $this->candidateService->createCandidate(
-            [
+        $candidate = DB::transaction(function () use ($request, $validated, $phone1, $email1, $username, $userEmail, &$user): Candidate {
+            $user = User::create([
                 'name' => $validated['name'],
-                'nick_name' => $validated['nick_name'] ?? null,
+                'username' => $username,
+                'email' => $userEmail,
+                'password' => $validated['password'],
+                'role' => 'user',
                 'phone' => $phone1,
-                'phone_1' => $phone1,
-                'phone_2' => $validated['phone_2'] ?? null,
-                'email' => $email1,
-                'email_1' => $email1,
-                'email_2' => $validated['email_2'] ?? null,
-                'position_id' => $validated['position_id'],
-                'political_party_id' => $validated['political_party_id'] ?? $validated['party'] ?? null,
-                'about' => $validated['about'] ?? null,
                 'county' => $validated['county'] ?? null,
                 'constituency' => $validated['constituency'] ?? null,
                 'ward' => $validated['ward'] ?? null,
-                'approval_status' => 'pending',
-            ],
-            $request->file('profile_picture') ?? $request->file('profile_pic'),
-            $request->file('cover_photo'),
-            $request->file('campaign_poster'),
-            $request->file('campaign_video'),
-            $request->file('campaign_skiza_audio')
-        );
+                'country_of_residence' => 'Kenya',
+                'is_aspirant' => true,
+                'relationship' => 'aspirant',
+            ]);
+
+            $candidate = $this->candidateService->createCandidate(
+                [
+                    'user_id' => $user->id,
+                    'name' => $validated['name'],
+                    'nick_name' => $validated['nick_name'] ?? null,
+                    'phone' => $phone1,
+                    'phone_1' => $phone1,
+                    'phone_2' => $validated['phone_2'] ?? null,
+                    'email' => $email1,
+                    'email_1' => $email1,
+                    'email_2' => $validated['email_2'] ?? null,
+                    'position_id' => $validated['position_id'],
+                    'political_party_id' => $validated['political_party_id'] ?? $validated['party'] ?? null,
+                    'about' => $validated['about'] ?? null,
+                    'county' => $validated['county'] ?? null,
+                    'constituency' => $validated['constituency'] ?? null,
+                    'ward' => $validated['ward'] ?? null,
+                    'approval_status' => 'pending',
+                ],
+                $request->file('profile_picture') ?? $request->file('profile_pic'),
+                $request->file('cover_photo'),
+                $request->file('campaign_poster'),
+                $request->file('campaign_video'),
+                $request->file('campaign_skiza_audio')
+            );
+
+            if (Schema::hasTable('candidate_user_relationships')) {
+                $user->relatedCandidates()->syncWithoutDetaching([
+                    $candidate->id => ['relationship' => 'aspirant'],
+                ]);
+            }
+
+            return $candidate;
+        });
 
         $candidate->load(['position', 'politicalParty']);
 
         return response()->json([
             'message' => 'Aspirant registration submitted successfully. An admin will review it before it appears publicly.',
+            'user' => [
+                'id' => $user?->id,
+                'username' => $user?->username,
+                'user_type' => $user?->user_type,
+            ],
             'data' => $this->formatAspirant($candidate, true),
         ], 201);
     }
@@ -204,6 +241,26 @@ class AspirantController extends Controller
                 ])->values(),
             ]),
         ]);
+    }
+
+    private function uniqueUsername(?string $preferred, string $name): string
+    {
+        $base = filled($preferred)
+            ? trim((string) $preferred)
+            : Str::limit(Str::slug($name, '_'), 40, '');
+
+        if ($base === '') {
+            $base = 'aspirant';
+        }
+
+        $username = $base;
+        $suffix = 1;
+
+        while (User::where('username', $username)->exists()) {
+            $username = $base . '_' . $suffix++;
+        }
+
+        return $username;
     }
 
     private function candidateUpdateData(array $validated): array
@@ -332,6 +389,4 @@ class AspirantController extends Controller
     }
 
 }
-
-
 
