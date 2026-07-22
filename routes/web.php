@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Admin\GroupController;
+use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\BlocController;
 use App\Http\Controllers\Admin\CountyController;
@@ -196,7 +197,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/wards/import', [WardController::class, 'import'])->name('wards.import');
         Route::post('/stations/import', [DashboardController::class, 'importStations'])->name('stations.import');
 
-        // --- User & Group Management ---
+        // --- User Access, Voter & Group Management ---
+        Route::middleware('superadmin')->group(function (): void {
+            Route::get('/user-access', [UserAccessController::class, 'index'])->name('user-access.index');
+            Route::post('/user-access/admins', [UserAccessController::class, 'store'])->name('user-access.admins.store');
+            Route::patch('/user-access/users/{user}/role', [UserAccessController::class, 'updateRole'])->name('user-access.roles.update');
+        });
         Route::resource('users', UserController::class)->except(['show']);
         Route::resource('groups', GroupController::class)->only(['create', 'store', 'show']);
         Route::post('/groups/{group}/messages', [GroupController::class, 'sendMessage'])->name('groups.messages.store');

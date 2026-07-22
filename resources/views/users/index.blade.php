@@ -21,12 +21,11 @@
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
         <div class="w-full max-w-full overflow-x-auto">
-            <table class="min-w-[1300px] w-full">
+            <table class="min-w-[1200px] w-full">
                 <thead class="bg-zinc-950 sticky top-0 z-10">
                     <tr class="border-b border-zinc-800">
                         <th class="px-6 py-4 text-left">Username</th>
                         <th class="px-6 py-4 text-left">Full Name</th>
-                        <th class="px-6 py-4 text-left">Role</th>
                         <th class="px-6 py-4 text-left">Phone</th>
                         <th class="px-6 py-4 text-left">Email</th>
                         <th class="px-6 py-4 text-left">Gender</th>
@@ -46,12 +45,6 @@
                             <tr class="hover:bg-zinc-800/70 transition-colors">
                                 <td class="px-6 py-4 font-medium text-white">{{ $user->username }}</td>
                                 <td class="px-6 py-4">{{ $user->name }}</td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                                        {{ $user->isSuperAdmin() ? 'bg-purple-500/20 text-purple-300' : ($user->hasRole(\App\Models\Role::ADMIN) ? 'bg-sky-500/20 text-sky-300' : 'bg-zinc-700 text-zinc-300') }}">
-                                        {{ $user->roleLabel() }}
-                                    </span>
-                                </td>
                                 <td class="px-6 py-4">{{ $user->phone ?? '—' }}</td>
                                 <td class="px-6 py-4">{{ $user->email ?? '—' }}</td>
                                 <td class="px-6 py-4">{{ ucfirst($user->gender ?? '—') }}</td>
@@ -61,14 +54,6 @@
                                 <td class="px-6 py-4">{{ $user->ward ?? '—' }}</td>
                                 <td class="px-6 py-4">{{ $user->polling_station ?? '—' }}</td>
                                 <td class="px-6 py-4">{{ $user->country_of_residence ?? 'Kenya' }}</td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                                        {{ ($user->is_voter == 1 || $user->is_registered == 1) 
-                                            ? 'bg-emerald-500/20 text-emerald-400' 
-                                            : 'bg-orange-500/20 text-orange-400' }}">
-                                        {{ ($user->is_voter == 1 || $user->is_registered == 1) ? 'Registered' : 'Not Registered' }}
-                                    </span>
-                                </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex gap-3 justify-center">
                                         <a href="{{ route('users.edit', $user) }}" 
@@ -85,7 +70,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="14" class="px-6 py-16 text-center text-zinc-500">
+                            <td colspan="13" class="px-6 py-16 text-center text-zinc-500">
                                 No voters found.
                             </td>
                         </tr>

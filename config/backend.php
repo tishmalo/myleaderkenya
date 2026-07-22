@@ -27,6 +27,12 @@ return [
                 ],
             ],
             [
+                'label' => 'User Access',
+                'items' => [
+                    ['label' => 'Admins & Roles', 'route' => 'user-access.index', 'icon' => 'fas fa-user-shield', 'active' => ['user-access.*']],
+                ],
+            ],
+            [
                 'label' => 'Aspirants',
                 'items' => [
                     ['label' => 'Positions', 'route' => 'positions.index', 'icon' => 'fas fa-user-tie', 'active' => ['positions.*']],

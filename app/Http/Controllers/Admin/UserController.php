@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
 use App\Models\User;
 use App\Services\Admin\UserService;
 use App\Services\Admin\CountyService;
@@ -38,25 +37,15 @@ class UserController extends Controller
     public function create()
     {
         $counties = $this->countyService->getAllCounties();
-        $roles = request()->user()?->isSuperAdmin()
-            ? Role::query()->whereIn('name', [Role::USER, Role::ADMIN])->get()->sortBy(fn ($role) => array_search($role->name, [Role::USER, Role::ADMIN], true))
-            : collect();
 
-        return view('users.create', compact('counties', 'roles'));
+        return view('users.create', compact('counties'));
     }
     /**
      * Store a newly created user
      */
     public function store(StoreUserRequest $request)
     {
-
-        $data = $request->validated();
-
-        if (! $request->user()?->isSuperAdmin()) {
-            unset($data['role_id']);
-        }
-
-        $this->userService->createUser($data);
+        $this->userService->createUser($request->validated());
 
         return redirect()->route('users.index')
                          ->with('success', 'User created successfully!');
