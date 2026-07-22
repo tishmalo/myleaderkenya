@@ -141,30 +141,19 @@
     flex-shrink: 0;
 }
 .frontend-nav-brand-logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 8px;
-    background: var(--kenya-red, #BB0000);
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Oswald', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: white;
-    position: relative;
     overflow: hidden;
 }
-.frontend-nav-brand-logo::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 50%;
+.frontend-nav-brand-logo img {
+    width: 100%;
     height: 100%;
-    background: var(--kenya-green, #006600);
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
 }
-.frontend-nav-brand-logo span { position: relative; z-index: 1; }
 .frontend-nav-brand-name {
     font-family: 'Oswald', sans-serif;
     font-size: 19px;
@@ -386,9 +375,9 @@
 
 <nav class="frontend-nav" data-frontend-nav>
     <div class="frontend-nav-inner">
-        <a href="{{ route('landing') }}" class="frontend-nav-brand" aria-label="Tuko Kadi home">
-            <div class="frontend-nav-brand-logo"><span>TK</span></div>
-            <div class="frontend-nav-brand-name">TUKO KADI</div>
+        <a href="{{ route('landing') }}" class="frontend-nav-brand" aria-label="My Leader Kenya home">
+            <div class="frontend-nav-brand-logo"><img src="{{ asset('images/mlkfav.png') }}" alt="My Leader Kenya"></div>
+            <div class="frontend-nav-brand-name">MY LEADER KENYA</div>
         </a>
 
         <ul class="frontend-nav-menu" aria-label="Primary navigation">
@@ -540,5 +529,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
 

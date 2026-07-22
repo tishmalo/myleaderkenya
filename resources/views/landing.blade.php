@@ -19,9 +19,9 @@
             <!-- Left brand panel -->
             <div class="auth-panel-left">
                 <div class="auth-panel-logo">
-                    <img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya">
+                    <img src="{{ asset('images/mlkfav.png') }}" alt="My Leader Kenya">
                 </div>
-                <div class="auth-panel-title">TUKO KADI</div>
+                <div class="auth-panel-title">MY LEADER KENYA</div>
                 <p class="auth-panel-sub">Kenya's youth voter movement.<br>Register. Vote. Lead.</p>
                 <div class="auth-panel-flags">
                     <div class="auth-flag-bar" style="background:var(--kenya-green)"></div>
@@ -229,12 +229,15 @@
     <div class="hero-inner">
         <div>
             <h1 class="hero-headline">
-                <span class="line-1">Niko Kadi,</span>
-                <span class="line-2"><span>Je Wewe?</span></span>
+                <span class="hero-logo-wrap">
+                    <img src="{{ asset('images/mlkfav.png') }}" alt="My Leader Kenya">
+                </span>
+                <span class="line-1">Kenya 2027 Agenda</span>
+                <span class="line-2"><span>2027 Kenya Candidates</span></span>
             </h1>
             <p class="hero-sub">
                 Your future. Your voice. Your vote.<br>
-                Young Kenyans are rising — don't be left behind.
+                Meet the leaders shaping Kenya's next chapter.
             </p>
             <div class="hero-actions">
                 <a href="https://play.google.com/store/apps/details?id=com.mlk.tukokadi"
@@ -247,7 +250,7 @@
                 </a>
             </div>
             <div class="hero-divider">
-                <span class="hero-divider-text">TUKO KADI &bull; JE WEWE? &bull; 2027 &bull; KENYA</span>
+                <span class="hero-divider-text">MY LEADER KENYA &bull; 2027 AGENDA &bull; CANDIDATES &bull; KENYA</span>
             </div>
         </div>
 
@@ -480,7 +483,7 @@
         <p class="cta-sub">This is not just registration.</p>
         <p class="cta-main">This is <em>our</em> Future.</p>
         <div class="cta-tag">
-            <span class="t1">Niko Kadi.</span><span class="t2"> Je Wewe?</span><span class="t3"> 🇰🇪</span>
+            <span class="t1">Kenya 2027.</span><span class="t2"> Candidates &amp; Agenda</span>
         </div>
         @guest
         <div style="margin-top:40px">
