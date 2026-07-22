@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserAccessAdminRequest;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Admin\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class UserAccessController extends Controller
@@ -19,10 +21,18 @@ class UserAccessController extends Controller
 
     public function index(): View
     {
+        Gate::authorize('viewAny', Role::class);
+
         $roles = Role::query()
+            ->with('permissions')
             ->whereIn('name', [Role::USER, Role::ADMIN, Role::SUPERADMIN])
             ->get()
             ->sortBy(fn (Role $role) => array_search($role->name, [Role::USER, Role::ADMIN, Role::SUPERADMIN], true));
+
+        $permissions = Permission::query()
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('group');
 
         $admins = User::query()
             ->with('role')
@@ -39,11 +49,13 @@ class UserAccessController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('admin.user-access.index', compact('admins', 'roles', 'users'));
+        return view('admin.user-access.index', compact('admins', 'permissions', 'roles', 'users'));
     }
 
     public function store(StoreUserAccessAdminRequest $request): RedirectResponse
     {
+        Gate::authorize('createAdmin', Role::class);
+
         $adminRoleId = Role::idFor(Role::ADMIN);
 
         $data = $request->validated();
@@ -58,6 +70,8 @@ class UserAccessController extends Controller
 
     public function updateRole(Request $request, User $user): RedirectResponse
     {
+        Gate::authorize('assignRole', Role::class);
+
         $validated = $request->validate([
             'role_id' => ['required', 'integer', 'exists:roles,id'],
         ]);
@@ -74,5 +88,23 @@ class UserAccessController extends Controller
         ])->save();
 
         return back()->with('success', 'User role updated successfully.');
+    }
+
+    public function updatePermissions(Request $request, Role $role): RedirectResponse
+    {
+        Gate::authorize('managePermissions', Role::class);
+
+        if ($role->name === Role::SUPERADMIN) {
+            return back()->with('error', 'Super admin keeps all permissions by default.');
+        }
+
+        $validated = $request->validate([
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['integer', 'exists:permissions,id'],
+        ]);
+
+        $role->permissions()->sync($validated['permissions'] ?? []);
+
+        return back()->with('success', 'Role permissions updated successfully.');
     }
 }

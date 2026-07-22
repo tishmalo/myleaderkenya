@@ -198,11 +198,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/stations/import', [DashboardController::class, 'importStations'])->name('stations.import');
 
         // --- User Access, Voter & Group Management ---
-        Route::middleware('superadmin')->group(function (): void {
-            Route::get('/user-access', [UserAccessController::class, 'index'])->name('user-access.index');
-            Route::post('/user-access/admins', [UserAccessController::class, 'store'])->name('user-access.admins.store');
-            Route::patch('/user-access/users/{user}/role', [UserAccessController::class, 'updateRole'])->name('user-access.roles.update');
-        });
+        Route::get('/user-access', [UserAccessController::class, 'index'])->name('user-access.index');
+        Route::post('/user-access/admins', [UserAccessController::class, 'store'])->name('user-access.admins.store');
+        Route::patch('/user-access/users/{user}/role', [UserAccessController::class, 'updateRole'])->name('user-access.roles.update');
+        Route::patch('/user-access/roles/{role}/permissions', [UserAccessController::class, 'updatePermissions'])->name('user-access.permissions.update');
         Route::resource('users', UserController::class)->except(['show']);
         Route::resource('groups', GroupController::class)->only(['create', 'store', 'show']);
         Route::post('/groups/{group}/messages', [GroupController::class, 'sendMessage'])->name('groups.messages.store');

@@ -74,6 +74,9 @@ use App\Repositories\Web\CandidateSmsMessageRepository;
 use App\Repositories\Web\CandidateTokenWalletRepository;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use App\Models\Role;
+use App\Policies\UserAccessPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -140,6 +143,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Role::class, UserAccessPolicy::class);
+
         // Configure rate limiters for API routes
         $this->configureRateLimiting();
     }

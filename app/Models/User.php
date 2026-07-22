@@ -157,6 +157,19 @@ class User extends Authenticatable
         return $this->hasRole(Role::SUPERADMIN);
     }
 
+    public function canAccess(string $permission): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $role = $this->relationLoaded('role')
+            ? $this->getRelation('role')
+            : ($this->role_id ? $this->role()->with('permissions')->first() : null);
+
+        return $role?->hasPermission($permission) ?? false;
+    }
+
     public function roleLabel(): string
     {
         $role = $this->relationLoaded('role')
