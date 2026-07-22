@@ -58,6 +58,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected ?Role $resolvedRole = null;
+
+    protected ?Role $resolvedPermissionRole = null;
+
     /**
      * Get the attributes that should be cast.
      *
@@ -133,13 +137,43 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    private function resolvedRole(): ?Role
+    {
+        if ($this->relationLoaded('role')) {
+            return $this->getRelation('role');
+        }
+
+        if (! $this->role_id) {
+            return null;
+        }
+
+        return $this->resolvedRole ??= $this->role()->first();
+    }
+
+    private function resolvedPermissionRole(): ?Role
+    {
+        $role = $this->resolvedRole();
+
+        if (! $role) {
+            return null;
+        }
+
+        if ($role->relationLoaded('permissions')) {
+            return $role;
+        }
+
+        if ($this->resolvedPermissionRole?->is($role)) {
+            return $this->resolvedPermissionRole;
+        }
+
+        return $this->resolvedPermissionRole = $this->role()
+            ->with('permissions:id,name')
+            ->first();
+    }
+
     public function roleName(): ?string
     {
-        $role = $this->relationLoaded('role')
-            ? $this->getRelation('role')
-            : ($this->role_id ? $this->role()->first() : null);
-
-        return $role?->name ?? ($this->attributes['role'] ?? null);
+        return $this->resolvedRole()?->name ?? ($this->attributes['role'] ?? null);
     }
 
     public function hasRole(string $name): bool
@@ -163,22 +197,13 @@ class User extends Authenticatable
             return true;
         }
 
-        $role = $this->relationLoaded('role')
-            ? $this->getRelation('role')
-            : ($this->role_id ? $this->role()->with('permissions')->first() : null);
-
-        return $role?->hasPermission($permission) ?? false;
+        return $this->resolvedPermissionRole()?->hasPermission($permission) ?? false;
     }
 
     public function roleLabel(): string
     {
-        $role = $this->relationLoaded('role')
-            ? $this->getRelation('role')
-            : ($this->role_id ? $this->role()->first() : null);
-
-        return $role?->label ?? Str::headline($this->roleName() ?? Role::USER);
+        return $this->resolvedRole()?->label ?? Str::headline($this->roleName() ?? Role::USER);
     }
-
     public function getUserTypeAttribute(): string
     {
         if ($this->isAdmin()) {
@@ -231,4 +256,3 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 }
-

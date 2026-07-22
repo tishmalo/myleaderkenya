@@ -9,8 +9,6 @@
     <link rel="icon" href="{{ asset('images/myleader.ico') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('images/myleader.ico') }}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{ asset('images/mlkfav.png') }}">
-
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 

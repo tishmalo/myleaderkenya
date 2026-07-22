@@ -6,6 +6,7 @@
     $overview = $sidebar['overview'] ?? null;
     $sections = $sidebar['sections'] ?? [];
     $currentUser = Auth::user();
+    $currentUser?->loadMissing('role.permissions');
 
     $canSeeItem = function (?array $item) use ($currentUser): bool {
         if (! $item) {
