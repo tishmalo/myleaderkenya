@@ -106,6 +106,22 @@
                 </div>
             </div>
 
+            @if(auth()->user()?->isSuperAdmin() && $roles->isNotEmpty())
+                <div class="mt-8">
+                    <label class="block text-sm text-zinc-400 mb-2">Role</label>
+                    <select name="role_id"
+                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                        @foreach($roles as $role)
+                            <option value="{{ $role->id }}" {{ (string) old('role_id') === (string) $role->id ? 'selected' : '' }}>
+                                {{ $role->label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('role_id')
+                        <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endif
             <!-- Password -->
             <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>

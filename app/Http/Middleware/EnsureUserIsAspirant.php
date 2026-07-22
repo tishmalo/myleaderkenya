@@ -23,7 +23,7 @@ class EnsureUserIsAspirant
                 return response()->json(['message' => 'Unauthorized. Aspirant access required.'], 403);
             }
 
-            if (($user->role ?? null) === 'admin') {
+            if ($user->isAdmin()) {
                 return redirect()->route('dashboard')
                     ->with('warning', 'Aspirant access is required for that page.');
             }

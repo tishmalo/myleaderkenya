@@ -8,7 +8,7 @@ class CandidateTokenPackageStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null && $this->user()->role === 'admin';
+        return $this->user() !== null && $this->user()->isAdmin();
     }
 
     public function rules(): array

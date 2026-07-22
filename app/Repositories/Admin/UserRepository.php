@@ -12,7 +12,7 @@ class UserRepository implements UserRepositoryInterface
 {
     public function getFilteredUsersPaginated(array $filters, int $perPage): LengthAwarePaginator
     {
-        $query = User::where('username', '!=', 'admin');
+        $query = User::with('role')->where('username', '!=', 'admin');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];

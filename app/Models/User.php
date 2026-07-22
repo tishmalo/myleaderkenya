@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
@@ -29,6 +30,7 @@ class User extends Authenticatable
         'email_hash',
         'password',
         'role',
+        'role_id',
         'username',
         'phone',
         'gender',
@@ -126,9 +128,47 @@ class User extends Authenticatable
         return $this->hasOne(Location::class, 'name', 'username');
     }
 
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function roleName(): ?string
+    {
+        $role = $this->relationLoaded('role')
+            ? $this->getRelation('role')
+            : ($this->role_id ? $this->role()->first() : null);
+
+        return $role?->name ?? ($this->attributes['role'] ?? null);
+    }
+
+    public function hasRole(string $name): bool
+    {
+        return $this->roleName() === $name;
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->roleName(), [Role::ADMIN, Role::SUPERADMIN], true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(Role::SUPERADMIN);
+    }
+
+    public function roleLabel(): string
+    {
+        $role = $this->relationLoaded('role')
+            ? $this->getRelation('role')
+            : ($this->role_id ? $this->role()->first() : null);
+
+        return $role?->label ?? Str::headline($this->roleName() ?? Role::USER);
+    }
+
     public function getUserTypeAttribute(): string
     {
-        if (($this->role ?? null) === 'admin') {
+        if ($this->isAdmin()) {
             return 'admin';
         }
 

@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'fix.token' => \App\Http\Middleware\FixApiTokenHeader::class,
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'superadmin' => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
             'aspirant' => \App\Http\Middleware\EnsureUserIsAspirant::class,
         ]);
         $middleware->prepend(\App\Http\Middleware\FixApiTokenHeader::class);
