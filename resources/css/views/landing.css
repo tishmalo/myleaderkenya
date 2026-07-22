@@ -315,7 +315,8 @@
     .slider-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: background 0.3s, transform 0.3s; border: none; padding: 0; }
     .slider-dot.active { background: white; transform: scale(1.3); }
 
-    .hero-inner { position: relative; z-index: 5; max-width: 1280px; margin: 0 auto; padding: 80px 32px; display: grid; grid-template-columns: 1fr 420px; gap: 64px; align-items: center; width: 100%; }
+    .hero-inner { position: relative; z-index: 5; max-width: 1280px; margin: 0 auto; padding: 80px 32px; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 64px; align-items: center; width: 100%; }
+    .hero-inner > * { min-width: 0; }
 
     .hero-badge { display: inline-flex; align-items: center; gap: 10px; border: 1px solid rgba(187,0,0,0.5); background: rgba(187,0,0,0.1); padding: 8px 20px; border-radius: 40px; font-size: 11px; font-weight: 700; letter-spacing: 2.5px; color: #ff6666; text-transform: uppercase; margin-bottom: 28px; }
     .hero-badge .dot { width: 6px; height: 6px; background: var(--red-bright); border-radius: 50%; animation: pulse 1.5s infinite; }
@@ -328,26 +329,35 @@
     .hero-headline .line-2 { display: block; }
     .hero-headline .line-2 span { background: linear-gradient(135deg, var(--green-bright), var(--kenya-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .typing-headline {
-        width: max-content;
+        display: block;
         max-width: 100%;
+    }
+    .typing-line {
+        display: block;
+        width: 0;
+        max-width: max-content;
         overflow: hidden;
         white-space: nowrap;
-        border-right: 0.08em solid var(--green-bright);
-        animation: typingCandidates 3.2s steps(21, end) infinite alternate, typingCursor 720ms step-end infinite;
+        border-right: 0.08em solid transparent;
     }
-    .typing-headline span { display: inline-block; }
+    .typing-line-one {
+        animation: typingKenya 5.4s steps(10, end) infinite;
+    }
+    .typing-line-two {
+        animation: typingCandidates 5.4s steps(10, end) infinite;
+    }
+    @keyframes typingKenya {
+        0% { width: 0; border-color: var(--green-bright); }
+        28%, 100% { width: 10ch; border-color: transparent; }
+    }
     @keyframes typingCandidates {
-        from { width: 0; }
-        78%, to { width: 18ch; }
-    }
-    @keyframes typingCursor {
-        0%, 100% { border-color: transparent; }
-        50% { border-color: var(--green-bright); }
+        0%, 34% { width: 0; border-color: transparent; }
+        35% { border-color: var(--green-bright); }
+        72%, 100% { width: 10ch; border-color: var(--green-bright); }
     }
     @media (prefers-reduced-motion: reduce) {
-        .typing-headline { width: auto; animation: none; border-right: 0; white-space: normal; }
+        .typing-line { width: auto; animation: none; border-right: 0; white-space: normal; }
     }
-
     .hero-sub { font-size: 19px; line-height: 1.65; color: rgba(245,245,240,0.65); max-width: 480px; margin-bottom: 44px; }
 
     .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }

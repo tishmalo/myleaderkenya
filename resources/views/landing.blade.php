@@ -232,7 +232,10 @@
                 <span class="hero-logo-wrap">
                     <img src="{{ asset('images/mlkfav.png') }}" alt="My Leader Kenya">
                 </span>
-                <span class="line-2 typing-headline"><span>2027 Kenya Candidates</span></span>
+                <span class="line-2 typing-headline" aria-label="2027 Kenya Candidates">
+                    <span class="typing-line typing-line-one">2027 Kenya</span>
+                    <span class="typing-line typing-line-two">Candidates</span>
+                </span>
             </h1>
             <p class="hero-sub">
                 Your future. Your voice. Your vote.<br>
