@@ -53,10 +53,10 @@ return [
             [
                 'label' => 'Token Management',
                 'items' => [
-                    ['label' => 'Token Packages', 'route' => 'candidate-token-packages.index', 'icon' => 'fas fa-box', 'active' => ['candidate-token-packages.*']],
-                    ['label' => 'Token Rates', 'route' => 'candidate-token-rates.index', 'icon' => 'fas fa-sliders', 'active' => ['candidate-token-rates.*']],
-                    ['label' => 'Token Purchases', 'route' => 'candidate-token-purchases.index', 'icon' => 'fas fa-receipt', 'active' => ['candidate-token-purchases.*']],
-                    ['label' => 'Token Ledger', 'route' => 'candidate-token-ledger.index', 'icon' => 'fas fa-list', 'active' => ['candidate-token-ledger.*']],
+                    ['label' => 'Token Packages', 'route' => 'candidate-token-packages.index', 'icon' => 'fas fa-box', 'active' => ['candidate-token-packages.*'], 'permission' => 'tokens.view'],
+                    ['label' => 'Token Rates', 'route' => 'candidate-token-rates.index', 'icon' => 'fas fa-sliders', 'active' => ['candidate-token-rates.*'], 'permission' => 'tokens.view'],
+                    ['label' => 'Token Purchases', 'route' => 'candidate-token-purchases.index', 'icon' => 'fas fa-receipt', 'active' => ['candidate-token-purchases.*'], 'permission' => 'tokens.view'],
+                    ['label' => 'Token Ledger', 'route' => 'candidate-token-ledger.index', 'icon' => 'fas fa-list', 'active' => ['candidate-token-ledger.*'], 'permission' => 'tokens.view'],
                 ],
             ],
             [
@@ -70,9 +70,9 @@ return [
             [
                 'label' => 'Finance',
                 'items' => [
-                    ['label' => 'Payment Methods', 'route' => 'payment-methods.index', 'icon' => 'fas fa-credit-card', 'active' => ['payment-methods.*']],
-                    ['label' => 'Donors', 'route' => 'donors.index', 'icon' => 'fas fa-hand-holding-heart', 'active' => ['donors.*']],
-                    ['label' => 'Dashboard Donors', 'route' => 'dashboard.donors', 'icon' => 'fas fa-chart-column', 'active' => ['dashboard.donors']],
+                    ['label' => 'Payment Methods', 'route' => 'payment-methods.index', 'icon' => 'fas fa-credit-card', 'active' => ['payment-methods.*'], 'permission' => 'finance.view'],
+                    ['label' => 'Donors', 'route' => 'donors.index', 'icon' => 'fas fa-hand-holding-heart', 'active' => ['donors.*'], 'permission' => 'finance.view'],
+                    ['label' => 'Dashboard Donors', 'route' => 'dashboard.donors', 'icon' => 'fas fa-chart-column', 'active' => ['dashboard.donors'], 'permission' => 'finance.view'],
                 ],
             ],
             [
@@ -95,7 +95,7 @@ return [
             [
                 'label' => 'System Settings',
                 'items' => [
-                    ['label' => 'SMTP Settings', 'route' => 'admin.smtp', 'icon' => 'fas fa-envelope-circle-check', 'active' => ['admin.smtp']],
+                    ['label' => 'SMTP Settings', 'route' => 'admin.smtp', 'icon' => 'fas fa-envelope-circle-check', 'active' => ['admin.smtp'], 'permission' => 'settings.view'],
                 ],
             ],
         ],

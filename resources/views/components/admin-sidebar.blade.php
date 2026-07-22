@@ -14,7 +14,7 @@
 
         $permission = $item['permission'] ?? null;
 
-        return ! $permission || ($currentUser && $currentUser->canAccess($permission));
+        return $permission && $currentUser && $currentUser->canAccess($permission);
     };
 
     $isActive = function (array $item): bool {

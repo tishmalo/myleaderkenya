@@ -126,14 +126,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard/stations', [DashboardController::class, 'stations'])->middleware('permission:data.view')->name('dashboard.stations');
         Route::post('/stations', [DashboardController::class, 'storeStation'])->middleware('permission:data.create')->name('stations.store');
         Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->middleware('permission:messages.view')->name('dashboard.messages');
-        Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->name('dashboard.donors');
+        Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->middleware('permission:finance.view')->name('dashboard.donors');
         Route::get('/live-stat-figures', [LiveStatFigureController::class, 'index'])->middleware('permission:live-stats.view')->name('live-stat-figures.index');
         Route::post('/live-stat-figures', [LiveStatFigureController::class, 'store'])->middleware('permission:live-stats.create')->name('live-stat-figures.store');
         Route::delete('/live-stat-figures/batches/{batchId}', [LiveStatFigureController::class, 'destroyBatch'])->middleware('permission:live-stats.delete')->name('live-stat-figures.batches.destroy');
         Route::delete('/live-stat-figures/{liveStatFigure}', [LiveStatFigureController::class, 'destroy'])->middleware('permission:live-stats.delete')->name('live-stat-figures.destroy');
         
-        Route::get('/smtp', [SmtpController::class, 'index'])->name('admin.smtp');
-        Route::post('/smtp', [SmtpController::class, 'update'])->name('admin.smtp.update');
+        Route::get('/smtp', [SmtpController::class, 'index'])->middleware('permission:settings.view')->name('admin.smtp');
+        Route::post('/smtp', [SmtpController::class, 'update'])->middleware('permission:settings.update')->name('admin.smtp.update');
 
         // --- Content Management ---
         Route::resource('positions', PositionController::class)->except(['show'])->middleware('permission:aspirants.view');
@@ -159,10 +159,10 @@ Route::middleware('auth')->group(function () {
         Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
         Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
 
-        Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show']);
-        Route::resource('candidate-token-rates', CandidateTokenRateController::class)->except(['show']);
-        Route::get('/candidate-token-purchases', [CandidateTokenPurchaseController::class, 'index'])->name('candidate-token-purchases.index');
-        Route::get('/candidate-token-ledger', [CandidateTokenLedgerController::class, 'index'])->name('candidate-token-ledger.index');
+        Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show'])->middleware('permission:tokens.view');
+        Route::resource('candidate-token-rates', CandidateTokenRateController::class)->except(['show'])->middleware('permission:tokens.view');
+        Route::get('/candidate-token-purchases', [CandidateTokenPurchaseController::class, 'index'])->middleware('permission:tokens.view')->name('candidate-token-purchases.index');
+        Route::get('/candidate-token-ledger', [CandidateTokenLedgerController::class, 'index'])->middleware('permission:tokens.view')->name('candidate-token-ledger.index');
         Route::get('/sms-balance-requests', [SmsBalanceRequestController::class, 'index'])->middleware('permission:messages.view')->name('sms-balance-requests.index');
         Route::patch('/sms-balance-requests/{candidateSmsBalanceRequest}', [SmsBalanceRequestController::class, 'update'])->middleware('permission:messages.create')->name('sms-balance-requests.update');
 
@@ -180,8 +180,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->middleware('permission:frontend.update')->name('frontend-pages.update');
 
         // --- Finance & Donors ---
-        Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods');
-        Route::resource('donors', DonorController::class)->names('donors');
+        Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods')->middleware('permission:finance.view');
+        Route::resource('donors', DonorController::class)->names('donors')->middleware('permission:finance.view');
 
         // --- Geography (Core Data) ---
         Route::resource('/blocs', BlocController::class)->names('blocs')->middleware('permission:data.view');
