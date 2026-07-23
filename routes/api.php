@@ -76,7 +76,7 @@ Route::match(['put', 'patch'], '/aspirants/{candidate}', [AspirantController::cl
 Route::post('/aspirants/{candidate}/update', [AspirantController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/aspirant/profile', [AspirantController::class, 'profile']);
 Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
-Route::get('/campaign-tools', [ApiCampaignToolController::class, 'index']);
+Route::get('/campaign-tools', [ApiCampaignToolController::class, 'list']);
 Route::get('/campaign-tools/{campaignTool}', [ApiCampaignToolController::class, 'show']);
 Route::post('/campaign-tools/{campaignTool}/requests', [ApiCampaignToolController::class, 'storeFeatureRequest']);
 // Donations
@@ -149,6 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
+
 
 
 

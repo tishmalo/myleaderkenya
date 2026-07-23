@@ -35,7 +35,7 @@ class CampaignToolController extends Controller
         private CandidateSmsMessageRepositoryInterface $smsMessageRepository
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         $perPage = min((int) $request->query('per_page', 12), 50);
 
@@ -658,3 +658,4 @@ class CampaignToolController extends Controller
         ];
     }
 }
+
