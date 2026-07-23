@@ -75,12 +75,15 @@ use App\Repositories\Web\PublicApprovalRepository;
 use App\Repositories\Web\CandidateSmsMessageRepository;
 use App\Repositories\Web\CandidateTokenWalletRepository;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
 use App\Models\Candidate;
 use App\Models\Role;
 use App\Observers\CandidateObserver;
 use App\Policies\UserAccessPolicy;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -151,8 +154,36 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Role::class, UserAccessPolicy::class);
         Candidate::observe(CandidateObserver::class);
 
+        $this->listenForDatabaseQueries();
+
         // Configure rate limiters for API routes
         $this->configureRateLimiting();
+    }
+
+    /**
+     * Log database query timings when DB_QUERY_LISTEN is enabled.
+     */
+    private function listenForDatabaseQueries(): void
+    {
+        if (! filter_var(env('DB_QUERY_LISTEN', false), FILTER_VALIDATE_BOOL)) {
+            return;
+        }
+
+        $slowMs = (float) env('DB_QUERY_SLOW_MS', 0);
+
+        DB::listen(function (QueryExecuted $query) use ($slowMs): void {
+            if ($slowMs > 0 && $query->time < $slowMs) {
+                return;
+            }
+
+            Log::info('Database query executed.', [
+                'time_ms' => round($query->time, 2),
+                'connection' => $query->connectionName,
+                'sql' => $query->sql,
+                'method' => request()?->method(),
+                'url' => request()?->fullUrl(),
+            ]);
+        });
     }
 
     /**
@@ -185,8 +216,3 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
-
-
-
-
-
