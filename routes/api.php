@@ -12,8 +12,10 @@ use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyContro
 use App\Http\Controllers\Api\PositionController as ApiPositionController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\AspirantController;
+use App\Http\Controllers\Api\PublicApprovalController;
 use App\Http\Controllers\Api\CampaignToolController as ApiCampaignToolController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Middleware\EnsureAllowedPublicApprovalDomain;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,6 +86,7 @@ Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
 
 // Stats
 Route::get('/stats/live', [StatsController::class, 'liveStats']);
+Route::get('/public-approval/presidential', [PublicApprovalController::class, 'presidential'])->middleware(EnsureAllowedPublicApprovalDomain::class);
 
 
 // ====================== PROTECTED ROUTES ======================

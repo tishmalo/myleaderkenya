@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Cache;
 class LandingService
 {
     public function __construct(
-        protected LandingRepositoryInterface $landingRepository
+        protected LandingRepositoryInterface $landingRepository,
+        private PublicApprovalService $publicApprovalService
     ) {}
 
     /**
@@ -20,9 +21,11 @@ class LandingService
     public function getLandingData(): array
     {
         return Cache::remember(
-            HomepageCache::key('landing-data'),
+            HomepageCache::key('landing-data-with-approval'),
             HomepageCache::ttl(),
-            fn (): array => $this->landingRepository->getLandingStats()
+            fn (): array => array_merge($this->landingRepository->getLandingStats(), [
+                'publicApprovalCards' => $this->publicApprovalService->presidentialCards(),
+            ])
         );
     }
 }

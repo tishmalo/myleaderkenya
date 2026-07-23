@@ -413,6 +413,35 @@
         </div>
     </section>
 
+    @if(! empty($publicApprovalCards))
+        <section class="public-approval-section">
+            <div class="section-inner">
+                <div class="section-header">
+                    <div class="section-label">Public Approval</div>
+                    <h2 class="section-title">Presidential Public Pulse</h2>
+                </div>
+                <div class="approval-card-grid">
+                    @foreach($publicApprovalCards as $approvalCard)
+                        <article class="approval-card {{ $approvalCard['theme'] === 'positive' ? 'is-positive' : 'is-negative' }}">
+                            <div class="approval-portrait">
+                                <img src="{{ $approvalCard['portrait_url'] }}" alt="" loading="lazy" decoding="async">
+                            </div>
+                            <div class="approval-body">
+                                <h3>{{ $approvalCard['name'] }}</h3>
+                                <div class="approval-score-row">
+                                    <span class="approval-arrow">{!! $approvalCard['direction'] === 'up' ? '&uarr;' : '&darr;' !!}</span>
+                                    <span class="approval-score">{{ number_format($approvalCard['approval'], 1) }}%</span>
+                                </div>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+
+        <div class="section-stripe"></div>
+    @endif
+
     <!-- HOW IT WORKS -->
     <section id="how" class="how-section">
         <div class="section-inner">
