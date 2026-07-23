@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CampaignToolStoreRequest;
 use App\Http\Requests\Admin\CampaignToolUpdateRequest;
 use App\Models\CampaignTool;
+use App\Models\CampaignToolRequest;
+use App\Services\Web\AspirantWorkspaceService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Services\Admin\CampaignToolService;
 
 class CampaignToolController extends Controller
@@ -77,5 +82,39 @@ class CampaignToolController extends Controller
         $campaignTool = $this->campaignToolService->getPublicShowData($slug);
 
         return view('campaign-tools.public.show', compact('campaignTool'));
+    }
+    public function storeFeatureRequest(Request $request, CampaignTool $campaignTool, AspirantWorkspaceService $workspaceService): RedirectResponse
+    {
+        abort_unless($campaignTool->status === 'published', 404);
+
+        $validated = $request->validate([
+            'requester_name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+() .-]+$/'],
+            'requested_feature' => ['required', 'string', 'max:255'],
+            'use_case' => ['nullable', 'string', 'max:2000'],
+            'feature_request_tool_id' => ['nullable', 'integer'],
+        ]);
+
+        if (blank($validated['email'] ?? null) && blank($validated['phone'] ?? null)) {
+            throw ValidationException::withMessages([
+                'phone' => 'Enter an email or phone so the team can follow up.',
+            ]);
+        }
+
+        unset($validated['feature_request_tool_id']);
+
+        $user = $request->user();
+        $candidate = $user ? $workspaceService->candidateForUser($user) : null;
+
+        CampaignToolRequest::create($validated + [
+            'campaign_tool_id' => $campaignTool->id,
+            'user_id' => $user?->id,
+            'candidate_id' => $candidate?->id,
+            'status' => 'new',
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Feature request submitted. The admin team will review it.');
     }
 }

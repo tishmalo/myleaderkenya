@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class CampaignTool extends Model
@@ -52,6 +53,10 @@ class CampaignTool extends Model
         return $query->orderBy('sort_order')->orderBy('title');
     }
 
+    public function featureRequests(): HasMany
+    {
+        return $this->hasMany(CampaignToolRequest::class);
+    }
     public function getNavTitleAttribute(): string
     {
         return $this->nav_label ?: $this->title;

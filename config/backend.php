@@ -46,6 +46,7 @@ return [
                     ['label' => 'Candidates', 'route' => 'candidates.index', 'icon' => 'fas fa-id-badge', 'active' => ['candidates.*'], 'permission' => 'aspirants.view'],
                     ['label' => 'Positions', 'route' => 'positions.index', 'icon' => 'fas fa-user-tie', 'active' => ['positions.*'], 'permission' => 'aspirants.view'],
                     ['label' => 'Campaign Tools', 'route' => 'campaign-tools.index', 'icon' => 'fas fa-bullhorn', 'active' => ['campaign-tools.*'], 'permission' => 'aspirants.view'],
+                    ['label' => 'Campaign Tool Requests', 'route' => 'campaign-tool-requests.index', 'icon' => 'fas fa-lightbulb', 'active' => ['campaign-tool-requests.*'], 'permission' => 'campaign-tool-requests.view'],
                     ['label' => 'Support Groups', 'route' => 'support-group-types.index', 'icon' => 'fas fa-people-group', 'active' => ['support-group-types.*'], 'permission' => 'support-groups.view'],
                     ['label' => 'Website Requests', 'route' => 'campaign-website-requests.index', 'icon' => 'fas fa-globe', 'active' => ['campaign-website-requests.*'], 'permission' => 'aspirants.view'],
                     ['label' => 'Website Samples', 'route' => 'campaign-website-samples.index', 'icon' => 'fas fa-images', 'active' => ['campaign-website-samples.*'], 'permission' => 'aspirants.view'],

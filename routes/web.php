@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\PoliticalPartyController;
 use App\Http\Controllers\Admin\CoalitionController;
 use App\Http\Controllers\Admin\CandidateController;
 use App\Http\Controllers\Admin\CampaignToolController;
+use App\Http\Controllers\Admin\CampaignToolRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteSampleController;
 use App\Http\Controllers\Admin\NewsArticleController;
@@ -85,6 +86,7 @@ Route::middleware('throttle:web')->group(function () {
 
     // Public Campaign Tools, News & Aspirants
     Route::get('/campaign-tools', [CampaignToolController::class, 'publicIndex'])->name('campaign-tools.public');
+    Route::post('/campaign-tools/{campaignTool}/requests', [CampaignToolController::class, 'storeFeatureRequest'])->middleware('throttle:6,10')->name('campaign-tools.requests.store');
     Route::get('/campaign-tools/{slug}', [CampaignToolController::class, 'publicShow'])->name('campaign-tools.show');
 
     Route::get('/parties', [PoliticalPartyController::class, 'publicIndex'])->name('parties.public');
@@ -175,6 +177,9 @@ Route::middleware('auth')->group(function () {
             ->parameters(['campaign-tools' => 'campaignTool'])
             ->names('campaign-tools')
             ->except(['show'])->middleware('permission:aspirants.view');
+        Route::get('/admin/campaign-tool-requests', [CampaignToolRequestController::class, 'index'])->middleware('permission:campaign-tool-requests.view')->name('campaign-tool-requests.index');
+        Route::patch('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.update');
+        Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');
         Route::get('/admin/support-group-types', [SupportGroupTypeController::class, 'index'])->middleware('permission:support-groups.view')->name('support-group-types.index');
         Route::post('/admin/support-group-types', [SupportGroupTypeController::class, 'store'])->middleware('permission:support-groups.create')->name('support-group-types.store');
         Route::patch('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'update'])->middleware('permission:support-groups.update')->name('support-group-types.update');
