@@ -6,13 +6,41 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://localhost/myleader/public/api", "type": "string" },
-    { "key": "token", "value": "", "type": "string" },
-    { "key": "campaign_tool_slug", "value": "campaign-website", "type": "string" },
-    { "key": "aspirant_tool_key", "value": "campaign-website", "type": "string" },
-    { "key": "support_group_type_id", "value": "1", "type": "string" },
-    { "key": "support_contact_id", "value": "1", "type": "string" },
-    { "key": "voter_user_id", "value": "1", "type": "string" }
+    {
+      "key": "base_url",
+      "value": "http://localhost/myleader/public/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "campaign_tool_slug",
+      "value": "campaign-website",
+      "type": "string"
+    },
+    {
+      "key": "aspirant_tool_key",
+      "value": "campaign-website",
+      "type": "string"
+    },
+    {
+      "key": "support_group_type_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "support_contact_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "voter_user_id",
+      "value": "1",
+      "type": "string"
+    }
   ],
   "item": [
     {
@@ -37,33 +65,120 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "name", "value": "Jane Aspirant", "type": "text" },
-                { "key": "nick_name", "value": "Jane", "type": "text" },
-                { "key": "username", "value": "jane_aspirant_{{$timestamp}}", "type": "text" },
-                { "key": "password", "value": "Password@123", "type": "text" },
-                { "key": "password_confirmation", "value": "Password@123", "type": "text" },
-                { "key": "phone_1", "value": "+254700000000", "type": "text" },
-                { "key": "email_1", "value": "jane{{$timestamp}}@example.com", "type": "text" },
-                { "key": "position_id", "value": "1", "type": "text" },
-                { "key": "political_party_id", "value": "1", "type": "text" },
-                { "key": "county", "value": "Nairobi", "type": "text" },
-                { "key": "constituency", "value": "Westlands", "type": "text" },
-                { "key": "ward", "value": "Parklands/Highridge", "type": "text" },
-                { "key": "about", "value": "A sample aspirant registration from Postman.", "type": "text" }
+                {
+                  "key": "name",
+                  "value": "Jane Aspirant",
+                  "type": "text"
+                },
+                {
+                  "key": "nick_name",
+                  "value": "Jane",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "jane_aspirant_{{$timestamp}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "Password@123",
+                  "type": "text"
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "Password@123",
+                  "type": "text"
+                },
+                {
+                  "key": "phone_1",
+                  "value": "+254700000000",
+                  "type": "text"
+                },
+                {
+                  "key": "email_1",
+                  "value": "jane{{$timestamp}}@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "position_id",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "political_party_id",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "county",
+                  "value": "Nairobi",
+                  "type": "text"
+                },
+                {
+                  "key": "constituency",
+                  "value": "Westlands",
+                  "type": "text"
+                },
+                {
+                  "key": "ward",
+                  "value": "Parklands/Highridge",
+                  "type": "text"
+                },
+                {
+                  "key": "about",
+                  "value": "A sample aspirant registration from Postman.",
+                  "type": "text"
+                }
               ]
             },
             "url": {
               "raw": "{{base_url}}/aspirants/register",
-              "host": ["{{base_url}}"],
-              "path": ["aspirants", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirants",
+                "register"
+              ]
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Success - Aspirant registered",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Aspirant registration submitted successfully. An admin will review it before it appears publicly.\",\n  \"user\": {\n    \"id\": 25,\n    \"username\": \"jane_aspirant\",\n    \"user_type\": \"aspirant\"\n  },\n  \"token\": \"1|sample-sanctum-token\",\n  \"data\": {\n    \"id\": 12,\n    \"name\": \"Jane Aspirant\",\n    \"approval_status\": \"pending\"\n  }\n}"
+            },
+            {
+              "name": "422 Error - Validation failed",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"The name field is required.\",\n  \"errors\": {\n    \"name\": [\n      \"The name field is required.\"\n    ],\n    \"position_id\": [\n      \"The selected position id is invalid.\"\n    ]\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -74,36 +189,120 @@
           "name": "Fetch Campaign Tools",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/campaign-tools?per_page=12",
-              "host": ["{{base_url}}"],
-              "path": ["campaign-tools"],
-              "query": [{ "key": "per_page", "value": "12" }]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "campaign-tools"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "12"
+                }
+              ]
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Campaign tools fetched",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Campaign tools fetched successfully.\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"title\": \"Campaign Website\",\n      \"slug\": \"campaign-website\",\n      \"status\": \"published\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "422 Error - Invalid query",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"The per page value is invalid.\",\n  \"errors\": {\n    \"per_page\": [\n      \"The per page must be a number.\"\n    ]\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Show Campaign Tool",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/campaign-tools/{{campaign_tool_slug}}",
-              "host": ["{{base_url}}"],
-              "path": ["campaign-tools", "{{campaign_tool_slug}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "campaign-tools",
+                "{{campaign_tool_slug}}"
+              ]
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Campaign tool fetched",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Campaign tool fetched successfully.\",\n  \"data\": {\n    \"id\": 1,\n    \"title\": \"Campaign Website\",\n    \"slug\": \"campaign-website\",\n    \"content\": \"<p>Tool details...</p>\"\n  }\n}"
+            },
+            {
+              "name": "404 Error - Campaign tool not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Campaign tool not found or unpublished.\"\n}"
+            }
+          ]
         },
         {
           "name": "Submit Campaign Tool Feature Request",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -111,11 +310,44 @@
             },
             "url": {
               "raw": "{{base_url}}/campaign-tools/{{campaign_tool_slug}}/requests",
-              "host": ["{{base_url}}"],
-              "path": ["campaign-tools", "{{campaign_tool_slug}}", "requests"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "campaign-tools",
+                "{{campaign_tool_slug}}",
+                "requests"
+              ]
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Success - Feature request submitted",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Feature request submitted. The admin team will review it.\",\n  \"data\": {\n    \"id\": 18,\n    \"requested_feature\": \"Mobile dashboard notifications\",\n    \"status\": \"new\"\n  }\n}"
+            },
+            {
+              "name": "422 Error - Missing contact",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Enter an email or phone so the team can follow up.\",\n  \"errors\": {\n    \"phone\": [\n      \"Enter an email or phone so the team can follow up.\"\n    ]\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -123,100 +355,465 @@
       "name": "Protected Aspirant Campaign Tools",
       "auth": {
         "type": "bearer",
-        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
       },
       "item": [
         {
           "name": "Aspirant Profile",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/aspirant/profile", "host": ["{{base_url}}"], "path": ["aspirant", "profile"] }
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/aspirant/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "profile"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Aspirant profile fetched",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Aspirant profile fetched successfully.\",\n  \"data\": {\n    \"id\": 12,\n    \"name\": \"Jane Aspirant\",\n    \"approval_status\": \"pending\"\n  }\n}"
+            },
+            {
+              "name": "404 Error - No linked aspirant profile",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"No aspirant profile is linked to this account yet.\",\n  \"data\": null\n}"
+            }
+          ]
         },
         {
           "name": "Fetch Aspirant Campaign Tools",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/aspirant/campaign-tools", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools"] }
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/aspirant/campaign-tools",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "campaign-tools"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Aspirant tools fetched",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Aspirant campaign tools fetched successfully.\",\n  \"data\": [\n    {\n      \"key\": \"bulk-sms\",\n      \"title\": \"Bulk SMS\",\n      \"available\": true,\n      \"disabled_reason\": null\n    }\n  ]\n}"
+            },
+            {
+              "name": "401 Error - Unauthenticated",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}"
+            }
+          ]
         },
         {
           "name": "Show Aspirant Tool Workspace Data",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/{{aspirant_tool_key}}", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "{{aspirant_tool_key}}"] }
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/aspirant/campaign-tools/{{aspirant_tool_key}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "campaign-tools",
+                "{{aspirant_tool_key}}"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Aspirant tool workspace fetched",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Aspirant tool workspace data fetched successfully.\",\n  \"data\": {\n    \"key\": \"campaign-website\",\n    \"availability\": {\n      \"available\": true,\n      \"reason\": null\n    }\n  }\n}"
+            },
+            {
+              "name": "403 Error - Tool unavailable",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Link an aspirant profile before using this tool.\"\n}"
+            }
+          ]
         },
         {
           "name": "Send Bulk SMS",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"message\": \"Hello voters, thank you for supporting our campaign.\"\n}" },
-            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/bulk-sms/send", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "bulk-sms", "send"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hello voters, thank you for supporting our campaign.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirant/campaign-tools/bulk-sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "campaign-tools",
+                "bulk-sms",
+                "send"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Success - Bulk SMS queued",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Bulk SMS queued.\",\n  \"data\": {\n    \"id\": 42,\n    \"status\": \"queued\",\n    \"recipient_count\": 120\n  },\n  \"quote\": {\n    \"tokens_required\": 120,\n    \"sms_units\": 120\n  }\n}"
+            },
+            {
+              "name": "402 Error - Insufficient tokens",
+              "status": "Payment Required",
+              "code": 402,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Insufficient tokens. Buy more tokens to continue.\"\n}"
+            }
+          ]
         },
         {
           "name": "Create Opinion Poll",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"question\": \"Which issue should the campaign prioritize this week?\",\n  \"options\": [\"Jobs\", \"Water\", \"Roads\"],\n  \"status\": \"draft\"\n}" },
-            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/opinion-polls/polls", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "opinion-polls", "polls"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Which issue should the campaign prioritize this week?\",\n  \"options\": [\"Jobs\", \"Water\", \"Roads\"],\n  \"status\": \"draft\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirant/campaign-tools/opinion-polls/polls",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "campaign-tools",
+                "opinion-polls",
+                "polls"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Success - Poll saved",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Poll draft saved.\",\n  \"data\": {\n    \"id\": 9,\n    \"question\": \"Which issue should the campaign prioritize this week?\",\n    \"status\": \"draft\"\n  },\n  \"quote\": {\n    \"tokens_required\": 1\n  }\n}"
+            },
+            {
+              "name": "422 Error - Not enough options",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Add at least two poll options.\"\n}"
+            }
+          ]
         },
         {
           "name": "Save Call Center Script",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"script\": \"Hello, this is Jane Aspirant's campaign team. We are calling to listen to your top concerns and share our plan for the area.\",\n  \"callback_priority\": \"undecided\"\n}" },
-            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/call-center/script", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "call-center", "script"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"script\": \"Hello, this is Jane Aspirant's campaign team. We are calling to listen to your top concerns and share our plan for the area.\",\n  \"callback_priority\": \"undecided\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirant/campaign-tools/call-center/script",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "campaign-tools",
+                "call-center",
+                "script"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Call script saved",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Call script saved.\",\n  \"data\": {\n    \"id\": 7,\n    \"callback_priority\": \"undecided\"\n  },\n  \"quote\": {\n    \"tokens_required\": 1\n  }\n}"
+            },
+            {
+              "name": "422 Error - Invalid script",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"The script must be at least 20 characters.\",\n  \"errors\": {\n    \"script\": [\n      \"The script must be at least 20 characters.\"\n    ]\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Record Call Log",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"voter_user_id\": {{voter_user_id}},\n  \"outcome\": \"reached\",\n  \"notes\": \"Voter requested a follow-up on water projects.\",\n  \"callback_at\": null\n}" },
-            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/call-center/calls", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "call-center", "calls"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voter_user_id\": {{voter_user_id}},\n  \"outcome\": \"reached\",\n  \"notes\": \"Voter requested a follow-up on water projects.\",\n  \"callback_at\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirant/campaign-tools/call-center/calls",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "campaign-tools",
+                "call-center",
+                "calls"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Success - Call log recorded",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Call log recorded.\",\n  \"data\": {\n    \"id\": 30,\n    \"outcome\": \"reached\",\n    \"voter_user_id\": 1\n  },\n  \"quote\": {\n    \"tokens_required\": 1\n  }\n}"
+            },
+            {
+              "name": "404 Error - Voter unavailable",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"That voter is not available in your scoped call list.\"\n}"
+            }
+          ]
         },
         {
           "name": "Submit Campaign Website Request",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"candidate_name\": \"Jane Aspirant\",\n  \"phone\": \"+254700000000\",\n  \"email\": \"jane@example.com\",\n  \"preferred_domain\": \"jane2027.co.ke\",\n  \"website_type\": \"standard\",\n  \"reference_url\": \"https://example.com\",\n  \"notes\": \"Include bio, manifesto, donation links, and events.\"\n}" },
-            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/campaign-website/request", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "campaign-website", "request"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidate_name\": \"Jane Aspirant\",\n  \"phone\": \"+254700000000\",\n  \"email\": \"jane@example.com\",\n  \"preferred_domain\": \"jane2027.co.ke\",\n  \"website_type\": \"standard\",\n  \"reference_url\": \"https://example.com\",\n  \"notes\": \"Include bio, manifesto, donation links, and events.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirant/campaign-tools/campaign-website/request",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "campaign-tools",
+                "campaign-website",
+                "request"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Success - Website request submitted",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Campaign website request submitted.\",\n  \"data\": {\n    \"id\": 5,\n    \"candidate_name\": \"Jane Aspirant\",\n    \"status\": \"new\"\n  },\n  \"quote\": {\n    \"tokens_required\": 1\n  }\n}"
+            },
+            {
+              "name": "422 Error - Invalid website request",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"The website type field is required.\",\n  \"errors\": {\n    \"website_type\": [\n      \"The website type field is required.\"\n    ]\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -224,61 +821,287 @@
       "name": "Protected Aspirant Support Groups",
       "auth": {
         "type": "bearer",
-        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
       },
       "item": [
         {
           "name": "Fetch Support Group Types",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/aspirant/support-groups/types", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "types"] }
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/aspirant/support-groups/types",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "support-groups",
+                "types"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Support group types fetched",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Support group types fetched successfully.\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Volunteers\",\n      \"slug\": \"volunteers\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "401 Error - Unauthenticated",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}"
+            }
+          ]
         },
         {
           "name": "Fetch Support Contacts",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts"] }
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/aspirant/support-groups/contacts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "support-groups",
+                "contacts"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Support contacts fetched",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Support contacts fetched successfully.\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Mary Supporter\",\n      \"phone\": \"+254711111111\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "404 Error - No linked aspirant profile",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"No aspirant profile is linked to this account yet.\"\n}"
+            }
+          ]
         },
         {
           "name": "Create Support Contact",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"support_group_type_id\": {{support_group_type_id}},\n  \"name\": \"Mary Supporter\",\n  \"email\": \"mary@example.com\",\n  \"phone\": \"+254711111111\"\n}" },
-            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"support_group_type_id\": {{support_group_type_id}},\n  \"name\": \"Mary Supporter\",\n  \"email\": \"mary@example.com\",\n  \"phone\": \"+254711111111\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirant/support-groups/contacts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "support-groups",
+                "contacts"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Success - Support contact added",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Support contact added.\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Mary Supporter\",\n    \"phone\": \"+254711111111\"\n  }\n}"
+            },
+            {
+              "name": "422 Error - Missing contact method",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Enter an email or phone for the support contact.\",\n  \"errors\": {\n    \"phone\": [\n      \"Enter an email or phone for the support contact.\"\n    ]\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Update Support Contact",
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"support_group_type_id\": {{support_group_type_id}},\n  \"name\": \"Mary Updated\",\n  \"email\": \"mary.updated@example.com\",\n  \"phone\": \"+254722222222\"\n}" },
-            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts/{{support_contact_id}}", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts", "{{support_contact_id}}"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"support_group_type_id\": {{support_group_type_id}},\n  \"name\": \"Mary Updated\",\n  \"email\": \"mary.updated@example.com\",\n  \"phone\": \"+254722222222\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirant/support-groups/contacts/{{support_contact_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "support-groups",
+                "contacts",
+                "{{support_contact_id}}"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Support contact updated",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Support contact updated.\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Mary Updated\",\n    \"phone\": \"+254722222222\"\n  }\n}"
+            },
+            {
+              "name": "403 Error - Contact belongs to another aspirant",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"This support contact does not belong to your aspirant profile.\"\n}"
+            }
+          ]
         },
         {
           "name": "Delete Support Contact",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts/{{support_contact_id}}", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts", "{{support_contact_id}}"] }
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/aspirant/support-groups/contacts/{{support_contact_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "aspirant",
+                "support-groups",
+                "contacts",
+                "{{support_contact_id}}"
+              ]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 Success - Support contact removed",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Support contact removed.\"\n}"
+            },
+            {
+              "name": "403 Error - Contact belongs to another aspirant",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"This support contact does not belong to your aspirant profile.\"\n}"
+            }
+          ]
         }
       ]
     }
