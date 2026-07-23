@@ -1,0 +1,286 @@
+{
+  "info": {
+    "_postman_id": "6d8a7c64-cc38-4d4f-a5fb-0d7f0d3f1a31",
+    "name": "MyLeader Aspirant Campaign Tools API",
+    "description": "Postman collection for aspirant registration token, campaign tools fetching, campaign tool form submissions, and aspirant support group APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost/myleader/public/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "campaign_tool_slug", "value": "campaign-website", "type": "string" },
+    { "key": "aspirant_tool_key", "value": "campaign-website", "type": "string" },
+    { "key": "support_group_type_id", "value": "1", "type": "string" },
+    { "key": "support_contact_id", "value": "1", "type": "string" },
+    { "key": "voter_user_id", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Aspirant Registration",
+      "item": [
+        {
+          "name": "Register Aspirant - Returns Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Jane Aspirant", "type": "text" },
+                { "key": "nick_name", "value": "Jane", "type": "text" },
+                { "key": "username", "value": "jane_aspirant_{{$timestamp}}", "type": "text" },
+                { "key": "password", "value": "Password@123", "type": "text" },
+                { "key": "password_confirmation", "value": "Password@123", "type": "text" },
+                { "key": "phone_1", "value": "+254700000000", "type": "text" },
+                { "key": "email_1", "value": "jane{{$timestamp}}@example.com", "type": "text" },
+                { "key": "position_id", "value": "1", "type": "text" },
+                { "key": "political_party_id", "value": "1", "type": "text" },
+                { "key": "county", "value": "Nairobi", "type": "text" },
+                { "key": "constituency", "value": "Westlands", "type": "text" },
+                { "key": "ward", "value": "Parklands/Highridge", "type": "text" },
+                { "key": "about", "value": "A sample aspirant registration from Postman.", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/aspirants/register",
+              "host": ["{{base_url}}"],
+              "path": ["aspirants", "register"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Public Campaign Tools",
+      "item": [
+        {
+          "name": "Fetch Campaign Tools",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/campaign-tools?per_page=12",
+              "host": ["{{base_url}}"],
+              "path": ["campaign-tools"],
+              "query": [{ "key": "per_page", "value": "12" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Campaign Tool",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/campaign-tools/{{campaign_tool_slug}}",
+              "host": ["{{base_url}}"],
+              "path": ["campaign-tools", "{{campaign_tool_slug}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Campaign Tool Feature Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requester_name\": \"Jane Aspirant\",\n  \"email\": \"jane@example.com\",\n  \"phone\": \"+254700000000\",\n  \"requested_feature\": \"Mobile dashboard notifications\",\n  \"use_case\": \"I want alerts when campaign volunteers submit new field updates.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/campaign-tools/{{campaign_tool_slug}}/requests",
+              "host": ["{{base_url}}"],
+              "path": ["campaign-tools", "{{campaign_tool_slug}}", "requests"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Protected Aspirant Campaign Tools",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "Aspirant Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/aspirant/profile", "host": ["{{base_url}}"], "path": ["aspirant", "profile"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch Aspirant Campaign Tools",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/aspirant/campaign-tools", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Aspirant Tool Workspace Data",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/{{aspirant_tool_key}}", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "{{aspirant_tool_key}}"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Bulk SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"Hello voters, thank you for supporting our campaign.\"\n}" },
+            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/bulk-sms/send", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "bulk-sms", "send"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Opinion Poll",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"question\": \"Which issue should the campaign prioritize this week?\",\n  \"options\": [\"Jobs\", \"Water\", \"Roads\"],\n  \"status\": \"draft\"\n}" },
+            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/opinion-polls/polls", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "opinion-polls", "polls"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Call Center Script",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"script\": \"Hello, this is Jane Aspirant's campaign team. We are calling to listen to your top concerns and share our plan for the area.\",\n  \"callback_priority\": \"undecided\"\n}" },
+            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/call-center/script", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "call-center", "script"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Call Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"voter_user_id\": {{voter_user_id}},\n  \"outcome\": \"reached\",\n  \"notes\": \"Voter requested a follow-up on water projects.\",\n  \"callback_at\": null\n}" },
+            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/call-center/calls", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "call-center", "calls"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Campaign Website Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"candidate_name\": \"Jane Aspirant\",\n  \"phone\": \"+254700000000\",\n  \"email\": \"jane@example.com\",\n  \"preferred_domain\": \"jane2027.co.ke\",\n  \"website_type\": \"standard\",\n  \"reference_url\": \"https://example.com\",\n  \"notes\": \"Include bio, manifesto, donation links, and events.\"\n}" },
+            "url": { "raw": "{{base_url}}/aspirant/campaign-tools/campaign-website/request", "host": ["{{base_url}}"], "path": ["aspirant", "campaign-tools", "campaign-website", "request"] }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Protected Aspirant Support Groups",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "Fetch Support Group Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/aspirant/support-groups/types", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "types"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch Support Contacts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Support Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"support_group_type_id\": {{support_group_type_id}},\n  \"name\": \"Mary Supporter\",\n  \"email\": \"mary@example.com\",\n  \"phone\": \"+254711111111\"\n}" },
+            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Support Contact",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"support_group_type_id\": {{support_group_type_id}},\n  \"name\": \"Mary Updated\",\n  \"email\": \"mary.updated@example.com\",\n  \"phone\": \"+254722222222\"\n}" },
+            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts/{{support_contact_id}}", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts", "{{support_contact_id}}"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Support Contact",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/aspirant/support-groups/contacts/{{support_contact_id}}", "host": ["{{base_url}}"], "path": ["aspirant", "support-groups", "contacts", "{{support_contact_id}}"] }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

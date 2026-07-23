@@ -311,54 +311,43 @@
             @endphp
 
             @if($hasAspirants)
-                <div class="aspirants-table-grid">
+                <div class="aspirants-position-stack">
                     @foreach($aspirantGroups as $group)
-                        <div class="aspirants-table-card">
-                            <div class="aspirants-table-head">
-                                <div class="aspirants-table-title">{{ $group['label'] }}</div>
+                        <div class="aspirants-position-block">
+                            <div class="aspirants-position-head">
+                                <div class="aspirants-position-title">{{ $group['label'] }}</div>
                                 <a href="{{ route('aspirants.public', ['position' => $group['position']]) }}" class="aspirants-view-more">
                                     View more <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
                             @if($group['candidates']->isNotEmpty())
-                                <div class="aspirants-table-wrap">
-                                    <table class="aspirants-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Party</th>
-                                                <th>County</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($group['candidates'] as $candidate)
-                                                <tr>
-                                                    <td>
-                                                        <a href="{{ route('aspirants.show', $candidate) }}" class="aspirants-name-link">
-                                                            <span class="aspirants-avatar" aria-hidden="true">
-                                                                @if($candidate->profile_picture)
-                                                                    <img src="{{ Storage::url($candidate->profile_picture) }}" alt="">
-                                                                @else
-                                                                    {{ strtoupper(substr($candidate->name, 0, 1)) }}
-                                                                @endif
-                                                            </span>
-                                                            <span>{{ $candidate->name }}</span>
-                                                        </a>
-                                                    </td>
-                                                    <td>{{ $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? '-' }}</td>
-                                                    <td>{{ $candidate->county ?? $candidate->country ?? '-' }}</td>
-                                                    <td>
-                                                        @if($candidate->featured)
-                                                            <span class="aspirants-featured-pill">Featured</span>
-                                                        @else
-                                                            Newest
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+                                <div class="aspirants-card-grid">
+                                    @foreach($group['candidates'] as $candidate)
+                                        @php
+                                            $party = $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? 'Independent';
+                                            $area = $candidate->county ?? $candidate->country ?? 'Kenya';
+                                            $position = $candidate->position->name ?? $group['label'];
+                                        @endphp
+                                        <a href="{{ route('aspirants.show', $candidate) }}" class="aspirant-mini-card">
+                                            <span class="aspirant-mini-photo" aria-hidden="true">
+                                                @if($candidate->profile_picture)
+                                                    <img src="{{ Storage::url($candidate->profile_picture) }}" alt="" loading="lazy" decoding="async">
+                                                @else
+                                                    <span>{{ strtoupper(substr($candidate->name, 0, 1)) }}</span>
+                                                @endif
+                                            </span>
+                                            <span class="aspirant-mini-body">
+                                                <span class="aspirant-mini-name">{{ $candidate->name }}</span>
+                                                <span class="aspirant-mini-meta">{{ $position }}, {{ $area }}</span>
+                                                <span class="aspirant-mini-footer">
+                                                    <span class="aspirant-mini-party">{{ $party }}</span>
+                                                    @if($candidate->featured)
+                                                        <span class="aspirant-mini-badge">Featured</span>
+                                                    @endif
+                                                </span>
+                                            </span>
+                                        </a>
+                                    @endforeach
                                 </div>
                             @else
                                 <div class="aspirants-empty">No {{ strtolower($group['label']) }} aspirants yet.</div>

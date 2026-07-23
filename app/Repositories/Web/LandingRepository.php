@@ -99,7 +99,10 @@ class LandingRepository implements LandingRepositoryInterface
                 $query->orderByDesc('featured');
             }
 
-            $group['candidates'] = $query->latest()->take(10)->get();
+            $group['candidates'] = $query
+                ->latest('created_at')
+                ->take(5)
+                ->get();
 
             return $group;
         })->all();
@@ -197,3 +200,4 @@ class LandingRepository implements LandingRepositoryInterface
         return $genderData;
     }
 }
+
