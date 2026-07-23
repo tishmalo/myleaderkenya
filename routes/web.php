@@ -119,6 +119,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/aspirant/tools/call-center/calls', [AspirantToolController::class, 'storeCallLog'])->middleware('throttle:60,1')->name('aspirant.tools.call-center.calls');
         Route::post('/aspirant/tools/campaign-website/request', [AspirantToolController::class, 'storeWebsiteRequest'])->middleware('throttle:3,10')->name('aspirant.tools.campaign-website.request');
         Route::post('/aspirant/tools/support-groups/contacts', [AspirantToolController::class, 'storeSupportContact'])->middleware('throttle:30,1')->name('aspirant.tools.support-groups.contacts.store');
+        Route::post('/aspirant/tools/support-groups/contacts/import', [AspirantToolController::class, 'importSupportContacts'])->middleware('throttle:6,10')->name('aspirant.tools.support-groups.contacts.import');
         Route::patch('/aspirant/tools/support-groups/contacts/{candidateSupportContact}', [AspirantToolController::class, 'updateSupportContact'])->middleware('throttle:30,1')->name('aspirant.tools.support-groups.contacts.update');
         Route::delete('/aspirant/tools/support-groups/contacts/{candidateSupportContact}', [AspirantToolController::class, 'destroySupportContact'])->middleware('throttle:30,1')->name('aspirant.tools.support-groups.contacts.destroy');
     });

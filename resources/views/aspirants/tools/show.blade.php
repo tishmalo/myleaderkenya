@@ -33,6 +33,14 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .tool-btn.loading .tool-spinner { display:inline-block; }
 @keyframes tool-spin { to { transform:rotate(360deg); } }
 .tool-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(320px,.8fr); gap:22px; }
+.support-groups-grid { grid-template-columns:1fr; }
+.support-groups-grid > aside { display:none; }
+.support-groups-layout { display:grid; grid-template-columns:minmax(300px,.7fr) minmax(0,1.3fr); gap:18px; align-items:start; }
+.support-import-panel { margin-top:16px; border-top:1px solid rgba(255,255,255,.08); padding-top:16px; }
+.support-contact-list { display:grid; gap:12px; }
+.support-contact-card { border:1px solid rgba(255,255,255,.07); border-radius:8px; background:#0d0d0d; padding:14px; }
+.support-contact-grid { display:grid; grid-template-columns:minmax(150px,.9fr) minmax(180px,1.1fr) minmax(200px,1.2fr) minmax(150px,.9fr) auto; gap:10px; align-items:end; }
+.support-contact-remove { margin-top:10px; }
 .tool-panel { border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#121212; padding:22px; }
 .tool-panel h2 { margin:0 0 18px; font-size:24px; }
 .tool-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
@@ -89,7 +97,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .sms-cost-grid span { display:block; color:rgba(245,245,240,.5); font-size:10px; text-transform:uppercase; font-weight:800; }
 .sms-cost-grid strong { display:block; margin-top:4px; color:#fff; font-size:17px; }
 @media (max-width:1100px) { .tool-wrap { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } }
-@media (max-width:980px) { .tool-grid,.tool-stats,.tool-balance-strip,.sms-cost-grid { grid-template-columns:1fr; } .tool-top { flex-direction:column; } }
+@media (max-width:980px) { .tool-grid,.tool-stats,.tool-balance-strip,.sms-cost-grid,.support-groups-layout,.support-contact-grid { grid-template-columns:1fr; } .tool-top { flex-direction:column; } }
 @media (max-width:760px) { .tool-wrap { padding:22px 16px 64px; } }
 </style>
 
@@ -118,7 +126,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
             <div class="tool-alert" style="margin-bottom:18px;">{{ session('warning') }}</div>
         @endif
 
-        <div class="tool-grid">
+        <div class="tool-grid {{ $module['key'] === 'support-groups' ? 'support-groups-grid' : '' }}">
             <section class="tool-panel">
                 <h2>Workspace</h2>
 
@@ -238,45 +246,67 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                             </div>
                         </form>
                     @elseif($module['key'] === 'support-groups')
-                        @if($supportGroupTypes->isEmpty())
-                            <div class="tool-alert">Ask an admin to add active support group types before adding campaign support contacts.</div>
-                        @else
-                            <form class="tool-form" method="POST" action="{{ route('aspirant.tools.support-groups.contacts.store') }}" data-loading-form>
-                                @csrf
-                                <label>Group
-                                    <select name="support_group_type_id" required>
-                                        <option value="">Select group</option>
-                                        @foreach($supportGroupTypes as $type)
-                                            <option value="{{ $type->id }}" {{ old('support_group_type_id') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </label>
-                                @error('support_group_type_id')<div class="tool-alert">{{ $message }}</div>@enderror
+                        <div class="support-groups-layout">
+                            <div>
+                                @if($supportGroupTypes->isEmpty())
+                                    <div class="tool-alert">Ask an admin to add active support group types before adding campaign support contacts.</div>
+                                @else
+                                    <form class="tool-form" method="POST" action="{{ route('aspirant.tools.support-groups.contacts.store') }}" data-loading-form>
+                                        @csrf
+                                        <label>Group
+                                            <select name="support_group_type_id" required>
+                                                <option value="">Select group</option>
+                                                @foreach($supportGroupTypes as $type)
+                                                    <option value="{{ $type->id }}" {{ old('support_group_type_id') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </label>
+                                        @error('support_group_type_id')<div class="tool-alert">{{ $message }}</div>@enderror
 
-                                <label>Name
-                                    <input type="text" name="name" value="{{ old('name') }}" required maxlength="255" placeholder="Contact name">
-                                </label>
-                                @error('name')<div class="tool-alert">{{ $message }}</div>@enderror
+                                        <label>Name
+                                            <input type="text" name="name" value="{{ old('name') }}" required maxlength="255" placeholder="Contact name">
+                                        </label>
+                                        @error('name')<div class="tool-alert">{{ $message }}</div>@enderror
 
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                                    <label>Email
-                                        <input type="email" name="email" value="{{ old('email') }}" maxlength="255" placeholder="name@example.com">
-                                    </label>
-                                    <label>Phone
-                                        <input type="text" name="phone" value="{{ old('phone') }}" maxlength="50" placeholder="+254...">
-                                    </label>
-                                </div>
-                                @error('email')<div class="tool-alert">{{ $message }}</div>@enderror
-                                @error('phone')<div class="tool-alert">{{ $message }}</div>@enderror
+                                        <label>Email
+                                            <input type="email" name="email" value="{{ old('email') }}" maxlength="255" placeholder="name@example.com">
+                                        </label>
+                                        @error('email')<div class="tool-alert">{{ $message }}</div>@enderror
 
-                                <div class="tool-actions">
-                                    <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Adding..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-plus" data-loading-icon></i> <span data-loading-label>Add Contact</span></button>
-                                </div>
-                            </form>
-                        @endif
+                                        <label>Phone
+                                            <input type="text" name="phone" value="{{ old('phone') }}" maxlength="50" placeholder="+254...">
+                                        </label>
+                                        @error('phone')<div class="tool-alert">{{ $message }}</div>@enderror
 
-                        <div class="poll-list">
-                            <div class="poll-card">
+                                        <div class="tool-actions">
+                                            <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Adding..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-plus" data-loading-icon></i> <span data-loading-label>Add Contact</span></button>
+                                        </div>
+                                    </form>
+
+                                    <form class="tool-form support-import-panel" method="POST" action="{{ route('aspirant.tools.support-groups.contacts.import') }}" enctype="multipart/form-data" data-loading-form>
+                                        @csrf
+                                        <h2 style="font-size:22px;margin:0;">Import Contacts</h2>
+                                        <p class="tool-note" style="margin:0;">Upload XLSX or CSV with headers: group, name, email, phone. If group is blank, the default group below is used.</p>
+                                        <label>Default Group
+                                            <select name="support_group_type_id">
+                                                <option value="">Use group column</option>
+                                                @foreach($supportGroupTypes as $type)
+                                                    <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </label>
+                                        <label>Excel or CSV File
+                                            <input type="file" name="contacts_file" accept=".xlsx,.xls,.csv,.txt" required>
+                                        </label>
+                                        @error('contacts_file')<div class="tool-alert">{{ $message }}</div>@enderror
+                                        <div class="tool-actions">
+                                            <button type="submit" class="tool-btn" data-loading-button data-loading-text="Importing..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-file-import" data-loading-icon></i> <span data-loading-label>Import File</span></button>
+                                        </div>
+                                    </form>
+                                @endif
+                            </div>
+
+                            <div class="poll-card" style="margin:0;">
                                 <div class="poll-card-top">
                                     <h3>Support Contacts</h3>
                                     <span class="poll-status">{{ number_format($supportContacts->count()) }} contacts</span>
@@ -285,43 +315,44 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 @if($supportContacts->isEmpty())
                                     <p class="tool-empty">No support contacts have been added yet.</p>
                                 @else
-                                    <div style="display:grid;gap:12px;">
+                                    <div class="support-contact-list">
                                         @foreach($supportContacts as $contact)
-                                            <form method="POST" action="{{ route('aspirant.tools.support-groups.contacts.update', $contact) }}" class="poll-card" style="margin:0;" data-loading-form>
-                                                @csrf
-                                                @method('PATCH')
-                                                <div class="grid" style="display:grid;grid-template-columns:1fr 1.2fr 1fr 1fr auto;gap:10px;align-items:end;">
-                                                    <label>Group
-                                                        <select name="support_group_type_id" required>
-                                                            @foreach($supportGroupTypes as $type)
-                                                                <option value="{{ $type->id }}" {{ $contact->support_group_type_id === $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </label>
-                                                    <label>Name
-                                                        <input type="text" name="name" value="{{ $contact->name }}" required maxlength="255">
-                                                    </label>
-                                                    <label>Email
-                                                        <input type="email" name="email" value="{{ $contact->email }}" maxlength="255">
-                                                    </label>
-                                                    <label>Phone
-                                                        <input type="text" name="phone" value="{{ $contact->phone }}" maxlength="50">
-                                                    </label>
-                                                    <div class="tool-actions" style="margin:0;flex-wrap:nowrap;">
+                                            <div class="support-contact-card">
+                                                <form method="POST" action="{{ route('aspirant.tools.support-groups.contacts.update', $contact) }}" data-loading-form>
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <div class="support-contact-grid">
+                                                        <label>Group
+                                                            <select name="support_group_type_id" required>
+                                                                @foreach($supportGroupTypes as $type)
+                                                                    <option value="{{ $type->id }}" {{ (int) $contact->support_group_type_id === (int) $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </label>
+                                                        <label>Name
+                                                            <input type="text" name="name" value="{{ $contact->name }}" required maxlength="255">
+                                                        </label>
+                                                        <label>Email
+                                                            <input type="email" name="email" value="{{ $contact->email }}" maxlength="255">
+                                                        </label>
+                                                        <label>Phone
+                                                            <input type="text" name="phone" value="{{ $contact->phone }}" maxlength="50">
+                                                        </label>
                                                         <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Saving..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-save" data-loading-icon></i> <span data-loading-label>Save</span></button>
                                                     </div>
-                                                </div>
-                                            </form>
-                                            <form method="POST" action="{{ route('aspirant.tools.support-groups.contacts.destroy', $contact) }}" onsubmit="return confirm('Remove this support contact?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="tool-btn" style="border-color:rgba(239,68,68,.35);color:#fca5a5;"><i class="fas fa-trash"></i> Remove {{ $contact->name }}</button>
-                                            </form>
+                                                </form>
+                                                <form method="POST" action="{{ route('aspirant.tools.support-groups.contacts.destroy', $contact) }}" class="support-contact-remove" onsubmit="return confirm('Remove this support contact?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="tool-btn" style="border-color:rgba(239,68,68,.35);color:#fca5a5;"><i class="fas fa-trash"></i> Remove {{ $contact->name }}</button>
+                                                </form>
+                                            </div>
                                         @endforeach
                                     </div>
                                 @endif
                             </div>
-                        </div>                    @elseif($module['key'] === 'opinion-polls')
+                        </div>
+                    @elseif($module['key'] === 'opinion-polls')
                         <form class="tool-form" method="POST" action="{{ route('aspirant.tools.polls.store') }}" data-loading-form data-poll-form>
                             @csrf
                             <label>Poll Question
@@ -748,7 +779,7 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
 });
 
 function smsDetails(message) {
-    const basic = "@£$•ËÈ˘ÏÚ«\nÿ¯\r≈Â?_FG?O??ST? !\"#§%&'()*+,-./0123456789:;<=>?°ABCDEFGHIJKLMNOPQRSTUVWXYZƒ÷—‹`øabcdefghijklmnopqrstuvwxyz‰ˆÒ¸‡";
+    const basic = "@£$•ËÈ˘ÏÚ«\nÿ¯\r≈Â?_FG?O??ST? !"#§%&'()*+,-./0123456789:;<=>?°ABCDEFGHIJKLMNOPQRSTUVWXYZƒ÷—‹`øabcdefghijklmnopqrstuvwxyz‰ˆÒ¸‡";
     const extended = "^{}\\[~]|Ä";
     let gsm = true;
     let length = 0;
@@ -787,4 +818,3 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
 </script>
 
 @endsection
-
