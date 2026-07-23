@@ -14,8 +14,8 @@ class PublicApprovalRepository implements PublicApprovalRepositoryInterface
     public function approvalForProfile(string $profileSlug): ?float
     {
         try {
-            $response = Http::connectTimeout(2)
-                ->timeout(4)
+            $response = Http::connectTimeout(5)
+                ->timeout(10)
                 ->acceptJson()
                 ->get(self::ENDPOINT, [
                     'profile' => $profileSlug,

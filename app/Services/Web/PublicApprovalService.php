@@ -20,7 +20,7 @@ class PublicApprovalService
     public function presidentialCards(): array
     {
         return Cache::remember(
-            HomepageCache::key('public-approval-presidential-v3'),
+            HomepageCache::key('public-approval-presidential-v4'),
             HomepageCache::ttl(),
             fn (): array => $this->buildPresidentialCards()
         );
@@ -84,7 +84,7 @@ class PublicApprovalService
 
     private function profileSlugForCandidate(Candidate $candidate): ?string
     {
-        $source = trim((string) ($candidate->nick_name ?: $candidate->name));
+        $source = trim((string) ($candidate->name ?: $candidate->nick_name));
 
         if ($source === '') {
             return null;
