@@ -20,7 +20,7 @@ class PublicApprovalService
     public function presidentialCards(): array
     {
         return Cache::remember(
-            HomepageCache::key('public-approval-presidential-v4'),
+            HomepageCache::key('public-approval-presidential-v6'),
             HomepageCache::ttl(),
             fn (): array => $this->buildPresidentialCards()
         );
@@ -37,14 +37,9 @@ class PublicApprovalService
     private function buildPresidentialCards(): array
     {
         return $this->presidentialCandidates()
+            ->unique(fn (Candidate $candidate): string => $this->candidateIdentityKey($candidate))
             ->map(function (Candidate $candidate): ?array {
-                $profileSlug = $this->profileSlugForCandidate($candidate);
-
-                if (! $profileSlug) {
-                    return null;
-                }
-
-                $approval = $this->approvalRepository->approvalForProfile($profileSlug);
+                $approval = $this->approvalForCandidate($candidate);
 
                 if ($approval === null) {
                     return null;
@@ -78,27 +73,68 @@ class PublicApprovalService
             })
             ->whereNotNull('profile_picture')
             ->where('profile_picture', '!=', '')
+            ->orderByDesc('featured')
             ->latest('created_at')
             ->get();
     }
 
-    private function profileSlugForCandidate(Candidate $candidate): ?string
+    private function approvalForCandidate(Candidate $candidate): ?float
     {
-        $source = trim((string) ($candidate->name ?: $candidate->nick_name));
+        foreach ($this->profileSlugsForCandidate($candidate) as $profileSlug) {
+            $approval = $this->approvalRepository->approvalForProfile($profileSlug);
 
-        if ($source === '') {
-            return null;
+            if ($approval !== null) {
+                return $approval;
+            }
         }
 
-        $source = Str::of($source)
+        return null;
+    }
+
+    private function profileSlugsForCandidate(Candidate $candidate): array
+    {
+        $names = collect([$candidate->name, $candidate->nick_name])
+            ->map(fn ($name): string => $this->cleanCandidateName($name))
+            ->filter()
+            ->unique();
+
+        return $names
+            ->flatMap(fn (string $name): array => $this->slugVariantsForName($name))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function slugVariantsForName(string $name): array
+    {
+        $words = collect(preg_split('/\s+/', $name) ?: [])
+            ->map(fn (string $word): string => Str::slug($word))
+            ->filter()
+            ->values();
+
+        return [
+            Str::slug($name),
+            $words->last(),
+            $words->first(),
+        ];
+    }
+
+    private function cleanCandidateName($name): string
+    {
+        return Str::of((string) $name)
             ->lower()
             ->replaceMatches('/\b(dr|hon|honourable|prof|mr|mrs|ms|h\.e)\.?\b/u', '')
             ->trim()
             ->value();
+    }
 
-        $slug = Str::slug($source);
+    private function candidateIdentityKey(Candidate $candidate): string
+    {
+        $source = $this->cleanCandidateName($candidate->name ?: $candidate->nick_name ?: $candidate->id);
+        $key = Str::slug($source);
 
-        return $slug !== '' ? $slug : null;
+        return $key !== '' ? $key : (string) $candidate->id;
     }
 
     private function portraitUrl(Candidate $candidate): ?string
