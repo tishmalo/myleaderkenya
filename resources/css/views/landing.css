@@ -451,19 +451,6 @@
     .chart-card-title { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.5px; }
     .chart-wrap { height: 340px; }
 
-    .county-list-card { background: #161616; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 32px; margin-top: 24px; }
-    .county-table { width: 100%; border-collapse: collapse; }
-    .county-table th { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(245,245,240,0.3); padding: 0 0 12px; text-align: left; }
-    .county-table th:last-child { text-align: right; }
-    .county-table td { padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.04); font-size: 14px; }
-    .county-table td:last-child { text-align: right; }
-    .county-badge { display: inline-block; background: rgba(0,168,107,0.12); color: var(--green-bright); border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
-    .county-rank  { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 700; color: rgba(245,245,240,0.15); margin-right: 16px; }
-
-    .county-table-scroll {
-        overflow: visible;
-    }
-
     /* ════════════════════════════════
        HOW IT WORKS
     ════════════════════════════════ */

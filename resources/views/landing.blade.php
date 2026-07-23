@@ -421,23 +421,6 @@
                 </div>
             </div>
 
-            <div class="county-list-card">
-                <div class="chart-card-title">Top Counties by Voter Registration</div>
-                <div class="county-table-scroll">
-                    <table class="county-table">
-                        <thead><tr><th>#</th><th>County</th><th>Registered</th></tr></thead>
-                        <tbody id="county-table-body">
-                            @foreach(($voterStats['byCounty'] ?? []) as $i => $county)
-                            <tr>
-                                <td><span class="county-rank">{{ str_pad($i+1, 2, '0', STR_PAD_LEFT) }}</span></td>
-                                <td>{{ $county->county }}</td>
-                                <td><span class="county-badge">{{ number_format($county->count) }}</span></td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </section>
 

@@ -345,14 +345,6 @@ document.addEventListener('DOMContentLoaded', function(){
     var ccRef = null, gcRef = null;
     window.__setChartRefs = function(c, g){ ccRef = c; gcRef = g; };
 
-    function updateTable(labels, data) {
-        var tbody = document.getElementById('county-table-body');
-        if (!tbody || !labels || !data) return;
-        tbody.innerHTML = labels.map(function(l, i){
-            return '<tr><td><span class="county-rank">' + String(i+1).padStart(2,'0') + '</span></td><td>' + l + '</td><td><span class="county-badge">' + Number(data[i]||0).toLocaleString() + '</span></td></tr>';
-        }).join('');
-    }
-
     async function poll() {
         try {
             var res = await fetch('/api/stats/live', { headers: { 'Accept':'application/json', 'X-Requested-With':'XMLHttpRequest' } });
@@ -363,10 +355,8 @@ document.addEventListener('DOMContentLoaded', function(){
             if (avgEl && data.avgAge != null) avgEl.textContent = data.avgAge;
             if (ccRef && data.countyLabels && data.countyData) { ccRef.data.labels = data.countyLabels; ccRef.data.datasets[0].data = data.countyData; ccRef.update('none'); }
             if (gcRef && data.genderData)  { gcRef.data.datasets[0].data = data.genderData; gcRef.update('none'); }
-            updateTable(data.countyLabels, data.countyData);
         } catch(e){}
     }
     setInterval(poll, 10000);
 })();
-
 
