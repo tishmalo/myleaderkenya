@@ -3,7 +3,9 @@
 namespace App\Services\Web;
 
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
+use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
 use App\Models\Candidate;
+use App\Models\PublicApprovalScore;
 use App\Support\HomepageCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -12,15 +14,15 @@ use Illuminate\Support\Str;
 
 class PublicApprovalService
 {
-
     public function __construct(
-        private PublicApprovalRepositoryInterface $approvalRepository
+        private PublicApprovalRepositoryInterface $approvalRepository,
+        private StoredPublicApprovalRepositoryInterface $storedApprovalRepository
     ) {}
 
     public function presidentialCards(): array
     {
         return Cache::remember(
-            HomepageCache::key('public-approval-presidential-v7'),
+            HomepageCache::key('public-approval-presidential-v8'),
             HomepageCache::ttl(),
             fn (): array => $this->buildPresidentialCards()
         );
@@ -34,18 +36,57 @@ class PublicApprovalService
             ->all();
     }
 
+    public function refreshPresidentialScores(): array
+    {
+        $updated = 0;
+        $skipped = 0;
+
+        $this->presidentialCandidates()
+            ->unique(fn (Candidate $candidate): string => $this->candidateIdentityKey($candidate))
+            ->each(function (Candidate $candidate) use (&$updated, &$skipped): void {
+                $match = $this->fetchApprovalForCandidate($candidate);
+
+                if (! $match) {
+                    $skipped++;
+                    return;
+                }
+
+                $this->storedApprovalRepository->upsertForCandidate(
+                    $candidate,
+                    $match['profile_slug'],
+                    $match['approval_score']
+                );
+
+                $updated++;
+            });
+
+        if ($updated > 0) {
+            HomepageCache::flush();
+        }
+
+        return [
+            'updated' => $updated,
+            'skipped' => $skipped,
+        ];
+    }
+
     private function buildPresidentialCards(): array
     {
-        return $this->presidentialCandidates()
+        $candidates = $this->presidentialCandidates()
             ->unique(fn (Candidate $candidate): string => $this->candidateIdentityKey($candidate))
-            ->map(function (Candidate $candidate): ?array {
-                $approval = $this->approvalForCandidate($candidate);
+            ->values();
 
-                if ($approval === null) {
+        $scores = $this->storedApprovalRepository->latestByCandidateIds($candidates->pluck('id')->all());
+
+        return $candidates
+            ->map(function (Candidate $candidate) use ($scores): ?array {
+                $score = $scores->get($candidate->id);
+
+                if (! $score instanceof PublicApprovalScore) {
                     return null;
                 }
 
-                $approval = round($approval, 1);
+                $approval = round((float) $score->approval_score, 1);
                 $isPositive = $approval >= 50;
 
                 return [
@@ -79,13 +120,16 @@ class PublicApprovalService
             ->get();
     }
 
-    private function approvalForCandidate(Candidate $candidate): ?float
+    private function fetchApprovalForCandidate(Candidate $candidate): ?array
     {
         foreach ($this->profileSlugsForCandidate($candidate) as $profileSlug) {
             $approval = $this->approvalRepository->approvalForProfile($profileSlug);
 
             if ($approval !== null) {
-                return $approval;
+                return [
+                    'profile_slug' => $profileSlug,
+                    'approval_score' => $approval,
+                ];
             }
         }
 

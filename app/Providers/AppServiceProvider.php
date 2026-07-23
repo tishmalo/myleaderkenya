@@ -68,10 +68,12 @@ use App\Repositories\Api\UserRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
 use App\Contracts\Repositories\Web\LandingRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
+use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateTokenWalletRepositoryInterface;
 use App\Repositories\Web\LandingRepository;
 use App\Repositories\Web\PublicApprovalRepository;
+use App\Repositories\Web\StoredPublicApprovalRepository;
 use App\Repositories\Web\CandidateSmsMessageRepository;
 use App\Repositories\Web\CandidateTokenWalletRepository;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -142,6 +144,7 @@ class AppServiceProvider extends ServiceProvider
         // Register Web Repositories
         $this->app->bind(LandingRepositoryInterface::class, LandingRepository::class);
         $this->app->bind(PublicApprovalRepositoryInterface::class, PublicApprovalRepository::class);
+        $this->app->bind(StoredPublicApprovalRepositoryInterface::class, StoredPublicApprovalRepository::class);
         $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);
         $this->app->bind(CandidateTokenWalletRepositoryInterface::class, CandidateTokenWalletRepository::class);
     }
