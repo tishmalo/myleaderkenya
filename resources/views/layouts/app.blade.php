@@ -90,6 +90,15 @@ function hideDeleteModal() {
     currentDeleteUrl = '';
 }
 
+function preserveSubmitterValue(form, button) {
+    if (!button || !button.name || button.disabled) return;
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = button.name;
+    hidden.value = button.value;
+    form.appendChild(hidden);
+}
+
 function setButtonLoading(button, label = 'Processing...') {
     if (!button || button.dataset.loading === 'true') return;
     button.dataset.loading = 'true';
@@ -146,8 +155,10 @@ document.addEventListener('DOMContentLoaded', function () {
             : form.querySelector('button[type="submit"], input[type="submit"]');
 
         if (button instanceof HTMLButtonElement) {
+            preserveSubmitterValue(form, button);
             setButtonLoading(button, button.dataset.loadingLabel || 'Processing...');
         } else if (button instanceof HTMLInputElement) {
+            preserveSubmitterValue(form, button);
             button.dataset.originalValue = button.value;
             button.value = button.dataset.loadingLabel || 'Processing...';
             button.disabled = true;

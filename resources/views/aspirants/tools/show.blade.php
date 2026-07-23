@@ -101,7 +101,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .sms-cost-grid strong { display:block; margin-top:4px; color:#fff; font-size:17px; }
 @media (max-width:1100px) { .tool-wrap { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } }
 @media (max-width:980px) { .tool-grid,.tool-stats,.tool-balance-strip,.sms-cost-grid,.support-groups-layout,.support-contact-grid { grid-template-columns:1fr; } .tool-top { flex-direction:column; } }
-@media (max-width:760px) { .tool-wrap { padding:22px 16px 64px; } }
+@media (max-width:760px) { .tool-wrap { padding:22px 16px 64px; } .tool-actions { display:grid; grid-template-columns:1fr; } .tool-actions .tool-btn,.support-contact-remove .tool-btn,.support-import-panel .tool-btn { width:100%; justify-content:center; min-height:46px; } .tool-btn { max-width:100%; white-space:normal; text-align:center; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -347,7 +347,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                                 <form method="POST" action="{{ route('aspirant.tools.support-groups.contacts.destroy', $contact) }}" class="support-contact-remove" onsubmit="return confirm('Remove this support contact?')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="tool-btn" style="border-color:rgba(239,68,68,.35);color:#fca5a5;"><i class="fas fa-trash"></i> Remove {{ $contact->name }}</button>
+                                                    <button type="submit" class="tool-btn" style="border-color:rgba(239,68,68,.35);color:#fca5a5;" data-loading-label="Removing..."><i class="fas fa-trash"></i> Remove {{ $contact->name }}</button>
                                                 </form>
                                             </div>
                                         @endforeach
@@ -375,7 +375,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                             @enderror
                             <div class="tool-actions">
                                 <button type="submit" name="status" value="draft" class="tool-btn primary" data-loading-button data-loading-text="Saving..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-save" data-loading-icon></i> <span data-loading-label>Save Draft</span></button>
-                                <button type="submit" name="status" value="published" class="tool-btn"><i class="fas fa-paper-plane"></i> Publish Poll</button>
+                                <button type="submit" name="status" value="published" class="tool-btn" data-loading-label="Publishing..."><i class="fas fa-paper-plane"></i> Publish Poll</button>
                                 <button type="button" class="tool-btn" data-preview-poll><i class="fas fa-chart-simple"></i> Preview Poll</button>
                             </div>
                             <div class="poll-preview" data-poll-preview aria-live="polite">
@@ -448,7 +448,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <label>Notes
                                     <textarea name="message" rows="3" maxlength="1000" placeholder="Explain the SMS balance/top-up issue for admin."></textarea>
                                 </label>
-                                <button type="submit" class="tool-btn"><i class="fas fa-paper-plane"></i> Request Support</button>
+                                <button type="submit" class="tool-btn" data-loading-label="Submitting..."><i class="fas fa-paper-plane"></i> Request Support</button>
                             </form>
                         </div>
                     @elseif($module['key'] === 'bulk-whatsapp')
@@ -638,22 +638,22 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 </main>
 
 <script>
-document.querySelectorAll('[data-loading-form]').forEach((form) => {
-    form.addEventListener('submit', () => {
-        const button = document.activeElement?.matches('[data-loading-button]')
-            ? document.activeElement
-            : null;
+document.querySelectorAll('form').forEach((form) => {
+    if (form.matches('[data-call-log-form], [data-no-loader="true"]')) return;
+
+    form.addEventListener('submit', (event) => {
+        const button = event.submitter instanceof HTMLButtonElement
+            ? event.submitter
+            : form.querySelector('button[type="submit"]');
         if (!button) return;
 
         const label = button.querySelector('[data-loading-label]');
         const icon = button.querySelector('[data-loading-icon]');
-        button.disabled = true;
         button.classList.add('loading');
         if (icon) icon.style.display = 'none';
-        if (label) label.textContent = button.dataset.loadingText || 'Working...';
+        if (label) label.textContent = button.dataset.loadingText || button.dataset.loadingLabel || 'Submitting...';
     });
 });
-
 document.querySelectorAll('[data-poll-form]').forEach((form) => {
     const previewButton = form.querySelector('[data-preview-poll]');
     const preview = form.querySelector('[data-poll-preview]');

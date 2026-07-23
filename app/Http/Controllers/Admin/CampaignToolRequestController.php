@@ -11,9 +11,9 @@ use Illuminate\View\View;
 
 class CampaignToolRequestController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $filters = $request->only(['status', 'campaign_tool_id', 'search']);
+        $filters = request()->only(['status', 'campaign_tool_id', 'search']);
 
         $requests = CampaignToolRequest::with(['campaignTool', 'candidate.position', 'user'])
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))

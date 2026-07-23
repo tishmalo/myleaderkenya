@@ -44,14 +44,14 @@ h1,h2,h3 { font-family:'Oswald', sans-serif; }
 .ct-request-form label { display:grid; gap:7px; color:rgba(245,245,240,.68); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .ct-request-form input,.ct-request-form textarea { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; }
 .ct-request-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.ct-request-submit { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; border-radius:8px; padding:13px 16px; background:#006600; color:#fff; font-weight:900; text-transform:uppercase; letter-spacing:.08em; cursor:pointer; }
+.ct-request-submit { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:48px; border:0; border-radius:8px; padding:13px 16px; background:#006600; color:#fff; font-weight:900; text-transform:uppercase; letter-spacing:.08em; cursor:pointer; }
 .ct-request-error { border:1px solid rgba(239,68,68,.3); border-radius:8px; background:rgba(239,68,68,.1); color:#fca5a5; padding:10px 12px; font-size:13px; }
 body.ct-modal-open { overflow:hidden; }
 .ct-empty { grid-column:1/-1; text-align:center; padding:80px 20px; color:rgba(245,245,240,0.35); }
 .ct-flash { max-width:1280px; margin:24px auto 0; padding:0 32px; }
 .ct-flash div { border:1px solid rgba(34,197,94,.3); border-radius:12px; background:rgba(34,197,94,.12); color:#bbf7d0; padding:14px 16px; }
 .ct-pagination { max-width:1280px; margin:-50px auto 80px; padding:0 32px; display:flex; justify-content:center; }
-@media (max-width:768px) { .ct-hero { padding:58px 18px 42px; } .ct-grid { padding:42px 18px 72px; } .ct-request-fields { grid-template-columns:1fr; } }
+@media (max-width:768px) { .ct-hero { padding:58px 18px 42px; } .ct-grid { padding:42px 18px 72px; } .ct-request-fields { grid-template-columns:1fr; } .ct-card-actions,.ct-card-link,.ct-card-request { width:100%; justify-content:center; } .ct-card-link { padding-left:13px; } }
 </style>
 
 <div class="flag-stripe"></div>

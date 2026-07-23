@@ -48,10 +48,10 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .ct-request-form label { display:grid; gap:7px; color:rgba(245,245,240,.68); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .ct-request-form input,.ct-request-form textarea { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; }
 .ct-request-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.ct-request-submit { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; border-radius:8px; padding:13px 16px; background:#006600; color:#fff; font-weight:900; text-transform:uppercase; letter-spacing:.08em; cursor:pointer; }
+.ct-request-submit { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:48px; border:0; border-radius:8px; padding:13px 16px; background:#006600; color:#fff; font-weight:900; text-transform:uppercase; letter-spacing:.08em; cursor:pointer; }
 .ct-request-error { border:1px solid rgba(239,68,68,.3); border-radius:8px; background:rgba(239,68,68,.1); color:#fca5a5; padding:10px 12px; font-size:13px; }
 body.ct-modal-open { overflow:hidden; }
-@media (max-width:768px) { .ct-back,.ct-show-hero,.ct-content-wrap { padding-left:18px; padding-right:18px; } .ct-hero-content { padding:26px; } .ct-content { padding:24px; } .ct-request-fields { grid-template-columns:1fr; } }
+@media (max-width:768px) { .ct-back,.ct-show-hero,.ct-content-wrap { padding-left:18px; padding-right:18px; } .ct-hero-content { padding:26px; } .ct-content { padding:24px; } .ct-request-fields { grid-template-columns:1fr; } .ct-hero-actions,.ct-request-trigger { width:100%; justify-content:center; } }
 </style>
 
 <div class="flag-stripe"></div>

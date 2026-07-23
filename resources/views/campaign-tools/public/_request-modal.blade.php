@@ -35,7 +35,7 @@
             </label>
             @error('use_case')<div class="ct-request-error">{{ $message }}</div>@enderror
 
-            <button type="submit" class="ct-request-submit"><i class="fas fa-paper-plane"></i> Submit Request</button>
+            <button type="submit" class="ct-request-submit" data-loading-label="Submitting..."><i class="fas fa-paper-plane"></i> Submit Request</button>
         </form>
     </div>
 </div>

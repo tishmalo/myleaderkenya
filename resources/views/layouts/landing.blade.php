@@ -45,6 +45,22 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link href="https://app.telvoip.io/web-chat.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<style>
+  .frontend-submit-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: frontend-submit-spin .65s linear infinite;
+  }
+  [data-submit-loading="true"] {
+    cursor: wait !important;
+    opacity: .84;
+  }
+  @keyframes frontend-submit-spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body class="bg-zinc-950 text-white antialiased">
     @yield('content')
@@ -180,6 +196,50 @@
     var chatContainer = document.getElementById("chat-container");
     chatContainer.classList.toggle("show");
   }
+</script>
+<script>
+(function () {
+  function preserveSubmitterValue(form, button) {
+    if (!button || !button.name || button.disabled) return;
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = button.name;
+    hidden.value = button.value;
+    form.appendChild(hidden);
+  }
+
+  function setFrontendSubmitLoading(button, label) {
+    if (!button || button.dataset.submitLoading === 'true') return;
+    button.dataset.submitLoading = 'true';
+    button.dataset.originalHtml = button.innerHTML;
+    button.style.minWidth = `${button.offsetWidth}px`;
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;"><span class="frontend-submit-spinner" aria-hidden="true"></span><span>${label}</span></span>`;
+  }
+
+  document.addEventListener('submit', function (event) {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.dataset.noLoader === 'true') return;
+    const submitter = event.submitter || document.activeElement;
+    const button = submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement
+      ? submitter
+      : form.querySelector('button[type="submit"], input[type="submit"]');
+
+    if (button instanceof HTMLButtonElement) {
+      preserveSubmitterValue(form, button);
+      setFrontendSubmitLoading(button, button.dataset.loadingLabel || button.dataset.loadingText || 'Submitting...');
+    } else if (button instanceof HTMLInputElement) {
+      preserveSubmitterValue(form, button);
+      button.dataset.originalValue = button.value;
+      button.value = button.dataset.loadingLabel || button.dataset.loadingText || 'Submitting...';
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+    }
+  }, true);
+
+  window.setFrontendSubmitLoading = setFrontendSubmitLoading;
+})();
 </script>
 @stack('scripts')
 </body>
