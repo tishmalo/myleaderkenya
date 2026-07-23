@@ -96,15 +96,9 @@ class PublicApprovalService
             ->trim()
             ->value();
 
-        foreach (preg_split('/\s+/', $source) ?: [] as $part) {
-            $slug = Str::slug($part);
+        $slug = Str::slug($source);
 
-            if ($slug !== '') {
-                return $slug;
-            }
-        }
-
-        return null;
+        return $slug !== '' ? $slug : null;
     }
 
     private function portraitUrl(Candidate $candidate): ?string
