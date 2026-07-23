@@ -21,7 +21,7 @@ class LandingService
     public function getLandingData(): array
     {
         return Cache::remember(
-            HomepageCache::key('landing-data-with-approval-v6'),
+            HomepageCache::key('landing-data-with-approval-v7'),
             HomepageCache::ttl(),
             fn (): array => array_merge($this->landingRepository->getLandingStats(), [
                 'publicApprovalCards' => $this->publicApprovalService->presidentialCards(),
