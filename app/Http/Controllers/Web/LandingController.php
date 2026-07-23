@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Services\Web\LandingService;
+use App\Support\HomepageCache;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
@@ -27,28 +29,38 @@ class LandingController extends Controller
     {
         $perPage = min(max((int) $request->query('per_page', 20), 2), 40);
 
-        $aspirants = Candidate::query()
-            ->with(['position', 'politicalParty'])
-            ->where('featured', true)
-            ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
-            ->whereNotNull('profile_picture')
-            ->where('profile_picture', '!=', '')
-            ->latest()
-            ->paginate($perPage);
+        $page = max((int) $request->query('page', 1), 1);
 
-        return response()->json([
-            'data' => $aspirants->getCollection()->map(fn (Candidate $candidate) => [
-                'name' => $candidate->name,
-                'position' => $candidate->position->name ?? 'Aspirant',
-                'area' => $this->candidateArea($candidate),
-                'party' => $candidate->politicalParty->abbreviation
-                    ?? $candidate->politicalParty->name
-                    ?? null,
-                'image_url' => $this->candidateImageUrl($candidate->profile_picture),
-                'url' => route('aspirants.show', $candidate),
-            ])->values(),
-            'next_page_url' => $aspirants->nextPageUrl(),
-        ]);
+        $payload = Cache::remember(
+            HomepageCache::key('featured-aspirants', ['per_page' => $perPage, 'page' => $page]),
+            HomepageCache::ttl(),
+            function () use ($perPage): array {
+                $aspirants = Candidate::query()
+                    ->with(['position', 'politicalParty'])
+                    ->where('featured', true)
+                    ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
+                    ->whereNotNull('profile_picture')
+                    ->where('profile_picture', '!=', '')
+                    ->latest('created_at')
+                    ->paginate($perPage);
+
+                return [
+                    'data' => $aspirants->getCollection()->map(fn (Candidate $candidate) => [
+                        'name' => $candidate->name,
+                        'position' => $candidate->position->name ?? 'Aspirant',
+                        'area' => $this->candidateArea($candidate),
+                        'party' => $candidate->politicalParty->abbreviation
+                            ?? $candidate->politicalParty->name
+                            ?? null,
+                        'image_url' => $this->candidateImageUrl($candidate->profile_picture),
+                        'url' => route('aspirants.show', $candidate),
+                    ])->values(),
+                    'next_page_url' => $aspirants->nextPageUrl(),
+                ];
+            }
+        );
+
+        return response()->json($payload);
     }
 
     private function candidateArea(Candidate $candidate): ?string

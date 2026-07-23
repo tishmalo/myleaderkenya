@@ -3,6 +3,8 @@
 namespace App\Services\Web;
 
 use App\Contracts\Repositories\Web\LandingRepositoryInterface;
+use App\Support\HomepageCache;
+use Illuminate\Support\Facades\Cache;
 
 class LandingService
 {
@@ -17,6 +19,10 @@ class LandingService
      */
     public function getLandingData(): array
     {
-        return $this->landingRepository->getLandingStats();
+        return Cache::remember(
+            HomepageCache::key('landing-data'),
+            HomepageCache::ttl(),
+            fn (): array => $this->landingRepository->getLandingStats()
+        );
     }
 }
