@@ -12,9 +12,6 @@ use Illuminate\Support\Str;
 
 class PublicApprovalService
 {
-    private const PROFILE_MAP = [
-        'kalonzo musyoka' => 'kalonzo',
-    ];
 
     public function __construct(
         private PublicApprovalRepositoryInterface $approvalRepository
@@ -23,7 +20,7 @@ class PublicApprovalService
     public function presidentialCards(): array
     {
         return Cache::remember(
-            HomepageCache::key('public-approval-presidential'),
+            HomepageCache::key('public-approval-presidential-v2'),
             HomepageCache::ttl(),
             fn (): array => $this->buildPresidentialCards()
         );
@@ -32,10 +29,7 @@ class PublicApprovalService
     public function presidentialScores(): array
     {
         return collect($this->presidentialCards())
-            ->map(fn (array $card): array => [
-                'candidate_id' => $card['candidate_id'],
-                'approval' => $card['approval'],
-            ])
+            ->map(fn (array $card): float => (float) $card['approval'])
             ->values()
             ->all();
     }
@@ -85,17 +79,28 @@ class PublicApprovalService
             ->whereNotNull('profile_picture')
             ->where('profile_picture', '!=', '')
             ->latest('created_at')
-            ->take(8)
             ->get();
     }
 
     private function profileSlugForCandidate(Candidate $candidate): ?string
     {
-        $name = Str::lower(trim((string) $candidate->name));
+        $source = trim((string) ($candidate->nick_name ?: $candidate->name));
 
-        foreach (self::PROFILE_MAP as $needle => $profileSlug) {
-            if (str_contains($name, $needle)) {
-                return $profileSlug;
+        if ($source === '') {
+            return null;
+        }
+
+        $source = Str::of($source)
+            ->lower()
+            ->replaceMatches('/\b(dr|hon|honourable|prof|mr|mrs|ms|h\.e)\.?\b/u', '')
+            ->trim()
+            ->value();
+
+        foreach (preg_split('/\s+/', $source) ?: [] as $part) {
+            $slug = Str::slug($part);
+
+            if ($slug !== '') {
+                return $slug;
             }
         }
 
