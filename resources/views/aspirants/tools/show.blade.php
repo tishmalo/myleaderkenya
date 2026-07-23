@@ -38,9 +38,11 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .support-groups-layout { display:grid; grid-template-columns:minmax(300px,.7fr) minmax(0,1.3fr); gap:18px; align-items:start; }
 .support-import-panel { margin-top:16px; border-top:1px solid rgba(255,255,255,.08); padding-top:16px; }
 .support-contact-list { display:grid; gap:12px; }
-.support-contact-card { border:1px solid rgba(255,255,255,.07); border-radius:8px; background:#0d0d0d; padding:14px; }
-.support-contact-grid { display:grid; grid-template-columns:minmax(150px,.9fr) minmax(180px,1.1fr) minmax(200px,1.2fr) minmax(150px,.9fr) auto; gap:10px; align-items:end; }
-.support-contact-grid input,.support-contact-grid select { background-color:#0b0b0b; color:#fff; border-color:rgba(255,255,255,.1); border-radius:8px; appearance:auto; }
+.support-contact-card { border:1px solid rgba(255,255,255,.07); border-radius:8px; background:#0d0d0d; padding:14px; min-width:0; overflow:hidden; }
+.support-contact-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; align-items:end; min-width:0; }
+.support-contact-grid label { min-width:0; }
+.support-contact-grid input,.support-contact-grid select { min-width:0; background-color:#0b0b0b; color:#fff; border-color:rgba(255,255,255,.1); border-radius:8px; appearance:auto; }
+.support-contact-grid .tool-btn { width:100%; justify-content:center; min-height:46px; }
 .support-contact-remove { margin-top:10px; }
 .tool-panel { border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#121212; padding:22px; }
 .tool-panel h2 { margin:0 0 18px; font-size:24px; }
