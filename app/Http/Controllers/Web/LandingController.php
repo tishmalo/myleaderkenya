@@ -34,6 +34,7 @@ class LandingController extends Controller
             ->whereNotNull('profile_picture')
             ->where('profile_picture', '!=', '')
             ->latest()
+            ->take(5)
             ->paginate($perPage);
 
         return response()->json([

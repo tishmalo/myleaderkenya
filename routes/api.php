@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyContro
 use App\Http\Controllers\Api\PositionController as ApiPositionController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\AspirantController;
+use App\Http\Controllers\Api\CampaignToolController as ApiCampaignToolController;
 use App\Http\Controllers\Admin\DashboardController;
 
 /*
@@ -75,6 +76,9 @@ Route::match(['put', 'patch'], '/aspirants/{candidate}', [AspirantController::cl
 Route::post('/aspirants/{candidate}/update', [AspirantController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/aspirant/profile', [AspirantController::class, 'profile']);
 Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
+Route::get('/campaign-tools', [ApiCampaignToolController::class, 'index']);
+Route::get('/campaign-tools/{campaignTool}', [ApiCampaignToolController::class, 'show']);
+Route::post('/campaign-tools/{campaignTool}/requests', [ApiCampaignToolController::class, 'storeFeatureRequest']);
 // Donations
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
 
@@ -121,6 +125,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{group_id}/messages', [MessageController::class, 'getGroupMessages']);
     });
 
+    Route::prefix('aspirant')->group(function () {
+        Route::get('/campaign-tools', [ApiCampaignToolController::class, 'aspirantTools']);
+        Route::get('/campaign-tools/{key}', [ApiCampaignToolController::class, 'aspirantTool']);
+        Route::post('/campaign-tools/bulk-sms/send', [ApiCampaignToolController::class, 'sendBulkSms']);
+        Route::post('/campaign-tools/opinion-polls/polls', [ApiCampaignToolController::class, 'storePoll']);
+        Route::post('/campaign-tools/call-center/script', [ApiCampaignToolController::class, 'saveCallScript']);
+        Route::post('/campaign-tools/call-center/calls', [ApiCampaignToolController::class, 'storeCallLog']);
+        Route::post('/campaign-tools/campaign-website/request', [ApiCampaignToolController::class, 'storeWebsiteRequest']);
+        Route::get('/support-groups/types', [ApiCampaignToolController::class, 'supportGroupTypes']);
+        Route::get('/support-groups/contacts', [ApiCampaignToolController::class, 'supportContacts']);
+        Route::post('/support-groups/contacts', [ApiCampaignToolController::class, 'storeSupportContact']);
+        Route::match(['put', 'patch'], '/support-groups/contacts/{candidateSupportContact}', [ApiCampaignToolController::class, 'updateSupportContact']);
+        Route::delete('/support-groups/contacts/{candidateSupportContact}', [ApiCampaignToolController::class, 'destroySupportContact']);
+    });
+
     // Tracking/Upload
     Route::post('/upload-location', [LocationController::class, 'upload']);
 
@@ -130,6 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
+
 
 
 

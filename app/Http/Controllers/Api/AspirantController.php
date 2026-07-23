@@ -147,6 +147,9 @@ class AspirantController extends Controller
 
         $candidate->load(['position', 'politicalParty']);
 
+        $user?->tokens()->delete();
+        $token = $user?->createToken('aspirant-app-token')->plainTextToken;
+
         return response()->json([
             'message' => 'Aspirant registration submitted successfully. An admin will review it before it appears publicly.',
             'user' => [
@@ -154,6 +157,7 @@ class AspirantController extends Controller
                 'username' => $user?->username,
                 'user_type' => $user?->user_type,
             ],
+            'token' => $token,
             'data' => $this->formatAspirant($candidate, true),
         ], 201);
     }
@@ -389,4 +393,5 @@ class AspirantController extends Controller
     }
 
 }
+
 
