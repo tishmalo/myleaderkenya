@@ -20,7 +20,7 @@ class PublicApprovalService
     public function presidentialCards(): array
     {
         return Cache::remember(
-            HomepageCache::key('public-approval-presidential-v2'),
+            HomepageCache::key('public-approval-presidential-v3'),
             HomepageCache::ttl(),
             fn (): array => $this->buildPresidentialCards()
         );

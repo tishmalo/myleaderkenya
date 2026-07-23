@@ -3,7 +3,9 @@
 namespace App\Repositories\Web;
 
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PublicApprovalRepository implements PublicApprovalRepositoryInterface
 {
@@ -11,14 +13,23 @@ class PublicApprovalRepository implements PublicApprovalRepositoryInterface
 
     public function approvalForProfile(string $profileSlug): ?float
     {
-        $response = Http::timeout(8)
-            ->retry(1, 200)
-            ->acceptJson()
-            ->get(self::ENDPOINT, [
+        try {
+            $response = Http::connectTimeout(2)
+                ->timeout(4)
+                ->acceptJson()
+                ->get(self::ENDPOINT, [
+                    'profile' => $profileSlug,
+                    'window' => '30d',
+                    'country_code' => 'KE',
+                ]);
+        } catch (ConnectionException $exception) {
+            Log::warning('Public approval API connection failed.', [
                 'profile' => $profileSlug,
-                'window' => '30d',
-                'country_code' => 'KE',
+                'message' => $exception->getMessage(),
             ]);
+
+            return null;
+        }
 
         if (! $response->successful()) {
             return null;
