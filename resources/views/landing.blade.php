@@ -229,9 +229,6 @@
     <div class="hero-inner">
         <div>
             <h1 class="hero-headline">
-                <span class="hero-logo-wrap">
-                    <img src="{{ asset('images/mlkfav.png') }}" alt="My Leader Kenya">
-                </span>
                 <span class="line-2 typing-headline" aria-label="2027 Kenya Candidates">
                     <span class="typing-line typing-line-one">2027 Kenya</span>
                     <span class="typing-line typing-line-two">Candidates</span>
