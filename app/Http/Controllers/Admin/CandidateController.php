@@ -58,7 +58,7 @@ class CandidateController extends Controller
     public function store(CandidateStoreRequest $request)
     {
         $this->candidateService->createCandidate(
-            $request->validated(),
+            $this->filterSupportContactsData($request->validated(), $request, null),
             $request->file('profile_picture'),
             $request->file('cover_photo')
         );
@@ -76,7 +76,7 @@ class CandidateController extends Controller
     {
         $this->candidateService->updateCandidate(
             $candidate,
-            $request->validated(),
+            $this->filterSupportContactsData($request->validated(), $request, $candidate),
             $request->file('profile_picture'),
             $request->file('cover_photo')
         );
@@ -139,6 +139,40 @@ class CandidateController extends Controller
 
         return back()->with('success', 'Claim link queued for ' . $candidate->email . '.');
     }
+    private function filterSupportContactsData(array $data, Request $request, ?Candidate $candidate): array
+    {
+        if (! array_key_exists('support_contacts', $data)) {
+            return $data;
+        }
+
+        $user = $request->user();
+        $contacts = collect($data['support_contacts'] ?? []);
+
+        if (! $candidate) {
+            if (! $user?->canAccess('support-groups.create')) {
+                unset($data['support_contacts']);
+            }
+
+            return $data;
+        }
+
+        $existingIds = $candidate->supportContacts()->pluck('id')->map(fn ($id) => (string) $id);
+        $submittedIds = $contacts->pluck('id')->filter()->map(fn ($id) => (string) $id);
+
+        $requiresCreate = $contacts->contains(fn (array $contact) => empty($contact['id']));
+        $requiresUpdate = $submittedIds->intersect($existingIds)->isNotEmpty();
+        $requiresDelete = $existingIds->diff($submittedIds)->isNotEmpty();
+
+        $allowed = (! $requiresCreate || $user?->canAccess('support-groups.create'))
+            && (! $requiresUpdate || $user?->canAccess('support-groups.update'))
+            && (! $requiresDelete || $user?->canAccess('support-groups.delete'));
+
+        if (! $allowed) {
+            unset($data['support_contacts']);
+        }
+
+        return $data;
+    }
     public function destroy(Candidate $candidate)
     {
         $this->candidateService->deleteCandidate($candidate);
@@ -169,5 +203,3 @@ class CandidateController extends Controller
         return view('aspirants.public.show', compact('candidate'));
     }
 }
-
-

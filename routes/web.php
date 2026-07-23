@@ -36,6 +36,7 @@ use App\Http\Controllers\Admin\CandidateTokenRateController;
 use App\Http\Controllers\Admin\CandidateTokenPurchaseController;
 use App\Http\Controllers\Admin\CandidateTokenLedgerController;
 use App\Http\Controllers\Admin\SmsBalanceRequestController;
+use App\Http\Controllers\Admin\SupportGroupTypeController;
 use App\Http\Controllers\Web\AspirantTokenController;
 use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
 use Illuminate\Support\Facades\Route;
@@ -117,6 +118,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/aspirant/tools/call-center/script', [AspirantToolController::class, 'saveCallScript'])->middleware('throttle:10,10')->name('aspirant.tools.call-center.script');
         Route::post('/aspirant/tools/call-center/calls', [AspirantToolController::class, 'storeCallLog'])->middleware('throttle:60,1')->name('aspirant.tools.call-center.calls');
         Route::post('/aspirant/tools/campaign-website/request', [AspirantToolController::class, 'storeWebsiteRequest'])->middleware('throttle:3,10')->name('aspirant.tools.campaign-website.request');
+        Route::post('/aspirant/tools/support-groups/contacts', [AspirantToolController::class, 'storeSupportContact'])->middleware('throttle:30,1')->name('aspirant.tools.support-groups.contacts.store');
+        Route::patch('/aspirant/tools/support-groups/contacts/{candidateSupportContact}', [AspirantToolController::class, 'updateSupportContact'])->middleware('throttle:30,1')->name('aspirant.tools.support-groups.contacts.update');
+        Route::delete('/aspirant/tools/support-groups/contacts/{candidateSupportContact}', [AspirantToolController::class, 'destroySupportContact'])->middleware('throttle:30,1')->name('aspirant.tools.support-groups.contacts.destroy');
     });
 
     Route::middleware('admin')->group(function () {
@@ -170,6 +174,10 @@ Route::middleware('auth')->group(function () {
             ->parameters(['campaign-tools' => 'campaignTool'])
             ->names('campaign-tools')
             ->except(['show'])->middleware('permission:aspirants.view');
+        Route::get('/admin/support-group-types', [SupportGroupTypeController::class, 'index'])->middleware('permission:support-groups.view')->name('support-group-types.index');
+        Route::post('/admin/support-group-types', [SupportGroupTypeController::class, 'store'])->middleware('permission:support-groups.create')->name('support-group-types.store');
+        Route::patch('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'update'])->middleware('permission:support-groups.update')->name('support-group-types.update');
+        Route::delete('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'destroy'])->middleware('permission:support-groups.delete')->name('support-group-types.destroy');
         Route::get('/admin/campaign-website-requests', [CampaignWebsiteRequestController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-website-requests.index');
         Route::patch('/admin/campaign-website-requests/{campaignWebsiteRequest}', [CampaignWebsiteRequestController::class, 'update'])->middleware('throttle:30,1')->name('campaign-website-requests.update');
         Route::get('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-website-samples.index');

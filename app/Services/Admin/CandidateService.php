@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
 use App\Models\Bloc;
 use App\Models\Candidate;
+use App\Models\SupportGroupType;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\Ward;
@@ -35,6 +36,7 @@ class CandidateService
     public function createCandidate(array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): Candidate
     {
         $smsSettings = $this->extractSmsSettings($data);
+        $supportContacts = $this->extractSupportContacts($data);
         $data = $this->normalizeCandidateData($data);
 
         if ($picture) {
@@ -59,6 +61,7 @@ class CandidateService
 
         $candidate = $this->candidateRepository->create($data);
         $this->saveSmsSettings($candidate, $smsSettings);
+        $this->syncSupportContacts($candidate, $supportContacts);
 
         return $candidate;
     }
@@ -66,6 +69,7 @@ class CandidateService
     public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): bool
     {
         $smsSettings = $this->extractSmsSettings($data);
+        $supportContacts = $this->extractSupportContacts($data);
         $data = $this->normalizeCandidateData($data);
 
         if ($picture) {
@@ -105,6 +109,7 @@ class CandidateService
 
         $updated = $this->candidateRepository->update($candidate, $data);
         $this->saveSmsSettings($candidate, $smsSettings);
+        $this->syncSupportContacts($candidate, $supportContacts);
 
         return $updated;
     }
@@ -164,7 +169,7 @@ class CandidateService
 
     private function normalizeCandidateData(array $data): array
     {
-        unset($data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_username'], $data['sms_password'], $data['profile_picture'], $data['cover_photo'], $data['campaign_poster'], $data['campaign_video'], $data['campaign_skiza_audio']);
+        unset($data['support_contacts'], $data['sms_enabled'], $data['sms_provider'], $data['sms_base_url'], $data['sms_sender_name'], $data['sms_username'], $data['sms_password'], $data['profile_picture'], $data['cover_photo'], $data['campaign_poster'], $data['campaign_video'], $data['campaign_skiza_audio']);
 
         if (! Schema::hasColumn('candidates', 'political_party_id')) {
             unset($data['political_party_id']);
@@ -216,6 +221,57 @@ class CandidateService
         return $value;
     }
 
+    private function extractSupportContacts(array $data): ?array
+    {
+        if (! array_key_exists('support_contacts', $data)) {
+            return null;
+        }
+
+        return collect((array) $data['support_contacts'])
+            ->filter(function (array $contact): bool {
+                return filled($contact['support_group_type_id'] ?? null)
+                    || filled($contact['name'] ?? null)
+                    || filled($contact['email'] ?? null)
+                    || filled($contact['phone'] ?? null);
+            })
+            ->values()
+            ->all();
+    }
+
+    private function syncSupportContacts(Candidate $candidate, ?array $contacts): void
+    {
+        if ($contacts === null) {
+            return;
+        }
+
+        $keptIds = [];
+
+        foreach ($contacts as $contact) {
+            $payload = [
+                'support_group_type_id' => (int) $contact['support_group_type_id'],
+                'name' => trim((string) $contact['name']),
+                'email' => $contact['email'] ?? null,
+                'phone' => $contact['phone'] ?? null,
+            ];
+
+            $contactId = (int) ($contact['id'] ?? 0);
+            $model = $contactId > 0
+                ? $candidate->supportContacts()->whereKey($contactId)->first()
+                : null;
+
+            if ($model) {
+                $model->fill($payload)->save();
+            } else {
+                $model = $candidate->supportContacts()->create($payload);
+            }
+
+            $keptIds[] = $model->id;
+        }
+
+        $candidate->supportContacts()
+            ->when($keptIds !== [], fn ($query) => $query->whereNotIn('id', $keptIds))
+            ->delete();
+    }
     private function extractSmsSettings(array $data): array
     {
         return [
@@ -263,6 +319,7 @@ class CandidateService
         return [
             'positions' => $this->candidateRepository->allPositions(),
             'politicalParties' => $this->candidateRepository->allPoliticalParties(),
+            'supportGroupTypes' => SupportGroupType::active()->ordered()->get(),
         ];
     }
 
@@ -337,6 +394,7 @@ class CandidateService
             'showAspirantGroups' => $showAspirantGroups,
             'positions'  => $this->candidateRepository->allPositions(),
             'politicalParties' => $this->candidateRepository->allPoliticalParties(),
+            'supportGroupTypes' => SupportGroupType::active()->ordered()->get(),
             'countries' => $this->candidateRepository->allCountries(),
             'counties'   => $this->candidateRepository->allCounties(),
             'constituencies' => $this->candidateRepository->allConstituencies($filters['county'] ?? null),
@@ -573,5 +631,4 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
-
 

@@ -12,6 +12,8 @@ use App\Models\CandidateCallScript;
 use App\Models\CampaignWebsiteRequest;
 use App\Models\CampaignWebsiteSample;
 use App\Models\CandidateSmsBalanceRequest;
+use App\Models\CandidateSupportContact;
+use App\Models\SupportGroupType;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupMessage;
@@ -46,7 +48,7 @@ class AspirantToolController extends Controller
 
         $tool = $this->workspaceService->publishedToolForKey($key);
 
-        if (! $tool && $key !== 'campaign-website') {
+        if (! $tool && ! in_array($key, ['campaign-website', 'support-groups'], true)) {
             return redirect('/aspirant/dashboard')
                 ->with('warning', 'That campaign tool is not enabled yet. Ask an admin to publish it first.');
         }
@@ -113,6 +115,13 @@ class AspirantToolController extends Controller
         $smsBalanceRequest = $key === 'bulk-sms'
             ? CandidateSmsBalanceRequest::where('candidate_id', $candidate->id)->latest()->first()
             : null;
+        $supportGroupTypes = $key === 'support-groups'
+            ? SupportGroupType::active()->ordered()->get()
+            : collect();
+        $supportContacts = $key === 'support-groups'
+            ? CandidateSupportContact::with('groupType')->where('candidate_id', $candidate->id)->latest()->get()
+            : collect();
+
         $smsProviderBalance = $key === 'bulk-sms' && $candidate->smsSetting?->isReady()
             ? $this->smsService->accountBalance($candidate->smsSetting)
             : null;
@@ -144,6 +153,8 @@ class AspirantToolController extends Controller
             'bulkSmsQuote' => $bulkSmsQuote,
             'smsBalanceRequest' => $smsBalanceRequest,
             'smsProviderBalance' => $smsProviderBalance,
+            'supportGroupTypes' => $supportGroupTypes,
+            'supportContacts' => $supportContacts,
         ]);
     }
 
@@ -521,6 +532,75 @@ class AspirantToolController extends Controller
             ->with('success', 'Campaign website request submitted. An admin will review it and follow up.');
     }
 
+    public function storeSupportContact(Request $request): RedirectResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect('/aspirant/dashboard')->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $validated = $this->validateSupportContact($request);
+        $candidate->supportContacts()->create($validated + [
+            'created_by' => $request->user()->id,
+            'updated_by' => $request->user()->id,
+        ]);
+
+        return redirect()->route('aspirant.tools.show', 'support-groups')->with('success', 'Support contact added.');
+    }
+
+    public function updateSupportContact(Request $request, CandidateSupportContact $candidateSupportContact): RedirectResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate || (int) $candidateSupportContact->candidate_id !== (int) $candidate->id) {
+            abort(403);
+        }
+
+        $candidateSupportContact->update($this->validateSupportContact($request) + [
+            'updated_by' => $request->user()->id,
+        ]);
+
+        return redirect()->route('aspirant.tools.show', 'support-groups')->with('success', 'Support contact updated.');
+    }
+
+    public function destroySupportContact(Request $request, CandidateSupportContact $candidateSupportContact): RedirectResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate || (int) $candidateSupportContact->candidate_id !== (int) $candidate->id) {
+            abort(403);
+        }
+
+        $candidateSupportContact->delete();
+
+        return redirect()->route('aspirant.tools.show', 'support-groups')->with('success', 'Support contact removed.');
+    }
+
+    private function validateSupportContact(Request $request): array
+    {
+        $validated = $request->validate([
+            'support_group_type_id' => ['required', 'exists:support_group_types,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+() .-]+$/'],
+        ]);
+
+        if (blank($validated['email'] ?? null) && blank($validated['phone'] ?? null)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'phone' => 'Enter an email or phone for the support contact.',
+            ]);
+        }
+
+        $groupIsActive = SupportGroupType::active()->whereKey($validated['support_group_type_id'])->exists();
+        if (! $groupIsActive) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'support_group_type_id' => 'Choose an active support group.',
+            ]);
+        }
+
+        return $validated;
+    }
     public function websiteSamples(): View
     {
         $samples = CampaignWebsiteSample::published()->ordered()->get();
@@ -565,21 +645,4 @@ class AspirantToolController extends Controller
         return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

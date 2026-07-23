@@ -237,6 +237,11 @@ class Candidate extends Model
         return $this->hasMany(CandidateSmsBalanceRequest::class);
     }
 
+    public function supportContacts(): HasMany
+    {
+        return $this->hasMany(CandidateSupportContact::class);
+    }
+
     public function relatedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'candidate_user_relationships')
@@ -244,5 +249,4 @@ class Candidate extends Model
             ->withTimestamps();
     }
 }
-
 

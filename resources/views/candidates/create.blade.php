@@ -82,6 +82,8 @@
                 <textarea name="about" rows="5" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></textarea>
             </div>
 
+            @include('candidates.partials.support-contacts')
+
             <div class="mt-10">
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-2xl font-semibold">
                     Save Candidate
@@ -284,6 +286,41 @@ positionSelect.addEventListener('change', function() {
 
 // Initialize
 fetchCounties();
+function initializeSupportContacts() {
+    const panel = document.querySelector('[data-support-contacts-panel]');
+    if (!panel) return;
+
+    const list = panel.querySelector('[data-support-contact-list]');
+    const template = document.querySelector('[data-support-contact-template]');
+    const addButton = panel.querySelector('[data-add-support-contact]');
+
+    function renumber() {
+        panel.querySelectorAll('[data-support-contact-row]').forEach((row, index) => {
+            row.querySelectorAll('[name^="support_contacts"], [data-name]').forEach((input) => {
+                const key = input.dataset.name || input.name.match(/\[([^\]]+)\]$/)?.[1];
+                if (key) input.name = `support_contacts[${index}][${key}]`;
+            });
+        });
+    }
+
+    addButton?.addEventListener('click', () => {
+        if (!template || !list) return;
+        list.appendChild(template.content.firstElementChild.cloneNode(true));
+        renumber();
+    });
+
+    panel.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-remove-support-contact]');
+        if (!button) return;
+        const row = button.closest('[data-support-contact-row]');
+        row?.remove();
+        renumber();
+    });
+
+    renumber();
+}
+
+initializeSupportContacts();
 </script>
 @endpush
 

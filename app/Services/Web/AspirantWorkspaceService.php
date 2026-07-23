@@ -75,6 +75,12 @@ class AspirantWorkspaceService
                 'summary' => 'Publish your biography, agenda, donation links, photos, and updates.',
                 'voter_facing' => false,
             ],
+            'support-groups' => [
+                'title' => 'Support Groups',
+                'icon' => 'fa-people-group',
+                'summary' => 'Organize friends, family, volunteers, and other private campaign contacts.',
+                'voter_facing' => false,
+            ],
             'voter-database' => [
                 'title' => 'Voter Database',
                 'icon' => 'fa-database',
@@ -209,7 +215,7 @@ class AspirantWorkspaceService
     private function toolAvailability(string $key, ?CampaignTool $tool, ?Candidate $candidate): array
     {
         if (! $tool) {
-            if ($key === 'campaign-website') {
+            if (in_array($key, ['campaign-website', 'support-groups'], true)) {
                 return ['available' => true, 'reason' => null];
             }
 
@@ -260,6 +266,4 @@ class AspirantWorkspaceService
         ];
     }
 }
-
-
 

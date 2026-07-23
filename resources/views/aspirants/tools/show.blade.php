@@ -237,7 +237,91 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <a href="{{ route('aspirant.campaign-website.samples') }}" class="tool-btn"><i class="fas fa-images"></i> View Samples</a>
                             </div>
                         </form>
-                    @elseif($module['key'] === 'opinion-polls')
+                    @elseif($module['key'] === 'support-groups')
+                        @if($supportGroupTypes->isEmpty())
+                            <div class="tool-alert">Ask an admin to add active support group types before adding campaign support contacts.</div>
+                        @else
+                            <form class="tool-form" method="POST" action="{{ route('aspirant.tools.support-groups.contacts.store') }}" data-loading-form>
+                                @csrf
+                                <label>Group
+                                    <select name="support_group_type_id" required>
+                                        <option value="">Select group</option>
+                                        @foreach($supportGroupTypes as $type)
+                                            <option value="{{ $type->id }}" {{ old('support_group_type_id') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                @error('support_group_type_id')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                                <label>Name
+                                    <input type="text" name="name" value="{{ old('name') }}" required maxlength="255" placeholder="Contact name">
+                                </label>
+                                @error('name')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                    <label>Email
+                                        <input type="email" name="email" value="{{ old('email') }}" maxlength="255" placeholder="name@example.com">
+                                    </label>
+                                    <label>Phone
+                                        <input type="text" name="phone" value="{{ old('phone') }}" maxlength="50" placeholder="+254...">
+                                    </label>
+                                </div>
+                                @error('email')<div class="tool-alert">{{ $message }}</div>@enderror
+                                @error('phone')<div class="tool-alert">{{ $message }}</div>@enderror
+
+                                <div class="tool-actions">
+                                    <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Adding..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-plus" data-loading-icon></i> <span data-loading-label>Add Contact</span></button>
+                                </div>
+                            </form>
+                        @endif
+
+                        <div class="poll-list">
+                            <div class="poll-card">
+                                <div class="poll-card-top">
+                                    <h3>Support Contacts</h3>
+                                    <span class="poll-status">{{ number_format($supportContacts->count()) }} contacts</span>
+                                </div>
+
+                                @if($supportContacts->isEmpty())
+                                    <p class="tool-empty">No support contacts have been added yet.</p>
+                                @else
+                                    <div style="display:grid;gap:12px;">
+                                        @foreach($supportContacts as $contact)
+                                            <form method="POST" action="{{ route('aspirant.tools.support-groups.contacts.update', $contact) }}" class="poll-card" style="margin:0;" data-loading-form>
+                                                @csrf
+                                                @method('PATCH')
+                                                <div class="grid" style="display:grid;grid-template-columns:1fr 1.2fr 1fr 1fr auto;gap:10px;align-items:end;">
+                                                    <label>Group
+                                                        <select name="support_group_type_id" required>
+                                                            @foreach($supportGroupTypes as $type)
+                                                                <option value="{{ $type->id }}" {{ $contact->support_group_type_id === $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </label>
+                                                    <label>Name
+                                                        <input type="text" name="name" value="{{ $contact->name }}" required maxlength="255">
+                                                    </label>
+                                                    <label>Email
+                                                        <input type="email" name="email" value="{{ $contact->email }}" maxlength="255">
+                                                    </label>
+                                                    <label>Phone
+                                                        <input type="text" name="phone" value="{{ $contact->phone }}" maxlength="50">
+                                                    </label>
+                                                    <div class="tool-actions" style="margin:0;flex-wrap:nowrap;">
+                                                        <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Saving..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-save" data-loading-icon></i> <span data-loading-label>Save</span></button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            <form method="POST" action="{{ route('aspirant.tools.support-groups.contacts.destroy', $contact) }}" onsubmit="return confirm('Remove this support contact?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="tool-btn" style="border-color:rgba(239,68,68,.35);color:#fca5a5;"><i class="fas fa-trash"></i> Remove {{ $contact->name }}</button>
+                                            </form>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>                    @elseif($module['key'] === 'opinion-polls')
                         <form class="tool-form" method="POST" action="{{ route('aspirant.tools.polls.store') }}" data-loading-form data-poll-form>
                             @csrf
                             <label>Poll Question
@@ -703,14 +787,4 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
 </script>
 
 @endsection
-
-
-
-
-
-
-
-
-
-
 

@@ -44,6 +44,14 @@ return [
             'tool_key' => 'campaign-website',
         ],
         [
+            'label' => 'Support Groups',
+            'icon' => 'fas fa-people-group',
+            'route' => 'aspirant.tools.show',
+            'params' => ['support-groups'],
+            'active' => ['aspirant.tools.show'],
+            'tool_key' => 'support-groups',
+        ],
+        [
             'label' => 'Call Center',
             'icon' => 'fas fa-headset',
             'route' => 'aspirant.tools.show',
