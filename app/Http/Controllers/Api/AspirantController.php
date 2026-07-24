@@ -26,7 +26,7 @@ class AspirantController extends Controller
 
     public function list(Request $request): JsonResponse
     {
-        $perPage = min((int) $request->query('per_page', 12), 50);
+        $perPage = min(max((int) $request->query('per_page', 12), 1), 50);
 
         $aspirants = Candidate::with(['position', 'politicalParty'])
             ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
@@ -36,7 +36,9 @@ class AspirantController extends Controller
             ->when($request->query('county'), fn ($query, $county) => $query->where('county', $county))
             ->when($request->query('constituency'), fn ($query, $constituency) => $query->where('constituency', $constituency))
             ->when($request->query('ward'), fn ($query, $ward) => $query->where('ward', $ward))
-            ->when($request->query('position', 'president'), function ($query, $position) {
+            ->when($request->filled('position') && ! in_array(strtolower((string) $request->query('position')), ['all', 'any'], true), function ($query) use ($request) {
+                $position = $request->query('position');
+
                 if (is_numeric($position)) {
                     $query->where('position_id', $position);
                     return;
