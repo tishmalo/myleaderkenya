@@ -14,10 +14,10 @@ class PublicApprovalRepository implements PublicApprovalRepositoryInterface
     public function approvalForProfile(string $profileSlug): ?float
     {
         try {
-            $response = Http::connectTimeout(5)
-                ->timeout(10)
+            $response = Http::connectTimeout((int) config('services.politiqkenya.connect_timeout', 15))
+                ->timeout((int) config('services.politiqkenya.timeout', 120))
                 ->acceptJson()
-                ->get(self::ENDPOINT, [
+                ->get(config('services.politiqkenya.public_approval_endpoint', self::ENDPOINT), [
                     'profile' => $profileSlug,
                     'window' => '30d',
                     'country_code' => 'KE',
@@ -61,3 +61,4 @@ class PublicApprovalRepository implements PublicApprovalRepositoryInterface
         return null;
     }
 }
+

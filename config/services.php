@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'politiqkenya' => [
+        'public_approval_endpoint' => env('POLITIQKENYA_PUBLIC_APPROVAL_ENDPOINT', 'https://api.politiqkenya.com/public/monitored-profile-example'),
+        'connect_timeout' => (int) env('POLITIQKENYA_CONNECT_TIMEOUT', 15),
+        'timeout' => (int) env('POLITIQKENYA_TIMEOUT', 120),
+    ],
 ];
+
