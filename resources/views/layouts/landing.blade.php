@@ -66,7 +66,7 @@
     z-index: 100000;
     display: grid;
     place-items: center;
-    background: #070707;
+    background: #030303;
     transition: opacity .45s ease, visibility .45s ease;
   }
   .site-boot-loader.is-hidden {
@@ -76,25 +76,27 @@
   }
   .site-boot-flag {
     position: relative;
-    width: min(340px, 72vw);
-    aspect-ratio: 3 / 2;
+    width: min(510px, 64vw);
+    aspect-ratio: 2.12 / 1;
     overflow: hidden;
-    border-radius: 8px;
-    box-shadow: 0 24px 70px rgba(0,0,0,.5);
+    border-radius: 3px 12px 12px 3px;
+    background:
+      linear-gradient(180deg, #020202 0 31%, #f4f4ee 31% 35.5%, #c90000 35.5% 64.5%, #f4f4ee 64.5% 69%, #006b12 69% 100%);
+    box-shadow: 0 28px 90px rgba(0,0,0,.78);
     transform-origin: 50% 50%;
-    animation: site-boot-flag-breeze 2.8s ease-in-out infinite;
+    animation: site-boot-flag-breathe 3s ease-in-out infinite;
     isolation: isolate;
   }
   .site-boot-flag::before {
     content: "";
     position: absolute;
-    inset: -12% -18%;
+    inset: -20% -16%;
     z-index: 4;
     background:
-      linear-gradient(105deg, transparent 0 16%, rgba(255,255,255,.14) 24%, transparent 35% 48%, rgba(0,0,0,.18) 58%, transparent 70% 100%),
-      repeating-linear-gradient(105deg, rgba(255,255,255,.08) 0 12px, transparent 12px 54px, rgba(0,0,0,.16) 54px 72px, transparent 72px 116px);
+      repeating-linear-gradient(105deg, rgba(255,255,255,.08) 0 16px, transparent 16px 70px, rgba(0,0,0,.24) 70px 98px, transparent 98px 154px),
+      linear-gradient(90deg, rgba(255,255,255,.08), transparent 18%, rgba(0,0,0,.18) 38%, transparent 58%, rgba(255,255,255,.1) 76%, transparent);
     mix-blend-mode: soft-light;
-    animation: site-boot-flag-sheen 2.8s linear infinite;
+    animation: site-boot-flag-sheen 3.2s ease-in-out infinite;
     pointer-events: none;
   }
   .site-boot-flag::after {
@@ -102,45 +104,50 @@
     position: absolute;
     inset: 0;
     z-index: 5;
-    background: radial-gradient(ellipse at center, transparent 0 46%, rgba(0,0,0,.2) 76%, rgba(0,0,0,.32) 100%);
+    background:
+      linear-gradient(90deg, rgba(0,0,0,.36), transparent 16%, transparent 76%, rgba(0,0,0,.24)),
+      radial-gradient(ellipse at center, transparent 0 56%, rgba(0,0,0,.28) 100%);
     pointer-events: none;
   }
-  .site-boot-stripe { display: block; width: 100%; }
-  .site-boot-black { height: 31%; background: #050505; }
-  .site-boot-white { height: 4.5%; background: #f5f5f0; }
-  .site-boot-red { height: 29%; background: #bb0000; }
-  .site-boot-green { height: 31%; background: #006600; }
+  .site-boot-stripe {
+    display: none;
+  }
   .site-boot-emblem {
     position: absolute;
     left: 50%;
     top: 50%;
     z-index: 3;
-    width: 25%;
-    height: 72%;
+    width: 20%;
+    height: 94%;
     transform: translate(-50%, -50%);
   }
   .site-boot-spear {
     position: absolute;
-    left: 48%;
-    top: -2%;
-    width: 5%;
-    height: 108%;
-    background: #e8e8e8;
-    border: 2px solid rgba(0,0,0,.75);
+    left: 49%;
+    top: 3%;
+    width: 4px;
+    height: 94%;
+    background: #d5d5d5;
+    border: 1px solid rgba(0,0,0,.75);
     border-radius: 999px;
     transform-origin: 50% 50%;
+    opacity: .58;
   }
   .site-boot-spear.one { transform: rotate(-27deg); }
   .site-boot-spear.two { transform: rotate(27deg); }
   .site-boot-shield {
     position: absolute;
-    inset: 6% 13%;
+    left: 22%;
+    right: 22%;
+    top: 7%;
+    bottom: 7%;
     display: grid;
     place-items: center;
     overflow: hidden;
-    border: 3px solid #111;
+    border: 3px solid #090909;
     border-radius: 50% / 36%;
-    background: linear-gradient(90deg, #111 0 20%, #bb0000 20% 80%, #111 80% 100%);
+    background: linear-gradient(90deg, #050505 0 22%, #c90000 22% 78%, #050505 78% 100%);
+    box-shadow: 0 8px 18px rgba(0,0,0,.42);
   }
   .site-boot-shield::before,
   .site-boot-shield::after {
@@ -149,26 +156,29 @@
     top: 0;
     bottom: 0;
     width: 8%;
-    background: #f5f5f0;
+    background: #f4f4ee;
   }
   .site-boot-shield::before { left: 43%; }
   .site-boot-shield::after { right: 43%; }
   .site-boot-dot {
     position: relative;
     z-index: 1;
-    width: 30%;
+    width: 28%;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: #d6d6d6;
-    box-shadow: 0 0 0 2px rgba(0,0,0,.25);
+    background: #d8d8d8;
+    box-shadow: 0 0 0 2px rgba(0,0,0,.28);
   }
-  @keyframes site-boot-flag-breeze {
-    0%, 100% { transform: perspective(900px) rotateY(-5deg) skewY(.4deg) translateY(0); }
-    50% { transform: perspective(900px) rotateY(5deg) skewY(-1deg) translateY(-3px); }
+  @keyframes site-boot-flag-breathe {
+    0%, 100% { transform: perspective(900px) rotateY(-3deg) skewY(.15deg) translateY(0); filter: brightness(.92); }
+    50% { transform: perspective(900px) rotateY(3deg) skewY(-.35deg) translateY(-2px); filter: brightness(1); }
   }
   @keyframes site-boot-flag-sheen {
-    from { transform: translateX(-12%); }
-    to { transform: translateX(12%); }
+    0%, 100% { transform: translateX(-5%); }
+    50% { transform: translateX(5%); }
+  }
+  @media (max-width: 640px) {
+    .site-boot-flag { width: min(330px, 76vw); }
   }
   @media (prefers-reduced-motion: reduce) {
     .site-boot-flag,
@@ -394,3 +404,4 @@
 @stack('scripts')
 </body>
 </html>
+
