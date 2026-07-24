@@ -35,7 +35,9 @@
 
     <!-- Optional: Apple Touch Icon -->
     <link rel="apple-touch-icon" href="{{ asset('images/mlkfav.png') }}">
-    <link rel="preload" as="image" href="{{ asset('images/kenya-flag-loader.gif') }}" fetchpriority="high">
+    <link rel="preload" as="video" href="{{ asset('images/kenya-flag-loader.webm') }}" type="video/webm" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('images/mlkfav.png') }}" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('images/ml1.jpg') }}" fetchpriority="high">
 
     @stack('styles')
 
@@ -75,6 +77,7 @@
     visibility: hidden;
     pointer-events: none;
   }
+  .site-boot-flag-video,
   .site-boot-flag-img {
     display: block;
     width: min(560px, 78vw);
@@ -82,13 +85,18 @@
     object-fit: contain;
   }
   @media (max-width: 640px) {
-    .site-boot-flag-img { width: min(380px, 82vw); }
+    .site-boot-flag-video,
+  .site-boot-flag-img { width: min(380px, 82vw); }
   }
 </style>
 </head>
 <body class="bg-zinc-950 text-white antialiased">
     <div class="site-boot-loader" id="siteBootLoader" aria-hidden="true">
-        <img class="site-boot-flag-img" src="{{ asset('images/kenya-flag-loader.gif') }}" alt="" fetchpriority="high" decoding="async">
+        <video class="site-boot-flag-video" autoplay muted loop playsinline preload="auto" poster="{{ asset('images/kenya-flag-loader-poster.jpg') }}" aria-hidden="true">
+            <source src="{{ asset('images/kenya-flag-loader.webm') }}" type="video/webm">
+            <source src="{{ asset('images/kenya-flag-loader.mp4') }}" type="video/mp4">
+            <img class="site-boot-flag-img" src="{{ asset('images/kenya-flag-loader-poster.jpg') }}" alt="" decoding="async">
+        </video>
     </div>
     @yield('content')
     
@@ -226,27 +234,6 @@
 </script>
 <script>
 (function () {
-  function warmLandingImages() {
-    document.querySelectorAll('img').forEach(function (img) {
-      if (!img.src && !img.srcset) return;
-      img.loading = 'eager';
-      img.decoding = 'async';
-      var preloader = new Image();
-      if (img.sizes) preloader.sizes = img.sizes;
-      if (img.srcset) preloader.srcset = img.srcset;
-      preloader.src = img.currentSrc || img.src;
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', warmLandingImages, { once: true });
-  } else {
-    warmLandingImages();
-  }
-})();
-</script>
-<script>
-(function () {
   var loader = document.getElementById('siteBootLoader');
   if (!loader) return;
 
@@ -257,13 +244,13 @@
     }, 500);
   }
 
-  if (document.readyState === 'complete') {
-    window.setTimeout(hideLoader, 180);
-  } else {
-    window.addEventListener('load', function () {
-      window.setTimeout(hideLoader, 180);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      window.requestAnimationFrame(hideLoader);
     }, { once: true });
-    window.setTimeout(hideLoader, 3500);
+    window.setTimeout(hideLoader, 1800);
+  } else {
+    window.requestAnimationFrame(hideLoader);
   }
 })();
 </script>
