@@ -359,4 +359,65 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     setInterval(poll, 10000);
 })();
+/* Campaign tools carousel */
+(function(){
+    var carousel = document.querySelector('[data-tools-carousel]');
+    if (!carousel) return;
+
+    var previous = document.querySelector('[data-tools-carousel-prev]');
+    var next = document.querySelector('[data-tools-carousel-next]');
+
+    function scrollAmount() {
+        var card = carousel.querySelector('.landing-tool-card');
+        if (!card) return carousel.clientWidth;
+        return card.getBoundingClientRect().width + 18;
+    }
+
+    if (previous) {
+        previous.addEventListener('click', function(){
+            carousel.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+        });
+    }
+
+    if (next) {
+        next.addEventListener('click', function(){
+            carousel.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+        });
+    }
+
+    function openFeatureRequestModal(id) {
+        var modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('ct-modal-open');
+        var focusTarget = modal.querySelector('input, textarea, button');
+        if (focusTarget) focusTarget.focus();
+    }
+
+    function closeFeatureRequestModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('ct-modal-open');
+    }
+
+    document.querySelectorAll('[data-feature-request-open]').forEach(function(button) {
+        button.addEventListener('click', function() {
+            openFeatureRequestModal(button.dataset.featureRequestOpen);
+        });
+    });
+
+    document.querySelectorAll('[data-feature-request-close]').forEach(function(button) {
+        button.addEventListener('click', function() {
+            closeFeatureRequestModal(button.closest('.ct-request-modal'));
+        });
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeFeatureRequestModal(document.querySelector('.ct-request-modal.is-open'));
+        }
+    });
+})();
 

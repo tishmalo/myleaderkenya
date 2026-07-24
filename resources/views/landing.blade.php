@@ -439,6 +439,47 @@
             </div>
         </section>
 
+        @if(isset($landingCampaignTools) && $landingCampaignTools->isNotEmpty())
+            <section class="landing-tools-section" aria-labelledby="landing-tools-title">
+                <div class="section-inner">
+                    <div class="landing-tools-head">
+                        <div>
+                            <div class="section-label">Campaign Tools</div>
+                            <h2 class="section-title" id="landing-tools-title">Tools for Serious Campaigns</h2>
+                        </div>
+                        <div class="landing-tools-actions">
+                            <button type="button" class="landing-tools-nav" data-tools-carousel-prev aria-label="Previous campaign tools"><i class="fas fa-chevron-left"></i></button>
+                            <button type="button" class="landing-tools-nav" data-tools-carousel-next aria-label="Next campaign tools"><i class="fas fa-chevron-right"></i></button>
+                            <a href="{{ route('campaign-tools.public') }}" class="landing-tools-more">View More <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="landing-tools-carousel" data-tools-carousel>
+                        @foreach($landingCampaignTools as $tool)
+                            @php($modalId = 'landing-campaign-tool-request-' . $tool->id)
+                            <article class="landing-tool-card">
+                                <a href="{{ route('campaign-tools.show', $tool->slug) }}" class="landing-tool-link">
+                                    @if($tool->featured_image)
+                                        <span class="landing-tool-media"><img src="{{ Storage::url($tool->featured_image) }}" alt="{{ $tool->title }}" loading="lazy" decoding="async"></span>
+                                    @else
+                                        <span class="landing-tool-media landing-tool-media-empty"><i class="fas fa-bullhorn"></i></span>
+                                    @endif
+                                    <span class="landing-tool-body">
+                                        <span class="landing-tool-kicker">Campaign Tool</span>
+                                        <span class="landing-tool-title">{{ $tool->title }}</span>
+                                        @if($tool->excerpt)
+                                            <span class="landing-tool-excerpt">{{ $tool->excerpt }}</span>
+                                        @endif
+                                    </span>
+                                </a>
+                                <button type="button" class="landing-tool-request" data-feature-request-open="{{ $modalId }}"><i class="fas fa-lightbulb"></i> Request Feature</button>
+                            </article>
+                            @include('campaign-tools.public._request-modal', ['tool' => $tool, 'modalId' => $modalId])
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
         <div class="section-stripe"></div>
     @endif
 
