@@ -7,7 +7,7 @@ function readLandingJson(value, fallback) {
     } catch (error) {
         return fallback;
     }
-}
+};
 
 function readLandingPageConfig() {
     var el = document.getElementById('landing-page-config');
@@ -22,7 +22,7 @@ function readLandingPageConfig() {
         genderData: readLandingJson(el.dataset.genderData, [0, 0, 0]),
         authErrorTab: el.dataset.authErrorTab || ''
     };
-}
+};
 
 window.LandingPageConfig = readLandingPageConfig();
 /* -- MODAL -- */
@@ -30,20 +30,20 @@ window.openModal = function openModal(tab) {
     document.getElementById('authModal').classList.add('open');
     document.body.style.overflow = 'hidden';
     if (tab) switchTab(tab);
-}
+};
 window.closeModal = function closeModal() {
     document.getElementById('authModal').classList.remove('open');
     document.body.style.overflow = '';
-}
+};
 window.handleBackdropClick = function handleBackdropClick(e) {
     if (e.target === document.getElementById('authModal')) closeModal();
-}
+};
 window.switchTab = function switchTab(tab) {
     document.querySelectorAll('.auth-tab').forEach(function(t){ t.classList.remove('active'); });
     document.querySelectorAll('.auth-form-panel').forEach(function(p){ p.classList.remove('active'); });
     document.getElementById('tab-'   + tab).classList.add('active');
     document.getElementById('panel-' + tab).classList.add('active');
-}
+};
 document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
 document.addEventListener('DOMContentLoaded', function(){
     var authTab = new URLSearchParams(window.location.search).get('auth');
@@ -67,7 +67,7 @@ window.togglePwd = function togglePwd(id, btn) {
         input.type = 'password';
         icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
-}
+};
 window.modalPwdStrength = function modalPwdStrength(val) {
     var fill  = document.getElementById('modal-pwd-fill');
     var label = document.getElementById('modal-pwd-label');
@@ -90,7 +90,7 @@ window.modalPwdStrength = function modalPwdStrength(val) {
     fill.style.background = lvl.color;
     label.textContent     = lvl.text;
     label.style.color     = lvl.color;
-}
+};
 
 /* Aspirant image carousel */
 (function(){
@@ -486,4 +486,3 @@ window.modalPwdStrength = function modalPwdStrength(val) {
         }
     });
 })();
-

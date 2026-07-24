@@ -63,7 +63,7 @@
                             <label>Password</label>
                             <div class="auth-field-wrap">
                                 <input type="password" id="modal-login-pwd" name="password"
-                                       placeholder="••••••••" required autocomplete="current-password">
+                                       placeholder="••••••••" required autocomplete="new-password" autocomplete="current-password">
                                 <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                 <button type="button" class="auth-pwd-toggle"
                                         onclick="togglePwd('modal-login-pwd',this)" aria-label="Toggle password">
@@ -154,7 +154,7 @@
                                 <label>Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd" name="password"
-                                           placeholder="••••••••" required
+                                           placeholder="••••••••" required autocomplete="new-password"
                                            oninput="modalPwdStrength(this.value)">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
@@ -169,7 +169,7 @@
                                 <label>Confirm Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd2" name="password_confirmation"
-                                           placeholder="••••••••" required>
+                                           placeholder="••••••••" required autocomplete="new-password">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
                                             onclick="togglePwd('modal-reg-pwd2',this)" aria-label="Toggle password">
@@ -562,4 +562,3 @@
 @push('scripts')
 @vite('resources/js/views/landing.js')
 @endpush
-
