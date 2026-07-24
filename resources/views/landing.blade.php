@@ -207,10 +207,10 @@
 <section class="hero">
     <div id="hero-slider">
         <div class="hero-slide active" style="background-image: url('{{ asset('images/ml1.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml2.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml3.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml4.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml5.jpg') }}')"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml2.jpg') }}"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml3.jpg') }}"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml4.jpg') }}"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml5.jpg') }}"></div>
     </div>
 
     <div class="hero-overlay"></div>
@@ -560,7 +560,6 @@
 
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 @vite('resources/js/views/landing.js')
 @endpush
 

@@ -25,7 +25,7 @@ function readLandingPageConfig() {
 }
 
 window.LandingPageConfig = readLandingPageConfig();
-/* ── MODAL ── */
+/* -- MODAL -- */
 window.openModal = function openModal(tab) {
     document.getElementById('authModal').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 });
 
-/* ── PASSWORD UTILITIES ── */
+/* -- PASSWORD UTILITIES -- */
 window.togglePwd = function togglePwd(id, btn) {
     var input = document.getElementById(id);
     var icon  = btn.querySelector('i');
@@ -92,28 +92,6 @@ window.modalPwdStrength = function modalPwdStrength(val) {
     label.style.color     = lvl.color;
 }
 
-let currentSlide = 0;
-    const slides = document.querySelectorAll('.hero-slide');
-    const totalSlides = slides.length;
-
-    function showSlide(index) {
-        slides.forEach((slide, i) => {
-            slide.classList.remove('active'); // Hide all slides
-        });
-        slides[index].classList.add('active'); // Show the current slide
-    }
-
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % totalSlides; // Cycle through slides
-        showSlide(currentSlide);
-    }
-
-    // Show the first slide
-    showSlide(currentSlide);
-
-    // Change slide every 5 seconds
-    setInterval(nextSlide, 5000);
-
 /* Aspirant image carousel */
 (function(){
     var carousel = document.querySelector('[data-aspirant-carousel]');
@@ -138,6 +116,7 @@ let currentSlide = 0;
         image.src = aspirant.image_url;
         image.alt = aspirant.name;
         image.loading = 'lazy';
+        image.decoding = 'async';
 
         var body = document.createElement('div');
         body.className = 'aspirant-card-body';
@@ -248,9 +227,26 @@ let currentSlide = 0;
         }, 10000);
     }
 
-    loadNextPage();
+    function startWhenReady() {
+        loadNextPage();
+    }
+
+    if ('IntersectionObserver' in window) {
+        var aspirantObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (!entry.isIntersecting) return;
+                observer.disconnect();
+                startWhenReady();
+            });
+        }, { rootMargin: '500px 0px' });
+        aspirantObserver.observe(carousel);
+    } else if ('requestIdleCallback' in window) {
+        requestIdleCallback(startWhenReady, { timeout: 2500 });
+    } else {
+        window.setTimeout(startWhenReady, 1400);
+    }
 })();
-/* ── HERO SLIDER ── */
+/* -- HERO SLIDER -- */
 (function(){
     var slides = document.querySelectorAll('.hero-slide');
     var dotsEl = document.getElementById('slider-dots');
@@ -264,7 +260,18 @@ let currentSlide = 0;
         d.addEventListener('click', function(){ goTo(parseInt(this.dataset.index)); resetTimer(); });
         dotsEl.appendChild(d);
     }
+    function loadSlideBg(slide) {
+        if (!slide || !slide.dataset.bg) return;
+        slide.style.backgroundImage = "url('" + slide.dataset.bg + "')";
+        delete slide.dataset.bg;
+    }
+
+    function hydrateDeferredSlides() {
+        slides.forEach(loadSlideBg);
+    }
+
     function goTo(idx) {
+        loadSlideBg(slides[(idx + total) % total]);
         slides[cur].classList.remove('active');
         dotsEl.querySelectorAll('.slider-dot')[cur].classList.remove('active');
         cur = (idx + total) % total;
@@ -272,6 +279,9 @@ let currentSlide = 0;
         dotsEl.querySelectorAll('.slider-dot')[cur].classList.add('active');
     }
     function resetTimer(){ clearInterval(timer); timer = setInterval(function(){ goTo(cur+1); }, 5000); }
+    loadSlideBg(slides[0]);
+    if ('requestIdleCallback' in window) requestIdleCallback(hydrateDeferredSlides, { timeout: 2200 });
+    else window.setTimeout(hydrateDeferredSlides, 1200);
     resetTimer();
     var hero = document.querySelector('.hero');
     if (hero) {
@@ -280,51 +290,107 @@ let currentSlide = 0;
     }
 })();
 
-/* ── CHARTS ── */
-document.addEventListener('DOMContentLoaded', function(){
-    var countyChart = new Chart(document.getElementById('countyChart'), {
-        type: 'bar',
-        data: {
-            labels: window.LandingPageConfig.countyLabels || [],
-            datasets: [{
-                label: 'Confirmed Voters',
-                data:  window.LandingPageConfig.countyData || [],
-                backgroundColor: function(ctx) {
-                    var chart = ctx.chart, c = chart.ctx, ca = chart.chartArea;
-                    if (!ca) return '#006600';
-                    var g = c.createLinearGradient(0, ca.top, 0, ca.bottom);
-                    g.addColorStop(0, '#BB0000'); g.addColorStop(1, '#006600');
-                    return g;
+/* CHARTS */
+(function(){
+    var chartScriptPromise = null;
+    var chartsStarted = false;
+
+    function loadChartScript() {
+        if (window.Chart) return Promise.resolve();
+        if (chartScriptPromise) return chartScriptPromise;
+
+        chartScriptPromise = new Promise(function(resolve, reject) {
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+
+        return chartScriptPromise;
+    }
+
+    function initCharts() {
+        if (chartsStarted) return;
+        var countyCanvas = document.getElementById('countyChart');
+        var genderCanvas = document.getElementById('genderChart');
+        if (!countyCanvas || !genderCanvas) return;
+
+        chartsStarted = true;
+        loadChartScript().then(function(){
+            var countyChart = new Chart(countyCanvas, {
+                type: 'bar',
+                data: {
+                    labels: window.LandingPageConfig.countyLabels || [],
+                    datasets: [{
+                        label: 'Confirmed Voters',
+                        data:  window.LandingPageConfig.countyData || [],
+                        backgroundColor: function(ctx) {
+                            var chart = ctx.chart, c = chart.ctx, ca = chart.chartArea;
+                            if (!ca) return '#006600';
+                            var g = c.createLinearGradient(0, ca.top, 0, ca.bottom);
+                            g.addColorStop(0, '#BB0000'); g.addColorStop(1, '#006600');
+                            return g;
+                        },
+                        borderRadius: 6, borderSkipped: false,
+                    }]
                 },
-                borderRadius: 6, borderSkipped: false,
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(245,245,240,0.4)', font: { size:12, family:'Barlow' } }, border: { color: 'rgba(255,255,255,0.06)' } },
-                x: { grid: { display: false },            ticks: { color: 'rgba(245,245,240,0.4)', font: { size:11, family:'Barlow' } }, border: { color: 'rgba(255,255,255,0.06)' } }
-            }
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(245,245,240,0.4)', font: { size:12, family:'Barlow' } }, border: { color: 'rgba(255,255,255,0.06)' } },
+                        x: { grid: { display: false },            ticks: { color: 'rgba(245,245,240,0.4)', font: { size:11, family:'Barlow' } }, border: { color: 'rgba(255,255,255,0.06)' } }
+                    }
+                }
+            });
+
+            var genderChart = new Chart(genderCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Male','Female','Other / Not Specified'],
+                    datasets: [{ data: window.LandingPageConfig.genderData || [0,0,0], backgroundColor: ['#BB0000','#00A86B','rgba(245,245,240,0.15)'], borderWidth: 3, borderColor: '#161616', hoverOffset: 8 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '68%',
+                    plugins: { legend: { position: 'bottom', labels: { color: 'rgba(245,245,240,0.5)', padding: 24, font: { size:13, family:'Barlow' }, usePointStyle: true, pointStyleWidth: 10 } } }
+                }
+            });
+
+            if (window.__setChartRefs) window.__setChartRefs(countyChart, genderChart);
+        }).catch(function(){
+            chartsStarted = false;
+        });
+    }
+
+    function watchCharts() {
+        var analytics = document.getElementById('analytics');
+        if (!analytics) return;
+
+        if ('IntersectionObserver' in window) {
+            var chartObserver = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    observer.disconnect();
+                    initCharts();
+                });
+            }, { rootMargin: '400px 0px' });
+            chartObserver.observe(analytics);
+        } else if ('requestIdleCallback' in window) {
+            requestIdleCallback(initCharts, { timeout: 3000 });
+        } else {
+            window.setTimeout(initCharts, 1800);
         }
-    });
+    }
 
-    var genderChart = new Chart(document.getElementById('genderChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Male','Female','Other / Not Specified'],
-            datasets: [{ data: window.LandingPageConfig.genderData || [0,0,0], backgroundColor: ['#BB0000','#00A86B','rgba(245,245,240,0.15)'], borderWidth: 3, borderColor: '#161616', hoverOffset: 8 }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '68%',
-            plugins: { legend: { position: 'bottom', labels: { color: 'rgba(245,245,240,0.5)', padding: 24, font: { size:13, family:'Barlow' }, usePointStyle: true, pointStyleWidth: 10 } } }
-        }
-    });
-
-    if (window.__setChartRefs) window.__setChartRefs(countyChart, genderChart);
-});
-
-/* ── LIVE STATS ── */
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', watchCharts, { once: true });
+    } else {
+        watchCharts();
+    }
+})();
+/* -- LIVE STATS -- */
 (function(){
     function animateTo(el, newVal) {
         var start = parseInt(el.dataset.raw || el.textContent.replace(/,/g,'')) || 0;

@@ -207,7 +207,7 @@
 <div id="chat-container">
 <iframe
     id="chat-iframe"
-    src="https://app.telvoip.io/web-chat?t=4e94c913-1775-4530-aeba-dbf4787af75a"
+    data-src="https://app.telvoip.io/web-chat?t=4e94c913-1775-4530-aeba-dbf4787af75a"
     title="Web Chat Widget"
     frameborder="0"
     width="100%"
@@ -229,6 +229,10 @@
 <script>
   function toggleChat() {
     var chatContainer = document.getElementById("chat-container");
+    var chatIframe = document.getElementById("chat-iframe");
+    if (chatIframe && !chatIframe.src && chatIframe.dataset.src) {
+      chatIframe.src = chatIframe.dataset.src;
+    }
     chatContainer.classList.toggle("show");
   }
 </script>
