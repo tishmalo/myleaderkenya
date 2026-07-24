@@ -35,6 +35,7 @@
 
     <!-- Optional: Apple Touch Icon -->
     <link rel="apple-touch-icon" href="{{ asset('images/mlkfav.png') }}">
+    <link rel="preload" as="image" href="{{ asset('images/kenya-flag-loader.gif') }}" fetchpriority="high">
 
     @stack('styles')
 
@@ -66,140 +67,28 @@
     z-index: 100000;
     display: grid;
     place-items: center;
-    background: #030303;
-    transition: opacity .45s ease, visibility .45s ease;
+    background: #000;
+    transition: opacity .28s ease, visibility .28s ease;
   }
   .site-boot-loader.is-hidden {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
   }
-  .site-boot-flag {
-    position: relative;
-    width: min(510px, 64vw);
-    aspect-ratio: 2.12 / 1;
-    overflow: hidden;
-    border-radius: 3px 12px 12px 3px;
-    background:
-      linear-gradient(180deg, #020202 0 31%, #f4f4ee 31% 35.5%, #c90000 35.5% 64.5%, #f4f4ee 64.5% 69%, #006b12 69% 100%);
-    box-shadow: 0 28px 90px rgba(0,0,0,.78);
-    transform-origin: 50% 50%;
-    animation: site-boot-flag-breathe 3s ease-in-out infinite;
-    isolation: isolate;
-  }
-  .site-boot-flag::before {
-    content: "";
-    position: absolute;
-    inset: -20% -16%;
-    z-index: 4;
-    background:
-      repeating-linear-gradient(105deg, rgba(255,255,255,.08) 0 16px, transparent 16px 70px, rgba(0,0,0,.24) 70px 98px, transparent 98px 154px),
-      linear-gradient(90deg, rgba(255,255,255,.08), transparent 18%, rgba(0,0,0,.18) 38%, transparent 58%, rgba(255,255,255,.1) 76%, transparent);
-    mix-blend-mode: soft-light;
-    animation: site-boot-flag-sheen 3.2s ease-in-out infinite;
-    pointer-events: none;
-  }
-  .site-boot-flag::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    background:
-      linear-gradient(90deg, rgba(0,0,0,.36), transparent 16%, transparent 76%, rgba(0,0,0,.24)),
-      radial-gradient(ellipse at center, transparent 0 56%, rgba(0,0,0,.28) 100%);
-    pointer-events: none;
-  }
-  .site-boot-stripe {
-    display: none;
-  }
-  .site-boot-emblem {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 3;
-    width: 20%;
-    height: 94%;
-    transform: translate(-50%, -50%);
-  }
-  .site-boot-spear {
-    position: absolute;
-    left: 49%;
-    top: 3%;
-    width: 4px;
-    height: 94%;
-    background: #d5d5d5;
-    border: 1px solid rgba(0,0,0,.75);
-    border-radius: 999px;
-    transform-origin: 50% 50%;
-    opacity: .58;
-  }
-  .site-boot-spear.one { transform: rotate(-27deg); }
-  .site-boot-spear.two { transform: rotate(27deg); }
-  .site-boot-shield {
-    position: absolute;
-    left: 22%;
-    right: 22%;
-    top: 7%;
-    bottom: 7%;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    border: 3px solid #090909;
-    border-radius: 50% / 36%;
-    background: linear-gradient(90deg, #050505 0 22%, #c90000 22% 78%, #050505 78% 100%);
-    box-shadow: 0 8px 18px rgba(0,0,0,.42);
-  }
-  .site-boot-shield::before,
-  .site-boot-shield::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 8%;
-    background: #f4f4ee;
-  }
-  .site-boot-shield::before { left: 43%; }
-  .site-boot-shield::after { right: 43%; }
-  .site-boot-dot {
-    position: relative;
-    z-index: 1;
-    width: 28%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: #d8d8d8;
-    box-shadow: 0 0 0 2px rgba(0,0,0,.28);
-  }
-  @keyframes site-boot-flag-breathe {
-    0%, 100% { transform: perspective(900px) rotateY(-3deg) skewY(.15deg) translateY(0); filter: brightness(.92); }
-    50% { transform: perspective(900px) rotateY(3deg) skewY(-.35deg) translateY(-2px); filter: brightness(1); }
-  }
-  @keyframes site-boot-flag-sheen {
-    0%, 100% { transform: translateX(-5%); }
-    50% { transform: translateX(5%); }
+  .site-boot-flag-img {
+    display: block;
+    width: min(560px, 78vw);
+    height: auto;
+    object-fit: contain;
   }
   @media (max-width: 640px) {
-    .site-boot-flag { width: min(330px, 76vw); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .site-boot-flag,
-    .site-boot-flag::before { animation: none; }
+    .site-boot-flag-img { width: min(380px, 82vw); }
   }
 </style>
 </head>
 <body class="bg-zinc-950 text-white antialiased">
     <div class="site-boot-loader" id="siteBootLoader" aria-hidden="true">
-        <div class="site-boot-flag">
-            <span class="site-boot-stripe site-boot-black"></span>
-            <span class="site-boot-stripe site-boot-white"></span>
-            <span class="site-boot-stripe site-boot-red"></span>
-            <span class="site-boot-stripe site-boot-white"></span>
-            <span class="site-boot-stripe site-boot-green"></span>
-            <span class="site-boot-emblem">
-                <span class="site-boot-spear one"></span>
-                <span class="site-boot-spear two"></span>
-                <span class="site-boot-shield"><span class="site-boot-dot"></span></span>
-            </span>
-        </div>
+        <img class="site-boot-flag-img" src="{{ asset('images/kenya-flag-loader.gif') }}" alt="" fetchpriority="high" decoding="async">
     </div>
     @yield('content')
     
@@ -337,6 +226,27 @@
 </script>
 <script>
 (function () {
+  function warmLandingImages() {
+    document.querySelectorAll('img').forEach(function (img) {
+      if (!img.src && !img.srcset) return;
+      img.loading = 'eager';
+      img.decoding = 'async';
+      var preloader = new Image();
+      if (img.sizes) preloader.sizes = img.sizes;
+      if (img.srcset) preloader.srcset = img.srcset;
+      preloader.src = img.currentSrc || img.src;
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', warmLandingImages, { once: true });
+  } else {
+    warmLandingImages();
+  }
+})();
+</script>
+<script>
+(function () {
   var loader = document.getElementById('siteBootLoader');
   if (!loader) return;
 
@@ -404,4 +314,3 @@
 @stack('scripts')
 </body>
 </html>
-
