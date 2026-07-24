@@ -60,14 +60,142 @@
     opacity: .84;
   }
   @keyframes frontend-submit-spin { to { transform: rotate(360deg); } }
+  .site-boot-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: grid;
+    place-items: center;
+    background: #070707;
+    transition: opacity .45s ease, visibility .45s ease;
+  }
+  .site-boot-loader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .site-boot-flag {
+    position: relative;
+    width: min(340px, 72vw);
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 24px 70px rgba(0,0,0,.5);
+    transform-origin: 50% 50%;
+    animation: site-boot-flag-breeze 2.8s ease-in-out infinite;
+    isolation: isolate;
+  }
+  .site-boot-flag::before {
+    content: "";
+    position: absolute;
+    inset: -12% -18%;
+    z-index: 4;
+    background:
+      linear-gradient(105deg, transparent 0 16%, rgba(255,255,255,.14) 24%, transparent 35% 48%, rgba(0,0,0,.18) 58%, transparent 70% 100%),
+      repeating-linear-gradient(105deg, rgba(255,255,255,.08) 0 12px, transparent 12px 54px, rgba(0,0,0,.16) 54px 72px, transparent 72px 116px);
+    mix-blend-mode: soft-light;
+    animation: site-boot-flag-sheen 2.8s linear infinite;
+    pointer-events: none;
+  }
+  .site-boot-flag::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: radial-gradient(ellipse at center, transparent 0 46%, rgba(0,0,0,.2) 76%, rgba(0,0,0,.32) 100%);
+    pointer-events: none;
+  }
+  .site-boot-stripe { display: block; width: 100%; }
+  .site-boot-black { height: 31%; background: #050505; }
+  .site-boot-white { height: 4.5%; background: #f5f5f0; }
+  .site-boot-red { height: 29%; background: #bb0000; }
+  .site-boot-green { height: 31%; background: #006600; }
+  .site-boot-emblem {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 3;
+    width: 25%;
+    height: 72%;
+    transform: translate(-50%, -50%);
+  }
+  .site-boot-spear {
+    position: absolute;
+    left: 48%;
+    top: -2%;
+    width: 5%;
+    height: 108%;
+    background: #e8e8e8;
+    border: 2px solid rgba(0,0,0,.75);
+    border-radius: 999px;
+    transform-origin: 50% 50%;
+  }
+  .site-boot-spear.one { transform: rotate(-27deg); }
+  .site-boot-spear.two { transform: rotate(27deg); }
+  .site-boot-shield {
+    position: absolute;
+    inset: 6% 13%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 3px solid #111;
+    border-radius: 50% / 36%;
+    background: linear-gradient(90deg, #111 0 20%, #bb0000 20% 80%, #111 80% 100%);
+  }
+  .site-boot-shield::before,
+  .site-boot-shield::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8%;
+    background: #f5f5f0;
+  }
+  .site-boot-shield::before { left: 43%; }
+  .site-boot-shield::after { right: 43%; }
+  .site-boot-dot {
+    position: relative;
+    z-index: 1;
+    width: 30%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #d6d6d6;
+    box-shadow: 0 0 0 2px rgba(0,0,0,.25);
+  }
+  @keyframes site-boot-flag-breeze {
+    0%, 100% { transform: perspective(900px) rotateY(-5deg) skewY(.4deg) translateY(0); }
+    50% { transform: perspective(900px) rotateY(5deg) skewY(-1deg) translateY(-3px); }
+  }
+  @keyframes site-boot-flag-sheen {
+    from { transform: translateX(-12%); }
+    to { transform: translateX(12%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .site-boot-flag,
+    .site-boot-flag::before { animation: none; }
+  }
 </style>
 </head>
 <body class="bg-zinc-950 text-white antialiased">
+    <div class="site-boot-loader" id="siteBootLoader" aria-hidden="true">
+        <div class="site-boot-flag">
+            <span class="site-boot-stripe site-boot-black"></span>
+            <span class="site-boot-stripe site-boot-white"></span>
+            <span class="site-boot-stripe site-boot-red"></span>
+            <span class="site-boot-stripe site-boot-white"></span>
+            <span class="site-boot-stripe site-boot-green"></span>
+            <span class="site-boot-emblem">
+                <span class="site-boot-spear one"></span>
+                <span class="site-boot-spear two"></span>
+                <span class="site-boot-shield"><span class="site-boot-dot"></span></span>
+            </span>
+        </div>
+    </div>
     @yield('content')
     
  
 <style>
-  /* ===== TELVOIP BUTTON — RIGHT SIDE ===== */
+  /* ===== TELVOIP BUTTON â€” RIGHT SIDE ===== */
   .floating-button {
     position: fixed !important;
     bottom: 30px !important;
@@ -135,7 +263,7 @@
     justify-content: center !important;
   }
  
-  /* ===== WHATSAPP BUTTON — LEFT SIDE ===== */
+  /* ===== WHATSAPP BUTTON â€” LEFT SIDE ===== */
   .whatsapp-button {
     position: fixed !important;
     bottom: 30px !important;
@@ -162,7 +290,7 @@
   }
 </style>
  
-<!-- TELVOIP BUTTON — RIGHT -->
+<!-- TELVOIP BUTTON â€” RIGHT -->
 <button class="floating-button" aria-label="Open chat support" onclick="toggleChat()">
 <span class="badge-telvoip"></span>
 <span class="material-icons-telvoip">forum</span>
@@ -178,10 +306,10 @@
     width="100%"
     height="100%">
 </iframe>
-<button class="close-button" onclick="toggleChat()">✖</button>
+<button class="close-button" onclick="toggleChat()">âœ–</button>
 </div>
  
-<!-- WHATSAPP BUTTON — LEFT -->
+<!-- WHATSAPP BUTTON â€” LEFT -->
 <a class="whatsapp-button" 
    href="https://wa.me/254141102334" 
    target="_blank" 
@@ -196,6 +324,28 @@
     var chatContainer = document.getElementById("chat-container");
     chatContainer.classList.toggle("show");
   }
+</script>
+<script>
+(function () {
+  var loader = document.getElementById('siteBootLoader');
+  if (!loader) return;
+
+  function hideLoader() {
+    loader.classList.add('is-hidden');
+    window.setTimeout(function () {
+      if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+    }, 500);
+  }
+
+  if (document.readyState === 'complete') {
+    window.setTimeout(hideLoader, 180);
+  } else {
+    window.addEventListener('load', function () {
+      window.setTimeout(hideLoader, 180);
+    }, { once: true });
+    window.setTimeout(hideLoader, 3500);
+  }
+})();
 </script>
 <script>
 (function () {
