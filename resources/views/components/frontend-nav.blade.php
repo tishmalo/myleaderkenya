@@ -353,15 +353,31 @@
         text-decoration: none;
         text-transform: uppercase;
     }
-    .frontend-nav-mobile-group summary { cursor: pointer; list-style: none; }
-    .frontend-nav-mobile-group summary::-webkit-details-marker { display: none; }
+    .frontend-nav-mobile-group summary,
+    .frontend-nav-mobile-subgroup summary {
+        cursor: pointer;
+        list-style: none;
+    }
+    .frontend-nav-mobile-group summary::-webkit-details-marker,
+    .frontend-nav-mobile-subgroup summary::-webkit-details-marker {
+        display: none;
+    }
     .frontend-nav-mobile-children { padding: 0 0 8px 14px; }
-    .frontend-nav-mobile-children a {
+    .frontend-nav-mobile-children a,
+    .frontend-nav-mobile-subsummary {
         display: block;
         padding: 9px 0;
         color: rgba(255,255,255,0.58);
         font-size: 13px;
         text-decoration: none;
+    }
+    .frontend-nav-mobile-subsummary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        border: 0;
+        background: transparent;
     }
     .frontend-nav-mobile-grandchildren {
         padding: 0 0 4px 14px;
@@ -450,13 +466,21 @@
                             @php
                                 $grandChildren = $child['children'] ?? [];
                             @endphp
-                            <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
                             @if($grandChildren)
-                                <div class="frontend-nav-mobile-grandchildren">
-                                    @foreach($grandChildren as $grandChild)
-                                        <a href="{{ $buildMenuUrl($grandChild) }}">{{ $grandChild['label'] }}</a>
-                                    @endforeach
-                                </div>
+                                <details class="frontend-nav-mobile-subgroup">
+                                    <summary class="frontend-nav-mobile-subsummary">
+                                        <span>{{ $child['label'] }}</span>
+                                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                                    </summary>
+                                    <div class="frontend-nav-mobile-grandchildren">
+                                        <a href="{{ $buildMenuUrl($child) }}">All {{ $child['label'] }}</a>
+                                        @foreach($grandChildren as $grandChild)
+                                            <a href="{{ $buildMenuUrl($grandChild) }}">{{ $grandChild['label'] }}</a>
+                                        @endforeach
+                                    </div>
+                                </details>
+                            @else
+                                <a href="{{ $buildMenuUrl($child) }}">{{ $child['label'] }}</a>
                             @endif
                         @endforeach
                     </div>

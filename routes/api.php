@@ -26,7 +26,7 @@ use App\Http\Middleware\EnsureAllowedPublicApprovalDomain;
 // ====================== PUBLIC ROUTES ======================
 
 // Authentication
-Route::prefix('auth')->group(function () {
+Route::prefix('auth')->middleware('throttle:auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
@@ -37,15 +37,15 @@ Route::prefix('auth')->group(function () {
 });
 
 // Location Hierarchy (Public API)
-Route::prefix('locations')->group(function () {
+Route::prefix('locations')->middleware('throttle:api')->group(function () {
     Route::get('/counties', [LocationController::class, 'getCounties']);
     Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty']);
     Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency']);
     Route::get('/all', [LocationController::class, 'getLocations']);
 });
 
-Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty']);
-Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency']);
+Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty'])->middleware('throttle:api');
+Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency'])->middleware('throttle:api');
 
 // Admin-Specific API (Consolidated from web.php)
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
@@ -56,37 +56,38 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 });
 
 // Messaging & Content
-Route::get('/tags', [MessageController::class, 'getTags']);
-Route::post('/nearby_messages', [MessageController::class, 'nearbyMessages']);
-Route::get('/constituency_messages', [MessageController::class, 'getConstituencyMessages']);
+Route::get('/tags', [MessageController::class, 'getTags'])->middleware('throttle:api');
+Route::post('/nearby_messages', [MessageController::class, 'nearbyMessages'])->middleware('throttle:api');
+Route::get('/constituency_messages', [MessageController::class, 'getConstituencyMessages'])->middleware('throttle:api');
 
 
 // Public Content APIs
-Route::get('/news', [NewsController::class, 'list']);
-Route::get('/news/{slug}', [NewsController::class, 'show']);
-Route::get('/parties', [ApiPoliticalPartyController::class, 'list']);
-Route::get('/parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
-Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
-Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
-Route::get('/positions', [ApiPositionController::class, 'list']);
-Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
-Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
-Route::get('/aspirants', [AspirantController::class, 'list']);
-Route::post('/aspirants/register', [AspirantController::class, 'store']);
-Route::post('/aspirants', [AspirantController::class, 'store']);
-Route::match(['put', 'patch'], '/aspirants/{candidate}', [AspirantController::class, 'update']);
-Route::post('/aspirants/{candidate}/update', [AspirantController::class, 'update']);
-Route::middleware('auth:sanctum')->get('/aspirant/profile', [AspirantController::class, 'profile']);
-Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
-Route::get('/campaign-tools', [ApiCampaignToolController::class, 'list']);
-Route::get('/campaign-tools/{campaignTool}', [ApiCampaignToolController::class, 'show']);
-Route::post('/campaign-tools/{campaignTool}/requests', [ApiCampaignToolController::class, 'storeFeatureRequest']);
-// Donations
-Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+Route::middleware('throttle:api')->group(function () {
+    Route::get('/news', [NewsController::class, 'list']);
+    Route::get('/news/{slug}', [NewsController::class, 'show']);
+    Route::get('/parties', [ApiPoliticalPartyController::class, 'list']);
+    Route::get('/parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+    Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
+    Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+    Route::get('/positions', [ApiPositionController::class, 'list']);
+    Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
+    Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
+    Route::get('/aspirants', [AspirantController::class, 'list']);
+    Route::post('/aspirants/register', [AspirantController::class, 'store']);
+    Route::post('/aspirants', [AspirantController::class, 'store']);
+    Route::match(['put', 'patch'], '/aspirants/{candidate}', [AspirantController::class, 'update']);
+    Route::post('/aspirants/{candidate}/update', [AspirantController::class, 'update']);
+    Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
+    Route::get('/campaign-tools', [ApiCampaignToolController::class, 'list']);
+    Route::get('/campaign-tools/{campaignTool}', [ApiCampaignToolController::class, 'show']);
+    Route::post('/campaign-tools/{campaignTool}/requests', [ApiCampaignToolController::class, 'storeFeatureRequest']);
+    Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+    Route::get('/stats/live', [StatsController::class, 'liveStats']);
+});
 
-// Stats
-Route::get('/stats/live', [StatsController::class, 'liveStats']);
-Route::get('/public-approval/presidential', [PublicApprovalController::class, 'presidential'])->middleware(EnsureAllowedPublicApprovalDomain::class);
+Route::middleware('auth:sanctum')->get('/aspirant/profile', [AspirantController::class, 'profile']);
+Route::get('/public-approval/presidential', [PublicApprovalController::class, 'presidential'])
+    ->middleware(['throttle:api-heavy', EnsureAllowedPublicApprovalDomain::class]);
 
 
 // ====================== PROTECTED ROUTES ======================

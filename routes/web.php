@@ -54,14 +54,14 @@ Route::get('/api/counties', function () {
     return \App\Models\County::query()
         ->orderBy('name')
         ->get(['id', 'name']);
-});
+})->middleware('throttle:api');
 
 Route::get('/api/constituencies', function (\Illuminate\Http\Request $request) {
     return \App\Models\Constituency::query()
         ->when($request->query('county_id'), fn ($query, $countyId) => $query->where('county_id', $countyId))
         ->orderBy('name')
         ->get(['id', 'name', 'county_id']);
-});
+})->middleware('throttle:api');
 
 Route::get('/api/wards', function (\Illuminate\Http\Request $request) {
     return \App\Models\Ward::query()
@@ -69,7 +69,7 @@ Route::get('/api/wards', function (\Illuminate\Http\Request $request) {
         ->get(['id', 'name', 'constituency_id'])
         ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
         ->values();
-});
+})->middleware('throttle:api');
 
 // ====================== PUBLIC ROUTES (Throttled) ======================
 Route::middleware('throttle:web')->group(function () {
