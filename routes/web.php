@@ -105,6 +105,8 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->name('aspirants.show');
 });
 
+Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
+
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {

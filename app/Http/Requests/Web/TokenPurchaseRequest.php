@@ -15,8 +15,8 @@ class TokenPurchaseRequest extends FormRequest
     {
         return [
             'candidate_token_package_id' => ['required', 'integer', 'exists:candidate_token_packages,id'],
-            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
-            'payment_reference' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
+            'email' => ['required', 'string', 'email', 'max:255'],
         ];
     }
 }

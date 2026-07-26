@@ -27,4 +27,20 @@ class CandidateTokenPurchaseRepository implements CandidateTokenPurchaseReposito
     {
         return CandidateTokenPurchase::create($data);
     }
+
+    public function findByCheckoutReference(string $reference): ?CandidateTokenPurchase
+    {
+        return CandidateTokenPurchase::where('checkout_reference', $reference)->first();
+    }
+
+    public function lockByCheckoutReference(string $reference): ?CandidateTokenPurchase
+    {
+        return CandidateTokenPurchase::where('checkout_reference', $reference)->lockForUpdate()->first();
+    }
+
+    public function update(CandidateTokenPurchase $purchase, array $data): bool
+    {
+        return $purchase->update($data);
+    }
+
 }

@@ -10,12 +10,15 @@ use App\Contracts\Repositories\Web\CandidateTokenWalletRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\CandidateSmsMessage;
 use App\Models\CandidateTokenPackage;
+use App\Models\CandidateTokenPurchase;
 use App\Models\CandidateTokenRate;
 use App\Models\CandidateTokenTransaction;
 use App\Models\CandidateTokenWallet;
 use App\Models\User;
+use App\Services\Api\IpayService;
 use App\Services\Sms\SmsCostCalculator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class AspirantTokenService
@@ -28,7 +31,8 @@ class AspirantTokenService
         private CandidateTokenRateRepositoryInterface $rateRepository,
         private CandidateTokenPurchaseRepositoryInterface $purchaseRepository,
         private CandidateTokenTransactionRepositoryInterface $transactionRepository,
-        private SmsCostCalculator $smsCostCalculator
+        private SmsCostCalculator $smsCostCalculator,
+        private IpayService $ipayService
     ) {}
 
     public function walletForCandidate(Candidate $candidate): CandidateTokenWallet
@@ -100,37 +104,100 @@ class AspirantTokenService
         ]);
     }
 
-    public function purchaseTokens(Candidate $candidate, User $user, CandidateTokenPackage $package, array $data)
+    public function startIpayPurchase(Candidate $candidate, User $user, CandidateTokenPackage $package, array $contactData): string
     {
-        return DB::transaction(function () use ($candidate, $user, $package, $data) {
+        $this->ipayService->assertConfigured();
+
+        $purchase = $this->purchaseRepository->create([
+            'candidate_id' => $candidate->id,
+            'user_id' => $user->id,
+            'candidate_token_package_id' => $package->id,
+            'provider' => 'ipay',
+            'checkout_reference' => $this->uniqueCheckoutReference(),
+            'package_name' => $package->name,
+            'token_amount' => $package->token_amount,
+            'price' => $package->price,
+            'currency' => $package->currency,
+            'payment_reference' => null,
+            'status' => 'pending',
+        ]);
+
+        return $this->ipayService->checkoutUrl($purchase, $user, $package, $contactData);
+    }
+
+    public function completeIpayCallback(array $callbackData): array
+    {
+        $reference = $this->ipayService->callbackReference($callbackData);
+
+        if (! $reference) {
+            return ['status' => 'failed', 'message' => 'The iPay callback did not include an order reference.'];
+        }
+
+        $verification = $this->ipayService->verifyTransaction($reference);
+
+        return DB::transaction(function () use ($reference, $verification, $callbackData): array {
+            $purchase = $this->purchaseRepository->lockByCheckoutReference($reference);
+
+            if (! $purchase) {
+                return ['status' => 'failed', 'message' => 'We could not find the token purchase for this iPay callback.'];
+            }
+
+            $gatewayUpdate = [
+                'gateway_transaction_code' => $verification['transaction_code'],
+                'gateway_status' => $verification['status'],
+                'gateway_response' => [
+                    'callback' => $callbackData,
+                    'verification' => $verification['raw'],
+                ],
+                'callback_received_at' => now(),
+            ];
+
+            if ($purchase->status === 'credited') {
+                $this->purchaseRepository->update($purchase, $gatewayUpdate);
+
+                return ['status' => 'success', 'message' => 'This iPay purchase had already credited your tokens.'];
+            }
+
+            if ($verification['status'] !== 'success') {
+                $status = $verification['status'] === 'pending' ? 'pending' : 'failed';
+                $this->purchaseRepository->update($purchase, $gatewayUpdate + ['status' => $status]);
+
+                return [
+                    'status' => $status,
+                    'message' => $status === 'pending' ? 'Your iPay payment is still pending.' : 'iPay did not confirm this payment.',
+                ];
+            }
+
+            if (! $this->amountMatches($purchase, $verification['amount'])) {
+                $this->purchaseRepository->update($purchase, $gatewayUpdate + ['status' => 'failed']);
+
+                return ['status' => 'failed', 'message' => 'The confirmed iPay amount does not match the token package price.'];
+            }
+
+            $candidate = $purchase->candidate()->firstOrFail();
             $wallet = $this->lockedWallet($candidate);
-            $purchase = $this->purchaseRepository->create([
-                'candidate_id' => $candidate->id,
-                'user_id' => $user->id,
-                'candidate_token_package_id' => $package->id,
-                'payment_method_id' => $data['payment_method_id'] ?? null,
-                'package_name' => $package->name,
-                'token_amount' => $package->token_amount,
-                'price' => $package->price,
-                'currency' => $package->currency,
-                'payment_reference' => $data['payment_reference'] ?? null,
+
+            $this->credit($wallet, $candidate, $purchase->user, (int) $purchase->token_amount, [
+                'type' => 'purchase',
+                'candidate_token_purchase_id' => $purchase->id,
+                'action_label' => 'Token purchase: ' . $purchase->package_name,
+                'metadata' => [
+                    'provider' => 'ipay',
+                    'checkout_reference' => $purchase->checkout_reference,
+                    'package_name' => $purchase->package_name,
+                    'price' => $purchase->price,
+                    'currency' => $purchase->currency,
+                    'gateway_transaction_code' => $verification['transaction_code'],
+                ],
+            ]);
+
+            $this->purchaseRepository->update($purchase, $gatewayUpdate + [
+                'payment_reference' => $verification['transaction_code'] ?: $reference,
                 'status' => 'credited',
                 'credited_at' => now(),
             ]);
 
-            $this->credit($wallet, $candidate, $user, $package->token_amount, [
-                'type' => 'purchase',
-                'candidate_token_purchase_id' => $purchase->id,
-                'action_label' => 'Token purchase: ' . $package->name,
-                'metadata' => [
-                    'package_name' => $package->name,
-                    'price' => $package->price,
-                    'currency' => $package->currency,
-                    'payment_reference' => $data['payment_reference'] ?? null,
-                ],
-            ]);
-
-            return $purchase;
+            return ['status' => 'success', 'message' => number_format((int) $purchase->token_amount) . ' tokens credited to your campaign wallet.'];
         });
     }
 
@@ -264,6 +331,25 @@ class AspirantTokenService
                 'finalized_at' => now(),
             ]);
         });
+    }
+
+
+    private function uniqueCheckoutReference(): string
+    {
+        do {
+            $reference = 'TOK' . now()->format('ymdHis') . Str::upper(Str::random(8));
+        } while ($this->purchaseRepository->findByCheckoutReference($reference));
+
+        return substr($reference, 0, 26);
+    }
+
+    private function amountMatches(CandidateTokenPurchase $purchase, mixed $paidAmount): bool
+    {
+        if ($paidAmount === null || $paidAmount === '') {
+            return false;
+        }
+
+        return abs((float) $paidAmount - (float) $purchase->price) < 0.01;
     }
 
     private function grantInitialTokens(Candidate $candidate): void

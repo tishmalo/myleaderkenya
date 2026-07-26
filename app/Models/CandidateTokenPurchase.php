@@ -12,16 +12,24 @@ class CandidateTokenPurchase extends Model
         'user_id',
         'candidate_token_package_id',
         'payment_method_id',
+        'provider',
+        'checkout_reference',
         'package_name',
         'token_amount',
         'price',
         'currency',
         'payment_reference',
+        'gateway_transaction_code',
+        'gateway_status',
+        'gateway_response',
+        'callback_received_at',
         'status',
         'credited_at',
     ];
 
     protected $casts = [
+        'gateway_response' => 'array',
+        'callback_received_at' => 'datetime',
         'credited_at' => 'datetime',
     ];
 

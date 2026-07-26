@@ -39,5 +39,15 @@ return [
         'connect_timeout' => (int) env('POLITIQKENYA_CONNECT_TIMEOUT', 15),
         'timeout' => (int) env('POLITIQKENYA_TIMEOUT', 120),
     ],
+
+    'ipay' => [
+        'vendor_id' => env('IPAY_VENDOR_ID'),
+        'security_key' => env('IPAY_SECURITY_KEY'),
+        'live' => (bool) env('IPAY_LIVE', false),
+        'currency' => env('IPAY_CURRENCY', 'KES'),
+        'checkout_url' => env('IPAY_CHECKOUT_URL', 'https://payments.ipayafrica.com/v3/ke'),
+        'status_url' => env('IPAY_STATUS_URL', 'https://apis.ipayafrica.com/payments/v2/transaction/search'),
+        'timeout' => (int) env('IPAY_TIMEOUT', 30),
+    ],
 ];
 

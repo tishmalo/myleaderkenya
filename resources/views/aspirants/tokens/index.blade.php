@@ -54,6 +54,7 @@ body { background:#090909; color:#f5f5f0; }
         <a href="{{ route('aspirant.dashboard') }}" class="token-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
     </div>
     @if(session('success'))<div class="token-alert">{{ session('success') }}</div>@endif
+    @if($errors->any())<div class="token-alert" style="border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#fecaca;">{{ $errors->first() }}</div>@endif
     @if(session('warning'))<div class="token-alert" style="border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.12);color:#fde68a;">{{ session('warning') }}</div>@endif
     <div class="token-grid">
         <section class="token-panel">
@@ -69,14 +70,9 @@ body { background:#090909; color:#f5f5f0; }
                         <form class="token-form" method="POST" action="{{ route('aspirant.tokens.purchase') }}">
                             @csrf
                             <input type="hidden" name="candidate_token_package_id" value="{{ $package->id }}">
-                            <select name="payment_method_id">
-                                <option value="">Payment method</option>
-                                @foreach($paymentMethods as $method)
-                                    <option value="{{ $method->id }}">{{ $method->name }}</option>
-                                @endforeach
-                            </select>
-                            <input type="text" name="payment_reference" placeholder="Payment reference" required>
-                            <button class="token-btn primary" type="submit"><i class="fas fa-coins"></i> Credit Tokens</button>
+                            <input type="tel" name="phone" value="{{ $checkoutContact['phone'] }}" placeholder="Phone number" required>
+                            <input type="email" name="email" value="{{ $checkoutContact['email'] }}" placeholder="Email address" required>
+                            <button class="token-btn primary" type="submit"><i class="fas fa-credit-card"></i> Pay with iPay</button>
                         </form>
                     </article>
                 @endforeach

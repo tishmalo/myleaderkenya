@@ -7,12 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\TokenPurchaseRequest;
 use App\Models\CandidateTokenPurchase;
 use App\Models\CandidateTokenTransaction;
-use App\Models\PaymentMethod;
 use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Throwable;
 
 class AspirantTokenController extends Controller
 {
@@ -35,7 +34,7 @@ class AspirantTokenController extends Controller
             'wallet' => $this->tokenService->walletForCandidate($candidate),
             'packages' => $this->tokenService->activePackages(),
             'rates' => $this->tokenService->activeRates(),
-            'paymentMethods' => PaymentMethod::where('is_active', true)->orderBy('name')->get(),
+            'checkoutContact' => $this->checkoutContact($candidate, request()->user()),
             'purchases' => CandidateTokenPurchase::with('paymentMethod')->where('candidate_id', $candidate->id)->latest()->take(10)->get(),
             'transactions' => CandidateTokenTransaction::where('candidate_id', $candidate->id)->latest()->take(20)->get(),
         ]);
@@ -43,17 +42,42 @@ class AspirantTokenController extends Controller
 
     public function purchase(TokenPurchaseRequest $request): RedirectResponse
     {
-        $candidate = $this->workspaceService->candidateForUser(request()->user());
+        $candidate = $this->workspaceService->candidateForUser($request->user());
 
         if (! $candidate) {
             return redirect('/aspirant/dashboard')->with('warning', 'No aspirant profile is linked to this account yet.');
         }
 
         $package = $this->packages->findActive((int) $request->validated('candidate_token_package_id'));
-        $this->tokenService->purchaseTokens($candidate, $request->user(), $package, $request->validated());
 
-        return redirect()->route('aspirant.tokens.index')
-            ->with('success', number_format($package->token_amount) . ' tokens credited to your campaign wallet.');
+        try {
+            $checkoutUrl = $this->tokenService->startIpayPurchase($candidate, $request->user(), $package, $request->validated());
+        } catch (Throwable $exception) {
+            return redirect()->route('aspirant.tokens.index')->with('warning', $exception->getMessage());
+        }
+
+        return redirect()->away($checkoutUrl);
+    }
+
+    public function ipayCallback(Request $request): RedirectResponse
+    {
+        try {
+            $result = $this->tokenService->completeIpayCallback($request->query());
+        } catch (Throwable $exception) {
+            $result = ['status' => 'failed', 'message' => $exception->getMessage()];
+        }
+
+        $flashKey = $result['status'] === 'success' ? 'success' : 'warning';
+
+        return redirect()->route('aspirant.tokens.index')->with($flashKey, $result['message']);
+    }
+
+    private function checkoutContact($candidate, $user): array
+    {
+        return [
+            'phone' => old('phone', $user->phone ?: ($candidate->phone_1 ?: $candidate->phone)),
+            'email' => old('email', $user->email ?: ($candidate->email_1 ?: $candidate->email)),
+        ];
     }
 }
 
