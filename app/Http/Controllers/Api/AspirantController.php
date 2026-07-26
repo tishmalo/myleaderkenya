@@ -26,61 +26,20 @@ class AspirantController extends Controller
 
     public function list(Request $request): JsonResponse
     {
-        $perPage = min(max((int) $request->query('per_page', 12), 1), 50);
+        $filters = $request->only([
+            'featured',
+            'county',
+            'constituency',
+            'ward',
+            'position',
+            'political_party',
+            'candidate',
+            'search',
+        ]);
+        $perPage = (int) $request->query('per_page', 12);
 
-        $aspirants = Candidate::with(['position', 'politicalParty'])
-            ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
-            ->when($request->query('featured') !== null, function ($query) use ($request) {
-                $query->where('featured', filter_var($request->query('featured'), FILTER_VALIDATE_BOOLEAN));
-            })
-            ->when($request->query('county'), fn ($query, $county) => $query->where('county', $county))
-            ->when($request->query('constituency'), fn ($query, $constituency) => $query->where('constituency', $constituency))
-            ->when($request->query('ward'), fn ($query, $ward) => $query->where('ward', $ward))
-            ->when($request->filled('position') && ! in_array(strtolower((string) $request->query('position')), ['all', 'any'], true), function ($query) use ($request) {
-                $position = $request->query('position');
-
-                if (is_numeric($position)) {
-                    $query->where('position_id', $position);
-                    return;
-                }
-
-                $positionAliases = [
-                    'presidential' => ['presidential', 'president'],
-                    'governor' => ['governor'],
-                    'senator' => ['senator'],
-                    'women-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
-                    'mp' => ['mp', 'member of parliament'],
-                    'mca' => ['mca', 'member of county assembly'],
-                ];
-                $positionKey = strtolower(str_replace('_', '-', trim($position)));
-                $names = $positionAliases[$positionKey] ?? [str_replace('-', ' ', $positionKey)];
-
-                $query->whereHas('position', function ($positionQuery) use ($names) {
-                    $positionQuery->whereIn($positionQuery->getModel()->getTable() . '.name', $names);
-                });
-            })
-            ->when($request->query('political_party'), function ($query, $party) {
-                if (is_numeric($party)) {
-                    $query->where('political_party_id', $party);
-                    return;
-                }
-
-                $query->whereHas('politicalParty', function ($partyQuery) use ($party) {
-                    $partyQuery->where('slug', $party)
-                        ->orWhere('name', 'like', "%{$party}%")
-                        ->orWhere('abbreviation', 'like', "%{$party}%");
-                });
-            })
-            ->when($request->query('candidate') ?? $request->query('search'), function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('nick_name', 'like', "%{$search}%")
-                        ->orWhere('about', 'like', "%{$search}%");
-                });
-            })
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString()
+        $aspirants = $this->candidateService
+            ->getApprovedAspirantsForApi($filters, $perPage)
             ->through(fn (Candidate $candidate) => $this->formatAspirant($candidate));
 
         return response()->json($aspirants);

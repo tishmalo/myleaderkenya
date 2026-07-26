@@ -33,6 +33,13 @@ class CandidateService
         return $this->candidateRepository->paginate($perPage, $filters);
     }
 
+    public function getApprovedAspirantsForApi(array $filters, int $perPage = 12): LengthAwarePaginator
+    {
+        $perPage = min(max($perPage, 1), 50);
+
+        return $this->candidateRepository->paginateApprovedForApi($filters, $perPage);
+    }
+
     public function createCandidate(array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): Candidate
     {
         $smsSettings = $this->extractSmsSettings($data);

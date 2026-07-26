@@ -82,7 +82,6 @@ class CandidateRepository implements CandidateRepositoryInterface
         if (Schema::hasColumn('candidates', 'approval_status')) {
             $query->where('approval_status', 'approved');
         }
-
         return $query
             ->distinct()
             ->orderBy('country')
@@ -105,6 +104,13 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->pluck('name')
             ->sort(SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
+    }
+
+    public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator
+    {
+        $query = $this->publicQuery($filters);
+
+        return $query->latest()->paginate($perPage)->withQueryString();
     }
 
     public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator
@@ -201,11 +207,16 @@ class CandidateRepository implements CandidateRepositoryInterface
             $query->where('approval_status', 'approved');
         }
 
+        if (array_key_exists('featured', $filters) && $filters['featured'] !== null) {
+            $query->where('featured', filter_var($filters['featured'], FILTER_VALIDATE_BOOLEAN));
+        }
+
         $candidate = $filters['candidate'] ?? $filters['search'] ?? null;
         if (!empty($candidate)) {
             $query->where(function ($query) use ($candidate) {
                 $query->where('name', 'like', "%{$candidate}%")
-                    ->orWhere('nick_name', 'like', "%{$candidate}%");
+                    ->orWhere('nick_name', 'like', "%{$candidate}%")
+                    ->orWhere('about', 'like', "%{$candidate}%");
             });
         }
 
@@ -232,6 +243,10 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         if (!empty($filters['position'])) {
             $position = $filters['position'];
+
+            if (in_array(strtolower((string) $position), ['all', 'any'], true)) {
+                return $query;
+            }
 
             if (is_numeric($position)) {
                 $query->where('position_id', $position);
@@ -260,7 +275,8 @@ class CandidateRepository implements CandidateRepositoryInterface
                 $query->where('political_party_id', $party);
             } else {
                 $query->whereHas('politicalParty', function ($partyQuery) use ($party) {
-                    $partyQuery->where('name', 'like', "%{$party}%")
+                    $partyQuery->where('slug', $party)
+                        ->orWhere('name', 'like', "%{$party}%")
                         ->orWhere('abbreviation', 'like', "%{$party}%");
                 });
             }
