@@ -1,0 +1,181 @@
+{
+  "info": {
+    "name": "MyLeader Aspirants API",
+    "description": "Postman collection for testing the public aspirants API, including the Winfred page/search checks.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Aspirants",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/aspirants?per_page=12&page=1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "aspirants"
+          ],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "12",
+              "description": "Max 50"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search Winfred",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns Winfred Asiko Abuti', function () {",
+              "    const json = pm.response.json();",
+              "    const match = json.data.find((item) => item.name === 'Winfred Asiko Abuti');",
+              "    pm.expect(match).to.exist;",
+              "    pm.expect(match.id).to.eql(10);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/aspirants?search=winfred",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "aspirants"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "winfred"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Page 13 Contains Winfred",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('page 13 contains Winfred', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.current_page).to.eql(13);",
+              "    const match = json.data.find((item) => item.id === 10 && item.name === 'Winfred Asiko Abuti');",
+              "    pm.expect(match).to.exist;",
+              "    pm.expect(match.position.name).to.eql('Women Rep');",
+              "    pm.expect(match.county).to.eql('Kakamega');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/aspirants?page=13",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "aspirants"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "13"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Show Winfred",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('shows Winfred by id', function () {",
+              "    const json = pm.response.json();",
+              "    const item = json.data || json;",
+              "    pm.expect(item.id).to.eql(10);",
+              "    pm.expect(item.name).to.eql('Winfred Asiko Abuti');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/aspirants/{{winfred_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "aspirants",
+            "{{winfred_id}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://nikokadi.digitallyfit.top"
+    },
+    {
+      "key": "winfred_id",
+      "value": "10"
+    }
+  ]
+}
