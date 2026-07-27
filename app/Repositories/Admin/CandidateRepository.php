@@ -12,6 +12,7 @@ use App\Models\Position;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -242,28 +243,22 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         if (!empty($filters['position'])) {
-            $position = $filters['position'];
+            $position = trim((string) $filters['position']);
 
-            if (in_array(strtolower((string) $position), ['all', 'any'], true)) {
+            if (in_array(strtolower($position), ['all', 'any'], true)) {
                 return $query;
             }
 
             if (is_numeric($position)) {
                 $query->where('position_id', $position);
             } else {
-                $positionAliases = [
-                    'presidential' => ['presidential', 'president'],
-                    'governor' => ['governor'],
-                    'senator' => ['senator'],
-                    'women-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
-                    'mp' => ['mp', 'member of parliament'],
-                    'mca' => ['mca', 'member of county assembly'],
-                ];
-                $positionKey = strtolower(str_replace('_', '-', trim($position)));
-                $names = $positionAliases[$positionKey] ?? [str_replace('-', ' ', $positionKey)];
+                $names = $this->positionFilterNames($position);
 
                 $query->whereHas('position', function ($positionQuery) use ($names) {
-                    $positionQuery->whereIn($positionQuery->getModel()->getTable() . '.name', $names);
+                    $positionQuery->whereIn(
+                        DB::raw('LOWER(' . $positionQuery->getModel()->getTable() . '.name)'),
+                        $names
+                    );
                 });
             }
         }
@@ -283,6 +278,28 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         return $query;
+    }
+
+    private function positionFilterNames(string $position): array
+    {
+        $positionKey = strtolower(str_replace(['_', ' '], '-', trim($position)));
+
+        $positionAliases = [
+            'president' => ['presidential', 'president'],
+            'presidential' => ['presidential', 'president'],
+            'governor' => ['governor'],
+            'senator' => ['senator'],
+            'women-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'woman-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'women-representative' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'woman-representative' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'mp' => ['mp', 'member of parliament'],
+            'member-of-parliament' => ['mp', 'member of parliament'],
+            'mca' => ['mca', 'member of county assembly'],
+            'member-of-county-assembly' => ['mca', 'member of county assembly'],
+        ];
+
+        return $positionAliases[$positionKey] ?? [str_replace('-', ' ', $positionKey)];
     }
 
     private function allCountyNamesForPublicFilters(array $filters): Collection
