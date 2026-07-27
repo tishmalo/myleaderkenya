@@ -111,6 +111,21 @@ class Candidate extends Model
         return $this->maskPhone($this->phone);
     }
 
+    public function getDisplayAreaAttribute(): ?string
+    {
+        $positionName = Str::lower((string) ($this->position?->name ?? ''));
+
+        if ($this->isMcaPosition($positionName) && $this->ward) {
+            return $this->ward;
+        }
+
+        if ($this->isMpPosition($positionName) && $this->constituency) {
+            return $this->constituency;
+        }
+
+        return $this->county ?: ($this->country ?: null);
+    }
+
     private function encryptNullableString($value): ?string
     {
         if ($value === null || $value === '') {
@@ -192,6 +207,19 @@ class Candidate extends Model
             . ($visibleEnd > 0 ? substr($value, -$visibleEnd) : '');
     }
 
+    private function isMpPosition(string $positionName): bool
+    {
+        return $positionName === 'mp'
+            || str_contains($positionName, 'member of parliament')
+            || str_starts_with($positionName, 'mp ');
+    }
+
+    private function isMcaPosition(string $positionName): bool
+    {
+        return $positionName === 'mca'
+            || str_contains($positionName, 'member of county assembly');
+    }
+
     public function position()
     {
         return $this->belongsTo(Position::class);
@@ -249,4 +277,3 @@ class Candidate extends Model
             ->withTimestamps();
     }
 }
-

@@ -325,7 +325,7 @@
                                     @foreach($group['candidates'] as $candidate)
                                         @php
                                             $party = $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? 'Independent';
-                                            $area = $candidate->county ?? $candidate->country ?? 'Kenya';
+                                            $area = $candidate->display_area ?? 'Kenya';
                                             $position = $candidate->position->name ?? $group['label'];
                                         @endphp
                                         <a href="{{ route('aspirants.show', $candidate) }}" class="aspirant-mini-card">

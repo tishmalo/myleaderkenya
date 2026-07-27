@@ -65,19 +65,7 @@ class LandingController extends Controller
 
     private function candidateArea(Candidate $candidate): ?string
     {
-        if ($candidate->ward) {
-            return $candidate->ward . ' Ward';
-        }
-
-        if ($candidate->constituency) {
-            return $candidate->constituency . ' Constituency';
-        }
-
-        if ($candidate->county) {
-            return $candidate->county . ' County';
-        }
-
-        return $candidate->country ?: null;
+        return $candidate->display_area;
     }
 
     private function candidateImageUrl(string $path): string
