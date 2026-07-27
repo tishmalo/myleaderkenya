@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\CandidateUpdateRequest;
 use App\Models\Candidate;
 use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -175,14 +176,19 @@ class CandidateController extends Controller
 
         return $data;
     }
-    public function destroy(Candidate $candidate)
+    public function destroy(Request $request, Candidate $candidate): RedirectResponse|JsonResponse
     {
         $this->candidateService->deleteCandidate($candidate);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Aspirant deleted successfully.'
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Aspirant deleted successfully.',
+            ]);
+        }
+
+        return redirect()->route('candidates.index')
+            ->with('success', 'Aspirant deleted successfully.');
     }
 
     public function publicIndex(Request $request)
