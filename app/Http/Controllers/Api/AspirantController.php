@@ -272,6 +272,8 @@ class AspirantController extends Controller
             'id' => $candidate->id,
             'name' => $candidate->name,
             'nick_name' => $candidate->nick_name,
+            'slug' => $candidate->slug,
+            'profile_url' => route('aspirants.show', $candidate),
             'position_id' => $candidate->position_id,
             'political_party_id' => $candidate->political_party_id,
             'party' => $candidate->political_party_id,

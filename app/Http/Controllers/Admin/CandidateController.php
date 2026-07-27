@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\CandidateUpdateRequest;
 use App\Models\Candidate;
 use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -193,10 +194,14 @@ class CandidateController extends Controller
         return view('aspirants.public.index', $data);
     }
 
-    public function publicShow(Candidate $candidate)
+    public function publicShow(Candidate $candidate): RedirectResponse|View
     {
         if (\Illuminate\Support\Facades\Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
             abort(404);
+        }
+
+        if ($candidate->slug && request()->segment(2) !== $candidate->slug) {
+            return redirect()->route('aspirants.show', $candidate, 301);
         }
 
         $candidate = $this->candidateService->getPublicShow($candidate);

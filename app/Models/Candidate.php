@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class Candidate extends Model
@@ -16,7 +17,7 @@ class Candidate extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id', 'user_id',
+        'name', 'slug', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id', 'user_id',
         'profile_picture', 'cover_photo', 'campaign_poster', 'campaign_video', 'campaign_skiza_audio',
         'phone_1', 'phone_2', 'email_1', 'email_2', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward',
         'claim_token_hash', 'claim_token_expires_at', 'claim_sent_at', 'claimed_at',
@@ -28,6 +29,13 @@ class Candidate extends Model
         'claim_sent_at' => 'datetime',
         'claimed_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Candidate $candidate): void {
+            $candidate->ensureCandidateSlug();
+        });
+    }
 
     public function getEmailAttribute($value): ?string
     {
@@ -109,6 +117,26 @@ class Candidate extends Model
     public function maskedPhone(): ?string
     {
         return $this->maskPhone($this->phone);
+    }
+
+    public function getRouteKey()
+    {
+        return $this->slug ?: $this->getKey();
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $query = $this->newQuery();
+
+        if (is_numeric($value)) {
+            return $query->where($this->getKeyName(), $value)->first();
+        }
+
+        if (Schema::hasColumn($this->getTable(), 'slug')) {
+            return $query->where('slug', $value)->first();
+        }
+
+        return null;
     }
 
     public function getDisplayAreaAttribute(): ?string
@@ -205,6 +233,31 @@ class Candidate extends Model
         return substr($value, 0, $visibleStart)
             . str_repeat('*', max($length - $visibleStart - $visibleEnd, 3))
             . ($visibleEnd > 0 ? substr($value, -$visibleEnd) : '');
+    }
+
+    private function ensureCandidateSlug(): void
+    {
+        if (! Schema::hasColumn($this->getTable(), 'slug')) {
+            return;
+        }
+
+        if (! $this->isDirty('name') && filled($this->slug)) {
+            return;
+        }
+
+        $baseSlug = Str::slug((string) ($this->slug ?: $this->name));
+        $baseSlug = $baseSlug !== '' ? $baseSlug : 'aspirant';
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (static::query()
+            ->where('slug', $slug)
+            ->when($this->exists, fn ($query) => $query->whereKeyNot($this->getKey()))
+            ->exists()) {
+            $slug = $baseSlug . '-' . $suffix++;
+        }
+
+        $this->slug = $slug;
     }
 
     private function isMpPosition(string $positionName): bool
