@@ -98,7 +98,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
     
     Route::get('/aspirants/register', [AspirantRegistrationController::class, 'create'])->name('aspirants.register');
-    Route::post('/aspirants/register', [AspirantRegistrationController::class, 'store'])->name('aspirants.register.store');
+    Route::post('/aspirants/register', [AspirantRegistrationController::class, 'store'])->middleware('throttle:3,10')->name('aspirants.register.store');
     Route::get('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'show'])->name('aspirants.claim.show');
     Route::post('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'store'])->middleware('throttle:6,1')->name('aspirants.claim.store');
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->name('aspirants.public');
@@ -234,3 +234,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 require __DIR__.'/auth.php';
+

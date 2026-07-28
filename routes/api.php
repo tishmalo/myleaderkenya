@@ -73,8 +73,8 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
     Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
     Route::get('/aspirants', [AspirantController::class, 'list']);
-    Route::post('/aspirants/register', [AspirantController::class, 'store']);
-    Route::post('/aspirants', [AspirantController::class, 'store']);
+    Route::post('/aspirants/register', [AspirantController::class, 'store'])->middleware('throttle:3,10');
+    Route::post('/aspirants', [AspirantController::class, 'store'])->middleware('throttle:3,10');
     Route::match(['put', 'patch'], '/aspirants/{candidate}', [AspirantController::class, 'update']);
     Route::post('/aspirants/{candidate}/update', [AspirantController::class, 'update']);
     Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
@@ -153,9 +153,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
-
-
-
-
-
 

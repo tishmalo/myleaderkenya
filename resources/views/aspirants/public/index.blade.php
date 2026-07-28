@@ -137,6 +137,87 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     height: 2px; flex: 1;
     background: linear-gradient(90deg, rgba(0,168,107,0.3), transparent);
 }
+.results-register-cta {
+    flex: 0 0 auto;
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(0,168,107,0.42);
+    border-radius: 999px;
+    padding: 9px 15px;
+    background: rgba(0,168,107,0.1);
+    color: var(--green-bright);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
+.results-register-cta:hover {
+    background: var(--green-bright);
+    border-color: var(--green-bright);
+    color: #050505;
+    transform: translateY(-1px);
+}
+.results-register-cta i { font-size: 11px; }
+.aspirant-register-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0,0,0,0.76);
+    backdrop-filter: blur(10px);
+}
+.aspirant-register-modal.is-open { display: flex; }
+.aspirant-register-dialog {
+    width: min(960px, 100%);
+    height: min(820px, calc(100vh - 48px));
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 18px;
+    background: #0a0a0a;
+    box-shadow: 0 28px 80px rgba(0,0,0,0.65);
+}
+.aspirant-register-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 54px;
+    padding: 12px 16px 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: #111;
+}
+.aspirant-register-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--kenya-white);
+    text-transform: uppercase;
+}
+.aspirant-register-close {
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    color: var(--kenya-white);
+    cursor: pointer;
+}
+.aspirant-register-close:hover {
+    border-color: rgba(0,168,107,0.45);
+    color: var(--green-bright);
+}
+.aspirant-register-frame {
+    width: 100%;
+    height: calc(100% - 54px);
+    border: 0;
+    background: #0a0a0a;
+}
 
 /* ── GRID ── */
 .asp-grid {
@@ -447,7 +528,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     .county-aspirant-groups { padding: 0 16px 60px; }
     .county-aspirant-head { padding: 20px; }
     .county-aspirant-grid { padding: 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .results-meta { padding: 0 16px; }
+    .results-meta { padding: 0 16px; align-items: flex-start; flex-wrap: wrap; }
+    .results-tri { order: 3; flex-basis: 100%; }
 }
 @media (max-width: 480px) {
     .asp-grid { grid-template-columns: 1fr; }
@@ -501,9 +583,23 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         @endif
     </div>
     <div class="results-tri"></div>
+    <a href="{{ route('aspirants.register') }}" class="results-register-cta" data-aspirant-register-popup>
+        Submit Aspirant <i class="fas fa-user-plus"></i>
+    </a>
 </div>
 
 <!-- GRID -->
+<div class="aspirant-register-modal" data-aspirant-register-modal aria-hidden="true">
+    <div class="aspirant-register-dialog" role="dialog" aria-modal="true" aria-labelledby="aspirantRegisterTitle">
+        <div class="aspirant-register-head">
+            <div class="aspirant-register-title" id="aspirantRegisterTitle">Submit Aspirant</div>
+            <button type="button" class="aspirant-register-close" data-aspirant-register-close aria-label="Close aspirant registration">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <iframe class="aspirant-register-frame" data-aspirant-register-frame title="Aspirant registration"></iframe>
+    </div>
+</div>
 @if($showLocationGroups ?? false)
     <div class="location-card-grid">
         @forelse($locationGroups as $group)
@@ -573,4 +669,41 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var registerLink = document.querySelector('[data-aspirant-register-popup]');
+    var modal = document.querySelector('[data-aspirant-register-modal]');
+    var frame = document.querySelector('[data-aspirant-register-frame]');
+    var closeButton = document.querySelector('[data-aspirant-register-close]');
+    if (!registerLink || !modal || !frame || !closeButton) return;
+
+    function openModal(event) {
+        event.preventDefault();
+        if (!frame.src) frame.src = registerLink.href;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeButton.focus();
+    }
+
+    function closeModal() {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        registerLink.focus();
+    }
+
+    registerLink.addEventListener('click', openModal);
+    closeButton.addEventListener('click', closeModal);
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+    });
+});
+</script>
+@endpush
 
