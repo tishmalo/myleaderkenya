@@ -4,9 +4,11 @@
 
 @section('content')
 <div class="flag-stripe"></div>
+@unless(request()->boolean('modal'))
 @include('components.frontend-nav')
+@endunless
 
-<main class="min-h-screen bg-zinc-950 px-5 py-14 text-white">
+<main class="min-h-screen bg-zinc-950 px-5 {{ request()->boolean('modal') ? 'py-8' : 'py-14' }} text-white">
     <div class="mx-auto max-w-4xl">
         <div class="mb-8">
             <p class="text-sm font-bold uppercase tracking-[0.24em] text-emerald-400">Aspirant Registration</p>
@@ -174,3 +176,4 @@ positionSelect.addEventListener('change', function() { renderJurisdictionFields(
 fetchCounties().then(function () { if (positionSelect.value) positionSelect.dispatchEvent(new Event('change')); });
 </script>
 @endpush
+

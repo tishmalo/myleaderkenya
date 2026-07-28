@@ -101,6 +101,7 @@
     @yield('content')
     
  
+@unless(request()->boolean('modal'))
 <style>
   /* ===== TELVOIP BUTTON â€” RIGHT SIDE ===== */
   .floating-button {
@@ -236,6 +237,7 @@
     chatContainer.classList.toggle("show");
   }
 </script>
+@endunless
 <script>
 (function () {
   var loader = document.getElementById('siteBootLoader');
@@ -305,3 +307,4 @@
 @stack('scripts')
 </body>
 </html>
+

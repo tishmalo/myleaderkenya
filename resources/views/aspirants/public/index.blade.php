@@ -164,7 +164,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 .aspirant-register-modal {
     position: fixed;
     inset: 0;
-    z-index: 1000;
+    z-index: 20000;
     display: none;
     align-items: center;
     justify-content: center;
@@ -681,7 +681,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function openModal(event) {
         event.preventDefault();
-        if (!frame.src) frame.src = registerLink.href;
+        if (!frame.src) {
+            var modalUrl = new URL(registerLink.href, window.location.origin);
+            modalUrl.searchParams.set('modal', '1');
+            frame.src = modalUrl.toString();
+        }
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
