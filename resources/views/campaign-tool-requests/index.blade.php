@@ -13,12 +13,17 @@
         <a href="{{ route('campaign-tools.index') }}" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-2xl text-sm font-medium"><i class="fas fa-bullhorn mr-2"></i> Campaign Tools</a>
     </div>
 
-    <form method="GET" action="{{ route('campaign-tool-requests.index') }}" class="mb-6 grid md:grid-cols-[180px_240px_1fr_auto] gap-3">
+    <form method="GET" action="{{ route('campaign-tool-requests.index') }}" class="mb-6 grid md:grid-cols-[180px_190px_240px_1fr_auto] gap-3">
         <select name="status" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
             <option value="">All Statuses</option>
             @foreach(\App\Models\CampaignToolRequest::STATUSES as $status)
                 <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>{{ str_replace('_', ' ', ucfirst($status)) }}</option>
             @endforeach
+        </select>
+        <select name="request_type" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
+            <option value="">All Requests</option>
+            <option value="feature" {{ request('request_type') === 'feature' ? 'selected' : '' }}>Feature Requests</option>
+            <option value="activation" {{ request('request_type') === 'activation' ? 'selected' : '' }}>Activation Requests</option>
         </select>
         <select name="campaign_tool_id" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
             <option value="">All Tools</option>
@@ -26,21 +31,31 @@
                 <option value="{{ $tool->id }}" {{ (string) request('campaign_tool_id') === (string) $tool->id ? 'selected' : '' }}>{{ $tool->title }}</option>
             @endforeach
         </select>
-        <input type="search" name="search" value="{{ request('search') }}" placeholder="Search requester, contact, feature, or use case" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
+        <input type="search" name="search" value="{{ request('search') }}" placeholder="Search requester, contact, tool, feature, or notes" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
         <button class="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium">Filter</button>
     </form>
 
     <div class="grid gap-4">
         @forelse($requests as $requestItem)
+            @php
+                $type = $requestItem->request_type ?: 'feature';
+                $isActivation = $type === 'activation';
+                $toolTitle = $requestItem->tool_title ?: ($requestItem->campaignTool->title ?? 'Campaign Tool');
+            @endphp
             <article class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
                 <div class="grid lg:grid-cols-[1fr_320px] gap-6">
                     <div>
                         <div class="flex items-start justify-between gap-4 mb-4">
                             <div>
-                                <h2 class="text-2xl font-semibold text-white">{{ $requestItem->requested_feature }}</h2>
-                                <p class="text-zinc-400">{{ $requestItem->campaignTool->title ?? 'Campaign Tool' }}</p>
+                                <div class="mb-2 flex flex-wrap items-center gap-2">
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $isActivation ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-500/15 text-blue-300' }}">
+                                        {{ $isActivation ? 'Activation Request' : 'Feature Request' }}
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300">{{ str_replace('_', ' ', ucfirst($requestItem->status)) }}</span>
+                                </div>
+                                <h2 class="text-2xl font-semibold text-white">{{ $isActivation ? $toolTitle : $requestItem->requested_feature }}</h2>
+                                <p class="text-zinc-400">{{ $requestItem->campaignTool->title ?? $toolTitle }}</p>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300">{{ str_replace('_', ' ', ucfirst($requestItem->status)) }}</span>
                         </div>
                         <div class="grid md:grid-cols-2 gap-3 text-sm text-zinc-300">
                             <div><span class="text-zinc-500">Requester:</span> {{ $requestItem->requester_name }}</div>
@@ -49,9 +64,26 @@
                             <div><span class="text-zinc-500">Email:</span> {{ $requestItem->email ?: '-' }}</div>
                             <div><span class="text-zinc-500">User:</span> {{ $requestItem->user->name ?? $requestItem->user->username ?? '-' }}</div>
                             <div><span class="text-zinc-500">Candidate:</span> {{ $requestItem->candidate->name ?? '-' }}</div>
+                            @if($isActivation)
+                                <div><span class="text-zinc-500">Position:</span> {{ $requestItem->candidate->position->name ?? '-' }}</div>
+                                <div><span class="text-zinc-500">Tool key:</span> {{ $requestItem->tool_key ?: '-' }}</div>
+                            @endif
                         </div>
+                        @if($requestItem->disabled_reason)
+                            <div class="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+                                <span class="text-amber-300">Setup reason:</span> {{ $requestItem->disabled_reason }}
+                            </div>
+                        @endif
                         @if($requestItem->use_case)
                             <p class="mt-4 text-zinc-300 leading-relaxed">{{ $requestItem->use_case }}</p>
+                        @endif
+                        @if($isActivation)
+                            <div class="mt-5 flex flex-wrap gap-3">
+                                @if($requestItem->candidate)
+                                    <a href="{{ route('candidates.edit', $requestItem->candidate) }}#tools" class="bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl text-sm font-medium"><i class="fas fa-id-badge mr-2"></i>Open Candidate</a>
+                                @endif
+                                <a href="{{ route('campaign-tools.index') }}" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-2xl text-sm font-medium"><i class="fas fa-bullhorn mr-2"></i>Campaign Tools</a>
+                            </div>
                         @endif
                     </div>
                     <div class="grid gap-3">
@@ -89,3 +121,4 @@
     <div class="mt-8">{{ $requests->appends(request()->query())->links() }}</div>
 </div>
 @endsection
+

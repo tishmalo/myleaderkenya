@@ -37,6 +37,7 @@ body { background:#080808; color:#f5f5f0; }
 .asp-btn.ghost { color:rgba(245,245,240,.72); }
 .asp-btn.danger { color:#ffb4b4; }
 .asp-alert { margin-bottom:16px; border-radius:8px; padding:13px 15px; color:#fde68a; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.28); }
+.asp-alert.success { color:#bbf7d0; background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.28); }
 .asp-section { border:1px solid rgba(255,255,255,.09); background:#101010; border-radius:8px; padding:22px; }
 .asp-section[hidden] { display:none; }
 .asp-section + .asp-section { margin-top:16px; }
@@ -58,12 +59,25 @@ body { background:#080808; color:#f5f5f0; }
 .asp-tool-row { display:grid; grid-template-columns:54px minmax(160px,.9fr) minmax(220px,1.4fr) auto; align-items:center; gap:16px; min-height:76px; padding:13px 16px; border-top:1px solid rgba(255,255,255,.07); color:white; text-decoration:none; }
 .asp-tool-row:first-child { border-top:0; }
 .asp-tool-row:hover { background:#151515; }
-.asp-tool-row.disabled { opacity:.55; cursor:not-allowed; pointer-events:none; }
+.asp-tool-row.disabled { opacity:.72; }
 .asp-tool-icon { width:44px; height:44px; border-radius:8px; display:grid; place-items:center; background:rgba(0,168,107,.13); color:#00A86B; font-size:18px; }
 .asp-tool-title { font-weight:900; font-size:16px; }
 .asp-tool-summary { margin:0; color:rgba(245,245,240,.58); line-height:1.35; font-size:13px; }
 .asp-tool-action { display:inline-flex; align-items:center; gap:8px; justify-content:center; min-width:94px; min-height:34px; padding:0 11px; border-radius:8px; border:1px solid rgba(255,255,255,.12); color:#4ade80; font-weight:900; font-size:12px; }
 .asp-tool-action.warn { color:#fbbf24; }
+.asp-tool-request { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:34px; padding:0 11px; border-radius:8px; border:1px solid rgba(251,191,36,.32); color:#fbbf24; background:rgba(251,191,36,.08); font-weight:900; font-size:12px; cursor:pointer; white-space:nowrap; }
+.asp-tool-request:hover { background:rgba(251,191,36,.16); color:#fde68a; }
+.asp-modal { position:fixed; inset:0; z-index:10030; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.76); backdrop-filter:blur(8px); }
+.asp-modal.is-open { display:flex; }
+.asp-modal-dialog { width:min(560px,100%); border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#111; padding:22px; box-shadow:0 24px 70px rgba(0,0,0,.58); }
+.asp-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.asp-modal-title { margin:0; font-family:'Oswald',sans-serif; font-size:26px; line-height:1.1; }
+.asp-modal-note { margin:6px 0 0; color:rgba(245,245,240,.58); font-size:13px; line-height:1.45; }
+.asp-modal-close { width:36px; height:36px; border-radius:8px; border:1px solid rgba(255,255,255,.12); background:#151515; color:#fff; cursor:pointer; }
+.asp-modal-form { display:grid; gap:14px; }
+.asp-modal-form label { display:grid; gap:7px; color:rgba(245,245,240,.68); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.asp-modal-form textarea { width:100%; min-height:120px; border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; resize:vertical; }
+.asp-modal-submit { min-height:44px; border:0; border-radius:8px; background:#006600; color:#fff; font-weight:900; cursor:pointer; }
 .asp-profile-grid { display:grid; grid-template-columns:260px minmax(0,1fr); gap:18px; align-items:start; }
 .asp-profile-card { border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#111; padding:18px; }
 .asp-profile-card .asp-avatar { width:96px; height:96px; margin-bottom:14px; }
@@ -92,7 +106,7 @@ body { background:#080808; color:#f5f5f0; }
 .asp-bars .asp-bar-row:nth-child(3) .asp-bar-fill { background:#f59e0b; }
 .asp-bars .asp-bar-row:nth-child(4) .asp-bar-fill { background:#3b82f6; }
 @media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
-@media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } }
+@media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -142,8 +156,22 @@ body { background:#080808; color:#f5f5f0; }
                 </div>
             </div>
 
+            @if(session('success'))
+
+
+                <div class="asp-alert success">{{ session('success') }}</div>
+
+
+            @endif
+
+
+
             @if(session('warning'))
+
+
                 <div class="asp-alert">{{ session('warning') }}</div>
+
+
             @endif
 
             @if($scopeMissing)
@@ -199,12 +227,18 @@ body { background:#080808; color:#f5f5f0; }
                             <p class="asp-tool-group-title warn">Setup needed</p>
                             <div class="asp-tool-list">
                                 @foreach($setupModules as $module)
-                                    <a href="#" class="asp-tool-row disabled" title="{{ $module['disabled_reason'] ?? '' }}" aria-disabled="true">
+                                    <div class="asp-tool-row disabled" title="{{ $module['disabled_reason'] ?? '' }}" aria-disabled="true">
                                         <div class="asp-tool-icon"><i class="{{ str_starts_with($module['icon'], 'fa-brands') ? $module['icon'] : 'fas ' . $module['icon'] }}"></i></div>
                                         <div class="asp-tool-title">{{ $module['title'] }}</div>
                                         <p class="asp-tool-summary">{{ $module['disabled_reason'] ?: $module['summary'] }}</p>
-                                        <span class="asp-tool-action warn">Setup <i class="fas fa-chevron-right"></i></span>
-                                    </a>
+                                        @if($candidate)
+                                            <button type="button" class="asp-tool-request" data-tool-request-open data-tool-key="{{ $module['key'] }}" data-tool-title="{{ $module['title'] }}" data-tool-id="{{ $module['tool']?->id }}" data-disabled-reason="{{ $module['disabled_reason'] ?? '' }}">
+                                                Request Activation <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        @else
+                                            <span class="asp-tool-action warn">Setup <i class="fas fa-chevron-right"></i></span>
+                                        @endif
+                                    </div>
                                 @endforeach
                             </div>
                         </div>
@@ -315,7 +349,31 @@ body { background:#080808; color:#f5f5f0; }
         </div>
     </div>
 </main>
-
+@if($candidate)
+<div class="asp-modal" data-tool-request-modal aria-hidden="true">
+    <div class="asp-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="toolRequestTitle">
+        <div class="asp-modal-head">
+            <div>
+                <h3 class="asp-modal-title" id="toolRequestTitle">Request Tool Activation</h3>
+                <p class="asp-modal-note" data-tool-request-reason>Tell the admin what you need activated.</p>
+            </div>
+            <button type="button" class="asp-modal-close" data-tool-request-close aria-label="Close request form"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="{{ route('aspirant.tool-activation-requests.store') }}" class="asp-modal-form">
+            @csrf
+            <input type="hidden" name="tool_key" data-tool-request-key>
+            <input type="hidden" name="tool_title" data-tool-request-title>
+            <input type="hidden" name="campaign_tool_id" data-tool-request-id>
+            <input type="hidden" name="disabled_reason" data-tool-request-disabled-reason>
+            <label>
+                Message to admin
+                <textarea name="message" maxlength="2000" placeholder="Please activate this tool for my campaign."></textarea>
+            </label>
+            <button type="submit" class="asp-modal-submit" data-loading-label="Sending request...">Send Request</button>
+        </form>
+    </div>
+</div>
+@endif
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const sections = Array.from(document.querySelectorAll('[data-dashboard-section]'));
@@ -343,9 +401,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+
+    const requestModal = document.querySelector('[data-tool-request-modal]');
+    const requestButtons = Array.from(document.querySelectorAll('[data-tool-request-open]'));
+    const requestClose = document.querySelector('[data-tool-request-close]');
+    const requestKey = document.querySelector('[data-tool-request-key]');
+    const requestTitle = document.querySelector('[data-tool-request-title]');
+    const requestId = document.querySelector('[data-tool-request-id]');
+    const requestDisabledReason = document.querySelector('[data-tool-request-disabled-reason]');
+    const requestReason = document.querySelector('[data-tool-request-reason]');
+
+    const closeRequestModal = () => {
+        if (!requestModal) return;
+        requestModal.classList.remove('is-open');
+        requestModal.setAttribute('aria-hidden', 'true');
+    };
+
+    requestButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!requestModal) return;
+            requestKey.value = button.dataset.toolKey || '';
+            requestTitle.value = button.dataset.toolTitle || '';
+            requestId.value = button.dataset.toolId || '';
+            requestDisabledReason.value = button.dataset.disabledReason || '';
+            requestReason.textContent = button.dataset.disabledReason || 'Tell the admin what you need activated.';
+            requestModal.classList.add('is-open');
+            requestModal.setAttribute('aria-hidden', 'false');
+            requestModal.querySelector('textarea')?.focus();
+        });
+    });
+
+    requestClose?.addEventListener('click', closeRequestModal);
+    requestModal?.addEventListener('click', (event) => {
+        if (event.target === requestModal) closeRequestModal();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeRequestModal();
+    });
     showSection((window.location.hash || '#analytics').replace('#', ''));
 });
 </script>
 @endsection
-
 

@@ -13,10 +13,11 @@ class CampaignToolRequestController extends Controller
 {
     public function index(): View
     {
-        $filters = request()->only(['status', 'campaign_tool_id', 'search']);
+        $filters = request()->only(['status', 'request_type', 'campaign_tool_id', 'search']);
 
         $requests = CampaignToolRequest::with(['campaignTool', 'candidate.position', 'user'])
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($filters['request_type'] ?? null, fn ($query, $type) => $query->where('request_type', $type))
             ->when($filters['campaign_tool_id'] ?? null, fn ($query, $toolId) => $query->where('campaign_tool_id', $toolId))
             ->when($filters['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
@@ -24,6 +25,9 @@ class CampaignToolRequestController extends Controller
                         ->orWhere('email', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%")
                         ->orWhere('requested_feature', 'like', "%{$search}%")
+                        ->orWhere('tool_key', 'like', "%{$search}%")
+                        ->orWhere('tool_title', 'like', "%{$search}%")
+                        ->orWhere('disabled_reason', 'like', "%{$search}%")
                         ->orWhere('use_case', 'like', "%{$search}%");
                 });
             })
@@ -57,3 +61,4 @@ class CampaignToolRequestController extends Controller
             ->with('success', 'Campaign tool request deleted.');
     }
 }
+

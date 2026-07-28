@@ -111,6 +111,8 @@ class CampaignToolController extends Controller
             'campaign_tool_id' => $campaignTool->id,
             'user_id' => $user?->id,
             'candidate_id' => $candidate?->id,
+            'request_type' => 'feature',
+            'tool_title' => $campaignTool->title,
             'status' => 'new',
         ]);
 
@@ -118,3 +120,4 @@ class CampaignToolController extends Controller
             ->with('success', 'Feature request submitted. The admin team will review it.');
     }
 }
+

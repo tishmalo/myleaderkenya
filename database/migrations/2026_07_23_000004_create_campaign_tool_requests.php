@@ -13,14 +13,18 @@ return new class extends Migration
         if (! Schema::hasTable('campaign_tool_requests')) {
             Schema::create('campaign_tool_requests', function (Blueprint $table): void {
                 $table->id();
-                $table->foreignId('campaign_tool_id')->constrained('campaign_tools')->cascadeOnDelete();
+                $table->foreignId('campaign_tool_id')->nullable()->constrained('campaign_tools')->cascadeOnDelete();
                 $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
                 $table->foreignId('candidate_id')->nullable()->constrained('candidates')->nullOnDelete();
+                $table->string('request_type')->default('feature');
+                $table->string('tool_key')->nullable();
+                $table->string('tool_title')->nullable();
                 $table->string('requester_name');
                 $table->string('email')->nullable();
                 $table->string('phone')->nullable();
                 $table->string('requested_feature');
                 $table->text('use_case')->nullable();
+                $table->text('disabled_reason')->nullable();
                 $table->string('status')->default('new');
                 $table->text('admin_notes')->nullable();
                 $table->timestamps();
@@ -85,3 +89,4 @@ return new class extends Migration
         Schema::dropIfExists('campaign_tool_requests');
     }
 };
+

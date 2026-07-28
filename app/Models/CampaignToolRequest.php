@@ -13,11 +13,15 @@ class CampaignToolRequest extends Model
         'campaign_tool_id',
         'user_id',
         'candidate_id',
+        'request_type',
+        'tool_key',
+        'tool_title',
         'requester_name',
         'email',
         'phone',
         'requested_feature',
         'use_case',
+        'disabled_reason',
         'status',
         'admin_notes',
     ];
@@ -37,3 +41,4 @@ class CampaignToolRequest extends Model
         return $this->belongsTo(Candidate::class);
     }
 }
+

@@ -32,6 +32,7 @@ use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\CandidateClaimController;
 use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantToolController;
+use App\Http\Controllers\Web\AspirantToolActivationRequestController;
 use App\Http\Controllers\Admin\CandidateTokenPackageController;
 use App\Http\Controllers\Admin\CandidateTokenRateController;
 use App\Http\Controllers\Admin\CandidateTokenPurchaseController;
@@ -113,6 +114,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('aspirant')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
         Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
+        Route::post('/aspirant/tool-activation-requests', [AspirantToolActivationRequestController::class, 'store'])->middleware('throttle:6,10')->name('aspirant.tool-activation-requests.store');
         Route::get('/aspirant/tokens', [AspirantTokenController::class, 'index'])->name('aspirant.tokens.index');
         Route::post('/aspirant/tokens/purchase', [AspirantTokenController::class, 'purchase'])->name('aspirant.tokens.purchase');
         Route::post('/aspirant/sms-balance-requests', [AspirantSmsBalanceRequestController::class, 'store'])->middleware('throttle:6,10')->name('aspirant.sms-balance-requests.store');

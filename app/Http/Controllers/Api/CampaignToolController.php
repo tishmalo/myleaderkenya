@@ -76,6 +76,8 @@ class CampaignToolController extends Controller
             'campaign_tool_id' => $campaignTool->id,
             'user_id' => $user?->id,
             'candidate_id' => $candidate?->id,
+            'request_type' => 'feature',
+            'tool_title' => $campaignTool->title,
             'status' => 'new',
         ]);
 
@@ -616,11 +618,15 @@ class CampaignToolController extends Controller
             'id' => $request->id,
             'campaign_tool_id' => $request->campaign_tool_id,
             'campaign_tool' => $this->optionalTool($request->campaignTool),
+            'request_type' => $request->request_type ?: 'feature',
+            'tool_key' => $request->tool_key,
+            'tool_title' => $request->tool_title,
             'requester_name' => $request->requester_name,
             'email' => $request->email,
             'phone' => $request->phone,
             'requested_feature' => $request->requested_feature,
             'use_case' => $request->use_case,
+            'disabled_reason' => $request->disabled_reason,
             'status' => $request->status,
             'created_at' => optional($request->created_at)->toISOString(),
         ];
