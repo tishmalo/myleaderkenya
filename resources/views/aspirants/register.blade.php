@@ -32,7 +32,7 @@
             </div>
         @endif
 
-        <form action="{{ route('aspirants.register.store') }}" method="POST" enctype="multipart/form-data" class="rounded-3xl border border-zinc-800 bg-zinc-900 p-8" id="aspirantRegisterForm">
+        <form action="{{ route('aspirants.register.store', request()->boolean('modal') ? ['modal' => 1] : []) }}" method="POST" enctype="multipart/form-data" class="rounded-3xl border border-zinc-800 bg-zinc-900 p-8" id="aspirantRegisterForm">
             @csrf
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">

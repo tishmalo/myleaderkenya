@@ -10,7 +10,6 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\Admin\CandidateService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -58,13 +57,15 @@ class AspirantRegistrationController extends Controller
                 $request->file('profile_picture')
             );
 
-            Auth::login($user);
-
             return $candidate;
         });
 
-        return redirect('/aspirant/dashboard')
-            ->with('success', 'Your aspirant registration has been submitted. An admin will review and approve it before it appears publicly.');
+        $loginRoute = $request->boolean('modal')
+            ? route('login', ['modal' => 1])
+            : route('login');
+
+        return redirect($loginRoute)
+            ->with('status', 'Your aspirant registration has been submitted. Sign in to continue while an admin reviews your profile.');
     }
 
     private function uniqueUsername(string $name): string
@@ -85,3 +86,4 @@ class AspirantRegistrationController extends Controller
         return $username;
     }
 }
+
