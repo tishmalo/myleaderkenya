@@ -244,8 +244,8 @@
                     <i class="fas fa-mobile-alt"></i> Download App
                     <i class="fas fa-external-link-alt" style="font-size:11px;opacity:0.7"></i>
                 </a>
-                <a href="#analytics" class="btn-hero-secondary">
-                    <i class="fas fa-chart-bar"></i> Live Stats
+                <a href="{{ route('campaign-tools.public') }}" class="btn-hero-secondary">
+                    <i class="fas fa-bullhorn"></i> Campaign Tools
                 </a>
             </div>
             <div class="hero-divider">
