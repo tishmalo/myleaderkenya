@@ -77,10 +77,20 @@ body { background:#080808; color:#f5f5f0; }
 .asp-modal-form { display:grid; gap:14px; }
 .asp-modal-form label { display:grid; gap:7px; color:rgba(245,245,240,.68); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .asp-modal-form textarea { width:100%; min-height:120px; border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; resize:vertical; }
+.asp-modal-form input[type=file] { width:100%; border:1px dashed rgba(255,255,255,.18); border-radius:8px; background:#0b0b0b; color:rgba(245,245,240,.72); padding:13px; font:inherit; }
 .asp-modal-submit { min-height:44px; border:0; border-radius:8px; background:#006600; color:#fff; font-weight:900; cursor:pointer; }
 .asp-profile-grid { display:grid; grid-template-columns:260px minmax(0,1fr); gap:18px; align-items:start; }
 .asp-profile-card { border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#111; padding:18px; }
 .asp-profile-card .asp-avatar { width:96px; height:96px; margin-bottom:14px; }
+.asp-cover-card { margin:-18px -18px 16px; overflow:hidden; border-radius:8px 8px 0 0; border-bottom:1px solid rgba(255,255,255,.08); background:#181818; }
+.asp-cover-preview { position:relative; aspect-ratio:16/7; background:linear-gradient(135deg, rgba(0,168,107,.2), rgba(187,0,0,.22)), #171717; display:grid; place-items:center; color:rgba(245,245,240,.5); }
+.asp-cover-preview img { width:100%; height:100%; object-fit:cover; display:block; }
+.asp-cover-empty { display:grid; gap:8px; place-items:center; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.asp-cover-empty i { font-size:20px; color:rgba(245,245,240,.35); }
+.asp-cover-edit { position:absolute; right:10px; bottom:10px; display:inline-flex; align-items:center; gap:7px; min-height:32px; padding:0 10px; border:1px solid rgba(255,255,255,.14); border-radius:8px; background:rgba(0,0,0,.72); color:white; font-size:11px; font-weight:900; cursor:pointer; text-transform:uppercase; letter-spacing:.04em; }
+.asp-cover-edit:hover { border-color:rgba(0,168,107,.5); color:#4ade80; }
+.asp-cover-modal-preview { aspect-ratio:16/7; overflow:hidden; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#171717; display:grid; place-items:center; color:rgba(245,245,240,.48); }
+.asp-cover-modal-preview img { width:100%; height:100%; object-fit:cover; display:block; }
 .asp-name { margin:0 0 5px; font-size:25px; line-height:1.08; font-weight:900; }
 .asp-meta-list { display:grid; gap:0; border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden; }
 .asp-meta-row { display:grid; grid-template-columns:170px 1fr; gap:14px; padding:13px 14px; border-top:1px solid rgba(255,255,255,.07); }
@@ -260,6 +270,21 @@ body { background:#080808; color:#f5f5f0; }
                 @if($candidate)
                     <div class="asp-profile-grid">
                         <div class="asp-profile-card">
+                            <div class="asp-cover-card">
+                                <div class="asp-cover-preview">
+                                    @if($candidate->cover_photo)
+                                        <img src="{{ Storage::url($candidate->cover_photo) }}" alt="{{ $candidate->name }} cover photo">
+                                    @else
+                                        <div class="asp-cover-empty">
+                                            <i class="fas fa-image"></i>
+                                            <span>Add cover photo</span>
+                                        </div>
+                                    @endif
+                                    <button type="button" class="asp-cover-edit" data-cover-photo-open>
+                                        <i class="fas fa-camera"></i> {{ $candidate->cover_photo ? 'Edit Cover' : 'Add Cover' }}
+                                    </button>
+                                </div>
+                            </div>
                             <div class="asp-avatar">
                                 @if($candidate->profile_picture)
                                     <img src="{{ Storage::url($candidate->profile_picture) }}" alt="{{ $candidate->name }}">
@@ -350,6 +375,35 @@ body { background:#080808; color:#f5f5f0; }
     </div>
 </main>
 @if($candidate)
+<div class="asp-modal{{ $errors->has('cover_photo') ? ' is-open' : '' }}" data-cover-photo-modal aria-hidden="{{ $errors->has('cover_photo') ? 'false' : 'true' }}">
+    <div class="asp-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="coverPhotoTitle">
+        <div class="asp-modal-head">
+            <div>
+                <h3 class="asp-modal-title" id="coverPhotoTitle">{{ $candidate->cover_photo ? 'Edit Cover Photo' : 'Add Cover Photo' }}</h3>
+                <p class="asp-modal-note">Upload a wide image for the top of your public campaign profile.</p>
+            </div>
+            <button type="button" class="asp-modal-close" data-cover-photo-close aria-label="Close cover photo form"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="{{ route('aspirant.cover-photo.update') }}" enctype="multipart/form-data" class="asp-modal-form">
+            @csrf
+            <div class="asp-cover-modal-preview" data-cover-photo-preview>
+                @if($candidate->cover_photo)
+                    <img src="{{ Storage::url($candidate->cover_photo) }}" alt="{{ $candidate->name }} cover photo preview">
+                @else
+                    <span>No cover photo selected</span>
+                @endif
+            </div>
+            <label>
+                Cover photo
+                <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp" required data-cover-photo-input>
+            </label>
+            @error('cover_photo')
+                <p class="asp-profile-note">{{ $message }}</p>
+            @enderror
+            <button type="submit" class="asp-modal-submit" data-loading-label="Saving cover photo...">Save Cover Photo</button>
+        </form>
+    </div>
+</div>
 <div class="asp-modal" data-tool-request-modal aria-hidden="true">
     <div class="asp-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="toolRequestTitle">
         <div class="asp-modal-head">
@@ -410,6 +464,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const requestId = document.querySelector('[data-tool-request-id]');
     const requestDisabledReason = document.querySelector('[data-tool-request-disabled-reason]');
     const requestReason = document.querySelector('[data-tool-request-reason]');
+    const coverModal = document.querySelector('[data-cover-photo-modal]');
+    const coverOpen = document.querySelector('[data-cover-photo-open]');
+    const coverClose = document.querySelector('[data-cover-photo-close]');
+    const coverInput = document.querySelector('[data-cover-photo-input]');
+    const coverPreview = document.querySelector('[data-cover-photo-preview]');
+
+    const closeCoverModal = () => {
+        if (!coverModal) return;
+        coverModal.classList.remove('is-open');
+        coverModal.setAttribute('aria-hidden', 'true');
+    };
+
+    coverOpen?.addEventListener('click', () => {
+        if (!coverModal) return;
+        coverModal.classList.add('is-open');
+        coverModal.setAttribute('aria-hidden', 'false');
+        coverInput?.focus();
+    });
+    coverClose?.addEventListener('click', closeCoverModal);
+    coverModal?.addEventListener('click', (event) => {
+        if (event.target === coverModal) closeCoverModal();
+    });
+    coverInput?.addEventListener('change', () => {
+        const file = coverInput.files?.[0];
+        if (!file || !coverPreview) return;
+        const imageUrl = URL.createObjectURL(file);
+        coverPreview.innerHTML = `<img src="${imageUrl}" alt="Selected cover photo preview">`;
+    });
 
     const closeRequestModal = () => {
         if (!requestModal) return;
@@ -436,7 +518,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target === requestModal) closeRequestModal();
     });
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeRequestModal();
+        if (event.key === 'Escape') {
+            closeCoverModal();
+            closeRequestModal();
+        }
     });
     showSection((window.location.hash || '#analytics').replace('#', ''));
 });

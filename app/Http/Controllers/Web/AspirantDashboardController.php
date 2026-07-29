@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\CampaignTool;
+use App\Services\Admin\CandidateService;
 use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -13,7 +15,11 @@ use Illuminate\View\View;
 
 class AspirantDashboardController extends Controller
 {
-    public function __construct(private AspirantWorkspaceService $workspaceService, private AspirantTokenService $tokenService) {}
+    public function __construct(
+        private AspirantWorkspaceService $workspaceService,
+        private AspirantTokenService $tokenService,
+        private CandidateService $candidateService
+    ) {}
 
     public function __invoke(Request $request): View
     {
@@ -45,6 +51,30 @@ class AspirantDashboardController extends Controller
             'pollSnapshot' => $this->pollSnapshot($candidate?->id),
             'tokenWallet' => $tokenWallet,
         ]);
+    }
+
+    public function updateCoverPhoto(Request $request): RedirectResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect(route('aspirant.dashboard') . '#profile')
+                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $request->validate([
+            'cover_photo' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+        ]);
+
+        $this->candidateService->updateCandidate(
+            $candidate,
+            [],
+            null,
+            $request->file('cover_photo')
+        );
+
+        return redirect(route('aspirant.dashboard') . '#profile')
+            ->with('success', 'Cover photo updated successfully.');
     }
 
     private function activePollCount(?int $candidateId): int

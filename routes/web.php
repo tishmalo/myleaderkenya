@@ -114,6 +114,7 @@ Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCall
 Route::middleware('auth')->group(function () {
     Route::middleware('aspirant')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
+        Route::post('/aspirant/cover-photo', [AspirantDashboardController::class, 'updateCoverPhoto'])->middleware('throttle:6,10')->name('aspirant.cover-photo.update');
         Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
         Route::post('/aspirant/tool-activation-requests', [AspirantToolActivationRequestController::class, 'store'])->middleware('throttle:6,10')->name('aspirant.tool-activation-requests.store');
         Route::get('/aspirant/tokens', [AspirantTokenController::class, 'index'])->name('aspirant.tokens.index');

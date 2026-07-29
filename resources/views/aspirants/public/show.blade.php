@@ -54,6 +54,14 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     color:rgba(245,245,240,.86); font-size:13px; font-weight:700;
     backdrop-filter: blur(10px);
 }
+.cover-edit-action {
+    position:absolute; right:28px; top:24px; z-index:3;
+    display:inline-flex; align-items:center; gap:8px; min-height:36px; padding:0 12px;
+    border:1px solid rgba(255,255,255,.16); border-radius:8px;
+    background:rgba(0,0,0,.68); color:white; font-size:12px; font-weight:900;
+    text-transform:uppercase; letter-spacing:.04em; cursor:pointer;
+}
+.cover-edit-action:hover { border-color:rgba(0,168,107,.5); color:var(--green-bright); }
 .profile-header-card {
     position: relative; z-index:3;
     margin: -86px 0 28px;
@@ -113,6 +121,19 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .news-title { font-family:'Oswald',sans-serif; color:white; font-size:16px; line-height:1.25; }
 .news-date { margin-top:5px; color:rgba(245,245,240,.35); font-size:12px; }
 .empty-note { color:rgba(245,245,240,.4); font-size:14px; }
+.profile-cover-modal { position:fixed; inset:0; z-index:10040; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.76); backdrop-filter:blur(8px); }
+.profile-cover-modal.is-open { display:flex; }
+.profile-cover-dialog { width:min(560px,100%); border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#111; padding:22px; box-shadow:0 24px 70px rgba(0,0,0,.58); }
+.profile-cover-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.profile-cover-title { margin:0; font-family:'Oswald',sans-serif; font-size:26px; line-height:1.1; }
+.profile-cover-note { margin:6px 0 0; color:rgba(245,245,240,.58); font-size:13px; line-height:1.45; }
+.profile-cover-close { width:36px; height:36px; border-radius:8px; border:1px solid rgba(255,255,255,.12); background:#151515; color:#fff; cursor:pointer; }
+.profile-cover-form { display:grid; gap:14px; }
+.profile-cover-preview { aspect-ratio:16/7; overflow:hidden; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#171717; display:grid; place-items:center; color:rgba(245,245,240,.48); }
+.profile-cover-preview img { width:100%; height:100%; object-fit:cover; display:block; }
+.profile-cover-form label { display:grid; gap:7px; color:rgba(245,245,240,.68); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.profile-cover-form input[type=file] { width:100%; border:1px dashed rgba(255,255,255,.18); border-radius:8px; background:#0b0b0b; color:rgba(245,245,240,.72); padding:13px; font:inherit; }
+.profile-cover-submit { min-height:44px; border:0; border-radius:8px; background:#006600; color:#fff; font-weight:900; cursor:pointer; }
 
 @media (max-width: 980px) {
     .profile-shell { padding:0 16px 56px; }
@@ -142,6 +163,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     $partyLabel = $candidate->politicalParty?->abbreviation ?: $candidate->politicalParty?->name;
     $maskedPhone = $candidate->maskedPhone();
     $maskedEmail = $candidate->maskedEmail();
+    $canEditCoverPhoto = auth()->check() && auth()->id() === $candidate->user_id && Route::has('aspirant.cover-photo.update');
 @endphp
 
 <div class="profile-page">
@@ -153,6 +175,11 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                 <div class="profile-cover-fallback"></div>
             @endif
             <div class="cover-label"><i class="fas fa-camera"></i> Cover photo</div>
+            @if($canEditCoverPhoto)
+                <button type="button" class="cover-edit-action" data-public-cover-open>
+                    <i class="fas fa-camera"></i> {{ $candidate->cover_photo ? 'Edit Cover' : 'Add Cover' }}
+                </button>
+            @endif
         </div>
 
         <section class="profile-header-card">
@@ -250,5 +277,71 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         </div>
     </div>
 </div>
+
+@if($canEditCoverPhoto)
+<div class="profile-cover-modal{{ $errors->has('cover_photo') ? ' is-open' : '' }}" data-public-cover-modal aria-hidden="{{ $errors->has('cover_photo') ? 'false' : 'true' }}">
+    <div class="profile-cover-dialog" role="dialog" aria-modal="true" aria-labelledby="publicCoverTitle">
+        <div class="profile-cover-head">
+            <div>
+                <h3 class="profile-cover-title" id="publicCoverTitle">{{ $candidate->cover_photo ? 'Edit Cover Photo' : 'Add Cover Photo' }}</h3>
+                <p class="profile-cover-note">Upload a wide image for the top of your public campaign profile.</p>
+            </div>
+            <button type="button" class="profile-cover-close" data-public-cover-close aria-label="Close cover photo form"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="{{ route('aspirant.cover-photo.update') }}" enctype="multipart/form-data" class="profile-cover-form">
+            @csrf
+            <div class="profile-cover-preview" data-public-cover-preview>
+                @if($candidate->cover_photo)
+                    <img src="{{ Storage::url($candidate->cover_photo) }}" alt="{{ $candidate->name }} cover photo preview">
+                @else
+                    <span>No cover photo selected</span>
+                @endif
+            </div>
+            <label>
+                Cover photo
+                <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp" required data-public-cover-input>
+            </label>
+            @error('cover_photo')
+                <p class="empty-note">{{ $message }}</p>
+            @enderror
+            <button type="submit" class="profile-cover-submit">Save Cover Photo</button>
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.querySelector('[data-public-cover-modal]');
+    const open = document.querySelector('[data-public-cover-open]');
+    const close = document.querySelector('[data-public-cover-close]');
+    const input = document.querySelector('[data-public-cover-input]');
+    const preview = document.querySelector('[data-public-cover-preview]');
+
+    const closeModal = () => {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+    };
+
+    open?.addEventListener('click', () => {
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        input?.focus();
+    });
+    close?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal();
+    });
+    input?.addEventListener('change', () => {
+        const file = input.files?.[0];
+        if (!file || !preview) return;
+        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Selected cover photo preview">`;
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeModal();
+    });
+});
+</script>
+@endif
 
 @endsection
