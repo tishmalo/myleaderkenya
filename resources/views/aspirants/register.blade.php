@@ -93,13 +93,13 @@
                             <i class="fas fa-user text-2xl"></i>
                         </div>
                         <div class="min-w-0">
-                            <button type="button" class="rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="profile_picture">
+                            <label for="profilePictureInput" class="inline-flex cursor-pointer rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="profile_picture">
                                 Add Photo
-                            </button>
+                            </label>
                             <p class="mt-2 text-xs text-zinc-500" data-photo-name="profile_picture">JPG, PNG, or WEBP.</p>
                         </div>
                     </div>
-                    <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="profile_picture">
+                    <input type="file" id="profilePictureInput" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="profile_picture">
                 </div>
                 <div class="rounded-2xl border border-zinc-700 bg-zinc-800/70 p-4">
                     <label class="mb-3 block text-sm text-zinc-400">Cover Photo</label>
@@ -113,11 +113,11 @@
                     </div>
                     <div class="mt-3 flex items-center justify-between gap-3">
                         <p class="min-w-0 text-xs text-zinc-500" data-photo-name="cover_photo">Use a wide image for the public profile header.</p>
-                        <button type="button" class="shrink-0 rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="cover_photo">
+                        <label for="coverPhotoInput" class="inline-flex shrink-0 cursor-pointer rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="cover_photo">
                             Add Cover
-                        </button>
+                        </label>
                     </div>
-                    <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="cover_photo">
+                    <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="cover_photo">
                 </div>
             </div>
 
@@ -130,6 +130,34 @@
         </form>
     </div>
 </main>
+
+<div class="fixed inset-0 z-[30000] hidden items-center justify-center bg-black/80 p-5 backdrop-blur-sm" data-crop-modal aria-hidden="true">
+    <div class="w-full max-w-2xl rounded-3xl border border-zinc-700 bg-zinc-900 p-6 text-white shadow-2xl">
+        <div class="mb-5 flex items-start justify-between gap-4">
+            <div>
+                <h2 class="font-['Oswald'] text-2xl font-semibold" data-crop-title>Crop Photo</h2>
+                <p class="mt-1 text-sm text-zinc-400">Drag the image to position it, then adjust zoom.</p>
+            </div>
+            <button type="button" class="grid h-10 w-10 place-items-center rounded-xl border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700" data-crop-cancel aria-label="Close crop editor">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="mx-auto max-h-[58vh] w-full touch-none overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950" data-crop-frame>
+            <img src="" alt="Crop preview" class="max-w-none select-none" data-crop-image draggable="false">
+        </div>
+
+        <label class="mt-5 block text-sm text-zinc-400">
+            Zoom
+            <input type="range" min="1" max="3" step="0.01" value="1" class="mt-2 w-full accent-emerald-500" data-crop-zoom>
+        </label>
+
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" class="rounded-xl border border-zinc-700 px-5 py-3 font-semibold text-zinc-200 hover:bg-zinc-800" data-crop-cancel>Cancel</button>
+            <button type="button" class="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700" data-crop-apply>Use Cropped Photo</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -206,36 +234,185 @@ function attachEventListeners() {
 positionSelect.addEventListener('change', function() { renderJurisdictionFields(this.options[this.selectedIndex].text); });
 fetchCounties().then(function () { if (positionSelect.value) positionSelect.dispatchEvent(new Event('change')); });
 
-document.querySelectorAll('[data-photo-trigger]').forEach(function (button) {
-    button.addEventListener('click', function () {
-        document.querySelector(`[data-photo-input="${button.dataset.photoTrigger}"]`)?.click();
-    });
-});
-
 document.querySelectorAll('[data-photo-input]').forEach(function (input) {
     input.addEventListener('change', function () {
         const file = input.files?.[0];
         if (!file) return;
 
-        const key = input.dataset.photoInput;
-        const preview = document.querySelector(`[data-photo-preview="${key}"]`);
-        const fileName = document.querySelector(`[data-photo-name="${key}"]`);
-        const trigger = document.querySelector(`[data-photo-trigger="${key}"]`);
-        const imageUrl = URL.createObjectURL(file);
-
-        if (preview) {
-            preview.innerHTML = `<img src="${imageUrl}" alt="Selected ${key.replace('_', ' ')} preview" class="h-full w-full object-cover">`;
-        }
-
-        if (fileName) {
-            fileName.textContent = file.name;
-        }
-
-        if (trigger) {
-            trigger.textContent = key === 'cover_photo' ? 'Change Cover' : 'Change Photo';
-        }
+        openCropper(input, file, input.dataset.photoInput);
     });
 });
+
+const cropModal = document.querySelector('[data-crop-modal]');
+const cropFrame = document.querySelector('[data-crop-frame]');
+const cropImage = document.querySelector('[data-crop-image]');
+const cropZoom = document.querySelector('[data-crop-zoom]');
+const cropTitle = document.querySelector('[data-crop-title]');
+const cropApply = document.querySelector('[data-crop-apply]');
+const cropCancelButtons = document.querySelectorAll('[data-crop-cancel]');
+let cropState = null;
+
+function openCropper(input, file, key) {
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+        const image = new Image();
+
+        image.onload = function () {
+            cropState = {
+                input,
+                file,
+                key,
+                image,
+                x: 0,
+                y: 0,
+                dragging: false,
+                dragX: 0,
+                dragY: 0,
+                imageX: 0,
+                imageY: 0,
+                baseScale: 1,
+            };
+
+            cropTitle.textContent = key === 'cover_photo' ? 'Crop Cover Photo' : 'Crop Profile Picture';
+            cropFrame.style.aspectRatio = key === 'cover_photo' ? '16 / 7' : '1 / 1';
+            cropImage.src = event.target.result;
+            cropZoom.value = '1';
+            cropModal.classList.remove('hidden');
+            cropModal.classList.add('flex');
+            cropModal.setAttribute('aria-hidden', 'false');
+
+            requestAnimationFrame(function () {
+                resetCropPosition();
+                renderCropImage();
+            });
+        };
+
+        image.src = event.target.result;
+    };
+
+    reader.readAsDataURL(file);
+}
+
+function resetCropPosition() {
+    if (!cropState || !cropFrame) return;
+
+    const frame = cropFrame.getBoundingClientRect();
+    cropState.baseScale = Math.max(frame.width / cropState.image.width, frame.height / cropState.image.height);
+    cropState.x = (frame.width - cropState.image.width * cropState.baseScale) / 2;
+    cropState.y = (frame.height - cropState.image.height * cropState.baseScale) / 2;
+}
+
+function renderCropImage() {
+    if (!cropState || !cropFrame || !cropImage) return;
+
+    const frame = cropFrame.getBoundingClientRect();
+    const scale = cropState.baseScale * Number(cropZoom.value || 1);
+    const width = cropState.image.width * scale;
+    const height = cropState.image.height * scale;
+
+    cropState.x = Math.min(0, Math.max(frame.width - width, cropState.x));
+    cropState.y = Math.min(0, Math.max(frame.height - height, cropState.y));
+
+    cropImage.style.width = width + 'px';
+    cropImage.style.height = height + 'px';
+    cropImage.style.transform = `translate(${cropState.x}px, ${cropState.y}px)`;
+    cropImage.style.transformOrigin = 'top left';
+}
+
+cropZoom?.addEventListener('input', renderCropImage);
+
+cropFrame?.addEventListener('pointerdown', function (event) {
+    if (!cropState) return;
+
+    cropState.dragging = true;
+    cropState.dragX = event.clientX;
+    cropState.dragY = event.clientY;
+    cropState.imageX = cropState.x;
+    cropState.imageY = cropState.y;
+    cropFrame.setPointerCapture(event.pointerId);
+});
+
+cropFrame?.addEventListener('pointermove', function (event) {
+    if (!cropState?.dragging) return;
+
+    cropState.x = cropState.imageX + event.clientX - cropState.dragX;
+    cropState.y = cropState.imageY + event.clientY - cropState.dragY;
+    renderCropImage();
+});
+
+cropFrame?.addEventListener('pointerup', function () {
+    if (cropState) cropState.dragging = false;
+});
+
+function closeCropper(clearInput) {
+    if (clearInput && cropState?.input) {
+        cropState.input.value = '';
+    }
+
+    cropModal.classList.add('hidden');
+    cropModal.classList.remove('flex');
+    cropModal.setAttribute('aria-hidden', 'true');
+    cropImage.src = '';
+    cropState = null;
+}
+
+cropCancelButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+        closeCropper(true);
+    });
+});
+
+cropApply?.addEventListener('click', function () {
+    if (!cropState || !cropFrame) return;
+
+    const frame = cropFrame.getBoundingClientRect();
+    const scale = cropState.baseScale * Number(cropZoom.value || 1);
+    const aspect = cropState.key === 'cover_photo' ? 16 / 7 : 1;
+    const outputWidth = cropState.key === 'cover_photo' ? 1600 : 900;
+    const outputHeight = Math.round(outputWidth / aspect);
+    const sourceX = Math.max(0, -cropState.x / scale);
+    const sourceY = Math.max(0, -cropState.y / scale);
+    const sourceWidth = Math.min(cropState.image.width - sourceX, frame.width / scale);
+    const sourceHeight = Math.min(cropState.image.height - sourceY, frame.height / scale);
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+    context.drawImage(cropState.image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outputWidth, outputHeight);
+
+    canvas.toBlob(function (blob) {
+        if (!blob || !cropState) return;
+
+        const croppedFile = new File([blob], cropState.file.name.replace(/\.[^.]+$/, '') + '-cropped.jpg', { type: 'image/jpeg' });
+        const dataTransfer = new DataTransfer();
+        const imageUrl = URL.createObjectURL(blob);
+
+        dataTransfer.items.add(croppedFile);
+        cropState.input.files = dataTransfer.files;
+        updatePhotoPreview(cropState.key, croppedFile, imageUrl);
+        closeCropper(false);
+    }, 'image/jpeg', 0.9);
+});
+
+function updatePhotoPreview(key, file, imageUrl) {
+    const preview = document.querySelector(`[data-photo-preview="${key}"]`);
+    const fileName = document.querySelector(`[data-photo-name="${key}"]`);
+    const trigger = document.querySelector(`[data-photo-trigger="${key}"]`);
+
+    if (preview) {
+        preview.innerHTML = `<img src="${imageUrl}" alt="Selected ${key.replace('_', ' ')} preview" class="h-full w-full object-cover">`;
+    }
+
+    if (fileName) {
+        fileName.textContent = file.name;
+    }
+
+    if (trigger) {
+        trigger.textContent = key === 'cover_photo' ? 'Change Cover' : 'Change Photo';
+    }
+}
 </script>
 @endpush
 
