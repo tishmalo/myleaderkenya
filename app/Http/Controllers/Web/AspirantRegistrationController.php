@@ -54,7 +54,8 @@ class AspirantRegistrationController extends Controller
 
             $candidate = $this->candidateService->createCandidate(
                 $candidateData,
-                $request->file('profile_picture')
+                $request->file('profile_picture'),
+                $request->file('cover_photo')
             );
 
             return $candidate;

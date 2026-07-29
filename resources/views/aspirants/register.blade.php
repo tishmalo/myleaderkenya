@@ -85,9 +85,40 @@
 
             <div id="jurisdictionFields" class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3"></div>
 
-            <div class="mt-6">
-                <label class="mb-2 block text-sm text-zinc-400">Profile Picture</label>
-                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div class="rounded-2xl border border-zinc-700 bg-zinc-800/70 p-4">
+                    <label class="mb-3 block text-sm text-zinc-400">Profile Picture</label>
+                    <div class="flex items-center gap-4">
+                        <div class="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 text-zinc-500" data-photo-preview="profile_picture">
+                            <i class="fas fa-user text-2xl"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <button type="button" class="rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="profile_picture">
+                                Add Photo
+                            </button>
+                            <p class="mt-2 text-xs text-zinc-500" data-photo-name="profile_picture">JPG, PNG, or WEBP.</p>
+                        </div>
+                    </div>
+                    <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="profile_picture">
+                </div>
+                <div class="rounded-2xl border border-zinc-700 bg-zinc-800/70 p-4">
+                    <label class="mb-3 block text-sm text-zinc-400">Cover Photo</label>
+                    <div class="overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900">
+                        <div class="grid aspect-[16/7] place-items-center text-zinc-500" data-photo-preview="cover_photo">
+                            <div class="text-center">
+                                <i class="fas fa-image text-2xl"></i>
+                                <div class="mt-2 text-xs font-semibold uppercase tracking-wider">No cover selected</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between gap-3">
+                        <p class="min-w-0 text-xs text-zinc-500" data-photo-name="cover_photo">Use a wide image for the public profile header.</p>
+                        <button type="button" class="shrink-0 rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="cover_photo">
+                            Add Cover
+                        </button>
+                    </div>
+                    <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="cover_photo">
+                </div>
             </div>
 
             <div class="mt-6">
@@ -174,6 +205,37 @@ function attachEventListeners() {
 }
 positionSelect.addEventListener('change', function() { renderJurisdictionFields(this.options[this.selectedIndex].text); });
 fetchCounties().then(function () { if (positionSelect.value) positionSelect.dispatchEvent(new Event('change')); });
+
+document.querySelectorAll('[data-photo-trigger]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        document.querySelector(`[data-photo-input="${button.dataset.photoTrigger}"]`)?.click();
+    });
+});
+
+document.querySelectorAll('[data-photo-input]').forEach(function (input) {
+    input.addEventListener('change', function () {
+        const file = input.files?.[0];
+        if (!file) return;
+
+        const key = input.dataset.photoInput;
+        const preview = document.querySelector(`[data-photo-preview="${key}"]`);
+        const fileName = document.querySelector(`[data-photo-name="${key}"]`);
+        const trigger = document.querySelector(`[data-photo-trigger="${key}"]`);
+        const imageUrl = URL.createObjectURL(file);
+
+        if (preview) {
+            preview.innerHTML = `<img src="${imageUrl}" alt="Selected ${key.replace('_', ' ')} preview" class="h-full w-full object-cover">`;
+        }
+
+        if (fileName) {
+            fileName.textContent = file.name;
+        }
+
+        if (trigger) {
+            trigger.textContent = key === 'cover_photo' ? 'Change Cover' : 'Change Photo';
+        }
+    });
+});
 </script>
 @endpush
 
