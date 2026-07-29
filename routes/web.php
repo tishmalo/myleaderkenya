@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\CampaignToolRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteSampleController;
+use App\Http\Controllers\Admin\PublicPulseController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
@@ -184,6 +185,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/campaign-tool-requests', [CampaignToolRequestController::class, 'index'])->middleware('permission:campaign-tool-requests.view')->name('campaign-tool-requests.index');
         Route::patch('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.update');
         Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');
+        Route::get('/admin/public-pulse', [PublicPulseController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.index');
+        Route::post('/admin/public-pulse/reclassify', [PublicPulseController::class, 'reclassify'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.reclassify');
         Route::get('/admin/support-group-types', [SupportGroupTypeController::class, 'index'])->middleware('permission:support-groups.view')->name('support-group-types.index');
         Route::post('/admin/support-group-types', [SupportGroupTypeController::class, 'store'])->middleware('permission:support-groups.create')->name('support-group-types.store');
         Route::patch('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'update'])->middleware('permission:support-groups.update')->name('support-group-types.update');

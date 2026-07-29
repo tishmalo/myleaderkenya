@@ -67,7 +67,9 @@ use App\Repositories\Api\TagRepository;
 use App\Repositories\Api\UserRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
 use App\Contracts\Repositories\Web\LandingRepositoryInterface;
+use App\Contracts\Repositories\Web\MentionClassificationCacheRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
+use App\Contracts\Repositories\Web\PublicPulseMentionRepositoryInterface;
 use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateTokenWalletRepositoryInterface;
@@ -76,6 +78,12 @@ use App\Repositories\Web\PublicApprovalRepository;
 use App\Repositories\Web\StoredPublicApprovalRepository;
 use App\Repositories\Web\CandidateSmsMessageRepository;
 use App\Repositories\Web\CandidateTokenWalletRepository;
+use App\Repositories\Web\MentionClassificationCacheRepository;
+use App\Repositories\Web\PublicPulseMentionRepository;
+use App\Contracts\Services\MentionLanguageDetectorInterface;
+use App\Contracts\Services\MentionToneClassifierInterface;
+use App\Services\PublicPulse\DeepSeekMentionToneClassifierService;
+use App\Services\PublicPulse\LocalMentionLanguageDetector;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
@@ -145,8 +153,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(LandingRepositoryInterface::class, LandingRepository::class);
         $this->app->bind(PublicApprovalRepositoryInterface::class, PublicApprovalRepository::class);
         $this->app->bind(StoredPublicApprovalRepositoryInterface::class, StoredPublicApprovalRepository::class);
+        $this->app->bind(PublicPulseMentionRepositoryInterface::class, PublicPulseMentionRepository::class);
+        $this->app->bind(MentionClassificationCacheRepositoryInterface::class, MentionClassificationCacheRepository::class);
         $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);
         $this->app->bind(CandidateTokenWalletRepositoryInterface::class, CandidateTokenWalletRepository::class);
+
+        // Public Pulse classification services
+        $this->app->bind(MentionLanguageDetectorInterface::class, LocalMentionLanguageDetector::class);
+        $this->app->bind(MentionToneClassifierInterface::class, DeepSeekMentionToneClassifierService::class);
     }
 
     /**
@@ -219,3 +233,4 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
+

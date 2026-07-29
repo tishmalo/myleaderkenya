@@ -589,17 +589,6 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- GRID -->
-<div class="aspirant-register-modal" data-aspirant-register-modal aria-hidden="true">
-    <div class="aspirant-register-dialog" role="dialog" aria-modal="true" aria-labelledby="aspirantRegisterTitle">
-        <div class="aspirant-register-head">
-            <div class="aspirant-register-title" id="aspirantRegisterTitle">Submit Aspirant</div>
-            <button type="button" class="aspirant-register-close" data-aspirant-register-close aria-label="Close aspirant registration">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <iframe class="aspirant-register-frame" data-aspirant-register-frame title="Aspirant registration"></iframe>
-    </div>
-</div>
 @if($showLocationGroups ?? false)
     <div class="location-card-grid">
         @forelse($locationGroups as $group)
@@ -669,45 +658,4 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var registerLink = document.querySelector('[data-aspirant-register-popup]');
-    var modal = document.querySelector('[data-aspirant-register-modal]');
-    var frame = document.querySelector('[data-aspirant-register-frame]');
-    var closeButton = document.querySelector('[data-aspirant-register-close]');
-    if (!registerLink || !modal || !frame || !closeButton) return;
-
-    function openModal(event) {
-        event.preventDefault();
-        if (!frame.src) {
-            var modalUrl = new URL(registerLink.href, window.location.origin);
-            modalUrl.searchParams.set('modal', '1');
-            frame.src = modalUrl.toString();
-        }
-        modal.classList.add('is-open');
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-        closeButton.focus();
-    }
-
-    function closeModal() {
-        modal.classList.remove('is-open');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        registerLink.focus();
-    }
-
-    registerLink.addEventListener('click', openModal);
-    closeButton.addEventListener('click', closeModal);
-    modal.addEventListener('click', function (event) {
-        if (event.target === modal) closeModal();
-    });
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
-    });
-});
-</script>
-@endpush
 

@@ -40,6 +40,21 @@ return [
         'timeout' => (int) env('POLITIQKENYA_TIMEOUT', 120),
     ],
 
+    'deepseek' => [
+        'enabled' => (bool) env('DEEPSEEK_ENABLED', false),
+        'api_key' => env('DEEPSEEK_API_KEY'),
+        'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-v4-flash'),
+        'prompt_version' => env('DEEPSEEK_PUBLIC_PULSE_PROMPT_VERSION', 'pulse-tone-v1'),
+        'connect_timeout' => (int) env('DEEPSEEK_CONNECT_TIMEOUT', 10),
+        'timeout' => (int) env('DEEPSEEK_TIMEOUT', 60),
+        'batch_size' => (int) env('DEEPSEEK_PUBLIC_PULSE_BATCH_SIZE', 30),
+        'cache_ttl_days' => (int) env('DEEPSEEK_PUBLIC_PULSE_CACHE_TTL_DAYS', 90),
+        'min_chars' => (int) env('DEEPSEEK_PUBLIC_PULSE_MIN_CHARS', 18),
+        'max_chars_per_mention' => (int) env('DEEPSEEK_PUBLIC_PULSE_MAX_CHARS_PER_MENTION', 800),
+        'max_tokens' => (int) env('DEEPSEEK_PUBLIC_PULSE_MAX_TOKENS', 3500),
+    ],
+
     'ipay' => [
         'vendor_id' => env('IPAY_VENDOR_ID'),
         'security_key' => env('IPAY_SECURITY_KEY'),
@@ -50,4 +65,6 @@ return [
         'timeout' => (int) env('IPAY_TIMEOUT', 30),
     ],
 ];
+
+
 
