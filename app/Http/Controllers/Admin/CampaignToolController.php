@@ -7,16 +7,18 @@ use App\Http\Requests\Admin\CampaignToolStoreRequest;
 use App\Http\Requests\Admin\CampaignToolUpdateRequest;
 use App\Models\CampaignTool;
 use App\Models\CampaignToolRequest;
+use App\Services\Admin\CampaignToolService;
+use App\Services\Admin\SettingService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use App\Services\Admin\CampaignToolService;
 
 class CampaignToolController extends Controller
 {
     public function __construct(
-        private CampaignToolService $campaignToolService
+        private CampaignToolService $campaignToolService,
+        private SettingService $settingService
     ) {}
 
     public function index()
@@ -73,8 +75,9 @@ class CampaignToolController extends Controller
     public function publicIndex()
     {
         $campaignTools = $this->campaignToolService->getPublishedTools(12);
+        $campaignToolsSeo = $this->settingService->getFrontendPage('campaign-tools');
 
-        return view('campaign-tools.public.index', compact('campaignTools'));
+        return view('campaign-tools.public.index', compact('campaignTools', 'campaignToolsSeo'));
     }
 
     public function publicShow(string $slug)

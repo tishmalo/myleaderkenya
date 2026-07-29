@@ -1,7 +1,9 @@
 @extends('layouts.landing')
 
-@section('title', 'Campaign Tools - My Leader Kenya')
-@section('meta_description', 'Explore campaign tools for call centers, bulk SMS, bulk WhatsApp, websites, databases, opinion polls, and aspirant profile management.')
+@php($campaignToolsContent = $campaignToolsSeo['content'] ?? [])
+
+@section('title'){{ $campaignToolsContent['meta_title'] ?? 'Campaign Tools - My Leader Kenya' }}@endsection
+@section('meta_description'){{ $campaignToolsContent['meta_description'] ?? 'Explore campaign tools for call centers, bulk SMS, bulk WhatsApp, websites, databases, opinion polls, and aspirant profile management.' }}@endsection
 
 @section('content')
 <style>

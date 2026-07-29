@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', ($campaignTool->meta_title ?: $campaignTool->title) . ' - Campaign Tools')
+@section('title'){{ $campaignTool->meta_title ?: ($campaignTool->title . ' - Campaign Tools') }}@endsection
 @section('meta_description', $campaignTool->meta_description ?: ($campaignTool->excerpt ?: Str::limit(strip_tags($campaignTool->content), 155)))
 @section('og_image', $campaignTool->featured_image ? Storage::url($campaignTool->featured_image) : asset('images/myleader.png'))
 
