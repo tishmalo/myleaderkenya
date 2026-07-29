@@ -28,7 +28,7 @@ interface CandidateRepositoryInterface
 
     public function allWards(?string $constituency = null): Collection;
 
-    public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator;
+    public function filterPublic(array $filters, int $perPage = 30): LengthAwarePaginator;
 
     public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator;
     public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;

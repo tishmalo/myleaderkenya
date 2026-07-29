@@ -334,7 +334,7 @@ class CandidateService
     // Public-facing pages
     // -------------------------------------------------------------------------
 
-    public function getPublicIndex(array $filters, int $perPage = 16): array
+    public function getPublicIndex(array $filters, int $perPage = 30): array
     {
         $showCountyGroups = empty($filters['county'])
             && $this->usesCountyLanding($filters['position'] ?? null);

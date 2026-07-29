@@ -114,7 +114,7 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
-    public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator
+    public function filterPublic(array $filters, int $perPage = 30): LengthAwarePaginator
     {
         $query = $this->publicQuery($filters);
 
