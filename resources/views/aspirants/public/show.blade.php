@@ -134,6 +134,31 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .profile-cover-form label { display:grid; gap:7px; color:rgba(245,245,240,.68); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .profile-cover-form input[type=file] { width:100%; border:1px dashed rgba(255,255,255,.18); border-radius:8px; background:#0b0b0b; color:rgba(245,245,240,.72); padding:13px; font:inherit; }
 .profile-cover-submit { min-height:44px; border:0; border-radius:8px; background:#006600; color:#fff; font-weight:900; cursor:pointer; }
+.profile-flash { margin:18px 0 0; padding:14px 16px; border-radius:12px; border:1px solid rgba(0,168,107,.35); background:rgba(0,168,107,.1); color:#d8fff0; font-weight:700; }
+.profile-flash.error { border-color:rgba(187,0,0,.4); background:rgba(187,0,0,.14); color:#ffd9d9; }
+.claim-modal { position:fixed; inset:0; z-index:10050; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.78); backdrop-filter:blur(8px); }
+.claim-modal.is-open { display:flex; }
+.claim-dialog { width:min(900px,100%); max-height:90vh; overflow:auto; border:1px solid rgba(255,255,255,.12); border-radius:18px; background:#111; box-shadow:0 24px 80px rgba(0,0,0,.62); }
+.claim-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; background:#101010; border-bottom:1px solid rgba(255,255,255,.08); }
+.claim-title { margin:0; font-family:'Oswald',sans-serif; font-size:28px; color:white; }
+.claim-close { width:42px; height:42px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#1b1b1b; color:white; cursor:pointer; }
+.claim-body { padding:24px; display:grid; gap:22px; }
+.claim-summary { display:grid; grid-template-columns:86px 1fr; gap:16px; align-items:center; padding:16px; border:1px solid rgba(255,255,255,.08); border-radius:14px; background:rgba(255,255,255,.035); }
+.claim-summary-photo { width:86px; height:86px; border-radius:14px; overflow:hidden; display:grid; place-items:center; background:#181818; color:rgba(255,255,255,.28); }
+.claim-summary-photo img { width:100%; height:100%; object-fit:cover; }
+.claim-summary h3 { margin:0; font-family:'Oswald',sans-serif; font-size:24px; color:white; }
+.claim-summary p { margin:7px 0 0; color:rgba(245,245,240,.62); }
+.claim-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.claim-field { display:grid; gap:8px; }
+.claim-field label, .claim-role-label { color:rgba(245,245,240,.65); font-size:13px; font-weight:800; }
+.claim-field input, .claim-field select, .claim-field textarea { width:100%; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:#1f1f22; color:white; padding:13px 15px; font:inherit; }
+.claim-field textarea { min-height:88px; resize:vertical; }
+.claim-role-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.claim-role-option input { position:absolute; opacity:0; pointer-events:none; }
+.claim-role-card { display:flex; align-items:center; justify-content:center; min-height:48px; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:#1b1b1d; color:rgba(245,245,240,.7); font-weight:900; cursor:pointer; }
+.claim-role-option input:checked + .claim-role-card { border-color:rgba(0,168,107,.72); background:rgba(0,168,107,.13); color:#26d596; }
+.claim-submit { width:100%; min-height:50px; border:0; border-radius:12px; background:#006600; color:white; font-weight:900; cursor:pointer; }
+.claim-help { color:rgba(245,245,240,.5); font-size:13px; line-height:1.5; }
 
 @media (max-width: 980px) {
     .profile-shell { padding:0 16px 56px; }
@@ -151,6 +176,8 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     .profile-actions { flex-direction:column; }
     .profile-action { width:100%; }
     .priority-grid { grid-template-columns:1fr; }
+    .claim-grid, .claim-role-options { grid-template-columns:1fr; }
+    .claim-summary { grid-template-columns:1fr; }
 }
 </style>
 
@@ -164,10 +191,18 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     $maskedPhone = $candidate->maskedPhone();
     $maskedEmail = $candidate->maskedEmail();
     $canEditCoverPhoto = auth()->check() && auth()->id() === $candidate->user_id && Route::has('aspirant.cover-photo.update');
+    $claimRelationship = old('relationship', 'aspirant');
+    $hasClaimErrors = $errors->has('relationship') || $errors->has('name') || $errors->has('email') || $errors->has('phone') || $errors->has('password');
 @endphp
 
 <div class="profile-page">
     <div class="profile-shell">
+        @if(session('success'))
+            <div class="profile-flash">{{ session('success') }}</div>
+        @endif
+        @if($hasClaimErrors)
+            <div class="profile-flash error">Please review the claim form and try again.</div>
+        @endif
         <div class="profile-cover">
             @if($candidate->cover_photo)
                 <img src="{{ Storage::url($candidate->cover_photo) }}" alt="{{ $candidate->name }} cover photo">
@@ -212,6 +247,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 
             <div class="profile-actions">
                 @if($maskedPhone)<span class="profile-action primary"><i class="fas fa-heart"></i> Support</span>@endif
+                <button type="button" class="profile-action" data-claim-open><i class="fas fa-user-check"></i> Claim Profile</button>
                 <a class="profile-action" href="{{ route('aspirants.public') }}"><i class="fas fa-arrow-left"></i> Aspirants</a>
                 @if($maskedEmail)<span class="profile-action"><i class="fas fa-envelope"></i> Contact</span>@endif
             </div>
@@ -277,6 +313,118 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         </div>
     </div>
 </div>
+
+<div class="claim-modal{{ $hasClaimErrors ? ' is-open' : '' }}" data-claim-modal aria-hidden="{{ $hasClaimErrors ? 'false' : 'true' }}">
+    <div class="claim-dialog" role="dialog" aria-modal="true" aria-labelledby="claimProfileTitle">
+        <div class="claim-head">
+            <h2 class="claim-title" id="claimProfileTitle">Claim Profile</h2>
+            <button type="button" class="claim-close" data-claim-close aria-label="Close claim profile form"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="{{ route('aspirants.claim-requests.store', $candidate) }}" class="claim-body">
+            @csrf
+
+            <div class="claim-summary">
+                <div class="claim-summary-photo">
+                    @if($candidate->profile_picture)
+                        <img src="{{ Storage::url($candidate->profile_picture) }}" alt="{{ $candidate->name }}">
+                    @else
+                        <span>{{ $initials }}</span>
+                    @endif
+                </div>
+                <div>
+                    <h3>{{ $candidate->name }}</h3>
+                    <p>{{ $positionLabel ?? 'Aspirant' }}@if($candidate->county), {{ $candidate->county }}@endif @if($partyLabel)&bull; {{ $partyLabel }}@endif</p>
+                    <p class="claim-help">Admin will verify this request before dashboard access is enabled.</p>
+                </div>
+            </div>
+
+            <div>
+                <div class="claim-role-label">Select Role</div>
+                <div class="claim-role-options">
+                    @foreach(['aspirant' => 'Aspirant', 'PA' => 'PA', 'campaign_manager' => 'Campaign Manager'] as $value => $label)
+                        <label class="claim-role-option">
+                            <input type="radio" name="relationship" value="{{ $value }}" {{ $claimRelationship === $value ? 'checked' : '' }} data-claim-role>
+                            <span class="claim-role-card">{{ $label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('relationship')<p class="claim-help">{{ $message }}</p>@enderror
+            </div>
+
+            <p class="claim-help" data-claim-copy data-aspirant-copy="Enter the account details for this aspirant profile." data-team-copy="Enter your own account details. Your access will be linked to this aspirant after admin approval."></p>
+
+            <div class="claim-grid">
+                <div class="claim-field">
+                    <label for="claimName">Full Name</label>
+                    <input type="text" id="claimName" name="name" value="{{ old('name', $claimRelationship === 'aspirant' ? $candidate->name : '') }}" required data-claim-name data-aspirant-name="{{ $candidate->name }}">
+                    @error('name')<p class="claim-help">{{ $message }}</p>@enderror
+                </div>
+                <div class="claim-field">
+                    <label for="claimEmail">Email</label>
+                    <input type="email" id="claimEmail" name="email" value="{{ old('email') }}" required>
+                    @error('email')<p class="claim-help">{{ $message }}</p>@enderror
+                </div>
+                <div class="claim-field">
+                    <label for="claimPhone">Phone</label>
+                    <input type="tel" id="claimPhone" name="phone" value="{{ old('phone') }}">
+                    @error('phone')<p class="claim-help">{{ $message }}</p>@enderror
+                </div>
+                <div class="claim-field">
+                    <label for="claimPassword">Password</label>
+                    <input type="password" id="claimPassword" name="password" required autocomplete="new-password">
+                    @error('password')<p class="claim-help">{{ $message }}</p>@enderror
+                </div>
+                <div class="claim-field">
+                    <label for="claimPasswordConfirmation">Confirm Password</label>
+                    <input type="password" id="claimPasswordConfirmation" name="password_confirmation" required autocomplete="new-password">
+                </div>
+            </div>
+
+            <button type="submit" class="claim-submit">Submit Claim Request</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.querySelector('[data-claim-modal]');
+    const open = document.querySelector('[data-claim-open]');
+    const closes = document.querySelectorAll('[data-claim-close]');
+    const roles = document.querySelectorAll('[data-claim-role]');
+    const copy = document.querySelector('[data-claim-copy]');
+    const nameInput = document.querySelector('[data-claim-name]');
+
+    const closeModal = () => {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+    };
+    const openModal = () => {
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        modal.querySelector('input[name="relationship"]')?.focus();
+    };
+    const syncRole = () => {
+        const role = document.querySelector('[data-claim-role]:checked')?.value || 'aspirant';
+        if (copy) copy.textContent = role === 'aspirant' ? copy.dataset.aspirantCopy : copy.dataset.teamCopy;
+        if (nameInput && role === 'aspirant' && nameInput.value.trim() === '') {
+            nameInput.value = nameInput.dataset.aspirantName || '';
+        }
+    };
+
+    open?.addEventListener('click', openModal);
+    closes.forEach((close) => close.addEventListener('click', closeModal));
+    modal?.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal();
+    });
+    roles.forEach((role) => role.addEventListener('change', syncRole));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeModal();
+    });
+    syncRole();
+});
+</script>
 
 @if($canEditCoverPhoto)
 <div class="profile-cover-modal{{ $errors->has('cover_photo') ? ' is-open' : '' }}" data-public-cover-modal aria-hidden="{{ $errors->has('cover_photo') ? 'false' : 'true' }}">

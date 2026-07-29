@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\CandidateClaimController;
+use App\Http\Controllers\Web\CandidateClaimRequestController;
 use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantToolController;
 use App\Http\Controllers\Web\AspirantToolActivationRequestController;
@@ -42,6 +43,7 @@ use App\Http\Controllers\Admin\SmsBalanceRequestController;
 use App\Http\Controllers\Admin\SupportGroupTypeController;
 use App\Http\Controllers\Web\AspirantTokenController;
 use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
+use App\Http\Controllers\Admin\CandidateClaimRequestController as AdminCandidateClaimRequestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -103,6 +105,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::post('/aspirants/register', [AspirantRegistrationController::class, 'store'])->middleware('throttle:3,10')->name('aspirants.register.store');
     Route::get('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'show'])->name('aspirants.claim.show');
     Route::post('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'store'])->middleware('throttle:6,1')->name('aspirants.claim.store');
+    Route::post('/aspirants/{candidate}/claim-requests', [CandidateClaimRequestController::class, 'store'])->middleware('throttle:3,10')->name('aspirants.claim-requests.store');
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->name('aspirants.public');
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->name('aspirants.show');
 });
@@ -154,6 +157,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->middleware('permission:aspirants.update')->name('candidates.featured');
         Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->middleware('permission:aspirants.approve')->name('candidates.approval');
         Route::post('/candidates/{candidate}/claim-link', [CandidateController::class, 'sendClaimLink'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidates.claim-link');
+        Route::patch('/candidate-claim-requests/{claimRequest}', [AdminCandidateClaimRequestController::class, 'update'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidate-claim-requests.update');
         Route::resource('candidates', CandidateController::class)->middleware('permission:aspirants.view');
         Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy'])->middleware('permission:frontend.view');
         Route::resource('/admin/political-parties', PoliticalPartyController::class)

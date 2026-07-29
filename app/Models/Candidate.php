@@ -323,6 +323,11 @@ class Candidate extends Model
         return $this->hasMany(CandidateSupportContact::class);
     }
 
+    public function claimRequests(): HasMany
+    {
+        return $this->hasMany(CandidateClaimRequest::class);
+    }
+
     public function relatedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'candidate_user_relationships')

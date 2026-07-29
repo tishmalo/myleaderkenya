@@ -72,11 +72,15 @@ use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseMentionRepositoryInterface;
 use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateClaimRequestRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateTokenWalletRepositoryInterface;
 use App\Repositories\Web\LandingRepository;
 use App\Repositories\Web\PublicApprovalRepository;
 use App\Repositories\Web\StoredPublicApprovalRepository;
 use App\Repositories\Web\CandidateSmsMessageRepository;
+use App\Repositories\Web\CandidateClaimRequestRepository;
+use App\Repositories\Web\CandidateRelationshipRepository;
 use App\Repositories\Web\CandidateTokenWalletRepository;
 use App\Repositories\Web\MentionClassificationCacheRepository;
 use App\Repositories\Web\PublicPulseMentionRepository;
@@ -156,6 +160,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PublicPulseMentionRepositoryInterface::class, PublicPulseMentionRepository::class);
         $this->app->bind(MentionClassificationCacheRepositoryInterface::class, MentionClassificationCacheRepository::class);
         $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);
+        $this->app->bind(CandidateClaimRequestRepositoryInterface::class, CandidateClaimRequestRepository::class);
+        $this->app->bind(CandidateRelationshipRepositoryInterface::class, CandidateRelationshipRepository::class);
         $this->app->bind(CandidateTokenWalletRepositoryInterface::class, CandidateTokenWalletRepository::class);
 
         // Public Pulse classification services

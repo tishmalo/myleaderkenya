@@ -2,6 +2,7 @@
 
 namespace App\Services\Web;
 
+use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use App\Models\CampaignTool;
 use App\Models\Candidate;
 use App\Models\User;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Schema;
 
 class AspirantWorkspaceService
 {
+    public function __construct(private CandidateRelationshipRepositoryInterface $relationships) {}
+
     public function candidateForUser(User $user): ?Candidate
     {
         $relations = ['position', 'politicalParty'];
@@ -27,6 +30,12 @@ class AspirantWorkspaceService
             if ($candidate) {
                 return $candidate;
             }
+        }
+
+        $relatedCandidate = $this->relationships->firstRelatedCandidate($user);
+
+        if ($relatedCandidate) {
+            return $relatedCandidate;
         }
 
         if (empty($user->email) && empty($user->phone)) {
