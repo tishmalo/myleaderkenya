@@ -25,6 +25,11 @@
                     <button type="button" data-candidate-tab-button="tools" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
                         <i class="fas fa-toolbox mr-2"></i> Tools
                     </button>
+                    @if($candidate->parliamentMember)
+                    <button type="button" data-candidate-tab-button="parliament" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
+                        <i class="fas fa-landmark-dome mr-2"></i> Parliamentary Data
+                    </button>
+                    @endif
                 </div>
             </div>
 
@@ -126,6 +131,17 @@
 
             </section>
 
+            @if($candidate->parliamentMember)
+            <section data-candidate-tab-panel="parliament" class="hidden">
+                <div class="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div><h2 class="text-xl font-semibold text-white">{{ $candidate->parliamentMember->source_name }}</h2><p class="mt-2 text-sm text-zinc-400">{{ collect([$candidate->parliamentMember->house, $candidate->parliamentMember->constituency, $candidate->parliamentMember->party])->filter()->implode(' / ') }}</p></div>
+                        <a href="{{ route('parliament-members.index', ['search' => $candidate->parliamentMember->source_name]) }}" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold">Review Parliamentary Record</a>
+                    </div>
+                    <div class="mt-5 grid gap-3 md:grid-cols-3"><div class="rounded-2xl bg-zinc-900 p-4"><span class="text-xs uppercase text-zinc-500">Match</span><strong class="mt-1 block text-white">{{ ucfirst($candidate->parliamentMember->match_method ?: 'Unmatched') }}</strong></div><div class="rounded-2xl bg-zinc-900 p-4"><span class="text-xs uppercase text-zinc-500">Detail</span><strong class="mt-1 block text-white">{{ ucfirst($candidate->parliamentMember->detail_status) }}</strong></div><div class="rounded-2xl bg-zinc-900 p-4"><span class="text-xs uppercase text-zinc-500">Publication</span><strong class="mt-1 block {{ $candidate->parliamentMember->is_published ? 'text-emerald-400' : 'text-amber-400' }}">{{ $candidate->parliamentMember->is_published ? 'Published' : 'Not published' }}</strong></div></div>
+                </div>
+            </section>
+            @endif
             <section data-candidate-tab-panel="tools" class="hidden">
             @php($smsSetting = \Illuminate\Support\Facades\Schema::hasTable('candidate_sms_settings') ? $candidate->smsSetting : null)
             <div class="border border-zinc-800 rounded-3xl p-6 bg-zinc-950">

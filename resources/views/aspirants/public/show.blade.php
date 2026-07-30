@@ -117,6 +117,20 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .priority-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
 .priority { padding:18px; border:1px solid rgba(255,255,255,.075); border-radius:16px; background:rgba(255,255,255,.035); color:rgba(245,245,240,.72); font-weight:700; font-size:13px; }
 .priority i { display:block; color:var(--green-bright); font-size:22px; margin-bottom:12px; }
+.parliament-overview { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.parliament-stat { border:1px solid rgba(255,255,255,.075); border-radius:14px; background:rgba(255,255,255,.03); padding:16px; }
+.parliament-stat span { display:block; color:rgba(245,245,240,.4); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+.parliament-stat strong { display:block; margin-top:6px; color:white; font-size:18px; }
+.parliament-biography { margin-top:18px; color:rgba(245,245,240,.68); line-height:1.75; }
+.parliament-subsection { margin-top:22px; }
+.parliament-subsection h3 { margin-bottom:12px; color:white; font-size:18px; }
+.parliament-tags { display:flex; flex-wrap:wrap; gap:8px; }
+.parliament-tag { border:1px solid rgba(0,168,107,.25); border-radius:999px; background:rgba(0,168,107,.08); padding:8px 12px; color:#a7f3d0; font-size:12px; }
+.parliament-activity-list { display:grid; gap:10px; }
+.parliament-activity { display:grid; grid-template-columns:90px 1fr auto; gap:12px; align-items:center; border:1px solid rgba(255,255,255,.07); border-radius:13px; background:rgba(255,255,255,.025); padding:13px; }
+.parliament-activity-type { color:var(--green-bright); font-size:11px; font-weight:900; text-transform:uppercase; }
+.parliament-activity-title { color:rgba(245,245,240,.82); font-weight:700; }
+.parliament-activity-meta { color:rgba(245,245,240,.42); font-size:12px; }
 .news-list { display:grid; gap:14px; }
 .news-row { display:flex; gap:14px; align-items:center; padding:12px; border:1px solid rgba(255,255,255,.07); border-radius:15px; color:inherit; text-decoration:none; background:rgba(255,255,255,.03); }
 .news-row:hover { border-color:rgba(0,168,107,.35); }
@@ -156,7 +170,8 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     .profile-avatar { width:128px; height:128px; }
     .profile-actions { flex-direction:column; }
     .profile-action { width:100%; }
-    .priority-grid { grid-template-columns:1fr; }
+    .priority-grid, .parliament-overview { grid-template-columns:1fr; }
+    .parliament-activity { grid-template-columns:1fr; }
 }
 </style>
 
@@ -164,6 +179,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 
 @php
     $relatedArticles = $candidate->relatedArticles ?? collect();
+    $parliamentMember = $candidate->parliamentMember;
     $initials = strtoupper(substr($candidate->name, 0, 1)) . strtoupper(substr(strrchr($candidate->name, ' ') ?: '', 1, 1));
     $positionLabel = $candidate->position?->name;
     $partyLabel = $candidate->politicalParty?->abbreviation ?: $candidate->politicalParty?->name;
@@ -284,6 +300,25 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                     </div>
                 </section>
 
+
+                @if($parliamentMember)
+                <section class="profile-card">
+                    <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Parliamentary Record</div></div>
+                    <div class="profile-card-body">
+                        <div class="parliament-overview">
+                            <div class="parliament-stat"><span>House</span><strong>{{ ucfirst($parliamentMember->house ?: 'Not supplied') }}</strong></div>
+                            <div class="parliament-stat"><span>Constituency / Role</span><strong>{{ $parliamentMember->constituency ?: ($parliamentMember->role ?: 'Not supplied') }}</strong></div>
+                            <div class="parliament-stat"><span>Party</span><strong>{{ $parliamentMember->party ?: 'Not supplied' }}</strong></div>
+                            <div class="parliament-stat"><span>Recorded activity</span><strong>{{ number_format($parliamentMember->activities->count()) }}</strong></div>
+                            <div class="parliament-stat"><span>Speeches</span><strong>{{ $parliamentMember->speeches_total === null ? 'Not supplied' : number_format($parliamentMember->speeches_total) }}</strong></div>
+                            <div class="parliament-stat"><span>Bills</span><strong>{{ $parliamentMember->bills_total === null ? 'Not supplied' : number_format($parliamentMember->bills_total) }}</strong></div>
+                        </div>
+                        @if($parliamentMember->biography)<div class="parliament-biography">{!! nl2br(e($parliamentMember->biography)) !!}</div>@endif
+                        @if($parliamentMember->committees->isNotEmpty())<div class="parliament-subsection"><h3>Committee Service</h3><div class="parliament-tags">@foreach($parliamentMember->committees as $committee)<span class="parliament-tag"><i class="fas fa-people-roof mr-1"></i>{{ $committee->name }}</span>@endforeach</div></div>@endif
+                        @if($parliamentMember->activities->isNotEmpty())<div class="parliament-subsection"><h3>Parliamentary Activity</h3><div class="parliament-activity-list">@foreach($parliamentMember->activities->take(12) as $activity)<div class="parliament-activity"><span class="parliament-activity-type">{{ $activity->type }}</span><span class="parliament-activity-title">{{ $activity->title }}</span><span class="parliament-activity-meta">{{ collect([$activity->occurred_on?->format('d M Y'), $activity->decision])->filter()->implode(' • ') }}</span></div>@endforeach</div></div>@endif
+                    </div>
+                </section>
+                @endif
                 @if($relatedArticles->count() > 0)
                 <section class="profile-card">
                     <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Latest Updates</div></div>

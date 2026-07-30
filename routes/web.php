@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\PoliticalPartyController;
 use App\Http\Controllers\Admin\CoalitionController;
 use App\Http\Controllers\Admin\CandidateController;
+use App\Http\Controllers\Admin\ParliamentMemberController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\CampaignToolRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteRequestController;
@@ -168,6 +169,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/candidates/{candidate}/login-as/{user}', [AspirantImpersonationController::class, 'start'])->middleware(['permission:aspirants.update', 'throttle:20,1'])->name('candidates.login-as');
         Route::patch('/candidate-claim-requests/{claimRequest}', [AdminCandidateClaimRequestController::class, 'update'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidate-claim-requests.update');
         Route::patch('/candidate-claim-requests/{claimRequest}/dashboard-access', [AdminCandidateClaimRequestController::class, 'updateDashboardAccess'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidate-claim-requests.dashboard-access');
+        Route::get('/admin/parliament-members', [ParliamentMemberController::class, 'index'])->middleware('permission:aspirants.view')->name('parliament-members.index');
+        Route::post('/admin/parliament-members/import', [ParliamentMemberController::class, 'import'])->middleware(['permission:aspirants.approve', 'throttle:3,10'])->name('parliament-members.import');
+        Route::patch('/admin/parliament-members/{parliamentMember}/link', [ParliamentMemberController::class, 'link'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('parliament-members.link');
+        Route::patch('/admin/parliament-members/{parliamentMember}/publish', [ParliamentMemberController::class, 'publish'])->middleware(['permission:aspirants.approve', 'throttle:30,1'])->name('parliament-members.publish');
+        Route::post('/admin/parliament-members/{parliamentMember}/retry', [ParliamentMemberController::class, 'retry'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('parliament-members.retry');
         Route::resource('candidates', CandidateController::class)->middleware('permission:aspirants.view');
         Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy'])->middleware('permission:frontend.view');
         Route::resource('/admin/political-parties', PoliticalPartyController::class)

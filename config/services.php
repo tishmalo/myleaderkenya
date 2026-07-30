@@ -40,6 +40,13 @@ return [
         'timeout' => (int) env('POLITIQKENYA_TIMEOUT', 120),
     ],
 
+    'parliament_members' => [
+        'base_url' => env('PARLIAMENT_MEMBERS_API_BASE_URL'),
+        'token' => env('PARLIAMENT_MEMBERS_API_TOKEN'),
+        'connect_timeout' => (int) env('PARLIAMENT_MEMBERS_CONNECT_TIMEOUT', 10),
+        'timeout' => (int) env('PARLIAMENT_MEMBERS_TIMEOUT', 45),
+        'detail_spacing_seconds' => (int) env('PARLIAMENT_MEMBERS_DETAIL_SPACING_SECONDS', 2),
+    ],
     'deepseek' => [
         'enabled' => (bool) env('DEEPSEEK_ENABLED', false),
         'api_key' => env('DEEPSEEK_API_KEY'),

@@ -330,6 +330,11 @@ class Candidate extends Model
         return $this->hasMany(CandidateSupportContact::class);
     }
 
+    public function parliamentMember(): HasOne
+    {
+        return $this->hasOne(ParliamentMember::class);
+    }
+
     public function claimRequests(): HasMany
     {
         return $this->hasMany(CandidateClaimRequest::class);
