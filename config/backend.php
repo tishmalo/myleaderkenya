@@ -17,12 +17,6 @@ return [
 
         'sections' => [
             [
-                'label' => 'Access Control',
-                'items' => [
-                    ['label' => 'Admins, Roles & Permissions', 'route' => 'user-access.index', 'icon' => 'fas fa-user-shield', 'active' => ['user-access.*'], 'permission' => 'user-access.view'],
-                ],
-            ],
-            [
                 'label' => 'Voter Management',
                 'items' => [
                     ['label' => 'Voters', 'route' => 'users.index', 'icon' => 'fas fa-user-check', 'active' => ['users.*'], 'permission' => 'voters.view'],
@@ -98,6 +92,7 @@ return [
                 'label' => 'System Settings',
                 'items' => [
                     ['label' => 'SMTP Settings', 'route' => 'admin.smtp', 'icon' => 'fas fa-envelope-circle-check', 'active' => ['admin.smtp'], 'permission' => 'settings.view'],
+                    ['label' => 'Admins, Roles & Permissions', 'route' => 'user-access.index', 'icon' => 'fas fa-user-shield', 'active' => ['user-access.*'], 'permission' => 'user-access.view'],
                 ],
             ],
         ],
