@@ -6,9 +6,9 @@
 @endpush
 
 
-<!-- ══════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      AUTH MODAL
-══════════════════════════════════════════════════ -->
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="auth-modal-backdrop" id="authModal" onclick="handleBackdropClick(event)">
     <div class="auth-modal" role="dialog" aria-modal="true" aria-label="Login or Register">
         <div class="auth-modal-stripe"></div>
@@ -44,7 +44,7 @@
                 </div>
                 @endif
 
-                <!-- ── LOGIN ── -->
+                <!-- â”€â”€ LOGIN â”€â”€ -->
                 <div class="auth-form-panel active" id="panel-login">
                     <form action="{{ route('login') }}" method="POST">
                         @csrf
@@ -63,7 +63,7 @@
                             <label>Password</label>
                             <div class="auth-field-wrap">
                                 <input type="password" id="modal-login-pwd" name="password"
-                                       placeholder="••••••••" required autocomplete="new-password" autocomplete="current-password">
+                                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required autocomplete="new-password" autocomplete="current-password">
                                 <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                 <button type="button" class="auth-pwd-toggle"
                                         onclick="togglePwd('modal-login-pwd',this)" aria-label="Toggle password">
@@ -77,11 +77,11 @@
                         </button>
                     </form>
                     <div class="auth-bottom-link">
-                        Don't have an account? <button onclick="switchTab('register')">Register now →</button>
+                        Don't have an account? <button onclick="switchTab('register')">Register now â†’</button>
                     </div>
                 </div>
 
-                <!-- ── REGISTER ── -->
+                <!-- â”€â”€ REGISTER â”€â”€ -->
                 <div class="auth-form-panel" id="panel-register">
                     <form action="{{ route('register') }}" method="POST">
                         @csrf
@@ -154,7 +154,7 @@
                                 <label>Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd" name="password"
-                                           placeholder="••••••••" required autocomplete="new-password"
+                                           placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required autocomplete="new-password"
                                            oninput="modalPwdStrength(this.value)">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
@@ -169,7 +169,7 @@
                                 <label>Confirm Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd2" name="password_confirmation"
-                                           placeholder="••••••••" required autocomplete="new-password">
+                                           placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required autocomplete="new-password">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
                                             onclick="togglePwd('modal-reg-pwd2',this)" aria-label="Toggle password">
@@ -184,7 +184,7 @@
                         </button>
                     </form>
                     <div class="auth-bottom-link">
-                        Already have an account? <button onclick="switchTab('login')">Login here →</button>
+                        Already have an account? <button onclick="switchTab('login')">Login here â†’</button>
                     </div>
                 </div>
 
@@ -194,9 +194,9 @@
 </div><!-- /backdrop -->
 
 
-<!-- ══════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      PAGE
-══════════════════════════════════════════════════ -->
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div>
     <div class="flag-stripe"></div>
 
@@ -275,10 +275,21 @@
                 @if(($latestBlogs ?? collect())->isNotEmpty())
                     <div class="latest-blog-list">
                         @foreach($latestBlogs as $blog)
-                            <a href="{{ route('news.public.show', $blog->slug) }}" class="latest-blog-item">
-                                <div class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</div>
-                                <div class="latest-blog-title">{{ $blog->title }}</div>
-                                <div class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</div>
+                            <a href="{{ route('news.public.show', $blog->slug) }}"
+                               class="latest-blog-item{{ $blog->featured_image ? ' has-image' : '' }}">
+                                @if($blog->featured_image)
+                                    <span class="latest-blog-image">
+                                        <img src="{{ Storage::url($blog->featured_image) }}"
+                                             alt="{{ $blog->title }}"
+                                             loading="lazy"
+                                             decoding="async">
+                                    </span>
+                                @endif
+                                <span class="latest-blog-content">
+                                    <span class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</span>
+                                    <span class="latest-blog-title">{{ $blog->title }}</span>
+                                    <span class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</span>
+                                </span>
                             </a>
                         @endforeach
                     </div>
@@ -376,7 +387,7 @@
                 <div class="stat-card green">
                     <div class="stat-num" id="live-confirmed-voters">{{ number_format($voterStats['confirmedVoters'] ?? 0) }}</div>
                     <div class="stat-label">Confirmed Voters</div>
-                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? '—' }}</span></div>
+                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? 'â€”' }}</span></div>
                     <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
                 </div>
                 <div class="stat-card white">
