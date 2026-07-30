@@ -56,6 +56,26 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
             ->get();
     }
 
+    public function userCanAccessCandidateDashboard(User $user, Candidate $candidate): bool
+    {
+        if ((int) $candidate->user_id === (int) $user->id) {
+            return true;
+        }
+
+        if (! Schema::hasTable('candidate_user_relationships')) {
+            return false;
+        }
+
+        return $user->relatedCandidates()
+            ->where('candidates.id', $candidate->id)
+            ->whereIn('candidate_user_relationships.relationship', ['aspirant', 'PA', 'campaign_manager'])
+            ->when(
+                Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled'),
+                fn ($query) => $query->where('candidate_user_relationships.dashboard_access_enabled', true)
+            )
+            ->exists();
+    }
+
     public function hasApprovedCandidateRelationship(User $user): bool
     {
         if (! Schema::hasTable('candidate_user_relationships')) {

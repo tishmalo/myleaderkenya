@@ -187,6 +187,18 @@ body { background:#080808; color:#f5f5f0; }
 
             @endif
 
+            @if(session('impersonator_admin_id'))
+                <div class="asp-alert">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                        <span>You are viewing this dashboard as {{ $user->name }}.</span>
+                        <form method="POST" action="{{ route('impersonation.stop') }}">
+                            @csrf
+                            <button type="submit" class="asp-btn ghost"><i class="fas fa-arrow-left"></i> Return to Admin</button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
 
 
             @if(session('warning'))

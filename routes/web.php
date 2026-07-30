@@ -44,6 +44,7 @@ use App\Http\Controllers\Admin\SupportGroupTypeController;
 use App\Http\Controllers\Web\AspirantTokenController;
 use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
 use App\Http\Controllers\Admin\CandidateClaimRequestController as AdminCandidateClaimRequestController;
+use App\Http\Controllers\Admin\AspirantImpersonationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -158,6 +159,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->middleware('permission:aspirants.update')->name('candidates.featured');
         Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->middleware('permission:aspirants.approve')->name('candidates.approval');
         Route::post('/candidates/{candidate}/claim-link', [CandidateController::class, 'sendClaimLink'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidates.claim-link');
+        Route::post('/candidates/{candidate}/login-as/{user}', [AspirantImpersonationController::class, 'start'])->middleware(['permission:aspirants.update', 'throttle:20,1'])->name('candidates.login-as');
         Route::patch('/candidate-claim-requests/{claimRequest}', [AdminCandidateClaimRequestController::class, 'update'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidate-claim-requests.update');
         Route::patch('/candidate-claim-requests/{claimRequest}/dashboard-access', [AdminCandidateClaimRequestController::class, 'updateDashboardAccess'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidate-claim-requests.dashboard-access');
         Route::resource('candidates', CandidateController::class)->middleware('permission:aspirants.view');
@@ -244,6 +246,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop');
 });
 require __DIR__.'/auth.php';
 

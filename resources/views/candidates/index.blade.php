@@ -156,6 +156,14 @@
                         @if($rejectedClaims > 0)
                             <p class="mt-2 text-xs text-zinc-500">{{ $rejectedClaims }} rejected</p>
                         @endif
+                        @if($candidate->user_id)
+                            <form method="POST" action="{{ route('candidates.login-as', [$candidate, $candidate->user_id]) }}" class="mt-2">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-blue-700 px-3 py-1 text-xs font-semibold text-blue-300 hover:bg-blue-950">
+                                    <i class="fas fa-right-to-bracket"></i> Login as
+                                </button>
+                            </form>
+                        @endif
                         @if(blank($candidate->email))
                             <p class="mt-2 text-xs text-amber-300">Needs email for token link</p>
                         @elseif(!($candidate->user_id || $candidate->claimed_at))
@@ -264,6 +272,10 @@
                                                         $dashboardAccessEnabled = (bool) ($linkedCandidate?->pivot?->dashboard_access_enabled ?? true);
                                                     @endphp
                                                     <div class="flex justify-end gap-2">
+                                                        <form method="POST" action="{{ route('candidates.login-as', [$candidate, $claimRequest->user]) }}">
+                                                            @csrf
+                                                            <button type="submit" class="rounded-xl border border-blue-700 px-4 py-2 text-sm font-semibold text-blue-300 hover:bg-blue-950">Login as</button>
+                                                        </form>
                                                         <form method="POST" action="{{ route('candidate-claim-requests.dashboard-access', $claimRequest) }}">
                                                             @csrf
                                                             @method('PATCH')

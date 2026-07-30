@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,6 +46,24 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if ($request->session()->has('impersonator_admin_id')) {
+            $admin = User::find($request->session()->get('impersonator_admin_id'));
+            $returnUrl = $request->session()->get('impersonator_return_url') ?: route('dashboard');
+
+            $request->session()->forget([
+                'impersonator_admin_id',
+                'impersonator_return_url',
+                'impersonated_candidate_id',
+            ]);
+
+            if ($admin) {
+                Auth::login($admin);
+                $request->session()->regenerate();
+
+                return redirect($returnUrl)->with('success', 'Returned to admin account.');
+            }
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

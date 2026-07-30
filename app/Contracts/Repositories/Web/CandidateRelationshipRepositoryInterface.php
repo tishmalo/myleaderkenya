@@ -16,6 +16,8 @@ interface CandidateRelationshipRepositoryInterface
 
     public function teamForCandidate(Candidate $candidate): Collection;
 
+    public function userCanAccessCandidateDashboard(User $user, Candidate $candidate): bool;
+
     public function hasApprovedCandidateRelationship(User $user): bool;
 
     public function firstRelatedCandidate(User $user): ?Candidate;
