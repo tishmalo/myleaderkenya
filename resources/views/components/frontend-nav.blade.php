@@ -449,8 +449,7 @@
 <nav class="frontend-nav" data-frontend-nav>
     <div class="frontend-nav-inner">
         <a href="{{ route('landing') }}" class="frontend-nav-brand" aria-label="My Leader Kenya home">
-            <div class="frontend-nav-brand-logo"><img src="{{ asset('images/mlkfav.png') }}" alt="My Leader Kenya"></div>
-            <div class="frontend-nav-brand-name">MY LEADER KENYA</div>
+            <div class="frontend-nav-brand-logo"><img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya"></div>
         </a>
 
         <ul class="frontend-nav-menu" aria-label="Primary navigation">
