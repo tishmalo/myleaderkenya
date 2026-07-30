@@ -1,6 +1,12 @@
 @extends('layouts.landing')
 
-@section('title', 'Aspirant Registration - My Leader Kenya')
+@section('title', 'Submit Aspirant - My Leader Kenya')
+
+@push('styles')
+<style>
+.aspirant-form-shell{background:radial-gradient(circle at top left,rgba(0,168,107,.09),transparent 30%),#09090b;color:#fff}.aspirant-form-wrap{max-width:980px;margin:auto}.aspirant-form-intro{margin-bottom:28px}.aspirant-kicker{color:#34d399;font-size:12px;font-weight:900;letter-spacing:.24em;text-transform:uppercase}.aspirant-form-intro h1{margin:10px 0 8px;font:700 clamp(32px,5vw,50px)/1.05 'Oswald',sans-serif}.aspirant-form-intro p{color:#a1a1aa}.aspirant-panel{margin-top:18px;border:1px solid #29292d;border-radius:24px;background:#151517;padding:clamp(20px,4vw,32px);box-shadow:0 22px 60px rgba(0,0,0,.24)}.aspirant-panel-head{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px}.aspirant-panel-num{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:rgba(16,185,129,.14);color:#34d399;font-weight:900}.aspirant-panel h2{font:700 21px 'Oswald',sans-serif}.aspirant-panel-head p{margin-top:3px;color:#71717a;font-size:13px}.aspirant-field-label{display:block;margin-bottom:8px;color:#d4d4d8;font-size:13px;font-weight:700}.aspirant-field,.aspirant-select,.aspirant-textarea{width:100%;border:1px solid #3f3f46;border-radius:13px;background:#242427;color:#fff;padding:12px 14px;outline:none}.aspirant-field:focus,.aspirant-select:focus,.aspirant-textarea:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1)}.aspirant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.aspirant-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.aspirant-role-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;border:1px solid #303036;border-radius:15px;background:#0f0f11}.aspirant-role-switch input{position:absolute;opacity:0}.aspirant-role-switch span{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border-radius:10px;color:#a1a1aa;font-weight:800;cursor:pointer}.aspirant-role-switch input:checked+span{background:#242427;color:#34d399;box-shadow:0 5px 18px rgba(0,0,0,.2)}.aspirant-privacy-note{display:flex;gap:10px;margin-top:14px;border-radius:12px;background:rgba(16,185,129,.08);padding:12px;color:#a7f3d0;font-size:12px;line-height:1.5}.aspirant-search{position:relative}.aspirant-search-control{display:flex;align-items:center;gap:10px;border:1px solid #3f3f46;border-radius:14px;background:#242427;padding:0 14px}.aspirant-search-control:focus-within{border-color:#10b981}.aspirant-search-control input{width:100%;height:50px;border:0;background:transparent;color:#fff;outline:0}.aspirant-search-spinner.is-active{width:15px;height:15px;border:2px solid #52525b;border-top-color:#34d399;border-radius:50%;animation:asp-spin .7s linear infinite}@keyframes asp-spin{to{transform:rotate(360deg)}}.aspirant-search-results{position:absolute;z-index:30;top:82px;left:0;right:0;max-height:330px;overflow:auto;border:1px solid #3f3f46;border-radius:14px;background:#18181b;padding:7px;box-shadow:0 22px 50px rgba(0,0,0,.55)}.aspirant-search-option{display:flex;width:100%;align-items:center;gap:12px;border:0;border-radius:10px;background:transparent;padding:10px;color:#fff;text-align:left}.aspirant-search-option:hover,.aspirant-search-option.is-active{background:#29292d}.aspirant-search-option-avatar,.aspirant-search-avatar{display:grid;flex:0 0 auto;place-items:center;width:45px;height:45px;overflow:hidden;border-radius:12px;background:#064e3b;color:#a7f3d0;font-weight:900}.aspirant-search-option-avatar img,.aspirant-search-avatar img{width:100%;height:100%;object-fit:cover}.aspirant-search-option-copy{display:grid;gap:3px}.aspirant-search-option-copy small,.aspirant-search-selected-copy span{color:#a1a1aa;font-size:12px}.aspirant-search-message{padding:24px;text-align:center;color:#a1a1aa}.aspirant-search-selection{align-items:center;gap:13px;border:1px solid rgba(16,185,129,.35);border-radius:15px;background:rgba(16,185,129,.07);padding:14px}.aspirant-search-selection:not([hidden]){display:flex}.aspirant-search-selected-copy{display:grid;min-width:0;flex:1;gap:3px}.aspirant-search-selected-copy small{color:#6ee7b7}.aspirant-search-selection button{border:1px solid #3f3f46;border-radius:9px;background:#242427;padding:8px 11px;color:#fff;font-size:12px;font-weight:800}.aspirant-search-help{margin-top:9px;color:#71717a;font-size:12px}.aspirant-submit{width:100%;margin-top:22px;border:0;border-radius:15px;background:#059669;padding:15px;color:#fff;font-weight:900}.aspirant-submit:hover{background:#047857}[hidden]{display:none!important}@media(max-width:720px){.aspirant-grid,.aspirant-grid-3{grid-template-columns:1fr}.aspirant-role-switch{grid-template-columns:1fr}.aspirant-panel{border-radius:18px}.aspirant-search-selection{align-items:flex-start;flex-wrap:wrap}.aspirant-search-selection button{margin-left:58px}}
+</style>
+@endpush
 
 @section('content')
 <div class="flag-stripe"></div>
@@ -8,129 +14,78 @@
 @include('components.frontend-nav')
 @endunless
 
-<main class="min-h-screen bg-zinc-950 px-5 {{ request()->boolean('modal') ? 'py-8' : 'py-14' }} text-white">
-    <div class="mx-auto max-w-4xl">
-        <div class="mb-8">
-            <p class="text-sm font-bold uppercase tracking-[0.24em] text-emerald-400">Aspirant Registration</p>
-            <h1 class="mt-3 text-4xl font-semibold">Create your aspirant profile</h1>
-            <p class="mt-3 max-w-2xl text-zinc-400">Submit your account and campaign profile for admin review.</p>
+<main class="aspirant-form-shell min-h-screen px-5 {{ request()->boolean('modal') ? 'py-8' : 'py-14' }}">
+<div class="aspirant-form-wrap">
+    <header class="aspirant-form-intro">
+        <div class="aspirant-kicker">Aspirant Registration</div>
+        <h1>Submit an aspirant profile</h1>
+        <p>Find an existing profile or submit a new one for admin verification.</p>
+    </header>
+
+    @if(session('success'))<div class="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">{{ session('success') }}</div>@endif
+    @if($errors->any())
+        <div class="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+    @endif
+
+    <form action="{{ route('aspirants.register.store', request()->boolean('modal') ? ['modal' => 1] : []) }}" method="POST" enctype="multipart/form-data" id="aspirantRegisterForm">
+        @csrf
+        <section class="aspirant-panel">
+            <div class="aspirant-panel-head"><span class="aspirant-panel-num">1</span><div><h2>Find the aspirant</h2><p>Avoid duplicate profiles by searching first.</p></div></div>
+            <x-aspirant-search name="candidate_id" :search-url="route('aspirants.search')" />
+        </section>
+
+        <section class="aspirant-panel">
+            <div class="aspirant-panel-head"><span class="aspirant-panel-num">2</span><div><h2>Who is submitting?</h2><p>This determines whose login account and password will be created.</p></div></div>
+            <div class="aspirant-role-switch">
+                <label><input type="radio" name="submission_mode" value="self" {{ old('submission_mode','self') === 'self' ? 'checked' : '' }}><span><i class="fas fa-user"></i> I am the aspirant</span></label>
+                <label><input type="radio" name="submission_mode" value="representative" {{ old('submission_mode') === 'representative' ? 'checked' : '' }}><span><i class="fas fa-people-group"></i> I'm submitting on behalf</span></label>
+            </div>
+            <div class="mt-4" data-relationship-wrap hidden>
+                <label class="aspirant-field-label" for="relationship">I am the aspirant's</label>
+                <select class="aspirant-select" id="relationship" name="relationship">
+                    <option value="PA" {{ old('relationship') === 'PA' ? 'selected' : '' }}>Personal Assistant (PA)</option>
+                    <option value="campaign_manager" {{ old('relationship') === 'campaign_manager' ? 'selected' : '' }}>Campaign Team</option>
+                </select>
+            </div>
+            <div class="aspirant-privacy-note"><i class="fas fa-shield-halved"></i><span>Your password always belongs to you - the person submitting this form. Existing aspirant email and phone data are never displayed or prefilled.</span></div>
+        </section>
+
+        <div data-new-profile>
+            <section class="aspirant-panel">
+                <div class="aspirant-panel-head"><span class="aspirant-panel-num">3</span><div><h2>Aspirant profile</h2><p>Public campaign information and optional contact details for a new profile.</p></div></div>
+                <div class="aspirant-grid">
+                    <div><label class="aspirant-field-label">Aspirant Name <b class="text-red-400">*</b></label><input class="aspirant-field" type="text" name="aspirant_name" value="{{ old('aspirant_name') }}"></div>
+                    <div><label class="aspirant-field-label">Aspirant Nickname</label><input class="aspirant-field" type="text" name="nick_name" value="{{ old('nick_name') }}"></div>
+                    <div><label class="aspirant-field-label">Aspirant Email <span data-self-required class="text-red-400">*</span></label><input class="aspirant-field" type="email" name="aspirant_email" autocomplete="email"></div>
+                    <div><label class="aspirant-field-label">Aspirant Phone</label><input class="aspirant-field" type="tel" name="aspirant_phone" autocomplete="tel"></div>
+                    <div><label class="aspirant-field-label">Political Party</label><select class="aspirant-select" name="political_party_id"><option value="">Select Political Party (Optional)</option>@foreach($politicalParties as $party)<option value="{{ $party->id }}" {{ old('political_party_id') == $party->id ? 'selected' : '' }}>{{ $party->name }}</option>@endforeach</select></div>
+                    <div><label class="aspirant-field-label">Position <b class="text-red-400">*</b></label><select class="aspirant-select" name="position_id" id="positionSelect"><option value="">Select Position</option>@foreach($positions as $pos)<option value="{{ $pos->id }}" {{ old('position_id') == $pos->id ? 'selected' : '' }}>{{ $pos->name }}</option>@endforeach</select></div>
+                </div>
+                <div id="jurisdictionFields" class="aspirant-grid aspirant-grid-3 mt-5"></div>
+                <div class="aspirant-grid mt-5">
+                    <div class="rounded-2xl border border-zinc-700 bg-zinc-800/70 p-4"><label class="aspirant-field-label">Aspirant Profile Picture</label><div class="flex items-center gap-4"><div class="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 text-zinc-500" data-photo-preview="profile_picture"><i class="fas fa-user text-2xl"></i></div><div><label for="profilePictureInput" class="inline-flex cursor-pointer rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold" data-photo-trigger="profile_picture">Add Photo</label><p class="mt-2 text-xs text-zinc-500" data-photo-name="profile_picture">JPG, PNG, or WEBP.</p></div></div><input type="file" id="profilePictureInput" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="profile_picture"></div>
+                    <div class="rounded-2xl border border-zinc-700 bg-zinc-800/70 p-4"><label class="aspirant-field-label">Aspirant Cover Photo</label><div class="overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900"><div class="grid aspect-[16/7] place-items-center text-zinc-500" data-photo-preview="cover_photo"><i class="fas fa-image text-2xl"></i></div></div><div class="mt-3 flex justify-between gap-3"><p class="text-xs text-zinc-500" data-photo-name="cover_photo">Use a wide image.</p><label for="coverPhotoInput" class="cursor-pointer rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold" data-photo-trigger="cover_photo">Add Cover</label></div><input type="file" id="coverPhotoInput" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="cover_photo"></div>
+                </div>
+                <div class="mt-5"><label class="aspirant-field-label">About the Aspirant</label><textarea class="aspirant-textarea" name="about" rows="5">{{ old('about') }}</textarea></div>
+            </section>
         </div>
 
-        @if(session('success'))
-            <div class="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">
-                {{ session('success') }}
+        <section class="aspirant-panel">
+            <div class="aspirant-panel-head"><span class="aspirant-panel-num" data-account-step>4</span><div><h2>Your secure account</h2><p data-account-copy>The password below is yours and is never the aspirant's when you are a PA or campaign-team member.</p></div></div>
+            <div class="aspirant-grid" data-account-identity hidden>
+                <div><label class="aspirant-field-label">Your Full Name <b class="text-red-400">*</b></label><input class="aspirant-field" type="text" name="account_name" value="{{ old('account_name') }}" autocomplete="name"></div>
+                <div><label class="aspirant-field-label">Your Email <b class="text-red-400">*</b></label><input class="aspirant-field" type="email" name="account_email" autocomplete="email"></div>
+                <div><label class="aspirant-field-label">Your Phone</label><input class="aspirant-field" type="tel" name="account_phone" autocomplete="tel"></div>
             </div>
-        @endif
-
-        @if($errors->any())
-            <div class="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-                <ul class="list-disc pl-5">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+            <div class="aspirant-grid mt-5">
+                <div><label class="aspirant-field-label">Your Password <b class="text-red-400">*</b></label><input class="aspirant-field" type="password" name="password" required autocomplete="new-password"></div>
+                <div><label class="aspirant-field-label">Confirm Your Password <b class="text-red-400">*</b></label><input class="aspirant-field" type="password" name="password_confirmation" required autocomplete="new-password"></div>
             </div>
-        @endif
-
-        <form action="{{ route('aspirants.register.store', request()->boolean('modal') ? ['modal' => 1] : []) }}" method="POST" enctype="multipart/form-data" class="rounded-3xl border border-zinc-800 bg-zinc-900 p-8" id="aspirantRegisterForm">
-            @csrf
-
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Full Name <span class="text-red-400">*</span></label>
-                    <input type="text" name="name" value="{{ old('name') }}" required class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Nick Name</label>
-                    <input type="text" name="nick_name" value="{{ old('nick_name') }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Email <span class="text-red-400">*</span></label>
-                    <input type="email" name="email" value="{{ old('email') }}" required class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Phone</label>
-                    <input type="tel" name="phone" value="{{ old('phone') }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Password <span class="text-red-400">*</span></label>
-                    <input type="password" name="password" required autocomplete="new-password" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Confirm Password <span class="text-red-400">*</span></label>
-                    <input type="password" name="password_confirmation" required autocomplete="new-password" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                </div>
-            </div>
-
-            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Political Party</label>
-                    <select name="political_party_id" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                        <option value="">Select Political Party (Optional)</option>
-                        @foreach($politicalParties as $party)
-                            <option value="{{ $party->id }}" {{ old('political_party_id') == $party->id ? 'selected' : '' }}>{{ $party->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm text-zinc-400">Position <span class="text-red-400">*</span></label>
-                    <select name="position_id" id="positionSelect" required class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                        <option value="">Select Position</option>
-                        @foreach($positions as $pos)
-                            <option value="{{ $pos->id }}" {{ old('position_id') == $pos->id ? 'selected' : '' }}>{{ $pos->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <div id="jurisdictionFields" class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3"></div>
-
-            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div class="rounded-2xl border border-zinc-700 bg-zinc-800/70 p-4">
-                    <label class="mb-3 block text-sm text-zinc-400">Profile Picture</label>
-                    <div class="flex items-center gap-4">
-                        <div class="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 text-zinc-500" data-photo-preview="profile_picture">
-                            <i class="fas fa-user text-2xl"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <label for="profilePictureInput" class="inline-flex cursor-pointer rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="profile_picture">
-                                Add Photo
-                            </label>
-                            <p class="mt-2 text-xs text-zinc-500" data-photo-name="profile_picture">JPG, PNG, or WEBP.</p>
-                        </div>
-                    </div>
-                    <input type="file" id="profilePictureInput" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="profile_picture">
-                </div>
-                <div class="rounded-2xl border border-zinc-700 bg-zinc-800/70 p-4">
-                    <label class="mb-3 block text-sm text-zinc-400">Cover Photo</label>
-                    <div class="overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900">
-                        <div class="grid aspect-[16/7] place-items-center text-zinc-500" data-photo-preview="cover_photo">
-                            <div class="text-center">
-                                <i class="fas fa-image text-2xl"></i>
-                                <div class="mt-2 text-xs font-semibold uppercase tracking-wider">No cover selected</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3 flex items-center justify-between gap-3">
-                        <p class="min-w-0 text-xs text-zinc-500" data-photo-name="cover_photo">Use a wide image for the public profile header.</p>
-                        <label for="coverPhotoInput" class="inline-flex shrink-0 cursor-pointer rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-600" data-photo-trigger="cover_photo">
-                            Add Cover
-                        </label>
-                    </div>
-                    <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="hidden" data-photo-input="cover_photo">
-                </div>
-            </div>
-
-            <div class="mt-6">
-                <label class="mb-2 block text-sm text-zinc-400">About You</label>
-                <textarea name="about" rows="5" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">{{ old('about') }}</textarea>
-            </div>
-
-            <button type="submit" class="mt-8 w-full rounded-2xl bg-emerald-600 py-4 font-semibold hover:bg-emerald-700">Submit for Approval</button>
-        </form>
-    </div>
+            <button class="aspirant-submit" type="submit">Submit for Admin Verification</button>
+        </section>
+    </form>
+</div>
 </main>
-
 <div class="fixed inset-0 z-[30000] hidden items-center justify-center bg-black/80 p-5 backdrop-blur-sm" data-crop-modal aria-hidden="true">
     <div class="w-full max-w-2xl rounded-3xl border border-zinc-700 bg-zinc-900 p-6 text-white shadow-2xl">
         <div class="mb-5 flex items-start justify-between gap-4">
@@ -162,6 +117,37 @@
 
 @push('scripts')
 <script>
+const registrationForm = document.getElementById('aspirantRegisterForm');
+const newProfileSection = document.querySelector('[data-new-profile]');
+const accountIdentity = document.querySelector('[data-account-identity]');
+const relationshipWrap = document.querySelector('[data-relationship-wrap]');
+const candidateValue = document.querySelector('[data-aspirant-search-value]');
+const modeInputs = document.querySelectorAll('input[name="submission_mode"]');
+
+function syncRegistrationMode() {
+    const mode = document.querySelector('input[name="submission_mode"]:checked')?.value || 'self';
+    const hasExistingCandidate = Boolean(candidateValue?.value);
+    const representative = mode === 'representative';
+
+    relationshipWrap.hidden = !representative;
+    newProfileSection.hidden = hasExistingCandidate;
+    accountIdentity.hidden = !representative && !hasExistingCandidate;
+    const accountStep = document.querySelector('[data-account-step]');
+    if (accountStep) accountStep.textContent = hasExistingCandidate ? '3' : '4';
+
+    document.querySelectorAll('[data-new-profile] input, [data-new-profile] select, [data-new-profile] textarea').forEach(function (field) {
+        field.disabled = hasExistingCandidate;
+    });
+    document.querySelectorAll('[data-account-identity] input').forEach(function (field) {
+        field.disabled = accountIdentity.hidden;
+    });
+}
+
+modeInputs.forEach(function (input) { input.addEventListener('change', syncRegistrationMode); });
+document.addEventListener('aspirant:selected', syncRegistrationMode);
+document.addEventListener('aspirant:cleared', syncRegistrationMode);
+syncRegistrationMode();
+
 const positionSelect = document.getElementById('positionSelect');
 const jurisdictionFields = document.getElementById('jurisdictionFields');
 let allCounties = [];

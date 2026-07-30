@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Support\PiiProtection;
 
 class LoginRequest extends FormRequest
 {
@@ -45,7 +46,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         $email = Str::lower(trim((string) $this->input('email')));
-        $user = User::where('email_hash', hash('sha256', $email))->first();
+        $user = User::where('email_hash', PiiProtection::emailBlindIndex($email))->first();
 
         if (! $user || ! Hash::check((string) $this->input('password'), $user->password)) {
             RateLimiter::hit($this->throttleKey());

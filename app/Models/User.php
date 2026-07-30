@@ -10,8 +10,10 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
+use App\Support\PiiProtection;
 
 class User extends Authenticatable
 {
@@ -54,6 +56,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
+        'email',
+        'email_hash',
+        'phone',
         'password',
         'remember_token',
     ];
@@ -92,7 +97,7 @@ class User extends Authenticatable
         $email = Str::lower(trim((string) $value));
 
         $this->attributes['email'] = Crypt::encryptString($email);
-        $this->attributes['email_hash'] = hash('sha256', $email);
+        $this->attributes['email_hash'] = PiiProtection::emailBlindIndex($email);
     }
 
     public function getPhoneAttribute($value): ?string
@@ -120,7 +125,12 @@ class User extends Authenticatable
         try {
             return Crypt::decryptString($value);
         } catch (DecryptException) {
-            return (string) $value;
+            Log::warning('Encrypted PII could not be decrypted.', [
+                'model' => self::class,
+                'record_id' => $this->getKey(),
+            ]);
+
+            return null;
         }
     }
 

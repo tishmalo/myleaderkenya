@@ -102,11 +102,16 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
     
-    Route::get('/aspirants/register', [AspirantRegistrationController::class, 'create'])->name('aspirants.register');
-    Route::post('/aspirants/register', [AspirantRegistrationController::class, 'store'])->middleware('throttle:3,10')->name('aspirants.register.store');
-    Route::get('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'show'])->name('aspirants.claim.show');
-    Route::post('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'store'])->middleware('throttle:6,1')->name('aspirants.claim.store');
-    Route::post('/aspirants/{candidate}/claim-requests', [CandidateClaimRequestController::class, 'store'])->middleware('throttle:3,10')->name('aspirants.claim-requests.store');
+    Route::get('/aspirants/search', [AspirantRegistrationController::class, 'search'])
+        ->middleware(['throttle:30,1', 'cache.headers:no_store;private'])
+        ->name('aspirants.search');
+    Route::get('/aspirants/register', [AspirantRegistrationController::class, 'create'])
+        ->middleware('cache.headers:no_store;private')
+        ->name('aspirants.register');
+    Route::post('/aspirants/register', [AspirantRegistrationController::class, 'store'])->middleware(['throttle:3,10', 'cache.headers:no_store;private'])->name('aspirants.register.store');
+    Route::get('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'show'])->middleware('cache.headers:no_store;private')->name('aspirants.claim.show');
+    Route::post('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'store'])->middleware(['throttle:6,1', 'cache.headers:no_store;private'])->name('aspirants.claim.store');
+    Route::post('/aspirants/{candidate}/claim-requests', [CandidateClaimRequestController::class, 'store'])->middleware(['throttle:3,10', 'cache.headers:no_store;private'])->name('aspirants.claim-requests.store');
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->name('aspirants.public');
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->name('aspirants.show');
 });

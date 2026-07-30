@@ -6,7 +6,7 @@ use App\Contracts\Repositories\Web\CandidateClaimRequestRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\CandidateClaimRequest;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Str;
+use App\Support\PiiProtection;
 
 class CandidateClaimRequestRepository implements CandidateClaimRequestRepositoryInterface
 {
@@ -19,7 +19,7 @@ class CandidateClaimRequestRepository implements CandidateClaimRequestRepository
     {
         return CandidateClaimRequest::query()
             ->where('candidate_id', $candidate->id)
-            ->where('email_hash', hash('sha256', Str::lower(trim($email))))
+            ->where('email_hash', PiiProtection::emailBlindIndex($email))
             ->where('relationship', $relationship)
             ->where('status', CandidateClaimRequest::STATUS_PENDING)
             ->first();

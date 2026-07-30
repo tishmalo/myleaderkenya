@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -30,6 +31,10 @@ class Candidate extends Model
         'claim_token_expires_at' => 'datetime',
         'claim_sent_at' => 'datetime',
         'claimed_at' => 'datetime',
+    ];
+
+    protected $hidden = [
+        'email', 'phone', 'email_1', 'email_2', 'phone_1', 'phone_2', 'claim_token_hash',
     ];
 
     protected static function booted(): void
@@ -183,7 +188,12 @@ class Candidate extends Model
         try {
             return Crypt::decryptString($value);
         } catch (DecryptException) {
-            return (string) $value;
+            Log::warning('Encrypted PII could not be decrypted.', [
+                'model' => self::class,
+                'record_id' => $this->getKey(),
+            ]);
+
+            return null;
         }
     }
 

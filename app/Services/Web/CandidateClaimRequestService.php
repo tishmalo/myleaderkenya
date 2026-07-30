@@ -96,24 +96,25 @@ class CandidateClaimRequestService
     {
         $user = $this->users->findByEmailHash((string) $claimRequest->email_hash);
 
-        $data = [
-            'name' => $claimRequest->name,
-            'email' => $claimRequest->email,
-            'password' => $claimRequest->password,
-            'role' => 'user',
-            'phone' => $claimRequest->phone,
-            'relationship' => $claimRequest->relationship,
-            'is_aspirant' => $claimRequest->relationship === 'aspirant',
-            'email_verified_at' => now(),
-        ];
-
         if (! $user) {
-            return $this->users->createUser(array_merge($data, [
+            return $this->users->createUser([
+                'name' => $claimRequest->name,
                 'username' => $this->uniqueUsername($claimRequest->name),
-            ]));
+                'email' => $claimRequest->email,
+                'password' => $claimRequest->password,
+                'role' => 'user',
+                'phone' => $claimRequest->phone,
+                'relationship' => $claimRequest->relationship,
+                'is_aspirant' => $claimRequest->relationship === 'aspirant',
+                'email_verified_at' => now(),
+            ]);
         }
 
-        $this->users->updateUser($user, $data);
+        // A public claim must never reset an existing account's credentials or PII.
+        $this->users->updateUser($user, [
+            'relationship' => $claimRequest->relationship,
+            'is_aspirant' => $claimRequest->relationship === 'aspirant' || $user->is_aspirant,
+        ]);
 
         return $user->refresh();
     }
