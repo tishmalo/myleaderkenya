@@ -15,6 +15,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CandidateService
 {
@@ -190,8 +191,16 @@ class CandidateService
             unset($data['approval_status']);
         }
 
-        foreach (['facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url'] as $field) {
+        $socialFields = ['facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url'];
+
+        foreach ($socialFields as $field) {
             if (! Schema::hasColumn('candidates', $field)) {
+                if (filled($data[$field] ?? null)) {
+                    throw ValidationException::withMessages([
+                        $field => 'Social media fields are not ready yet. Apply the social links database migration, then save again.',
+                    ]);
+                }
+
                 unset($data[$field]);
             }
         }
