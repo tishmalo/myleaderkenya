@@ -98,6 +98,15 @@ body { background:#080808; color:#f5f5f0; }
 .asp-label { color:rgba(245,245,240,.48); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
 .asp-value { color:rgba(245,245,240,.88); font-weight:800; line-height:1.35; overflow-wrap:anywhere; }
 .asp-profile-note,.asp-empty { color:rgba(245,245,240,.6); line-height:1.55; margin:0; }
+.asp-social-form { margin-top:18px; border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#111; padding:18px; }
+.asp-social-form h3 { margin:0 0 14px; color:white; font-size:17px; font-weight:900; display:flex; align-items:center; gap:9px; }
+.asp-social-form h3 i { color:#00A86B; }
+.asp-social-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.asp-social-field { display:grid; gap:7px; }
+.asp-social-field label { display:flex; align-items:center; gap:8px; color:rgba(245,245,240,.58); font-size:12px; font-weight:900; }
+.asp-social-field label i { color:#00A86B; width:17px; text-align:center; }
+.asp-social-field input { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:white; padding:11px 12px; font:inherit; }
+.asp-social-field input::placeholder { color:rgba(245,245,240,.28); }
 .asp-activity { display:grid; gap:0; border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden; }
 .asp-activity-row { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:13px; border-top:1px solid rgba(255,255,255,.07); }
 .asp-activity-row:first-child { border-top:0; }
@@ -126,7 +135,7 @@ body { background:#080808; color:#f5f5f0; }
 .asp-bars .asp-bar-row:nth-child(3) .asp-bar-fill { background:#f59e0b; }
 .asp-bars .asp-bar-row:nth-child(4) .asp-bar-fill { background:#3b82f6; }
 @media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
-@media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } .asp-team-row { grid-template-columns:1fr; } }
+@media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } .asp-team-row { grid-template-columns:1fr; } .asp-social-grid { grid-template-columns:1fr; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -334,6 +343,30 @@ body { background:#080808; color:#f5f5f0; }
                             @elseif($status === 'rejected')
                                 <p class="asp-profile-note" style="margin-top:14px;">Your profile needs admin attention before it can appear publicly.</p>
                             @endif
+
+                            <form method="POST" action="{{ route('aspirant.social-links.update') }}" class="asp-social-form">
+                                @csrf
+                                @method('PATCH')
+                                <h3><i class="fas fa-share-nodes"></i> Social Media</h3>
+                                <div class="asp-social-grid">
+                                    @foreach([
+                                        'facebook_url' => ['Facebook', 'fa-brands fa-facebook-f', 'https://facebook.com/profile'],
+                                        'x_url' => ['X', 'fa-brands fa-x-twitter', 'https://x.com/handle'],
+                                        'instagram_url' => ['Instagram', 'fa-brands fa-instagram', 'https://instagram.com/handle'],
+                                        'tiktok_url' => ['TikTok', 'fa-brands fa-tiktok', 'https://tiktok.com/@handle'],
+                                        'youtube_url' => ['YouTube', 'fa-brands fa-youtube', 'https://youtube.com/@channel'],
+                                    ] as $field => [$label, $icon, $placeholder])
+                                        <div class="asp-social-field">
+                                            <label for="asp-{{ $field }}"><i class="{{ $icon }}"></i> {{ $label }}</label>
+                                            <input type="url" id="asp-{{ $field }}" name="{{ $field }}" value="{{ old($field, $candidate->{$field}) }}" placeholder="{{ $placeholder }}">
+                                            @error($field)
+                                                <p class="asp-empty">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <button type="submit" class="asp-btn primary" style="margin-top:14px;"><i class="fas fa-save"></i> Save Social Links</button>
+                            </form>
                         </div>
                     </div>
                 @else
