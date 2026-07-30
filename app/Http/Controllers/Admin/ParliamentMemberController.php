@@ -16,8 +16,10 @@ use Illuminate\View\View;
 
 class ParliamentMemberController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
+        $request = request();
+
         $members = ParliamentMember::query()->with(['candidate:id,name,slug', 'committees', 'activities'])
             ->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q->where('source_name','like','%'.trim((string)$request->search).'%')->orWhere('constituency','like','%'.trim((string)$request->search).'%')))
             ->when($request->filled('house'), fn ($q) => $q->where('house',$request->house))
