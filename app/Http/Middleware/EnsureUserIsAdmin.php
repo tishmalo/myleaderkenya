@@ -2,12 +2,15 @@
 
 namespace App\Http\Middleware;
 
+use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsAdmin
 {
+    public function __construct(private CandidateRelationshipRepositoryInterface $relationships) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
@@ -23,7 +26,7 @@ class EnsureUserIsAdmin
                 return response()->json(['message' => 'Unauthorized. Admin access required.'], 403);
             }
 
-            if ($user->user_type === 'aspirant') {
+            if ($user->user_type === 'aspirant' || $this->relationships->hasApprovedCandidateRelationship($user)) {
                 return redirect()->route('aspirant.dashboard')
                     ->with('warning', 'Admin access is required for that page.');
             }
