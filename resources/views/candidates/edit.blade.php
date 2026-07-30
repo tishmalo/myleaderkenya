@@ -120,6 +120,8 @@
                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">{{ old('about', $candidate->about) }}</textarea>
             </div>
 
+            @include('candidates.partials.social-links', ['candidate' => $candidate])
+
             @include('candidates.partials.support-contacts')
 
             </section>

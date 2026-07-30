@@ -109,6 +109,10 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .summary-icon { width:38px; height:38px; border-radius:12px; background:rgba(0,168,107,.12); border:1px solid rgba(0,168,107,.18); display:grid; place-items:center; color:var(--green-bright); flex-shrink:0; }
 .summary-label { font-size:12px; color:rgba(245,245,240,.36); margin-bottom:3px; }
 .summary-value { font-size:14px; color:var(--kenya-white); font-weight:700; overflow-wrap:anywhere; }
+.social-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.social-link { display:flex; align-items:center; gap:10px; min-height:42px; padding:0 13px; border:1px solid rgba(255,255,255,.08); border-radius:10px; background:rgba(255,255,255,.035); color:rgba(245,245,240,.78); text-decoration:none; font-weight:900; font-size:13px; }
+.social-link i { color:var(--green-bright); width:18px; text-align:center; font-size:16px; }
+.social-link:hover { border-color:rgba(0,168,107,.4); color:white; }
 .about-text { color:rgba(245,245,240,.68); font-size:16px; line-height:1.85; }
 .priority-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
 .priority { padding:18px; border:1px solid rgba(255,255,255,.075); border-radius:16px; background:rgba(255,255,255,.035); color:rgba(245,245,240,.72); font-weight:700; font-size:13px; }
@@ -193,6 +197,13 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     $canEditCoverPhoto = auth()->check() && auth()->id() === $candidate->user_id && Route::has('aspirant.cover-photo.update');
     $claimRelationship = old('relationship', 'aspirant');
     $hasClaimErrors = $errors->has('relationship') || $errors->has('name') || $errors->has('email') || $errors->has('phone') || $errors->has('password');
+    $socialLinks = collect([
+        ['label' => 'Facebook', 'url' => $candidate->facebook_url, 'icon' => 'fa-brands fa-facebook-f'],
+        ['label' => 'X', 'url' => $candidate->x_url, 'icon' => 'fa-brands fa-x-twitter'],
+        ['label' => 'Instagram', 'url' => $candidate->instagram_url, 'icon' => 'fa-brands fa-instagram'],
+        ['label' => 'TikTok', 'url' => $candidate->tiktok_url, 'icon' => 'fa-brands fa-tiktok'],
+        ['label' => 'YouTube', 'url' => $candidate->youtube_url, 'icon' => 'fa-brands fa-youtube'],
+    ])->filter(fn ($link) => filled($link['url']))->values();
 @endphp
 
 <div class="profile-page">
@@ -268,6 +279,20 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
             </aside>
 
             <main style="display:flex;flex-direction:column;gap:22px;">
+                @if($socialLinks->isNotEmpty())
+                <section class="profile-card">
+                    <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Social Media</div></div>
+                    <div class="profile-card-body social-links">
+                        @foreach($socialLinks as $link)
+                            <a href="{{ $link['url'] }}" class="social-link" target="_blank" rel="noopener noreferrer">
+                                <i class="{{ $link['icon'] }}"></i>
+                                <span>{{ $link['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+                @endif
+
                 <section class="profile-card">
                     <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">About {{ $candidate->name }}</div></div>
                     <div class="profile-card-body">

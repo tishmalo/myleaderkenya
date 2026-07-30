@@ -190,6 +190,12 @@ class CandidateService
             unset($data['approval_status']);
         }
 
+        foreach (['facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url'] as $field) {
+            if (! Schema::hasColumn('candidates', $field)) {
+                unset($data[$field]);
+            }
+        }
+
         foreach (['country', 'county', 'constituency', 'ward'] as $field) {
             if (array_key_exists($field, $data)) {
                 $data[$field] = $this->normalizeLocationValue($data[$field]);

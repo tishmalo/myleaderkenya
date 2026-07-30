@@ -82,6 +82,8 @@
                 <textarea name="about" rows="5" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white"></textarea>
             </div>
 
+            @include('candidates.partials.social-links')
+
             @include('candidates.partials.support-contacts')
 
             <div class="mt-10">
