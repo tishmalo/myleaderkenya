@@ -81,6 +81,17 @@ class CandidateClaimRequestService
         return $this->claimRequests->markRejected($claimRequest, $reviewer->id, $note);
     }
 
+    public function updateDashboardAccess(CandidateClaimRequest $claimRequest, bool $enabled): void
+    {
+        $claimRequest->load(['candidate', 'user']);
+
+        if (! $claimRequest->user || $claimRequest->status !== CandidateClaimRequest::STATUS_APPROVED) {
+            return;
+        }
+
+        $this->relationships->updateDashboardAccess($claimRequest->user, $claimRequest->candidate, $enabled);
+    }
+
     private function userForClaimRequest(CandidateClaimRequest $claimRequest): User
     {
         $user = $this->users->findByEmailHash((string) $claimRequest->email_hash);

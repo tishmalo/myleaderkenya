@@ -16,7 +16,21 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
         }
 
         $user->relatedCandidates()->syncWithoutDetaching([
-            $candidate->id => ['relationship' => $relationship],
+            $candidate->id => array_filter([
+                'relationship' => $relationship,
+                'dashboard_access_enabled' => Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled') ? true : null,
+            ], fn ($value) => $value !== null),
+        ]);
+    }
+
+    public function updateDashboardAccess(User $user, Candidate $candidate, bool $enabled): void
+    {
+        if (! Schema::hasTable('candidate_user_relationships') || ! Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled')) {
+            return;
+        }
+
+        $user->relatedCandidates()->updateExistingPivot($candidate->id, [
+            'dashboard_access_enabled' => $enabled,
         ]);
     }
 
@@ -28,6 +42,10 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
 
         return $user->relatedCandidates()
             ->whereIn('candidate_user_relationships.relationship', ['aspirant', 'PA', 'campaign_manager'])
+            ->when(
+                Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled'),
+                fn ($query) => $query->where('candidate_user_relationships.dashboard_access_enabled', true)
+            )
             ->exists();
     }
 
@@ -40,6 +58,10 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
         return $user->relatedCandidates()
             ->with(['position', 'politicalParty'])
             ->whereIn('candidate_user_relationships.relationship', ['aspirant', 'PA', 'campaign_manager'])
+            ->when(
+                Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled'),
+                fn ($query) => $query->where('candidate_user_relationships.dashboard_access_enabled', true)
+            )
             ->latest('candidates.created_at')
             ->first();
     }

@@ -252,7 +252,7 @@ class User extends Authenticatable
     public function relatedCandidates(): BelongsToMany
     {
         return $this->belongsToMany(Candidate::class, 'candidate_user_relationships')
-            ->withPivot('relationship')
+            ->withPivot('relationship', 'dashboard_access_enabled')
             ->withTimestamps();
     }
 }

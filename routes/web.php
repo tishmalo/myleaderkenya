@@ -158,6 +158,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->middleware('permission:aspirants.approve')->name('candidates.approval');
         Route::post('/candidates/{candidate}/claim-link', [CandidateController::class, 'sendClaimLink'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidates.claim-link');
         Route::patch('/candidate-claim-requests/{claimRequest}', [AdminCandidateClaimRequestController::class, 'update'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidate-claim-requests.update');
+        Route::patch('/candidate-claim-requests/{claimRequest}/dashboard-access', [AdminCandidateClaimRequestController::class, 'updateDashboardAccess'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('candidate-claim-requests.dashboard-access');
         Route::resource('candidates', CandidateController::class)->middleware('permission:aspirants.view');
         Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy'])->middleware('permission:frontend.view');
         Route::resource('/admin/political-parties', PoliticalPartyController::class)

@@ -331,7 +331,7 @@ class Candidate extends Model
     public function relatedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'candidate_user_relationships')
-            ->withPivot('relationship')
+            ->withPivot('relationship', 'dashboard_access_enabled')
             ->withTimestamps();
     }
 }

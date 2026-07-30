@@ -258,6 +258,24 @@
                                                             <button type="submit" class="rounded-xl border border-red-700 px-4 py-2 text-sm font-semibold text-red-300 hover:bg-red-950">Reject</button>
                                                         </form>
                                                     </div>
+                                                @elseif($claimRequest->status === 'approved' && $claimRequest->user)
+                                                    @php
+                                                        $linkedCandidate = $claimRequest->user->relatedCandidates->firstWhere('id', $candidate->id);
+                                                        $dashboardAccessEnabled = (bool) ($linkedCandidate?->pivot?->dashboard_access_enabled ?? true);
+                                                    @endphp
+                                                    <div class="flex justify-end gap-2">
+                                                        <form method="POST" action="{{ route('candidate-claim-requests.dashboard-access', $claimRequest) }}">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <input type="hidden" name="dashboard_access_enabled" value="{{ $dashboardAccessEnabled ? 0 : 1 }}">
+                                                            <button type="submit" class="rounded-xl border {{ $dashboardAccessEnabled ? 'border-amber-700 text-amber-300 hover:bg-amber-950' : 'border-emerald-700 text-emerald-300 hover:bg-emerald-950' }} px-4 py-2 text-sm font-semibold">
+                                                                {{ $dashboardAccessEnabled ? 'Disable Dashboard' : 'Enable Dashboard' }}
+                                                            </button>
+                                                        </form>
+                                                        <div class="self-center text-right text-xs text-zinc-500">
+                                                            {{ $dashboardAccessEnabled ? 'Access on' : 'Access off' }}
+                                                        </div>
+                                                    </div>
                                                 @else
                                                     <div class="text-right text-sm text-zinc-500">{{ $claimRequest->reviewed_at?->format('d M Y H:i') ?? '-' }}</div>
                                                 @endif
