@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Str;
-use App\Support\PiiProtection;
 
 class AspirantSubmissionRequest extends FormRequest
 {
@@ -54,7 +53,7 @@ class AspirantSubmissionRequest extends FormRequest
                     continue;
                 }
 
-                $hash = PiiProtection::emailBlindIndex((string) $this->input($emailField));
+                $hash = hash('sha256', Str::lower(trim((string) $this->input($emailField))));
 
                 if (User::where('email_hash', $hash)->exists()) {
                     $validator->errors()->add($emailField, 'The email has already been taken.');

@@ -4,7 +4,6 @@ namespace App\Http\Requests\Web;
 
 use App\Models\Position;
 use App\Models\User;
-use App\Support\PiiProtection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -87,7 +86,7 @@ class AspirantRegisterRequest extends FormRequest
         return function (string $attribute, mixed $value, \Closure $fail) use ($required): void {
             if (! $required || blank($value)) return;
 
-            if (User::where('email_hash', PiiProtection::emailBlindIndex((string) $value))->exists()) {
+            if (User::where('email_hash', hash('sha256', Str::lower(trim((string) $value))))->exists()) {
                 $fail('An account already exists for that email. Select the existing aspirant or use the claim flow.');
             }
         };

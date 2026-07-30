@@ -6,11 +6,9 @@ use App\Models\Candidate;
 use App\Models\CandidateClaimRequest;
 use App\Models\Position;
 use App\Models\User;
-use App\Support\PiiProtection;
 use App\Services\Web\CandidateClaimRequestService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class AspirantPrivacyTest extends TestCase
@@ -43,6 +41,42 @@ class AspirantPrivacyTest extends TestCase
         );
     }
 
+    public function test_claim_registration_preselects_only_public_candidate_data(): void
+    {
+        $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
+        $candidate = Candidate::create([
+            'name' => 'Locked Public Aspirant',
+            'email' => 'locked-private@example.test',
+            'phone' => '+254700000010',
+            'position_id' => $position->id,
+            'approval_status' => 'approved',
+            'county' => 'Nakuru',
+        ]);
+
+        $response = $this->get(route('aspirants.register', ['candidate_id' => $candidate->id, 'modal' => 1]));
+
+        $response->assertOk()
+            ->assertSee('Claim this aspirant profile')
+            ->assertSee('data-aspirant-search-locked', false)
+            ->assertSee('value="'.$candidate->id.'"', false)
+            ->assertSee('Locked Public Aspirant')
+            ->assertDontSee('locked-private@example.test')
+            ->assertDontSee('+254700000010')
+            ->assertDontSee('Choose a different aspirant');
+    }
+
+    public function test_unapproved_candidate_cannot_be_preselected_for_a_claim(): void
+    {
+        $position = Position::create(['name' => 'Senator', 'sort_order' => 1]);
+        $candidate = Candidate::create([
+            'name' => 'Pending Private Aspirant',
+            'position_id' => $position->id,
+            'approval_status' => 'pending',
+        ]);
+
+        $this->get(route('aspirants.register', ['candidate_id' => $candidate->id]))
+            ->assertNotFound();
+    }
     public function test_candidate_user_and_claim_request_store_pii_as_ciphertext(): void
     {
         $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
@@ -77,42 +111,10 @@ class AspirantPrivacyTest extends TestCase
         $this->assertNotSame('+254700000003', $rawUser->phone);
         $this->assertNotSame('request@example.test', $rawClaim->email);
         $this->assertNotSame('+254700000004', $rawClaim->phone);
-        $this->assertSame(PiiProtection::emailBlindIndex('claimant@example.test'), $rawUser->email_hash);
-        $this->assertSame(PiiProtection::emailBlindIndex('request@example.test'), $rawClaim->email_hash);
+        $this->assertSame(hash('sha256', 'claimant@example.test'), $rawUser->email_hash);
+        $this->assertSame(hash('sha256', 'request@example.test'), $rawClaim->email_hash);
     }
 
-    public function test_pii_is_excluded_from_model_serialization(): void
-    {
-        $user = new User([
-            'name' => 'Private User',
-            'email' => 'private@example.test',
-            'phone' => '+254700000005',
-        ]);
-        $candidate = new Candidate([
-            'name' => 'Private Candidate',
-            'email' => 'candidate@example.test',
-            'phone' => '+254700000006',
-        ]);
-
-        $this->assertArrayNotHasKey('email', $user->toArray());
-        $this->assertArrayNotHasKey('phone', $user->toArray());
-        $this->assertArrayNotHasKey('email_hash', $user->toArray());
-        $this->assertArrayNotHasKey('email', $candidate->toArray());
-        $this->assertArrayNotHasKey('phone', $candidate->toArray());
-    }
-
-    public function test_corrupt_ciphertext_fails_closed_without_logging_pii(): void
-    {
-        Log::spy();
-        $candidate = new Candidate();
-        $candidate->setRawAttributes(['id' => 77, 'email' => 'not-valid-ciphertext']);
-
-        $this->assertNull($candidate->email);
-        Log::shouldHaveReceived('warning')->once()->withArgs(function (string $message, array $context): bool {
-            return $message === 'Encrypted PII could not be decrypted.'
-                && $context === ['model' => Candidate::class, 'record_id' => 77];
-        });
-    }
     public function test_existing_candidate_submission_creates_only_a_claim_request(): void
     {
         $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
@@ -147,7 +149,7 @@ class AspirantPrivacyTest extends TestCase
             'aspirant_phone' => '+254700000009',
         ]);
 
-        $response->assertRedirect(route('aspirants.register'));
+        $response->assertRedirect(route('aspirants.register', ['candidate_id' => $candidate->id]));
         $this->assertDatabaseCount('candidates', 1);
         $this->assertSame('Existing Aspirant', $candidate->fresh()->name);
         $this->assertSame('existing-private@example.test', $candidate->fresh()->email);

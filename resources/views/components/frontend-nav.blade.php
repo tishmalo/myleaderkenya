@@ -559,7 +559,7 @@
 <div class="aspirant-register-modal" data-aspirant-register-modal aria-hidden="true">
     <div class="aspirant-register-dialog" role="dialog" aria-modal="true" aria-labelledby="aspirantRegisterTitle">
         <div class="aspirant-register-head">
-            <div class="aspirant-register-title" id="aspirantRegisterTitle">Submit Aspirant</div>
+            <div class="aspirant-register-title" id="aspirantRegisterTitle" data-aspirant-register-title>Submit Aspirant</div>
             <button type="button" class="aspirant-register-close" data-aspirant-register-close aria-label="Close aspirant registration">
                 <i class="fas fa-times"></i>
             </button>
@@ -581,6 +581,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var registerModal = document.querySelector('[data-aspirant-register-modal]');
     var registerFrame = document.querySelector('[data-aspirant-register-frame]');
     var registerCloseButton = document.querySelector('[data-aspirant-register-close]');
+    var registerTitle = document.querySelector('[data-aspirant-register-title]');
     var activeRegisterLink = null;
 
     function openAspirantRegisterModal(event) {
@@ -591,11 +592,12 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         activeRegisterLink = registerLink;
 
-        if (!registerFrame.src) {
-            var modalUrl = new URL(registerLink.href, window.location.origin);
-            modalUrl.searchParams.set('modal', '1');
-            registerFrame.src = modalUrl.toString();
-        }
+        var modalUrl = new URL(registerLink.href, window.location.origin);
+        var modalTitle = registerLink.dataset.aspirantRegisterTitle || 'Submit Aspirant';
+        modalUrl.searchParams.set('modal', '1');
+        registerFrame.src = modalUrl.toString();
+        registerFrame.title = modalTitle;
+        if (registerTitle) registerTitle.textContent = modalTitle;
 
         registerModal.classList.add('is-open');
         registerModal.setAttribute('aria-hidden', 'false');

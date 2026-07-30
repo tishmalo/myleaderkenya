@@ -4,13 +4,15 @@
     'label' => 'Search for an existing aspirant',
     'placeholder' => 'Type an aspirant name...',
     'selectedId' => null,
+    'selectedCandidate' => null,
+    'locked' => false,
 ])
 
 @php($searchInputId = 'aspirant-search-' . md5($name . $searchUrl . uniqid('', true)))
 
-<div class="aspirant-search" data-aspirant-search data-search-url="{{ $searchUrl }}">
+<div class="aspirant-search" data-aspirant-search data-search-url="{{ $searchUrl }}" @if($locked) data-aspirant-search-locked @endif>
     <label class="aspirant-field-label" for="{{ $searchInputId }}">{{ $label }}</label>
-    <div class="aspirant-search-control">
+    <div class="aspirant-search-control" @if($locked) hidden @endif>
         <i class="fas fa-search" aria-hidden="true"></i>
         <input id="{{ $searchInputId }}"
                type="search"
@@ -21,21 +23,31 @@
                data-aspirant-search-input>
         <span class="aspirant-search-spinner" data-aspirant-search-spinner aria-hidden="true"></span>
     </div>
-    <input type="hidden" name="{{ $name }}" value="{{ $selectedId }}" data-aspirant-search-value>
+    <input type="hidden" name="{{ $name }}" value="{{ $selectedCandidate['id'] ?? $selectedId }}" data-aspirant-search-value>
     <div class="aspirant-search-results" role="listbox" data-aspirant-search-results hidden></div>
-    <div class="aspirant-search-selection" data-aspirant-search-selection hidden>
-        <div class="aspirant-search-avatar" data-aspirant-search-avatar></div>
+    <div class="aspirant-search-selection" data-aspirant-search-selection @if(!$selectedCandidate) hidden @endif>
+        <div class="aspirant-search-avatar" data-aspirant-search-avatar>
+            @if($selectedCandidate)
+                @if($selectedCandidate['image_url'])
+                    <img src="{{ $selectedCandidate['image_url'] }}" alt="">
+                @else
+                    {{ mb_strtoupper(mb_substr(trim($selectedCandidate['name']), 0, 1)) }}
+                @endif
+            @endif
+        </div>
         <div class="aspirant-search-selected-copy">
-            <strong data-aspirant-search-name></strong>
-            <span data-aspirant-search-meta></span>
+            <strong data-aspirant-search-name>{{ $selectedCandidate['name'] ?? '' }}</strong>
+            <span data-aspirant-search-meta>{{ $selectedCandidate ? collect([$selectedCandidate['position'], $selectedCandidate['party'], $selectedCandidate['jurisdiction']])->filter()->implode(' • ') : '' }}</span>
             <small><i class="fas fa-lock"></i> Existing profile details are protected and cannot be edited here.</small>
         </div>
-        <button type="button" data-aspirant-search-clear aria-label="Choose a different aspirant">
-            Change
-        </button>
+        @unless($locked)
+            <button type="button" data-aspirant-search-clear aria-label="Choose a different aspirant">
+                Change
+            </button>
+        @endunless
     </div>
     <p class="aspirant-search-help" data-aspirant-search-help>
-        Select a match to request access, or continue below to create a new profile.
+        {{ $locked ? 'This aspirant is preselected for your access request.' : 'Select a match to request access, or continue below to create a new profile.' }}
     </p>
 </div>
 
@@ -44,6 +56,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-aspirant-search]').forEach(function (root) {
+        if (root.hasAttribute('data-aspirant-search-locked')) return;
+
         var input = root.querySelector('[data-aspirant-search-input]');
         var value = root.querySelector('[data-aspirant-search-value]');
         var results = root.querySelector('[data-aspirant-search-results]');

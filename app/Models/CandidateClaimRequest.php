@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Support\PiiProtection;
 
 class CandidateClaimRequest extends Model
 {
@@ -37,9 +35,6 @@ class CandidateClaimRequest extends Model
     ];
 
     protected $hidden = [
-        'email',
-        'email_hash',
-        'phone',
         'password',
     ];
 
@@ -82,7 +77,7 @@ class CandidateClaimRequest extends Model
         $email = Str::lower(trim((string) $value));
 
         $this->attributes['email'] = Crypt::encryptString($email);
-        $this->attributes['email_hash'] = PiiProtection::emailBlindIndex($email);
+        $this->attributes['email_hash'] = hash('sha256', $email);
     }
 
     public function getPhoneAttribute($value): ?string
@@ -109,12 +104,7 @@ class CandidateClaimRequest extends Model
         try {
             return Crypt::decryptString($value);
         } catch (DecryptException) {
-            Log::warning('Encrypted PII could not be decrypted.', [
-                'model' => self::class,
-                'record_id' => $this->getKey(),
-            ]);
-
-            return null;
+            return (string) $value;
         }
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'Submit Aspirant - My Leader Kenya')
+@section('title', ($selectedCandidate ? 'Claim Profile' : 'Submit Aspirant') . ' - My Leader Kenya')
 
 @push('styles')
 <style>
@@ -17,9 +17,9 @@
 <main class="aspirant-form-shell min-h-screen px-5 {{ request()->boolean('modal') ? 'py-8' : 'py-14' }}">
 <div class="aspirant-form-wrap">
     <header class="aspirant-form-intro">
-        <div class="aspirant-kicker">Aspirant Registration</div>
-        <h1>Submit an aspirant profile</h1>
-        <p>Find an existing profile or submit a new one for admin verification.</p>
+        <div class="aspirant-kicker">{{ $selectedCandidate ? 'Profile Access Request' : 'Aspirant Registration' }}</div>
+        <h1>{{ $selectedCandidate ? 'Claim this aspirant profile' : 'Submit an aspirant profile' }}</h1>
+        <p>{{ $selectedCandidate ? 'Submit your account details for admin verification.' : 'Find an existing profile or submit a new one for admin verification.' }}</p>
     </header>
 
     @if(session('success'))<div class="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">{{ session('success') }}</div>@endif
@@ -30,8 +30,13 @@
     <form action="{{ route('aspirants.register.store', request()->boolean('modal') ? ['modal' => 1] : []) }}" method="POST" enctype="multipart/form-data" id="aspirantRegisterForm">
         @csrf
         <section class="aspirant-panel">
-            <div class="aspirant-panel-head"><span class="aspirant-panel-num">1</span><div><h2>Find the aspirant</h2><p>Avoid duplicate profiles by searching first.</p></div></div>
-            <x-aspirant-search name="candidate_id" :search-url="route('aspirants.search')" />
+            <div class="aspirant-panel-head"><span class="aspirant-panel-num">1</span><div><h2>{{ $selectedCandidate ? 'Selected aspirant' : 'Find the aspirant' }}</h2><p>{{ $selectedCandidate ? 'This public profile is locked and cannot be changed from this request.' : 'Avoid duplicate profiles by searching first.' }}</p></div></div>
+            <x-aspirant-search
+                name="candidate_id"
+                :search-url="route('aspirants.search')"
+                :selected-candidate="$selectedCandidate"
+                :locked="(bool) $selectedCandidate"
+            />
         </section>
 
         <section class="aspirant-panel">

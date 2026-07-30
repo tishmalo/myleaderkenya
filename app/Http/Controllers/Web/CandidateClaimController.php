@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Support\PiiProtection;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -38,7 +37,7 @@ class CandidateClaimController extends Controller
 
         $user = DB::transaction(function () use ($candidate, $validated): User {
             $email = Str::lower(trim((string) $candidate->email));
-            $emailHash = PiiProtection::emailBlindIndex($email);
+            $emailHash = hash('sha256', $email);
 
             $user = User::where('email_hash', $emailHash)->first();
 
