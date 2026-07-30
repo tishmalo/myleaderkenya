@@ -18,8 +18,12 @@ class ParliamentMembersApiClient
         try {
             $response = $this->client()->get($path)->throw();
             $payload = $response->json();
-        } catch (ConnectionException|RequestException) {
-            throw new RuntimeException('Parliament members API request failed.');
+        } catch (ConnectionException $exception) {
+            throw new RuntimeException('Parliament members API connection failed.');
+        } catch (RequestException $exception) {
+            throw new RuntimeException(
+                'Parliament members API returned HTTP '.$exception->response->status().'.'
+            );
         }
 
         if (! is_array($payload) || (($payload['success'] ?? true) !== true)) {
