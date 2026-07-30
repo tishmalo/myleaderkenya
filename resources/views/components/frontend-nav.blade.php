@@ -450,6 +450,7 @@
     <div class="frontend-nav-inner">
         <a href="{{ route('landing') }}" class="frontend-nav-brand" aria-label="My Leader Kenya home">
             <div class="frontend-nav-brand-logo"><img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya"></div>
+            <div class="frontend-nav-brand-name">MY LEADER KENYA</div>
         </a>
 
         <ul class="frontend-nav-menu" aria-label="Primary navigation">
