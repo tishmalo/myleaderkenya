@@ -20,7 +20,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $query = Candidate::with(['position', 'politicalParty', 'claimRequests.user.relatedCandidates', 'claimRequests.reviewer'])
+        $query = Candidate::with(['position', 'politicalParty', 'user', 'claimRequests.user.relatedCandidates', 'claimRequests.reviewer'])
             ->withCount([
                 'claimRequests as pending_claim_requests_count' => fn ($query) => $query->where('status', 'pending'),
                 'claimRequests as approved_claim_requests_count' => fn ($query) => $query->where('status', 'approved'),

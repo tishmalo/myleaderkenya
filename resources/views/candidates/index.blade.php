@@ -146,6 +146,8 @@
                             $approvedClaims = (int) ($candidate->approved_claim_requests_count ?? 0);
                             $rejectedClaims = (int) ($candidate->rejected_claim_requests_count ?? 0);
                             $totalClaims = $pendingClaims + $approvedClaims + $rejectedClaims;
+                            $rowLoginUser = $candidate->user
+                                ?: $candidate->claimRequests->first(fn ($claimRequest) => $claimRequest->status === 'approved' && $claimRequest->user)?->user;
                         @endphp
                         <button type="button"
                                 class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold {{ $pendingClaims > 0 ? 'bg-amber-900/50 text-amber-300' : ($approvedClaims > 0 ? 'bg-emerald-900/50 text-emerald-300' : 'bg-zinc-800 text-zinc-300') }}"
@@ -156,13 +158,19 @@
                         @if($rejectedClaims > 0)
                             <p class="mt-2 text-xs text-zinc-500">{{ $rejectedClaims }} rejected</p>
                         @endif
-                        @if($candidate->user_id)
-                            <form method="POST" action="{{ route('candidates.login-as', [$candidate, $candidate->user_id]) }}" class="mt-2">
+                        @if($rowLoginUser)
+                            <form method="POST" action="{{ route('candidates.login-as', [$candidate, $rowLoginUser]) }}" class="mt-2">
                                 @csrf
-                                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-blue-700 px-3 py-1 text-xs font-semibold text-blue-300 hover:bg-blue-950">
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-blue-700 px-3 py-1 text-xs font-semibold text-blue-300 hover:bg-blue-950" title="Login as {{ $rowLoginUser->name }}">
                                     <i class="fas fa-right-to-bracket"></i> Login as
                                 </button>
                             </form>
+                        @else
+                            <button type="button"
+                                    class="mt-2 inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-zinc-700 px-3 py-1 text-xs font-semibold text-zinc-500"
+                                    title="Approve a claim request or send a claim link before logging in as this aspirant.">
+                                <i class="fas fa-right-to-bracket"></i> Login as
+                            </button>
                         @endif
                         @if(blank($candidate->email))
                             <p class="mt-2 text-xs text-amber-300">Needs email for token link</p>
