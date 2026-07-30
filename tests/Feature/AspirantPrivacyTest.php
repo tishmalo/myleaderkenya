@@ -6,7 +6,6 @@ use App\Models\Candidate;
 use App\Models\CandidateClaimRequest;
 use App\Models\Position;
 use App\Models\User;
-use App\Services\Web\CandidateClaimRequestService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -77,6 +76,7 @@ class AspirantPrivacyTest extends TestCase
         $this->get(route('aspirants.register', ['candidate_id' => $candidate->id]))
             ->assertNotFound();
     }
+
     public function test_candidate_user_and_claim_request_store_pii_as_ciphertext(): void
     {
         $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
@@ -115,6 +115,63 @@ class AspirantPrivacyTest extends TestCase
         $this->assertSame(hash('sha256', 'request@example.test'), $rawClaim->email_hash);
     }
 
+    public function test_representative_submission_creates_candidate_user_and_claim_atomically(): void
+    {
+        $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
+
+        $response = $this->post(route('aspirants.register.store'), [
+            'submission_mode' => 'representative',
+            'relationship' => 'campaign_manager',
+            'aspirant_name' => 'New Pending Aspirant',
+            'position_id' => $position->id,
+            'county' => 'Nairobi',
+            'account_name' => 'Campaign Submitter',
+            'account_email' => 'campaign@example.test',
+            'account_phone' => '+254700000011',
+            'password' => 'secure-password',
+            'password_confirmation' => 'secure-password',
+        ]);
+
+        $response->assertRedirect(route('aspirants.register'));
+        $this->assertDatabaseCount('candidates', 1);
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('candidate_claim_requests', 1);
+
+        $candidate = Candidate::firstOrFail();
+        $user = User::where('email_hash', hash('sha256', 'campaign@example.test'))->firstOrFail();
+        $claim = CandidateClaimRequest::firstOrFail();
+
+        $this->assertSame('pending', $candidate->approval_status);
+        $this->assertNull($candidate->user_id);
+        $this->assertSame($user->id, $claim->user_id);
+        $this->assertSame($candidate->id, $claim->candidate_id);
+        $this->assertNull($user->relationship);
+    }
+
+    public function test_existing_user_email_rejects_submission_before_candidate_creation(): void
+    {
+        User::factory()->create(['email' => 'already-registered@example.test']);
+        $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
+
+        $response = $this->from(route('aspirants.register'))->post(route('aspirants.register.store'), [
+            'submission_mode' => 'representative',
+            'relationship' => 'PA',
+            'aspirant_name' => 'Must Roll Back',
+            'position_id' => $position->id,
+            'county' => 'Nairobi',
+            'account_name' => 'Duplicate Submitter',
+            'account_email' => 'already-registered@example.test',
+            'password' => 'secure-password',
+            'password_confirmation' => 'secure-password',
+        ]);
+
+        $response->assertRedirect(route('aspirants.register'))
+            ->assertSessionHasErrors('account_email');
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('candidates', 0);
+        $this->assertDatabaseCount('candidate_claim_requests', 0);
+    }
+
     public function test_existing_candidate_submission_creates_only_a_claim_request(): void
     {
         $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
@@ -125,15 +182,6 @@ class AspirantPrivacyTest extends TestCase
             'position_id' => $position->id,
             'approval_status' => 'approved',
         ]);
-        $claims = $this->mock(CandidateClaimRequestService::class);
-        $claims->shouldReceive('createPublicRequest')->once()->withArgs(
-            fn (Candidate $selected, array $data): bool =>
-                $selected->is($candidate)
-                && $data['relationship'] === 'PA'
-                && $data['name'] === 'Submitting PA'
-                && $data['email'] === 'pa@example.test'
-                && $data['phone'] === '+254700000008'
-        );
 
         $response = $this->post(route('aspirants.register.store'), [
             'candidate_id' => $candidate->id,
@@ -151,8 +199,16 @@ class AspirantPrivacyTest extends TestCase
 
         $response->assertRedirect(route('aspirants.register', ['candidate_id' => $candidate->id]));
         $this->assertDatabaseCount('candidates', 1);
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('candidate_claim_requests', 1);
         $this->assertSame('Existing Aspirant', $candidate->fresh()->name);
         $this->assertSame('existing-private@example.test', $candidate->fresh()->email);
         $this->assertSame('+254700000007', $candidate->fresh()->phone);
+
+        $user = User::where('email_hash', hash('sha256', 'pa@example.test'))->firstOrFail();
+        $claim = CandidateClaimRequest::firstOrFail();
+        $this->assertSame($user->id, $claim->user_id);
+        $this->assertNull($user->email_verified_at);
+        $this->assertNull($user->relationship);
     }
 }

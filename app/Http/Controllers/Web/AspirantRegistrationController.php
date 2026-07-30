@@ -93,6 +93,7 @@ class AspirantRegistrationController extends Controller
                 'email' => $validated['account_email'],
                 'phone' => $validated['account_phone'] ?? null,
                 'password' => $validated['password'],
+                '_email_field' => 'account_email',
             ]);
 
             return $this->registrationRedirect($request, 'Your access request has been submitted for admin verification.');
@@ -140,6 +141,7 @@ class AspirantRegistrationController extends Controller
                     'email' => $validated['account_email'],
                     'phone' => $validated['account_phone'] ?? null,
                     'password' => $validated['password'],
+                    '_email_field' => 'account_email',
                 ]);
             }
         });

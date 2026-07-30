@@ -44,6 +44,7 @@ class AspirantRegisterRequest extends FormRequest
             'account_email' => [
                 Rule::requiredIf($existingCandidate || $representative),
                 'nullable', 'string', 'lowercase', 'email', 'max:255',
+                $this->uniqueAccountEmailRule($existingCandidate || $representative),
             ],
             'account_phone' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
