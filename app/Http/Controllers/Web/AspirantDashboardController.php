@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Web\RemoveAspirantTeamMemberRequest;
 use App\Models\CampaignTool;
+use App\Models\User;
 use App\Services\Admin\CandidateService;
+use App\Services\Web\AspirantTeamService;
 use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +21,8 @@ class AspirantDashboardController extends Controller
     public function __construct(
         private AspirantWorkspaceService $workspaceService,
         private AspirantTokenService $tokenService,
-        private CandidateService $candidateService
+        private CandidateService $candidateService,
+        private AspirantTeamService $teamService
     ) {}
 
     public function __invoke(Request $request): View
@@ -33,6 +37,7 @@ class AspirantDashboardController extends Controller
         $scopedVoterCount = $scopeMissing ? 0 : (clone $voterQuery)->count();
         $reachableVoterCount = $scopeMissing ? 0 : (clone $voterQuery)->whereNotNull('phone')->count();
         $tokenWallet = $candidate ? $this->tokenService->walletForCandidate($candidate) : null;
+        $isPrimaryAspirant = $this->teamService->isPrimaryAspirant($user, $candidate);
 
         return view('aspirants.dashboard', [
             'user' => $user,
@@ -50,6 +55,8 @@ class AspirantDashboardController extends Controller
             'recentOutreach' => $this->recentOutreach($candidate?->id),
             'pollSnapshot' => $this->pollSnapshot($candidate?->id),
             'tokenWallet' => $tokenWallet,
+            'isPrimaryAspirant' => $isPrimaryAspirant,
+            'teamMembers' => $isPrimaryAspirant ? $this->teamService->teamForOwner($user, $candidate) : collect(),
         ]);
     }
 
@@ -75,6 +82,24 @@ class AspirantDashboardController extends Controller
 
         return redirect(route('aspirant.dashboard') . '#profile')
             ->with('success', 'Cover photo updated successfully.');
+    }
+
+    public function removeTeamMember(RemoveAspirantTeamMemberRequest $request, User $member): RedirectResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect(route('aspirant.dashboard') . '#team')
+                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        if (! $this->teamService->removeMember($request->user(), $candidate, $member)) {
+            return redirect(route('aspirant.dashboard') . '#team')
+                ->with('warning', 'Only the primary aspirant can remove campaign team members.');
+        }
+
+        return redirect(route('aspirant.dashboard') . '#team')
+            ->with('success', 'Campaign team member removed. Their dashboard access has been revoked.');
     }
 
     private function activePollCount(?int $candidateId): int

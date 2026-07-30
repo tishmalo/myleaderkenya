@@ -5,6 +5,7 @@ namespace App\Repositories\Web;
 use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Schema;
 
 class CandidateRelationshipRepository implements CandidateRelationshipRepositoryInterface
@@ -32,6 +33,27 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
         $user->relatedCandidates()->updateExistingPivot($candidate->id, [
             'dashboard_access_enabled' => $enabled,
         ]);
+    }
+
+    public function detach(User $user, Candidate $candidate): void
+    {
+        if (! Schema::hasTable('candidate_user_relationships')) {
+            return;
+        }
+
+        $user->relatedCandidates()->detach($candidate->id);
+    }
+
+    public function teamForCandidate(Candidate $candidate): Collection
+    {
+        if (! Schema::hasTable('candidate_user_relationships')) {
+            return new Collection();
+        }
+
+        return $candidate->relatedUsers()
+            ->whereIn('candidate_user_relationships.relationship', ['aspirant', 'PA', 'campaign_manager'])
+            ->orderBy('candidate_user_relationships.created_at')
+            ->get();
     }
 
     public function hasApprovedCandidateRelationship(User $user): bool

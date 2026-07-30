@@ -105,6 +105,16 @@ body { background:#080808; color:#f5f5f0; }
 .asp-activity-title { color:white; font-weight:900; font-size:13px; }
 .asp-activity-meta { margin-top:2px; color:rgba(245,245,240,.52); font-size:12px; }
 .asp-activity-time { color:rgba(245,245,240,.58); font-size:12px; white-space:nowrap; }
+.asp-team-list { display:grid; gap:0; border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden; background:#111; }
+.asp-team-row { display:grid; grid-template-columns:minmax(180px,1.2fr) 150px 120px auto; gap:14px; align-items:center; padding:14px 16px; border-top:1px solid rgba(255,255,255,.07); }
+.asp-team-row:first-child { border-top:0; }
+.asp-team-name { color:white; font-weight:900; }
+.asp-team-email { margin-top:3px; color:rgba(245,245,240,.48); font-size:12px; overflow-wrap:anywhere; }
+.asp-team-role { color:rgba(245,245,240,.74); font-weight:800; }
+.asp-team-access { display:inline-flex; justify-content:center; width:max-content; min-height:26px; padding:0 10px; align-items:center; border-radius:999px; background:rgba(34,197,94,.12); color:#86efac; font-size:11px; font-weight:900; }
+.asp-team-access.off { background:rgba(245,158,11,.12); color:#fbbf24; }
+.asp-team-remove { min-height:36px; border:1px solid rgba(239,68,68,.32); border-radius:8px; background:rgba(239,68,68,.08); color:#ffb4b4; padding:0 12px; font:inherit; font-size:12px; font-weight:900; cursor:pointer; }
+.asp-team-remove:hover { background:rgba(239,68,68,.16); }
 .asp-bars { display:grid; gap:12px; }
 .asp-poll-question { margin:0 0 16px; color:rgba(245,245,240,.86); font-weight:800; line-height:1.45; }
 .asp-bar-row { display:grid; grid-template-columns:minmax(120px,1fr) 1.7fr 62px; align-items:center; gap:10px; color:rgba(245,245,240,.74); font-size:12px; }
@@ -116,7 +126,7 @@ body { background:#080808; color:#f5f5f0; }
 .asp-bars .asp-bar-row:nth-child(3) .asp-bar-fill { background:#f59e0b; }
 .asp-bars .asp-bar-row:nth-child(4) .asp-bar-fill { background:#3b82f6; }
 @media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
-@media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } }
+@media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } .asp-team-row { grid-template-columns:1fr; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -162,6 +172,9 @@ body { background:#080808; color:#f5f5f0; }
                         <a href="{{ route('aspirants.show', $candidate) }}" class="asp-btn primary"><i class="fas fa-eye"></i> Public Profile</a>
                     @endif
                     <a href="{{ route('aspirant.tokens.index') }}" class="asp-btn primary"><i class="fas fa-coins"></i> Buy Tokens</a>
+                    @if($isPrimaryAspirant ?? false)
+                        <a href="#team" class="asp-btn ghost" data-dashboard-section-link="team"><i class="fas fa-user-shield"></i> Team</a>
+                    @endif
                     <a href="{{ route('campaign-tools.public') }}" class="asp-btn ghost"><i class="fas fa-toolbox"></i> All Tools</a>
                 </div>
             </div>
@@ -316,6 +329,41 @@ body { background:#080808; color:#f5f5f0; }
                     <a href="{{ route('aspirants.register') }}" class="asp-btn primary" style="margin-top:16px;"><i class="fas fa-user-plus"></i> Register Aspirant Profile</a>
                 @endif
             </section>
+
+            @if($isPrimaryAspirant ?? false)
+                <section id="team" class="asp-section" data-dashboard-section="team" hidden>
+                    <div class="asp-panel-head">
+                        <div>
+                            <h2><i class="fas fa-user-shield"></i> Campaign Team</h2>
+                            <p class="asp-panel-note">Remove fired or inactive team members to revoke their dashboard access.</p>
+                        </div>
+                        <span class="asp-badge">{{ $teamMembers->count() }} Linked</span>
+                    </div>
+
+                    @if($teamMembers->isNotEmpty())
+                        <div class="asp-team-list">
+                            @foreach($teamMembers as $member)
+                                @php($dashboardAccess = (bool) ($member->pivot?->dashboard_access_enabled ?? true))
+                                <div class="asp-team-row">
+                                    <div>
+                                        <div class="asp-team-name">{{ $member->name }}</div>
+                                        <div class="asp-team-email">{{ $member->email ?? 'No email' }}</div>
+                                    </div>
+                                    <div class="asp-team-role">{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $member->pivot?->relationship ?? 'Team Member')) }}</div>
+                                    <span class="asp-team-access {{ $dashboardAccess ? '' : 'off' }}">{{ $dashboardAccess ? 'Access On' : 'Access Off' }}</span>
+                                    <form method="POST" action="{{ route('aspirant.team.destroy', $member) }}" onsubmit="return confirm('Remove this person from your campaign team? Their dashboard access will be revoked.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="asp-team-remove"><i class="fas fa-user-slash"></i> Remove</button>
+                                    </form>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="asp-empty">No campaign team members are linked yet.</p>
+                    @endif
+                </section>
+            @endif
 
             <section id="recent-outreach" class="asp-section" data-dashboard-section="recent-outreach" hidden>
                 <div class="asp-panel-head">
