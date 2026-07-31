@@ -4,6 +4,14 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
+    @if(session('success'))
+        <div class="fixed right-5 top-24 z-[10050] flex max-w-md items-start gap-3 rounded-2xl border border-emerald-500/35 bg-emerald-950/95 px-5 py-4 text-emerald-100 shadow-2xl backdrop-blur transition duration-300" role="status" data-candidate-success-flash>
+            <i class="fas fa-circle-check mt-0.5 text-emerald-400"></i>
+            <span class="flex-1 font-medium">{{ session('success') }}</span>
+            <button type="button" class="text-emerald-300 hover:text-white" aria-label="Dismiss success message" data-candidate-success-close><i class="fas fa-xmark"></i></button>
+        </div>
+    @endif
+
     <div class="flex items-center justify-between mb-8">
         <h1 class="text-3xl font-semibold text-white flex items-center gap-3">
             <i class="fas fa-user-edit text-emerald-500"></i>
@@ -258,6 +266,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const profileTabButtons = document.querySelectorAll('[data-profile-tab-button]');
     const profileTabPanels = document.querySelectorAll('[data-profile-tab-panel]');
     const activeTabInput = document.querySelector('[data-active-candidate-tab]');
+    const successFlash = document.querySelector('[data-candidate-success-flash]');
+    const dismissSuccessFlash = () => {
+        if (!successFlash) return;
+        successFlash.classList.add('translate-y-[-8px]', 'opacity-0');
+        window.setTimeout(() => successFlash.remove(), 300);
+    };
+    document.querySelector('[data-candidate-success-close]')?.addEventListener('click', dismissSuccessFlash);
+    if (successFlash) window.setTimeout(dismissSuccessFlash, 6000);
     const requestedTab = (window.location.hash || '').replace('#', '');
     const requestedProfileTab = requestedTab.startsWith('profile-') ? requestedTab.replace('profile-', '') : '';
     const validCandidateTabs = Array.from(tabButtons, (button) => button.dataset.candidateTabButton);
