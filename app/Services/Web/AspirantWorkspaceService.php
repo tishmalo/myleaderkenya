@@ -3,8 +3,10 @@
 namespace App\Services\Web;
 
 use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
+use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
 use App\Models\CampaignTool;
 use App\Models\Candidate;
+use App\Models\CampaignToolRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -12,12 +14,14 @@ use Illuminate\Support\Facades\Schema;
 
 class AspirantWorkspaceService
 {
-    public function __construct(private CandidateRelationshipRepositoryInterface $relationships) {}
+    public function __construct(
+        private CandidateRelationshipRepositoryInterface $relationships,
+        private CampaignToolRequestRepositoryInterface $toolRequests
+    ) {}
 
     public function candidateForUser(User $user): ?Candidate
     {
         $relations = ['position', 'politicalParty'];
-
         if (Schema::hasTable('candidate_sms_settings')) {
             $relations[] = 'smsSetting';
         }
@@ -273,6 +277,31 @@ class AspirantWorkspaceService
             'missing' => $missing,
             'message' => $missing ? 'Ask an admin to complete your campaign jurisdiction before using voter-facing tools.' : null,
         ];
+    }
+
+    public function requestToolActivation(User $user, Candidate $candidate, array $validated): CampaignToolRequest
+    {
+        $definitions = $this->toolDefinitions();
+        $toolKey = $validated['tool_key'];
+        $toolTitle = $definitions[$toolKey]['title'] ?? $validated['tool_title'];
+        $disabledReason = trim((string) ($validated['disabled_reason'] ?? ''));
+        $message = trim((string) ($validated['message'] ?? ''));
+
+        return $this->toolRequests->create([
+            'campaign_tool_id' => $validated['campaign_tool_id'] ?? null,
+            'user_id' => $user->id,
+            'candidate_id' => $candidate->id,
+            'request_type' => 'activation',
+            'tool_key' => $toolKey,
+            'tool_title' => $toolTitle,
+            'requester_name' => $candidate->name ?: $user->name,
+            'email' => $candidate->email ?: $user->email,
+            'phone' => $candidate->phone ?: $user->phone,
+            'requested_feature' => 'Activate ' . $toolTitle,
+            'use_case' => $message,
+            'disabled_reason' => $disabledReason,
+            'status' => 'new',
+        ]);
     }
 }
 
