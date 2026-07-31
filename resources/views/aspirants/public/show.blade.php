@@ -156,6 +156,14 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .profile-cover-submit { min-height:44px; border:0; border-radius:8px; background:#006600; color:#fff; font-weight:900; cursor:pointer; }
 .profile-flash { margin:18px 0 0; padding:14px 16px; border-radius:12px; border:1px solid rgba(0,168,107,.35); background:rgba(0,168,107,.1); color:#d8fff0; font-weight:700; }
 .profile-flash.error { border-color:rgba(187,0,0,.4); background:rgba(187,0,0,.14); color:#ffd9d9; }
+.campaign-video-float { position:fixed; right:24px; bottom:112px; z-index:10015; width:min(390px,calc(100vw - 32px)); overflow:hidden; border:1px solid rgba(255,255,255,.16); border-radius:14px; background:#090909; box-shadow:0 24px 70px rgba(0,0,0,.72); }
+.campaign-video-head { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:48px; padding:8px 10px 8px 14px; background:#111; border-bottom:1px solid rgba(255,255,255,.1); }
+.campaign-video-title { display:flex; align-items:center; gap:9px; min-width:0; color:#fff; font-family:'Oswald',sans-serif; font-size:15px; font-weight:700; }
+.campaign-video-title i { color:#ff2d2d; }
+.campaign-video-actions { display:flex; align-items:center; gap:7px; }
+.campaign-video-control { display:grid; place-items:center; width:34px; height:34px; border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#1b1b1b; color:#fff; cursor:pointer; }
+.campaign-video-control:hover { border-color:rgba(0,168,107,.55); color:var(--green-bright); }
+.campaign-video-frame { display:block; width:100%; aspect-ratio:16/9; border:0; background:#000; }
 
 @media (max-width: 980px) {
     .profile-shell { padding:0 16px 56px; }
@@ -174,6 +182,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     .profile-action { width:100%; }
     .priority-grid, .parliament-overview { grid-template-columns:1fr; }
     .parliament-activity { grid-template-columns:1fr; }
+    .campaign-video-float { left:12px; right:12px; bottom:96px; width:auto; }
 }
 </style>
 
@@ -188,6 +197,28 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     $maskedPhone = $candidate->maskedPhone();
     $maskedEmail = $candidate->maskedEmail();
     $canEditCoverPhoto = auth()->check() && auth()->id() === $candidate->user_id && Route::has('aspirant.cover-photo.update');
+    $campaignVideoId = null;
+    if (filled($candidate->campaign_video_url)) {
+        $videoUrl = parse_url($candidate->campaign_video_url);
+        $videoHost = strtolower((string) ($videoUrl['host'] ?? ''));
+        $videoPath = trim((string) ($videoUrl['path'] ?? ''), '/');
+
+        if (str_ends_with($videoHost, 'youtu.be')) {
+            $campaignVideoId = explode('/', $videoPath)[0] ?? null;
+        } elseif (str_ends_with($videoHost, 'youtube.com')) {
+            parse_str((string) ($videoUrl['query'] ?? ''), $videoQuery);
+            $pathParts = array_values(array_filter(explode('/', $videoPath)));
+            $campaignVideoId = $videoQuery['v'] ?? null;
+
+            if (! $campaignVideoId && in_array($pathParts[0] ?? null, ['embed', 'shorts', 'live'], true)) {
+                $campaignVideoId = $pathParts[1] ?? null;
+            }
+        }
+
+        if (! is_string($campaignVideoId) || ! preg_match('/^[A-Za-z0-9_-]{6,20}$/', $campaignVideoId)) {
+            $campaignVideoId = null;
+        }
+    }
     $socialLinks = collect([
         ['label' => 'Facebook', 'url' => $candidate->facebook_url, 'icon' => 'fa-brands fa-facebook-f'],
         ['label' => 'X', 'url' => $candidate->x_url, 'icon' => 'fa-brands fa-x-twitter'],
@@ -352,6 +383,56 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         </div>
     </div>
 </div>
+
+@if($campaignVideoId)
+<aside class="campaign-video-float" data-campaign-video aria-label="Campaign video">
+    <div class="campaign-video-head">
+        <div class="campaign-video-title"><i class="fa-brands fa-youtube"></i><span>Campaign Video</span></div>
+        <div class="campaign-video-actions">
+            <button type="button" class="campaign-video-control" data-campaign-video-mute aria-label="Unmute campaign video" title="Unmute">
+                <i class="fas fa-volume-xmark"></i>
+            </button>
+            <button type="button" class="campaign-video-control" data-campaign-video-close aria-label="Close campaign video" title="Close">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+    <iframe
+        class="campaign-video-frame"
+        data-campaign-video-frame
+        src="https://www.youtube.com/embed/{{ $campaignVideoId }}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1"
+        title="{{ $candidate->name }} campaign video"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+    ></iframe>
+</aside>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const player = document.querySelector('[data-campaign-video]');
+    const frame = player?.querySelector('[data-campaign-video-frame]');
+    const muteButton = player?.querySelector('[data-campaign-video-mute]');
+    const closeButton = player?.querySelector('[data-campaign-video-close]');
+    let muted = true;
+
+    const sendPlayerCommand = (command) => {
+        frame?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: command, args: [] }), 'https://www.youtube.com');
+    };
+
+    muteButton?.addEventListener('click', () => {
+        muted = !muted;
+        sendPlayerCommand(muted ? 'mute' : 'unMute');
+        muteButton.innerHTML = muted ? '<i class="fas fa-volume-xmark"></i>' : '<i class="fas fa-volume-high"></i>';
+        muteButton.setAttribute('aria-label', muted ? 'Unmute campaign video' : 'Mute campaign video');
+        muteButton.setAttribute('title', muted ? 'Unmute' : 'Mute');
+    });
+
+    closeButton?.addEventListener('click', () => {
+        if (frame) frame.src = 'about:blank';
+        player?.remove();
+    });
+});
+</script>
+@endif
 
 @if($canEditCoverPhoto)
 <div class="profile-cover-modal{{ $errors->has('cover_photo') ? ' is-open' : '' }}" data-public-cover-modal aria-hidden="{{ $errors->has('cover_photo') ? 'false' : 'true' }}">
