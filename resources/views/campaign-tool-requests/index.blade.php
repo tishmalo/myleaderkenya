@@ -69,6 +69,16 @@
                                 <div><span class="text-zinc-500">Tool key:</span> {{ $requestItem->tool_key ?: '-' }}</div>
                             @endif
                         </div>
+                        @if(! $isActivation && $requestItem->selectedTools->isNotEmpty())
+                            <div class="mt-4">
+                                <div class="mb-2 text-sm text-zinc-500">Other services requested:</div>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($requestItem->selectedTools as $selectedTool)
+                                        <span class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">{{ $selectedTool->title }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                         @if($requestItem->disabled_reason)
                             <div class="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-100">
                                 <span class="text-amber-300">Setup reason:</span> {{ $requestItem->disabled_reason }}

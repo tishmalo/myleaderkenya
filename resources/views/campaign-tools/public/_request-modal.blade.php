@@ -30,6 +30,32 @@
             </label>
             @error('requested_feature')<div class="ct-request-error">{{ $message }}</div>@enderror
 
+            @php
+                $otherCampaignTools = collect($requestCampaignTools ?? [])->where('id', '!=', $tool->id);
+                $selectedCampaignToolIds = array_map('intval', old('other_campaign_tool_ids', []));
+            @endphp
+            @if($otherCampaignTools->isNotEmpty())
+                <fieldset class="ct-request-tool-picker">
+                    <legend>Other Services</legend>
+                    <span class="ct-request-tool-help">Select all other campaign tools you are interested in.</span>
+                    <div class="ct-request-tool-options">
+                        @foreach($otherCampaignTools as $requestCampaignTool)
+                            <label class="ct-request-tool-option">
+                                <input
+                                    type="checkbox"
+                                    name="other_campaign_tool_ids[]"
+                                    value="{{ $requestCampaignTool->id }}"
+                                    {{ in_array((int) $requestCampaignTool->id, $selectedCampaignToolIds, true) ? 'checked' : '' }}
+                                >
+                                <span>{{ $requestCampaignTool->title }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+                @error('other_campaign_tool_ids')<div class="ct-request-error">{{ $message }}</div>@enderror
+                @error('other_campaign_tool_ids.*')<div class="ct-request-error">{{ $message }}</div>@enderror
+            @endif
+
             <label>Use Case
                 <textarea name="use_case" rows="5" maxlength="2000" placeholder="How would this help your campaign?">{{ old('use_case') }}</textarea>
             </label>

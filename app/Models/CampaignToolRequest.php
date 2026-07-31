@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class CampaignToolRequest extends Model
 {
@@ -31,6 +32,13 @@ class CampaignToolRequest extends Model
         return $this->belongsTo(CampaignTool::class);
     }
 
+    public function selectedTools(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            CampaignTool::class,
+            'campaign_tool_request_selected_tools'
+        )->withTimestamps();
+    }
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

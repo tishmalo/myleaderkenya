@@ -15,7 +15,7 @@ class CampaignToolRequestController extends Controller
     {
         $filters = request()->only(['status', 'request_type', 'campaign_tool_id', 'search']);
 
-        $requests = CampaignToolRequest::with(['campaignTool', 'candidate.position', 'user'])
+        $requests = CampaignToolRequest::with(['campaignTool', 'selectedTools:id,title', 'candidate.position', 'user'])
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['request_type'] ?? null, fn ($query, $type) => $query->where('request_type', $type))
             ->when($filters['campaign_tool_id'] ?? null, fn ($query, $toolId) => $query->where('campaign_tool_id', $toolId))
@@ -28,7 +28,8 @@ class CampaignToolRequestController extends Controller
                         ->orWhere('tool_key', 'like', "%{$search}%")
                         ->orWhere('tool_title', 'like', "%{$search}%")
                         ->orWhere('disabled_reason', 'like', "%{$search}%")
-                        ->orWhere('use_case', 'like', "%{$search}%");
+                        ->orWhere('use_case', 'like', "%{$search}%")
+                        ->orWhereHas('selectedTools', fn ($toolQuery) => $toolQuery->where('title', 'like', "%{$search}%"));
                 });
             })
             ->latest()
