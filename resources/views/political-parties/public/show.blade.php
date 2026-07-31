@@ -110,8 +110,11 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                 <h2 id="party-aspirants-title">Aspirants vying under {{ $politicalParty->name }}</h2>
                 <p>Explore approved aspirants representing this political party.</p>
             </div>
-            @if($candidates->total() > 0)
-                <div class="party-aspirants-count">{{ number_format($candidates->total()) }} {{ Str::plural('aspirant', $candidates->total()) }}</div>
+            @if($candidateTotal > 0)
+                <div class="party-aspirants-count">
+                    {{ number_format($candidateTotal) }}
+                    {{ Str::plural('aspirant', $candidateTotal) }}
+                </div>
             @endif
         </div>
         @forelse($candidateGroups as $group)
@@ -121,8 +124,8 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                         {{ $group['position']->name }}
                     </h3>
                     <span class="party-position-count">
-                        {{ $group['candidates']->count() }}
-                        {{ Str::plural('aspirant', $group['candidates']->count()) }} on this page
+                        {{ number_format($group['candidates']->total()) }}
+                        {{ Str::plural('aspirant', $group['candidates']->total()) }}
                     </span>
                 </div>
 
@@ -131,6 +134,12 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                         @include('aspirants.public._card', ['candidate' => $candidate])
                     @endforeach
                 </div>
+
+                @if($group['candidates']->hasPages())
+                    <div class="party-aspirants-pagination">
+                        {{ $group['candidates']->links() }}
+                    </div>
+                @endif
             </section>
         @empty
             <div class="party-aspirants-empty">
@@ -139,9 +148,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                 <p>Approved aspirants for this party will appear here.</p>
             </div>
         @endforelse
-        @if($candidates->hasPages())
-            <div class="party-aspirants-pagination">{{ $candidates->links() }}</div>
-        @endif
+
     </section>
 </main>
 @endsection

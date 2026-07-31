@@ -3,7 +3,9 @@
 namespace App\Repositories\Admin;
 
 use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
+use App\Models\Candidate;
 use App\Models\PoliticalParty;
+use App\Models\Position;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -46,20 +48,34 @@ class PoliticalPartyRepository implements PoliticalPartyRepositoryInterface
             ->firstOrFail();
     }
 
-    public function paginateApprovedCandidates(
+    public function positionsWithApprovedCandidates(
         PoliticalParty $politicalParty,
-        int $perPage = 20,
+    ): Collection {
+        $positionIds = Candidate::query()
+            ->select('position_id')
+            ->where('political_party_id', $politicalParty->id)
+            ->where('approval_status', 'approved')
+            ->whereNotNull('position_id');
+
+        return Position::query()
+            ->whereIn('id', $positionIds)
+            ->ordered()
+            ->get();
+    }
+
+    public function paginateApprovedCandidatesForPosition(
+        PoliticalParty $politicalParty,
+        Position $position,
+        int $perPage,
+        string $pageName,
     ): LengthAwarePaginator {
         return $politicalParty->candidates()
-            ->select('candidates.*')
             ->with(['position', 'politicalParty'])
-            ->join('positions', 'positions.id', '=', 'candidates.position_id')
-            ->where('candidates.approval_status', 'approved')
-            ->orderBy('positions.sort_order')
-            ->orderBy('positions.name')
-            ->orderByDesc('candidates.created_at')
-            ->orderByDesc('candidates.id')
-            ->paginate($perPage)
+            ->where('approval_status', 'approved')
+            ->where('position_id', $position->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($perPage, ['*'], $pageName)
             ->withQueryString();
     }
 

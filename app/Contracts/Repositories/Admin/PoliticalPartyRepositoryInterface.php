@@ -3,6 +3,7 @@
 namespace App\Contracts\Repositories\Admin;
 
 use App\Models\PoliticalParty;
+use App\Models\Position;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -16,9 +17,15 @@ interface PoliticalPartyRepositoryInterface
 
     public function findPublishedBySlug(string $slug): PoliticalParty;
 
-    public function paginateApprovedCandidates(
+    public function positionsWithApprovedCandidates(
         PoliticalParty $politicalParty,
-        int $perPage = 20,
+    ): Collection;
+
+    public function paginateApprovedCandidatesForPosition(
+        PoliticalParty $politicalParty,
+        Position $position,
+        int $perPage,
+        string $pageName,
     ): LengthAwarePaginator;
 
     public function create(array $data): PoliticalParty;

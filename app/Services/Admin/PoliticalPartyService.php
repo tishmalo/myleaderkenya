@@ -38,18 +38,30 @@ class PoliticalPartyService
     {
         $politicalParty = $this->politicalPartyRepository
             ->findPublishedBySlug($slug);
-        $candidates = $this->politicalPartyRepository
-            ->paginateApprovedCandidates($politicalParty, $perPage);
-        $candidateGroups = $candidates->getCollection()
-            ->groupBy('position_id')
-            ->map(function (Collection $positionCandidates): array {
-                return [
-                    'position' => $positionCandidates->first()->position,
-                    'candidates' => $positionCandidates,
-                ];
-            });
+        $positions = $this->politicalPartyRepository
+            ->positionsWithApprovedCandidates($politicalParty);
+        $candidateGroups = $positions->map(function ($position) use (
+            $politicalParty,
+            $perPage,
+        ): array {
+            $pageName = 'position_'.$position->id.'_page';
 
-        return compact('politicalParty', 'candidates', 'candidateGroups');
+            return [
+                'position' => $position,
+                'candidates' => $this->politicalPartyRepository
+                    ->paginateApprovedCandidatesForPosition(
+                        $politicalParty,
+                        $position,
+                        $perPage,
+                        $pageName,
+                    ),
+            ];
+        });
+        $candidateTotal = $candidateGroups->sum(
+            fn (array $group): int => $group['candidates']->total(),
+        );
+
+        return compact('politicalParty', 'candidateGroups', 'candidateTotal');
     }
 
     public function createParty(array $data, ?UploadedFile $logo = null): PoliticalParty
