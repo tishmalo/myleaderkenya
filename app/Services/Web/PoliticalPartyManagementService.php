@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\Admin\CandidateService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PoliticalPartyManagementService
@@ -132,6 +133,7 @@ class PoliticalPartyManagementService
             if (! $user) {
                 $user = $this->users->createUser([
                     'name' => $data['name'],
+                    'username' => $this->uniqueUsername($data['name']),
                     'email' => $normalizedEmail,
                     'phone' => $data['phone'],
                     'password' => $data['password'],
@@ -188,6 +190,7 @@ class PoliticalPartyManagementService
         if (! $official) {
             $official = $this->users->createUser([
                 'name' => $data['name'],
+                'username' => $this->uniqueUsername($data['name']),
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'role' => 'user',
@@ -323,6 +326,24 @@ class PoliticalPartyManagementService
                 'reviewed_at' => now(),
             ]);
         });
+    }
+
+    private function uniqueUsername(string $name): string
+    {
+        $base = Str::limit(Str::slug($name, '_'), 40, '');
+
+        if ($base === '') {
+            $base = 'party_official';
+        }
+
+        $username = $base;
+        $suffix = 1;
+
+        while ($this->users->usernameExists($username)) {
+            $username = $base.'_'.$suffix++;
+        }
+
+        return $username;
     }
 
     private function ensureCandidateBelongsToParty(
