@@ -57,6 +57,12 @@ body.ct-modal-open { overflow:hidden; }
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
 
+@if(session('success'))
+<div class="ct-flash">
+    <div>{{ session('success') }}</div>
+</div>
+@endif
+
 <div class="ct-back">
     <a href="{{ route('campaign-tools.public') }}"><i class="fas fa-arrow-left"></i> All Campaign Tools</a>
 </div>

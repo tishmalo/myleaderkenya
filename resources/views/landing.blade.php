@@ -202,6 +202,12 @@
 
     @include('components.frontend-nav')
 
+    @if(session('success'))
+    <div class="ct-flash">
+        <div>{{ session('success') }}</div>
+    </div>
+    @endif
+
 
     <!-- HERO -->
 <section class="hero">

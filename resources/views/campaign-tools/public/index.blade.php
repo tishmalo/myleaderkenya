@@ -59,6 +59,12 @@ body.ct-modal-open { overflow:hidden; }
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
 
+@if(session('success'))
+<div class="ct-flash">
+    <div>{{ session('success') }}</div>
+</div>
+@endif
+
 <section class="ct-hero">
     <div class="ct-eyebrow"><span class="dot"></span> Campaign Infrastructure</div>
     <h1>Campaign <em>Tools</em></h1>
