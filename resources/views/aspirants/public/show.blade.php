@@ -114,9 +114,11 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .social-link i { color:var(--green-bright); width:18px; text-align:center; font-size:16px; }
 .social-link:hover { border-color:rgba(0,168,107,.4); color:white; }
 .about-text { color:rgba(245,245,240,.68); font-size:16px; line-height:1.85; }
-.priority-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.priority-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
 .priority { padding:18px; border:1px solid rgba(255,255,255,.075); border-radius:16px; background:rgba(255,255,255,.035); color:rgba(245,245,240,.72); font-weight:700; font-size:13px; }
 .priority i { display:block; color:var(--green-bright); font-size:22px; margin-bottom:12px; }
+.priority strong { display:block; color:white; font-size:16px; }
+.priority p { overflow-wrap:anywhere; margin:9px 0 0; color:rgba(245,245,240,.58); font-weight:400; font-size:14px; line-height:1.6; white-space:pre-line; }
 .parliament-overview { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
 .parliament-stat { border:1px solid rgba(255,255,255,.075); border-radius:14px; background:rgba(255,255,255,.03); padding:16px; }
 .parliament-stat span { display:block; color:rgba(245,245,240,.4); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
@@ -290,15 +292,21 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                     </div>
                 </section>
 
+                @php($publishedPriorities = $candidate->campaignPriorities->filter(fn ($priority) => $priority->category)->sortBy(fn ($priority) => $priority->category->sort_order))
+                @if($publishedPriorities->isNotEmpty())
                 <section class="profile-card">
                     <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Campaign Priorities</div></div>
                     <div class="profile-card-body priority-grid">
-                        <div class="priority"><i class="fas fa-seedling"></i>Community Development</div>
-                        <div class="priority"><i class="fas fa-briefcase"></i>Jobs & Empowerment</div>
-                        <div class="priority"><i class="fas fa-graduation-cap"></i>Education & Youth</div>
-                        <div class="priority"><i class="fas fa-shield-halved"></i>Accountable Leadership</div>
+                        @foreach($publishedPriorities as $priority)
+                            <article class="priority">
+                                <i class="{{ $priority->category->icon }}"></i>
+                                <strong>{{ $priority->category->name }}</strong>
+                                <p>{{ $priority->manifesto }}</p>
+                            </article>
+                        @endforeach
                     </div>
                 </section>
+                @endif
 
 
                 @if($parliamentMember)

@@ -25,6 +25,9 @@
                     <button type="button" data-candidate-tab-button="tools" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
                         <i class="fas fa-toolbox mr-2"></i> Tools
                     </button>
+                    <button type="button" data-candidate-tab-button="priorities" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
+                        <i class="fas fa-bullseye mr-2"></i> Campaign Priorities
+                    </button>
                     @if($candidate->parliamentMember)
                     <button type="button" data-candidate-tab-button="parliament" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
                         <i class="fas fa-landmark-dome mr-2"></i> Parliamentary Data
@@ -131,6 +134,21 @@
 
             </section>
 
+            <section data-candidate-tab-panel="priorities" class="hidden">
+                <div class="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div><h2 class="text-xl font-semibold text-white">Campaign manifesto priorities</h2><p class="mt-2 text-sm text-zinc-500">Aspirant submissions are read-only here. Approve or reject them from the central review queue.</p></div>
+                        <a href="{{ route('campaign-priority-categories.index', ['candidate' => $candidate->name]) }}" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">Open review queue</a>
+                    </div>
+                    <div class="mt-5 grid gap-3">
+                        @forelse($candidate->campaignPriorities->sortBy(fn ($priority) => $priority->category?->sort_order ?? $priority->sort_order) as $priority)
+                            <article class="rounded-2xl border border-zinc-800 bg-zinc-900 p-4"><div class="flex items-center gap-3"><i class="{{ $priority->category?->icon }} text-emerald-400"></i><strong class="text-white">{{ $priority->category?->name ?: 'Retired category' }}</strong><span class="rounded-full px-2 py-1 text-[10px] font-bold uppercase {{ $priority->status==='approved'?'bg-emerald-500/10 text-emerald-300':($priority->status==='rejected'?'bg-red-500/10 text-red-300':'bg-amber-500/10 text-amber-300') }}">{{ $priority->status }}</span></div><p class="mt-3 whitespace-pre-line text-sm leading-6 text-zinc-400">{{ $priority->manifesto }}</p></article>
+                        @empty
+                            <p class="rounded-2xl border border-dashed border-zinc-800 p-7 text-center text-zinc-500">This aspirant has not submitted campaign priorities.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </section>
             @if($candidate->parliamentMember)
             <section data-candidate-tab-panel="parliament" class="hidden">
                 <div class="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">

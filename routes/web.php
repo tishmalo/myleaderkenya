@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\PoliticalPartyController;
 use App\Http\Controllers\Admin\CoalitionController;
 use App\Http\Controllers\Admin\CandidateController;
+use App\Http\Controllers\Admin\CampaignPriorityCategoryController;
+use App\Http\Controllers\Admin\CandidateCampaignPriorityReviewController;
 use App\Http\Controllers\Admin\ParliamentMemberController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\CampaignToolRequestController;
@@ -34,6 +36,7 @@ use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\CandidateClaimController;
 use App\Http\Controllers\Web\CandidateClaimRequestController;
 use App\Http\Controllers\Web\AspirantDashboardController;
+use App\Http\Controllers\Web\CandidateCampaignPriorityController;
 use App\Http\Controllers\Web\AspirantToolController;
 use App\Http\Controllers\Web\AspirantToolActivationRequestController;
 use App\Http\Controllers\Admin\CandidateTokenPackageController;
@@ -126,6 +129,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
         Route::post('/aspirant/cover-photo', [AspirantDashboardController::class, 'updateCoverPhoto'])->middleware('throttle:6,10')->name('aspirant.cover-photo.update');
         Route::patch('/aspirant/social-links', [AspirantDashboardController::class, 'updateSocialLinks'])->middleware('throttle:20,1')->name('aspirant.social-links.update');
+        Route::put('/aspirant/campaign-priorities', [CandidateCampaignPriorityController::class, 'update'])->middleware('throttle:10,10')->name('aspirant.campaign-priorities.update');
         Route::delete('/aspirant/team/{member}', [AspirantDashboardController::class, 'removeTeamMember'])->middleware('throttle:20,1')->name('aspirant.team.destroy');
         Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
         Route::post('/aspirant/tool-activation-requests', [AspirantToolActivationRequestController::class, 'store'])->middleware('throttle:6,10')->name('aspirant.tool-activation-requests.store');
@@ -162,6 +166,11 @@ Route::middleware('auth')->group(function () {
 
         // --- Content Management ---
         Route::resource('positions', PositionController::class)->except(['show'])->middleware('permission:aspirants.view');
+        Route::get('/campaign-priority-categories', [CampaignPriorityCategoryController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-priority-categories.index');
+        Route::post('/campaign-priority-categories', [CampaignPriorityCategoryController::class, 'store'])->middleware('permission:aspirants.create')->name('campaign-priority-categories.store');
+        Route::put('/campaign-priority-categories/{campaignPriorityCategory}', [CampaignPriorityCategoryController::class, 'update'])->middleware('permission:aspirants.update')->name('campaign-priority-categories.update');
+        Route::delete('/campaign-priority-categories/{campaignPriorityCategory}', [CampaignPriorityCategoryController::class, 'destroy'])->middleware('permission:aspirants.delete')->name('campaign-priority-categories.destroy');
+        Route::patch('/candidates/{candidate}/campaign-priorities/{candidateCampaignPriority}', [CandidateCampaignPriorityReviewController::class, 'update'])->middleware(['permission:aspirants.approve', 'throttle:30,1'])->name('candidate-campaign-priorities.review');
         Route::get('/candidates/search', [CandidateController::class, 'search'])->middleware('permission:aspirants.view')->name('candidates.search');
         Route::patch('/candidates/{candidate}/featured', [CandidateController::class, 'toggleFeatured'])->middleware('permission:aspirants.update')->name('candidates.featured');
         Route::patch('/candidates/{candidate}/approval', [CandidateController::class, 'updateApproval'])->middleware('permission:aspirants.approve')->name('candidates.approval');

@@ -60,6 +60,11 @@ return [
             'tool_key' => 'call-center',
         ],
         [
+            'label' => 'Campaign Priorities',
+            'icon' => 'fas fa-bullseye',
+            'href' => '#campaign-priorities',
+            'section' => 'campaign-priorities',
+        ],        [
             'label' => 'Profile',
             'icon' => 'fas fa-id-badge',
             'href' => '#profile',

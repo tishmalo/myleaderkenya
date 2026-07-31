@@ -72,6 +72,8 @@ class CandidateController extends Controller
 
     public function edit(Candidate $candidate)
     {
+        $candidate->load(['campaignPriorities.category', 'parliamentMember']);
+
         return view('candidates.edit', array_merge($this->candidateService->getFormData(), compact('candidate')));
     }
 

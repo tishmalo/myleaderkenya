@@ -145,7 +145,7 @@ def get_members_by_house(house: str, api_key: str = Security(verify_api_key)):
 @app.get("/profile/{slug}")
 def get_profile_alternative(slug: str, api_key: str = Security(verify_api_key)):
     """Alternative endpoint for getting member profile (alias for /members/{slug})"""
-    return get_member_profile(slug, api_key)
+    return get_member_profile(slug, api_key=api_key)
 
 # ============ RUN SERVER ============
 if __name__ == "__main__":

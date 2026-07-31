@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\RemoveAspirantTeamMemberRequest;
 use App\Http\Requests\Web\UpdateAspirantSocialLinksRequest;
+use App\Models\CampaignPriorityCategory;
 use App\Models\CampaignTool;
 use App\Models\User;
 use App\Services\Admin\CandidateService;
@@ -31,6 +32,11 @@ class AspirantDashboardController extends Controller
         $user = $request->user();
         $candidate = $this->workspaceService->candidateForUser($user);
         $campaignTools = CampaignTool::published()->ordered()->get();
+        $campaignPriorityCategories = CampaignPriorityCategory::query()
+            ->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+        $campaignPriorityEntries = $candidate
+            ? $candidate->campaignPriorities()->get()->keyBy('campaign_priority_category_id')
+            : collect();
         $scope = $this->workspaceService->scopeForCandidate($candidate);
         $toolModules = $this->workspaceService->toolModules($campaignTools, $candidate);
         $scopeMissing = (bool) ($scope['missing'] ?? false);
@@ -44,6 +50,8 @@ class AspirantDashboardController extends Controller
             'user' => $user,
             'candidate' => $candidate,
             'campaignTools' => $campaignTools,
+            'campaignPriorityCategories' => $campaignPriorityCategories,
+            'campaignPriorityEntries' => $campaignPriorityEntries,
             'toolModules' => $toolModules,
             'voterScope' => $scope,
             'dashboardStats' => [

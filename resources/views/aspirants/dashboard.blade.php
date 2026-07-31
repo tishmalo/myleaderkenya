@@ -134,8 +134,24 @@ body { background:#080808; color:#f5f5f0; }
 .asp-bars .asp-bar-row:nth-child(2) .asp-bar-fill { background:#ef4444; }
 .asp-bars .asp-bar-row:nth-child(3) .asp-bar-fill { background:#f59e0b; }
 .asp-bars .asp-bar-row:nth-child(4) .asp-bar-fill { background:#3b82f6; }
-@media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
-@media (max-width:760px) { .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } .asp-team-row { grid-template-columns:1fr; } .asp-social-grid { grid-template-columns:1fr; } }
+.asp-priority-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.asp-priority-card { border:1px solid rgba(255,255,255,.09); border-radius:8px; background:#111; padding:17px; transition:.2s ease; }
+.asp-priority-card.is-selected { border-color:rgba(0,168,107,.5); background:rgba(0,168,107,.06); }
+.asp-priority-choice { display:flex; align-items:flex-start; gap:12px; cursor:pointer; }
+.asp-priority-choice input { margin-top:13px; accent-color:#00A86B; }
+.asp-priority-choice-icon { width:44px; height:44px; border-radius:8px; display:grid; place-items:center; flex:0 0 auto; background:rgba(0,168,107,.13); color:#00A86B; }
+.asp-priority-copy strong { display:block; color:#fff; font-size:15px; }
+.asp-priority-copy > span { display:block; margin-top:4px; color:rgba(245,245,240,.48); font-size:12px; line-height:1.4; }
+.asp-priority-editor { margin-top:14px; }
+.asp-priority-editor[hidden] { display:none; }
+.asp-priority-editor textarea { width:100%; min-height:145px; border:1px solid rgba(255,255,255,.11); border-radius:8px; background:#090909; color:#fff; padding:12px 13px; font:inherit; resize:vertical; line-height:1.5; }
+.asp-priority-meta { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px; color:rgba(245,245,240,.42); font-size:11px; }
+.asp-priority-state { border-radius:999px; padding:4px 8px; font-weight:900; text-transform:uppercase; letter-spacing:.05em; }
+.asp-priority-state.approved { background:rgba(34,197,94,.12); color:#86efac; }
+.asp-priority-state.pending { background:rgba(245,158,11,.12); color:#fbbf24; }
+.asp-priority-state.rejected { background:rgba(239,68,68,.12); color:#fca5a5; }
+.asp-priority-submit { margin-top:16px; min-height:44px; border:0; border-radius:8px; padding:0 20px; background:#006600; color:white; font-weight:900; cursor:pointer; }@media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
+@media (max-width:760px) { .asp-priority-grid { grid-template-columns:1fr; } .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } .asp-team-row { grid-template-columns:1fr; } .asp-social-grid { grid-template-columns:1fr; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -217,6 +233,9 @@ body { background:#080808; color:#f5f5f0; }
 
 
             @endif
+            @if($errors->any())
+                <div class="asp-alert"><strong>Please review the highlighted submission.</strong><ul style="margin:8px 0 0;padding-left:20px;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+            @endif
 
             @if($scopeMissing)
                 <div class="asp-alert">{{ $voterScope['message'] ?? 'Ask an admin to complete your campaign jurisdiction before using voter-facing tools.' }}</div>
@@ -290,6 +309,38 @@ body { background:#080808; color:#f5f5f0; }
                 </div>
             </section>
 
+            <section id="campaign-priorities" class="asp-section" data-dashboard-section="campaign-priorities" hidden>
+                <div class="asp-panel-head">
+                    <div><h2><i class="fas fa-bullseye"></i> Campaign Priorities</h2><p class="asp-panel-note">Choose the administrator-defined groups that matter to your campaign and explain your manifesto commitment. Every change is reviewed before it appears publicly.</p></div>
+                    <span class="asp-badge warn">Admin reviewed</span>
+                </div>
+                @if(!$candidate)
+                    <p class="asp-empty">A linked aspirant profile is required before priorities can be submitted.</p>
+                @elseif($campaignPriorityCategories->isEmpty())
+                    <p class="asp-empty">No campaign priority groups are currently available.</p>
+                @else
+                <form method="POST" action="{{ route('aspirant.campaign-priorities.update') }}" data-priority-form>@csrf @method('PUT')
+                    <div class="asp-priority-grid">
+                        @foreach($campaignPriorityCategories as $category)
+                            @php($entry = $campaignPriorityEntries->get($category->id))
+                            @php($selected = $entry || old('priorities.'.$category->id.'.manifesto') !== null)
+                            <article class="asp-priority-card {{ $selected ? 'is-selected' : '' }}" data-priority-card>
+                                <label class="asp-priority-choice">
+                                    <input type="checkbox" value="1" {{ $selected ? 'checked' : '' }} data-priority-toggle>
+                                    <span class="asp-priority-choice-icon"><i class="{{ $category->icon }}"></i></span>
+                                    <span class="asp-priority-copy"><strong>{{ $category->name }}</strong><span>{{ $category->description ?: 'Add this group to your campaign manifesto.' }}</span></span>
+                                </label>
+                                <div class="asp-priority-editor" data-priority-editor {{ $selected ? '' : 'hidden' }}>
+                                    <textarea name="priorities[{{ $category->id }}][manifesto]" maxlength="5000" placeholder="Describe your commitment, intended action and expected impact..." {{ $selected ? '' : 'disabled' }}>{{ old('priorities.'.$category->id.'.manifesto', $entry?->manifesto) }}</textarea>
+                                    <div class="asp-priority-meta"><span>Maximum 5,000 characters</span>@if($entry)<span class="asp-priority-state {{ $entry->status }}">{{ $entry->status }}</span>@endif</div>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                    <button class="asp-priority-submit"><i class="fas fa-paper-plane"></i> Save and submit for review</button>
+                </form>
+                @endif
+            </section>
             <section id="profile" class="asp-section" data-dashboard-section="profile" hidden>
                 <div class="asp-panel-head">
                     <div>
@@ -523,6 +574,18 @@ body { background:#080808; color:#f5f5f0; }
 @endif
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-priority-card]').forEach((card) => {
+        const toggle = card.querySelector('[data-priority-toggle]');
+        const editor = card.querySelector('[data-priority-editor]');
+        const textarea = editor?.querySelector('textarea');
+        if (!toggle || !editor || !textarea) return;
+        toggle.addEventListener('change', () => {
+            editor.hidden = !toggle.checked;
+            textarea.disabled = !toggle.checked;
+            card.classList.toggle('is-selected', toggle.checked);
+            if (toggle.checked) textarea.focus();
+        });
+    });
     const sections = Array.from(document.querySelectorAll('[data-dashboard-section]'));
     const links = Array.from(document.querySelectorAll('[data-dashboard-section-link]'));
 

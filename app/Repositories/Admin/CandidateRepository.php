@@ -370,7 +370,12 @@ class CandidateRepository implements CandidateRepositoryInterface
     }
     public function loadPublicShow(Candidate $candidate): Candidate
     {
-        $candidate->load(['position', 'politicalParty', 'parliamentMember' => fn ($query) => $query->where('is_published', true)->where('detail_status', 'complete')->with(['committees', 'activities'])]);
+        $candidate->load([
+            'position',
+            'politicalParty',
+            'campaignPriorities' => fn ($query) => $query->where('status', 'approved')->with(['category' => fn ($categoryQuery) => $categoryQuery->where('is_active', true)])->orderBy('sort_order'),
+            'parliamentMember' => fn ($query) => $query->where('is_published', true)->where('detail_status', 'complete')->with(['committees', 'activities']),
+        ]);
 
         $candidate->setRelation(
             'relatedArticles',

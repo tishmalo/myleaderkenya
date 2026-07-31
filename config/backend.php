@@ -40,6 +40,7 @@ return [
                     ['label' => 'Candidates', 'route' => 'candidates.index', 'icon' => 'fas fa-id-badge', 'active' => ['candidates.*'], 'permission' => 'aspirants.view'],
                     ['label' => 'Parliamentary Data', 'route' => 'parliament-members.index', 'icon' => 'fas fa-landmark-dome', 'active' => ['parliament-members.*'], 'permission' => 'aspirants.view'],
                     ['label' => 'Positions', 'route' => 'positions.index', 'icon' => 'fas fa-user-tie', 'active' => ['positions.*'], 'permission' => 'aspirants.view'],
+                    ['label' => 'Campaign Priorities', 'route' => 'campaign-priority-categories.index', 'icon' => 'fas fa-bullseye', 'active' => ['campaign-priority-categories.*'], 'permission' => 'aspirants.view'],
                     ['label' => 'Campaign Tools', 'route' => 'campaign-tools.index', 'icon' => 'fas fa-bullhorn', 'active' => ['campaign-tools.*'], 'permission' => 'aspirants.view'],
                     ['label' => 'Campaign Tool Requests', 'route' => 'campaign-tool-requests.index', 'icon' => 'fas fa-lightbulb', 'active' => ['campaign-tool-requests.*'], 'permission' => 'campaign-tool-requests.view'],
                     ['label' => 'Support Groups', 'route' => 'support-group-types.index', 'icon' => 'fas fa-people-group', 'active' => ['support-group-types.*'], 'permission' => 'support-groups.view'],
