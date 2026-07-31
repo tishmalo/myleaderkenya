@@ -53,6 +53,21 @@ class CandidateUpdateRequest extends FormRequest
         ];
     }
 
+    protected function getRedirectUrl(): string
+    {
+        $activeTab = in_array($this->input('active_tab'), [
+            'profile-basic',
+            'profile-political',
+            'profile-social',
+            'profile-media',
+            'profile-support',
+            'tools',
+            'priorities',
+            'parliament',
+        ], true) ? $this->input('active_tab') : 'profile-basic';
+
+        return preg_replace('/#.*$/', '', parent::getRedirectUrl()) . '#' . $activeTab;
+    }
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {

@@ -92,8 +92,19 @@ class CandidateController extends Controller
             $request->file('campaign_skiza_audio')
         );
 
-        return redirect()->route('candidates.index')
-                         ->with('success', 'Aspirant updated successfully.');
+        $activeTab = in_array($request->input('active_tab'), [
+            'profile-basic',
+            'profile-political',
+            'profile-social',
+            'profile-media',
+            'profile-support',
+            'tools',
+            'priorities',
+            'parliament',
+        ], true) ? $request->input('active_tab') : 'profile-basic';
+
+        return redirect(route('candidates.edit', $candidate) . '#' . $activeTab)
+            ->with('success', 'Aspirant updated successfully.');
     }
 
     public function toggleFeatured(Request $request, Candidate $candidate)

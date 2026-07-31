@@ -16,6 +16,7 @@
         <form action="{{ route('candidates.update', $candidate) }}" method="POST" enctype="multipart/form-data" id="candidateForm">
             @csrf
             @method('PUT')
+            <input type="hidden" name="active_tab" value="profile-basic" data-active-candidate-tab>
 
             <div class="mb-8 border-b border-zinc-800">
                 <div class="flex flex-wrap gap-2" role="tablist" aria-label="Candidate edit sections">
@@ -256,6 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabPanels = document.querySelectorAll('[data-candidate-tab-panel]');
     const profileTabButtons = document.querySelectorAll('[data-profile-tab-button]');
     const profileTabPanels = document.querySelectorAll('[data-profile-tab-panel]');
+    const activeTabInput = document.querySelector('[data-active-candidate-tab]');
     const requestedTab = (window.location.hash || '').replace('#', '');
     const requestedProfileTab = requestedTab.startsWith('profile-') ? requestedTab.replace('profile-', '') : '';
     const validCandidateTabs = Array.from(tabButtons, (button) => button.dataset.candidateTabButton);
@@ -303,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', () => {
             const tab = button.dataset.candidateTabButton;
             activateCandidateTab(tab);
+            if (activeTabInput) activeTabInput.value = tab;
             history.replaceState(null, '', '#' + tab);
         });
     });
@@ -312,12 +315,18 @@ document.addEventListener('DOMContentLoaded', function () {
             const tab = button.dataset.profileTabButton;
             activateCandidateTab('profile');
             activateProfileTab(tab);
+            if (activeTabInput) activeTabInput.value = 'profile-' + tab;
             history.replaceState(null, '', '#profile-' + tab);
         });
     });
 
     activateCandidateTab(initialCandidateTab);
     activateProfileTab(initialProfileTab);
+    if (activeTabInput) {
+        activeTabInput.value = initialCandidateTab === 'profile'
+            ? 'profile-' + initialProfileTab
+            : initialCandidateTab;
+    }
     function initializeSupportContacts() {
         const panel = document.querySelector('[data-support-contacts-panel]');
         if (!panel) return;
