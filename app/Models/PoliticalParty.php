@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class PoliticalParty extends Model
@@ -42,6 +43,11 @@ class PoliticalParty extends Model
     {
         return $this->belongsToMany(NewsArticle::class, 'news_article_political_party');
     }
+    public function candidates(): HasMany
+    {
+        return $this->hasMany(Candidate::class);
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', 'published');
