@@ -107,6 +107,10 @@ body { background:#080808; color:#f5f5f0; }
 .asp-social-field label i { color:#00A86B; width:17px; text-align:center; }
 .asp-social-field input { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:white; padding:11px 12px; font:inherit; }
 .asp-social-field input::placeholder { color:rgba(245,245,240,.28); }
+.asp-media-preview { margin-bottom:10px; overflow:hidden; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; }
+.asp-media-preview img { display:block; width:100%; max-height:240px; object-fit:contain; }
+.asp-media-preview audio { display:block; width:100%; }
+.asp-social-field input[type=file] { color:rgba(245,245,240,.68); }
 .asp-activity { display:grid; gap:0; border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden; }
 .asp-activity-row { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:13px; border-top:1px solid rgba(255,255,255,.07); }
 .asp-activity-row:first-child { border-top:0; }
@@ -418,6 +422,42 @@ body { background:#080808; color:#f5f5f0; }
                                     @endforeach
                                 </div>
                                 <button type="submit" class="asp-btn primary" style="margin-top:14px;"><i class="fas fa-save"></i> Save Social Links</button>
+                            </form>
+                            <form method="POST" action="{{ route('aspirant.media.update') }}" enctype="multipart/form-data" class="asp-social-form">
+                                @csrf
+                                @method('PATCH')
+                                <h3><i class="fas fa-photo-film"></i> Campaign Media</h3>
+                                <div class="asp-social-grid">
+                                    <div class="asp-social-field">
+                                        <label for="asp-campaign-video"><i class="fa-brands fa-youtube"></i> Campaign Video</label>
+                                        <input type="url" id="asp-campaign-video" name="campaign_video_url" value="{{ old('campaign_video_url', $candidate->campaign_video_url) }}" placeholder="https://www.youtube.com/watch?v=...">
+                                        @error('campaign_video_url')<p class="asp-empty">{{ $message }}</p>@enderror
+                                    </div>
+                                    <div class="asp-social-field">
+                                        <label for="asp-campaign-song"><i class="fas fa-music"></i> Campaign Song</label>
+                                        <input type="url" id="asp-campaign-song" name="campaign_song_url" value="{{ old('campaign_song_url', $candidate->campaign_song_url) }}" placeholder="https://youtu.be/...">
+                                        @error('campaign_song_url')<p class="asp-empty">{{ $message }}</p>@enderror
+                                    </div>
+                                    <div class="asp-social-field">
+                                        <label for="asp-campaign-skiza"><i class="fas fa-volume-high"></i> Campaign Skiza Audio</label>
+                                        @if($candidate->campaign_skiza_audio)
+                                            <div class="asp-media-preview"><audio controls preload="metadata" src="{{ Storage::url($candidate->campaign_skiza_audio) }}">Your browser does not support audio playback.</audio></div>
+                                        @endif
+                                        <input type="file" id="asp-campaign-skiza" name="campaign_skiza_audio" accept="audio/mpeg,audio/wav,audio/mp4,audio/aac,audio/ogg,.mp3,.wav,.m4a,.aac,.ogg">
+                                        <p class="asp-profile-note">MP3, WAV, M4A, AAC, or OGG up to 20MB.</p>
+                                        @error('campaign_skiza_audio')<p class="asp-empty">{{ $message }}</p>@enderror
+                                    </div>
+                                    <div class="asp-social-field">
+                                        <label for="asp-campaign-poster"><i class="fas fa-image"></i> Campaign Poster</label>
+                                        @if($candidate->campaign_poster)
+                                            <div class="asp-media-preview"><img src="{{ Storage::url($candidate->campaign_poster) }}" alt="Current campaign poster"></div>
+                                        @endif
+                                        <input type="file" id="asp-campaign-poster" name="campaign_poster" accept="image/jpeg,image/png,image/webp">
+                                        <p class="asp-profile-note">JPG, PNG, or WebP up to 5MB.</p>
+                                        @error('campaign_poster')<p class="asp-empty">{{ $message }}</p>@enderror
+                                    </div>
+                                </div>
+                                <button type="submit" class="asp-btn primary" style="margin-top:14px;" data-loading-label="Saving media..."><i class="fas fa-save"></i> Save Campaign Media</button>
                             </form>
                         </div>
                     </div>

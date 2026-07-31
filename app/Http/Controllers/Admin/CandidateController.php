@@ -63,7 +63,10 @@ class CandidateController extends Controller
         $this->candidateService->createCandidate(
             $this->filterSupportContactsData($request->validated(), $request, null),
             $request->file('profile_picture'),
-            $request->file('cover_photo')
+            $request->file('cover_photo'),
+            $request->file('campaign_poster'),
+            null,
+            $request->file('campaign_skiza_audio')
         );
 
         return redirect()->route('candidates.index')
@@ -83,7 +86,10 @@ class CandidateController extends Controller
             $candidate,
             $this->filterSupportContactsData($request->validated(), $request, $candidate),
             $request->file('profile_picture'),
-            $request->file('cover_photo')
+            $request->file('cover_photo'),
+            $request->file('campaign_poster'),
+            null,
+            $request->file('campaign_skiza_audio')
         );
 
         return redirect()->route('candidates.index')

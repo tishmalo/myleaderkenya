@@ -132,6 +132,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
         Route::post('/aspirant/cover-photo', [AspirantDashboardController::class, 'updateCoverPhoto'])->middleware('throttle:6,10')->name('aspirant.cover-photo.update');
         Route::patch('/aspirant/social-links', [AspirantDashboardController::class, 'updateSocialLinks'])->middleware('throttle:20,1')->name('aspirant.social-links.update');
+        Route::patch('/aspirant/media', [AspirantDashboardController::class, 'updateMedia'])->middleware('throttle:10,10')->name('aspirant.media.update');
         Route::put('/aspirant/campaign-priorities', [CandidateCampaignPriorityController::class, 'update'])->middleware('throttle:10,10')->name('aspirant.campaign-priorities.update');
         Route::delete('/aspirant/team/{member}', [AspirantDashboardController::class, 'removeTeamMember'])->middleware('throttle:20,1')->name('aspirant.team.destroy');
         Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');

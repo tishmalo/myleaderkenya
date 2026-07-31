@@ -204,6 +204,17 @@ class CandidateService
                 unset($data[$field]);
             }
         }
+        foreach (['campaign_video_url', 'campaign_song_url'] as $field) {
+            if (! Schema::hasColumn('candidates', $field)) {
+                if (filled($data[$field] ?? null)) {
+                    throw ValidationException::withMessages([
+                        $field => 'Campaign media links are not ready yet. Apply the campaign media migration, then save again.',
+                    ]);
+                }
+
+                unset($data[$field]);
+            }
+        }
 
         foreach (['country', 'county', 'constituency', 'ward'] as $field) {
             if (array_key_exists($field, $data)) {

@@ -115,11 +115,46 @@
                                 <img src="{{ Storage::url($candidate->cover_photo) }}" alt="Cover" class="mb-3 h-28 w-full rounded-2xl border border-zinc-700 object-cover">
                             @endif
                             <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
-                            <p class="mt-2 text-xs text-zinc-500">Leave blank to keep the current cover photo. JPG, PNG, or WebP up to 5MB.</p>
+                            <p class="mt-2 text-xs text-zinc-500">Leave blank to retain the current cover. Maximum 5MB.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t border-zinc-800 pt-7">
+                        <h2 class="text-xl font-semibold text-white"><i class="fas fa-photo-film mr-2 text-emerald-500"></i>Campaign Media</h2>
+                        <p class="mt-1 text-sm text-zinc-500">Add campaign videos, music, Skiza audio, and artwork for this aspirant.</p>
+
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Video <span class="text-xs text-zinc-500">(YouTube)</span></label>
+                                <input type="url" name="campaign_video_url" value="{{ old('campaign_video_url', $candidate->campaign_video_url) }}" placeholder="https://www.youtube.com/watch?v=..." class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                @error('campaign_video_url')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Song <span class="text-xs text-zinc-500">(YouTube)</span></label>
+                                <input type="url" name="campaign_song_url" value="{{ old('campaign_song_url', $candidate->campaign_song_url) }}" placeholder="https://youtu.be/..." class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                @error('campaign_song_url')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Skiza <span class="text-xs text-zinc-500">(Audio file)</span></label>
+                                @if($candidate->campaign_skiza_audio)
+                                    <audio controls preload="metadata" class="mb-3 w-full" src="{{ Storage::url($candidate->campaign_skiza_audio) }}">Your browser does not support audio playback.</audio>
+                                @endif
+                                <input type="file" name="campaign_skiza_audio" accept="audio/mpeg,audio/wav,audio/mp4,audio/aac,audio/ogg,.mp3,.wav,.m4a,.aac,.ogg" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                <p class="mt-2 text-xs text-zinc-500">MP3, WAV, M4A, AAC, or OGG up to 20MB. Leave blank to retain the current audio.</p>
+                                @error('campaign_skiza_audio')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Poster</label>
+                                @if($candidate->campaign_poster)
+                                    <img src="{{ Storage::url($candidate->campaign_poster) }}" alt="Campaign poster" class="mb-3 max-h-64 w-full rounded-2xl border border-zinc-700 object-contain bg-zinc-950">
+                                @endif
+                                <input type="file" name="campaign_poster" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                <p class="mt-2 text-xs text-zinc-500">JPG, PNG, or WebP up to 5MB. Leave blank to retain the current poster.</p>
+                                @error('campaign_poster')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
                         </div>
                     </div>
                 </section>
-
                 <section id="profile-support" data-profile-tab-panel="support" class="hidden">
                     @include('candidates.partials.support-contacts')
                 </section>
@@ -226,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const validCandidateTabs = Array.from(tabButtons, (button) => button.dataset.candidateTabButton);
     const validProfileTabs = Array.from(profileTabButtons, (button) => button.dataset.profileTabButton);
     const defaultCandidateTab = '{{ $errors->hasAny(["sms_enabled", "sms_provider", "sms_base_url", "sms_sender_name", "sms_username", "sms_password"]) ? "tools" : "profile" }}';
-    const defaultProfileTab = '{{ $errors->hasAny(["facebook_url", "x_url", "instagram_url", "tiktok_url", "youtube_url", "whatsapp_group_url"]) ? "social" : ($errors->hasAny(["profile_picture", "cover_photo"]) ? "media" : ($errors->hasAny(["position_id", "political_party_id", "country", "county", "constituency", "ward"]) ? "political" : ($errors->has('support_contacts.*') ? "support" : "basic"))) }}';
+    const defaultProfileTab = '{{ $errors->hasAny(["facebook_url", "x_url", "instagram_url", "tiktok_url", "youtube_url", "whatsapp_group_url"]) ? "social" : ($errors->hasAny(["profile_picture", "cover_photo", "campaign_video_url", "campaign_song_url", "campaign_skiza_audio", "campaign_poster"]) ? "media" : ($errors->hasAny(["position_id", "political_party_id", "country", "county", "constituency", "ward"]) ? "political" : ($errors->has('support_contacts.*') ? "support" : "basic"))) }}';
     const initialCandidateTab = requestedProfileTab ? 'profile' : (validCandidateTabs.includes(requestedTab) ? requestedTab : defaultCandidateTab);
     const initialProfileTab = validProfileTabs.includes(requestedProfileTab) ? requestedProfileTab : defaultProfileTab;
 

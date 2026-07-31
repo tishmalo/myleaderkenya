@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\RemoveAspirantTeamMemberRequest;
+use App\Http\Requests\Web\UpdateAspirantMediaRequest;
 use App\Http\Requests\Web\UpdateAspirantSocialLinksRequest;
 use App\Models\CampaignPriorityCategory;
 use App\Models\CampaignTool;
@@ -108,6 +109,28 @@ class AspirantDashboardController extends Controller
             ->with('success', 'Social media links updated successfully.');
     }
 
+    public function updateMedia(UpdateAspirantMediaRequest $request): RedirectResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect(route('aspirant.dashboard') . '#profile')
+                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $this->candidateService->updateCandidate(
+            $candidate,
+            $request->safe()->except(['campaign_poster', 'campaign_skiza_audio']),
+            null,
+            null,
+            $request->file('campaign_poster'),
+            null,
+            $request->file('campaign_skiza_audio')
+        );
+
+        return redirect(route('aspirant.dashboard') . '#profile')
+            ->with('success', 'Campaign media updated successfully.');
+    }
     public function removeTeamMember(RemoveAspirantTeamMemberRequest $request, User $member): RedirectResponse
     {
         $candidate = $this->workspaceService->candidateForUser($request->user());
