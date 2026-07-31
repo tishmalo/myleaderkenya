@@ -6,6 +6,7 @@ use App\Models\CampaignPriorityCategory;
 use App\Models\Candidate;
 use App\Models\CandidateCampaignPriority;
 use App\Models\Position;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -50,6 +51,21 @@ class CampaignPriorityFeatureTest extends TestCase
         $this->assertDatabaseMissing('candidate_campaign_priorities', ['candidate_id' => $candidate->id, 'campaign_priority_category_id' => $inactive->id]);
     }
 
+    public function test_admin_can_approve_a_priority_for_a_slug_bound_candidate(): void
+    {
+        $admin = User::factory()->create(['role_id' => Role::idFor(Role::SUPERADMIN), 'role' => 'admin']);
+        $position = Position::create(['name' => 'Member of Parliament']);
+        $candidate = Candidate::create(['name' => 'Edwin Sifuna', 'position_id' => $position->id, 'approval_status' => 'approved']);
+        $category = CampaignPriorityCategory::create(['name' => 'Governance', 'slug' => 'governance', 'icon' => 'fas fa-landmark', 'sort_order' => 1, 'is_active' => true]);
+        $priority = CandidateCampaignPriority::create(['candidate_id' => $candidate->id, 'campaign_priority_category_id' => $category->id, 'manifesto' => 'Governance manifesto.', 'status' => 'pending']);
+
+        $response = $this->actingAs($admin)
+            ->from(route('campaign-priority-categories.index'))
+            ->patch(route('candidate-campaign-priorities.review', [$candidate, $priority]), ['status' => 'approved']);
+
+        $response->assertRedirect(route('campaign-priority-categories.index'));
+        $this->assertDatabaseHas('candidate_campaign_priorities', ['id' => $priority->id, 'candidate_id' => $candidate->id, 'status' => 'approved', 'reviewed_by' => $admin->id]);
+    }
     public function test_unchanged_approved_manifesto_is_not_returned_to_pending(): void
     {
         $user = User::factory()->create(['is_aspirant' => true]);

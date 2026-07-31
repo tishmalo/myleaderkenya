@@ -12,7 +12,14 @@ class CandidateCampaignPriority extends Model
         'submitted_by', 'reviewed_by', 'reviewed_at',
     ];
 
-    protected $casts = ['sort_order' => 'integer', 'reviewed_at' => 'datetime'];
+    protected $casts = [
+        'candidate_id' => 'integer',
+        'campaign_priority_category_id' => 'integer',
+        'sort_order' => 'integer',
+        'submitted_by' => 'integer',
+        'reviewed_by' => 'integer',
+        'reviewed_at' => 'datetime',
+    ];
 
     public function candidate(): BelongsTo { return $this->belongsTo(Candidate::class); }
     public function category(): BelongsTo { return $this->belongsTo(CampaignPriorityCategory::class, 'campaign_priority_category_id'); }

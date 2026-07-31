@@ -12,7 +12,7 @@ class CandidateCampaignPriorityReviewController extends Controller
 {
     public function update(Request $request, Candidate $candidate, CandidateCampaignPriority $candidateCampaignPriority): RedirectResponse
     {
-        if ($candidateCampaignPriority->candidate_id !== $candidate->id) {
+        if ((int) $candidateCampaignPriority->candidate_id !== (int) $candidate->id) {
             abort(404);
         }
 
