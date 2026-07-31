@@ -469,6 +469,7 @@
     .aspirants-view-more:hover { color: var(--kenya-white); }
     .aspirants-card-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
     .aspirant-mini-card { display: block; min-width: 0; overflow: hidden; border-radius: 16px; background: #141714; border: 1px solid rgba(255,255,255,0.08); color: var(--kenya-white); text-decoration: none; }
+    .aspirant-mini-card:nth-child(6) { display: none; }
     .aspirant-mini-card:hover { border-color: rgba(0,168,107,0.45); }
     .aspirant-mini-photo { display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden; background: #222; color: var(--green-bright); font-family: 'Oswald', sans-serif; font-size: 42px; font-weight: 700; }
     .aspirant-mini-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
@@ -593,6 +594,7 @@
         .landing-tools-head { align-items: start; flex-direction: column; }
         .landing-tool-card { flex-basis: calc((100% - 18px) / 2); }
         .aspirants-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .aspirant-mini-card:nth-child(6) { display: block; }
         .steps-grid  { grid-template-columns: 1fr; }
         .nav-links   { display: none; }
     }
