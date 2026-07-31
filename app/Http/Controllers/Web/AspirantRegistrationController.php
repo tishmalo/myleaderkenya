@@ -72,6 +72,24 @@ class AspirantRegistrationController extends Controller
             ->header('Pragma', 'no-cache');
     }
 
+    public function emailAvailability(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
+        ]);
+
+        $exists = User::query()
+            ->where('email_hash', hash('sha256', Str::lower(trim($validated['email']))))
+            ->exists();
+
+        return response()->json([
+            'available' => ! $exists,
+            'message' => $exists
+                ? 'An account already exists for this email.'
+                : 'Email is available.',
+        ])->header('Cache-Control', 'no-store, private')
+            ->header('Pragma', 'no-cache');
+    }
     public function store(AspirantRegisterRequest $request): RedirectResponse
     {
         $validated = $request->validated();

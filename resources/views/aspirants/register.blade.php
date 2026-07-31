@@ -4,7 +4,7 @@
 
 @push('styles')
 <style>
-.aspirant-form-shell{background:radial-gradient(circle at top left,rgba(0,168,107,.09),transparent 30%),#09090b;color:#fff}.aspirant-form-wrap{max-width:980px;margin:auto}.aspirant-form-intro{margin-bottom:28px}.aspirant-kicker{color:#34d399;font-size:12px;font-weight:900;letter-spacing:.24em;text-transform:uppercase}.aspirant-form-intro h1{margin:10px 0 8px;font:700 clamp(32px,5vw,50px)/1.05 'Oswald',sans-serif}.aspirant-form-intro p{color:#a1a1aa}.aspirant-panel{margin-top:18px;border:1px solid #29292d;border-radius:24px;background:#151517;padding:clamp(20px,4vw,32px);box-shadow:0 22px 60px rgba(0,0,0,.24)}.aspirant-panel-head{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px}.aspirant-panel-num{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:rgba(16,185,129,.14);color:#34d399;font-weight:900}.aspirant-panel h2{font:700 21px 'Oswald',sans-serif}.aspirant-panel-head p{margin-top:3px;color:#71717a;font-size:13px}.aspirant-field-label{display:block;margin-bottom:8px;color:#d4d4d8;font-size:13px;font-weight:700}.aspirant-field,.aspirant-select,.aspirant-textarea{width:100%;border:1px solid #3f3f46;border-radius:13px;background:#242427;color:#fff;padding:12px 14px;outline:none}.aspirant-field:focus,.aspirant-select:focus,.aspirant-textarea:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1)}.aspirant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.aspirant-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.aspirant-role-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;border:1px solid #303036;border-radius:15px;background:#0f0f11}.aspirant-role-switch input{position:absolute;opacity:0}.aspirant-role-switch span{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border-radius:10px;color:#a1a1aa;font-weight:800;cursor:pointer}.aspirant-role-switch input:checked+span{background:#242427;color:#34d399;box-shadow:0 5px 18px rgba(0,0,0,.2)}.aspirant-privacy-note{display:flex;gap:10px;margin-top:14px;border-radius:12px;background:rgba(16,185,129,.08);padding:12px;color:#a7f3d0;font-size:12px;line-height:1.5}.aspirant-search{position:relative}.aspirant-search-control{display:flex;align-items:center;gap:10px;border:1px solid #3f3f46;border-radius:14px;background:#242427;padding:0 14px}.aspirant-search-control:focus-within{border-color:#10b981}.aspirant-search-control input{width:100%;height:50px;border:0;background:transparent;color:#fff;outline:0}.aspirant-search-spinner.is-active{width:15px;height:15px;border:2px solid #52525b;border-top-color:#34d399;border-radius:50%;animation:asp-spin .7s linear infinite}@keyframes asp-spin{to{transform:rotate(360deg)}}.aspirant-search-results{position:absolute;z-index:30;top:82px;left:0;right:0;max-height:330px;overflow:auto;border:1px solid #3f3f46;border-radius:14px;background:#18181b;padding:7px;box-shadow:0 22px 50px rgba(0,0,0,.55)}.aspirant-search-option{display:flex;width:100%;align-items:center;gap:12px;border:0;border-radius:10px;background:transparent;padding:10px;color:#fff;text-align:left}.aspirant-search-option:hover,.aspirant-search-option.is-active{background:#29292d}.aspirant-search-option-avatar,.aspirant-search-avatar{display:grid;flex:0 0 auto;place-items:center;width:45px;height:45px;overflow:hidden;border-radius:12px;background:#064e3b;color:#a7f3d0;font-weight:900}.aspirant-search-option-avatar img,.aspirant-search-avatar img{width:100%;height:100%;object-fit:cover}.aspirant-search-option-copy{display:grid;gap:3px}.aspirant-search-option-copy small,.aspirant-search-selected-copy span{color:#a1a1aa;font-size:12px}.aspirant-search-message{padding:24px;text-align:center;color:#a1a1aa}.aspirant-search-selection{align-items:center;gap:13px;border:1px solid rgba(16,185,129,.35);border-radius:15px;background:rgba(16,185,129,.07);padding:14px}.aspirant-search-selection:not([hidden]){display:flex}.aspirant-search-selected-copy{display:grid;min-width:0;flex:1;gap:3px}.aspirant-search-selected-copy small{color:#6ee7b7}.aspirant-search-selection button{border:1px solid #3f3f46;border-radius:9px;background:#242427;padding:8px 11px;color:#fff;font-size:12px;font-weight:800}.aspirant-search-help{margin-top:9px;color:#71717a;font-size:12px}.aspirant-submit{width:100%;margin-top:22px;border:0;border-radius:15px;background:#059669;padding:15px;color:#fff;font-weight:900}.aspirant-submit:hover{background:#047857}[hidden]{display:none!important}@media(max-width:720px){.aspirant-grid,.aspirant-grid-3{grid-template-columns:1fr}.aspirant-role-switch{grid-template-columns:1fr}.aspirant-panel{border-radius:18px}.aspirant-search-selection{align-items:flex-start;flex-wrap:wrap}.aspirant-search-selection button{margin-left:58px}}
+.aspirant-form-shell{background:radial-gradient(circle at top left,rgba(0,168,107,.09),transparent 30%),#09090b;color:#fff}.aspirant-form-wrap{max-width:980px;margin:auto}.aspirant-form-intro{margin-bottom:28px}.aspirant-kicker{color:#34d399;font-size:12px;font-weight:900;letter-spacing:.24em;text-transform:uppercase}.aspirant-form-intro h1{margin:10px 0 8px;font:700 clamp(32px,5vw,50px)/1.05 'Oswald',sans-serif}.aspirant-form-intro p{color:#a1a1aa}.aspirant-panel{margin-top:18px;border:1px solid #29292d;border-radius:24px;background:#151517;padding:clamp(20px,4vw,32px);box-shadow:0 22px 60px rgba(0,0,0,.24)}.aspirant-panel-head{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px}.aspirant-panel-num{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:rgba(16,185,129,.14);color:#34d399;font-weight:900}.aspirant-panel h2{font:700 21px 'Oswald',sans-serif}.aspirant-panel-head p{margin-top:3px;color:#71717a;font-size:13px}.aspirant-field-label{display:block;margin-bottom:8px;color:#d4d4d8;font-size:13px;font-weight:700}.aspirant-field,.aspirant-select,.aspirant-textarea{width:100%;border:1px solid #3f3f46;border-radius:13px;background:#242427;color:#fff;padding:12px 14px;outline:none}.aspirant-field:focus,.aspirant-select:focus,.aspirant-textarea:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1)}.aspirant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.aspirant-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.aspirant-role-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;border:1px solid #303036;border-radius:15px;background:#0f0f11}.aspirant-role-switch input{position:absolute;opacity:0}.aspirant-role-switch span{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border-radius:10px;color:#a1a1aa;font-weight:800;cursor:pointer}.aspirant-role-switch input:checked+span{background:#242427;color:#34d399;box-shadow:0 5px 18px rgba(0,0,0,.2)}.aspirant-privacy-note{display:flex;gap:10px;margin-top:14px;border-radius:12px;background:rgba(16,185,129,.08);padding:12px;color:#a7f3d0;font-size:12px;line-height:1.5}.aspirant-search{position:relative}.aspirant-search-control{display:flex;align-items:center;gap:10px;border:1px solid #3f3f46;border-radius:14px;background:#242427;padding:0 14px}.aspirant-search-control:focus-within{border-color:#10b981}.aspirant-search-control input{width:100%;height:50px;border:0;background:transparent;color:#fff;outline:0}.aspirant-search-spinner.is-active{width:15px;height:15px;border:2px solid #52525b;border-top-color:#34d399;border-radius:50%;animation:asp-spin .7s linear infinite}@keyframes asp-spin{to{transform:rotate(360deg)}}.aspirant-search-results{position:absolute;z-index:30;top:82px;left:0;right:0;max-height:330px;overflow:auto;border:1px solid #3f3f46;border-radius:14px;background:#18181b;padding:7px;box-shadow:0 22px 50px rgba(0,0,0,.55)}.aspirant-search-option{display:flex;width:100%;align-items:center;gap:12px;border:0;border-radius:10px;background:transparent;padding:10px;color:#fff;text-align:left}.aspirant-search-option:hover,.aspirant-search-option.is-active{background:#29292d}.aspirant-search-option-avatar,.aspirant-search-avatar{display:grid;flex:0 0 auto;place-items:center;width:45px;height:45px;overflow:hidden;border-radius:12px;background:#064e3b;color:#a7f3d0;font-weight:900}.aspirant-search-option-avatar img,.aspirant-search-avatar img{width:100%;height:100%;object-fit:cover}.aspirant-search-option-copy{display:grid;gap:3px}.aspirant-search-option-copy small,.aspirant-search-selected-copy span{color:#a1a1aa;font-size:12px}.aspirant-search-message{padding:24px;text-align:center;color:#a1a1aa}.aspirant-search-selection{align-items:center;gap:13px;border:1px solid rgba(16,185,129,.35);border-radius:15px;background:rgba(16,185,129,.07);padding:14px}.aspirant-search-selection:not([hidden]){display:flex}.aspirant-search-selected-copy{display:grid;min-width:0;flex:1;gap:3px}.aspirant-search-selected-copy small{color:#6ee7b7}.aspirant-search-selection button{border:1px solid #3f3f46;border-radius:9px;background:#242427;padding:8px 11px;color:#fff;font-size:12px;font-weight:800}.aspirant-search-help{margin-top:9px;color:#71717a;font-size:12px}.aspirant-email-status{min-height:18px;margin-top:7px;font-size:12px;font-weight:700}.aspirant-email-status.is-checking{color:#a1a1aa}.aspirant-email-status.is-available{color:#34d399}.aspirant-email-status.is-unavailable{color:#f87171}.aspirant-field[aria-invalid="true"]{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.1)}.aspirant-submit{width:100%;margin-top:22px;border:0;border-radius:15px;background:#059669;padding:15px;color:#fff;font-weight:900}.aspirant-submit:hover{background:#047857}[hidden]{display:none!important}@media(max-width:720px){.aspirant-grid,.aspirant-grid-3{grid-template-columns:1fr}.aspirant-role-switch{grid-template-columns:1fr}.aspirant-panel{border-radius:18px}.aspirant-search-selection{align-items:flex-start;flex-wrap:wrap}.aspirant-search-selection button{margin-left:58px}}
 </style>
 @endpush
 
@@ -61,7 +61,7 @@
                 <div class="aspirant-grid">
                     <div><label class="aspirant-field-label">Aspirant Name <b class="text-red-400">*</b></label><input class="aspirant-field" type="text" name="aspirant_name" value="{{ old('aspirant_name') }}"></div>
                     <div><label class="aspirant-field-label">Aspirant Nickname</label><input class="aspirant-field" type="text" name="nick_name" value="{{ old('nick_name') }}"></div>
-                    <div><label class="aspirant-field-label">Aspirant Email <span data-self-required class="text-red-400">*</span></label><input class="aspirant-field" type="email" name="aspirant_email" autocomplete="email"></div>
+                    <div><label class="aspirant-field-label">Aspirant Email <span data-self-required class="text-red-400">*</span></label><input class="aspirant-field" type="email" name="aspirant_email" value="{{ old('aspirant_email') }}" autocomplete="email" data-email-availability aria-describedby="aspirantEmailStatus"><p class="aspirant-email-status" id="aspirantEmailStatus" data-email-status aria-live="polite"></p></div>
                     <div><label class="aspirant-field-label">Aspirant Phone</label><input class="aspirant-field" type="tel" name="aspirant_phone" autocomplete="tel"></div>
                     <div><label class="aspirant-field-label">Political Party</label><select class="aspirant-select" name="political_party_id"><option value="">Select Political Party (Optional)</option>@foreach($politicalParties as $party)<option value="{{ $party->id }}" {{ old('political_party_id') == $party->id ? 'selected' : '' }}>{{ $party->name }}</option>@endforeach</select></div>
                     <div><label class="aspirant-field-label">Position <b class="text-red-400">*</b></label><select class="aspirant-select" name="position_id" id="positionSelect"><option value="">Select Position</option>@foreach($positions as $pos)<option value="{{ $pos->id }}" {{ old('position_id') == $pos->id ? 'selected' : '' }}>{{ $pos->name }}</option>@endforeach</select></div>
@@ -79,7 +79,7 @@
             <div class="aspirant-panel-head"><span class="aspirant-panel-num" data-account-step>4</span><div><h2>Your secure account</h2><p data-account-copy>The password below is yours and is never the aspirant's when you are a PA or campaign-team member.</p></div></div>
             <div class="aspirant-grid" data-account-identity hidden>
                 <div><label class="aspirant-field-label">Your Full Name <b class="text-red-400">*</b></label><input class="aspirant-field" type="text" name="account_name" value="{{ old('account_name') }}" autocomplete="name"></div>
-                <div><label class="aspirant-field-label">Your Email <b class="text-red-400">*</b></label><input class="aspirant-field" type="email" name="account_email" autocomplete="email"></div>
+                <div><label class="aspirant-field-label">Your Email <b class="text-red-400">*</b></label><input class="aspirant-field" type="email" name="account_email" value="{{ old('account_email') }}" autocomplete="email" data-email-availability aria-describedby="accountEmailStatus"><p class="aspirant-email-status" id="accountEmailStatus" data-email-status aria-live="polite"></p></div>
                 <div><label class="aspirant-field-label">Your Phone</label><input class="aspirant-field" type="tel" name="account_phone" autocomplete="tel"></div>
             </div>
             <div class="aspirant-grid mt-5">
@@ -152,6 +152,65 @@ modeInputs.forEach(function (input) { input.addEventListener('change', syncRegis
 document.addEventListener('aspirant:selected', syncRegistrationMode);
 document.addEventListener('aspirant:cleared', syncRegistrationMode);
 syncRegistrationMode();
+
+const emailAvailabilityUrl = @json(route('aspirants.email-availability'));
+const emailCheckTimers = new WeakMap();
+const emailCheckRequests = new WeakMap();
+
+document.querySelectorAll('[data-email-availability]').forEach(function (field) {
+    const status = field.parentElement.querySelector('[data-email-status]');
+
+    function showEmailStatus(message, state) {
+        status.textContent = message;
+        status.className = 'aspirant-email-status' + (state ? ' is-' + state : '');
+    }
+
+    field.addEventListener('input', function () {
+        clearTimeout(emailCheckTimers.get(field));
+        emailCheckRequests.get(field)?.abort();
+        field.setCustomValidity('');
+        field.removeAttribute('aria-invalid');
+
+        const email = field.value.trim().toLowerCase();
+        if (!email || !field.validity.valid) {
+            showEmailStatus('', '');
+            return;
+        }
+
+        showEmailStatus('Checking email...', 'checking');
+        emailCheckTimers.set(field, setTimeout(async function () {
+            const controller = new AbortController();
+            emailCheckRequests.set(field, controller);
+
+            try {
+                const response = await fetch(emailAvailabilityUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': registrationForm.querySelector('input[name="_token"]').value,
+                    },
+                    body: JSON.stringify({ email: email }),
+                    signal: controller.signal,
+                });
+                if (!response.ok) throw new Error('Email check failed');
+
+                const result = await response.json();
+                if (field.value.trim().toLowerCase() !== email) return;
+
+                if (result.available) {
+                    showEmailStatus(result.message, 'available');
+                } else {
+                    field.setCustomValidity(result.message);
+                    field.setAttribute('aria-invalid', 'true');
+                    showEmailStatus(result.message, 'unavailable');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') showEmailStatus('', '');
+            }
+        }, 450));
+    });
+});
 
 const positionSelect = document.getElementById('positionSelect');
 const jurisdictionFields = document.getElementById('jurisdictionFields');

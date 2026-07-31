@@ -109,6 +109,9 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/aspirants/search', [AspirantRegistrationController::class, 'search'])
         ->middleware(['throttle:30,1', 'cache.headers:no_store;private'])
         ->name('aspirants.search');
+    Route::post('/aspirants/email-availability', [AspirantRegistrationController::class, 'emailAvailability'])
+        ->middleware(['throttle:20,1', 'cache.headers:no_store;private'])
+        ->name('aspirants.email-availability');
     Route::get('/aspirants/register', [AspirantRegistrationController::class, 'create'])
         ->middleware('cache.headers:no_store;private')
         ->name('aspirants.register');
