@@ -72,20 +72,9 @@ class PoliticalPartyController extends Controller
 
     public function publicShow(string $slug)
     {
-        $politicalParty = $this->politicalPartyService->getPublicShowData($slug);
-
-        $candidates = $politicalParty->candidates()
-            ->select('candidates.*')
-            ->with(['position', 'politicalParty'])
-            ->join('positions', 'positions.id', '=', 'candidates.position_id')
-            ->where('candidates.approval_status', 'approved')
-            ->orderBy('positions.sort_order')
-            ->orderBy('positions.name')
-            ->orderByDesc('candidates.created_at')
-            ->orderByDesc('candidates.id')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('political-parties.public.show', compact('politicalParty', 'candidates'));
+        return view(
+            'political-parties.public.show',
+            $this->politicalPartyService->getPublicPageData($slug, 20),
+        );
     }
 }

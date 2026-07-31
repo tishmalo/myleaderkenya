@@ -57,6 +57,11 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .party-aspirants-head h2 { margin:0 0 6px; color:white; font-size:32px; }
 .party-aspirants-head p { margin:0; color:rgba(245,245,240,0.45); }
 .party-aspirants-count { color:var(--green-bright); font-size:12px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; white-space:nowrap; }
+.party-position-group + .party-position-group { margin-top:38px; padding-top:34px; border-top:1px solid rgba(255,255,255,.08); }
+.party-position-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.party-position-title { display:flex; align-items:center; gap:12px; margin:0; color:white; font-size:25px; }
+.party-position-title::before { content:''; width:4px; height:28px; border-radius:999px; background:linear-gradient(to bottom,var(--kenya-red),var(--kenya-green)); }
+.party-position-count { color:rgba(245,245,240,.45); font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; white-space:nowrap; }
 .party-aspirant-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
 .asp-card { background:#101010; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; position:relative; transition:border-color .3s,transform .3s,box-shadow .3s; display:flex; flex-direction:column; }
 .asp-card:hover { border-color:rgba(0,168,107,.35); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 1px rgba(0,168,107,.15); }
@@ -85,7 +90,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .party-aspirants-pagination { margin-top:30px; display:flex; justify-content:center; }
 @media (max-width:900px) { .party-aspirant-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:768px) { .party-hero { padding:58px 18px 42px; } .party-grid,.party-show,.party-back { padding-left:18px; padding-right:18px; } .party-show-head,.party-content,.member-section,.party-aspirants { padding:24px; } .party-show-head.has-logo { display:block; } .party-show-logo { width:130px; height:130px; margin-bottom:20px; } .party-aspirants-head { align-items:start; flex-direction:column; } }
-@media (max-width:520px) { .party-aspirant-grid { grid-template-columns:1fr; } .asp-card-photo { height:240px; } }
+@media (max-width:520px) { .party-position-head { align-items:flex-start; flex-direction:column; } .party-aspirant-grid { grid-template-columns:1fr; } .asp-card-photo { height:240px; } }
 </style>
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
@@ -109,17 +114,31 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                 <div class="party-aspirants-count">{{ number_format($candidates->total()) }} {{ Str::plural('aspirant', $candidates->total()) }}</div>
             @endif
         </div>
-        <div class="party-aspirant-grid">
-            @forelse($candidates as $candidate)
-                @include('aspirants.public._card', ['candidate' => $candidate])
-            @empty
-                <div class="party-aspirants-empty">
-                    <i class="fas fa-users"></i>
-                    <h3>No approved aspirants yet</h3>
-                    <p>Approved aspirants for this party will appear here.</p>
+        @forelse($candidateGroups as $group)
+            <section class="party-position-group" aria-labelledby="position-{{ $group['position']->id }}">
+                <div class="party-position-head">
+                    <h3 class="party-position-title" id="position-{{ $group['position']->id }}">
+                        {{ $group['position']->name }}
+                    </h3>
+                    <span class="party-position-count">
+                        {{ $group['candidates']->count() }}
+                        {{ Str::plural('aspirant', $group['candidates']->count()) }} on this page
+                    </span>
                 </div>
-            @endforelse
-        </div>
+
+                <div class="party-aspirant-grid">
+                    @foreach($group['candidates'] as $candidate)
+                        @include('aspirants.public._card', ['candidate' => $candidate])
+                    @endforeach
+                </div>
+            </section>
+        @empty
+            <div class="party-aspirants-empty">
+                <i class="fas fa-users"></i>
+                <h3>No approved aspirants yet</h3>
+                <p>Approved aspirants for this party will appear here.</p>
+            </div>
+        @endforelse
         @if($candidates->hasPages())
             <div class="party-aspirants-pagination">{{ $candidates->links() }}</div>
         @endif

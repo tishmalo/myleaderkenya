@@ -13,15 +13,15 @@ class PoliticalPartyRepository implements PoliticalPartyRepositoryInterface
     {
         $query = PoliticalParty::query();
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('name', 'like', "%{$filters['search']}%")
-                  ->orWhere('abbreviation', 'like', "%{$filters['search']}%")
-                  ->orWhere('content', 'like', "%{$filters['search']}%");
+                    ->orWhere('abbreviation', 'like', "%{$filters['search']}%")
+                    ->orWhere('content', 'like', "%{$filters['search']}%");
             });
         }
 
@@ -44,6 +44,23 @@ class PoliticalPartyRepository implements PoliticalPartyRepositoryInterface
             ->published()
             ->where('slug', $slug)
             ->firstOrFail();
+    }
+
+    public function paginateApprovedCandidates(
+        PoliticalParty $politicalParty,
+        int $perPage = 20,
+    ): LengthAwarePaginator {
+        return $politicalParty->candidates()
+            ->select('candidates.*')
+            ->with(['position', 'politicalParty'])
+            ->join('positions', 'positions.id', '=', 'candidates.position_id')
+            ->where('candidates.approval_status', 'approved')
+            ->orderBy('positions.sort_order')
+            ->orderBy('positions.name')
+            ->orderByDesc('candidates.created_at')
+            ->orderByDesc('candidates.id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function create(array $data): PoliticalParty

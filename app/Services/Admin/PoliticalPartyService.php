@@ -34,6 +34,24 @@ class PoliticalPartyService
         return $this->politicalPartyRepository->findPublishedBySlug($slug);
     }
 
+    public function getPublicPageData(string $slug, int $perPage = 20): array
+    {
+        $politicalParty = $this->politicalPartyRepository
+            ->findPublishedBySlug($slug);
+        $candidates = $this->politicalPartyRepository
+            ->paginateApprovedCandidates($politicalParty, $perPage);
+        $candidateGroups = $candidates->getCollection()
+            ->groupBy('position_id')
+            ->map(function (Collection $positionCandidates): array {
+                return [
+                    'position' => $positionCandidates->first()->position,
+                    'candidates' => $positionCandidates,
+                ];
+            });
+
+        return compact('politicalParty', 'candidates', 'candidateGroups');
+    }
+
     public function createParty(array $data, ?UploadedFile $logo = null): PoliticalParty
     {
         $data = $this->prepareData($data);
