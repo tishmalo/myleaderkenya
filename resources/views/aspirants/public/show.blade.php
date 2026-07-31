@@ -156,14 +156,25 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .profile-cover-submit { min-height:44px; border:0; border-radius:8px; background:#006600; color:#fff; font-weight:900; cursor:pointer; }
 .profile-flash { margin:18px 0 0; padding:14px 16px; border-radius:12px; border:1px solid rgba(0,168,107,.35); background:rgba(0,168,107,.1); color:#d8fff0; font-weight:700; }
 .profile-flash.error { border-color:rgba(187,0,0,.4); background:rgba(187,0,0,.14); color:#ffd9d9; }
-.campaign-video-float { position:fixed; right:24px; bottom:112px; z-index:10015; width:min(390px,calc(100vw - 32px)); overflow:hidden; border:1px solid rgba(255,255,255,.16); border-radius:14px; background:#090909; box-shadow:0 24px 70px rgba(0,0,0,.72); }
-.campaign-video-head { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:48px; padding:8px 10px 8px 14px; background:#111; border-bottom:1px solid rgba(255,255,255,.1); }
-.campaign-video-title { display:flex; align-items:center; gap:9px; min-width:0; color:#fff; font-family:'Oswald',sans-serif; font-size:15px; font-weight:700; }
-.campaign-video-title i { color:#ff2d2d; }
-.campaign-video-actions { display:flex; align-items:center; gap:7px; }
-.campaign-video-control { display:grid; place-items:center; width:34px; height:34px; border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#1b1b1b; color:#fff; cursor:pointer; }
-.campaign-video-control:hover { border-color:rgba(0,168,107,.55); color:var(--green-bright); }
-.campaign-video-frame { display:block; width:100%; aspect-ratio:16/9; border:0; background:#000; }
+.campaign-media-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(250px,1fr); gap:14px; align-items:start; }
+.campaign-media-grid > :only-child { grid-column:1 / -1; }
+.campaign-media-video, .campaign-media-item { overflow:hidden; border:1px solid rgba(255,255,255,.09); border-radius:13px; background:#111; }
+.campaign-media-label { display:flex; align-items:center; gap:8px; min-height:40px; padding:9px 12px; color:#fff; font-family:'Oswald',sans-serif; font-size:14px; font-weight:700; }
+.campaign-media-label i { color:var(--green-bright); }
+.campaign-media-label .fa-youtube { color:#ff3434; }
+.campaign-media-frame { display:block; width:100%; aspect-ratio:16/9; border:0; background:#000; }
+.campaign-media-side { display:grid; gap:12px; }
+.campaign-media-audio { padding:0 12px 12px; }
+.campaign-media-audio audio { display:block; width:100%; height:38px; }
+.campaign-poster-row { display:grid; grid-template-columns:74px minmax(0,1fr); gap:12px; align-items:center; padding:0 12px 12px; }
+.campaign-poster-thumb { width:74px; aspect-ratio:3/4; border-radius:8px; object-fit:cover; background:#080808; }
+.campaign-poster-open { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:38px; border:1px solid rgba(0,168,107,.35); border-radius:8px; background:rgba(0,168,107,.09); color:#5ee7a8; font-weight:800; cursor:pointer; }
+.campaign-poster-open:hover { border-color:var(--green-bright); color:#fff; }
+.campaign-poster-modal { position:fixed; inset:0; z-index:10040; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(0,0,0,.88); backdrop-filter:blur(8px); }
+.campaign-poster-modal.is-open { display:flex; }
+.campaign-poster-dialog { position:relative; max-width:min(760px,100%); max-height:calc(100vh - 48px); }
+.campaign-poster-dialog img { display:block; max-width:100%; max-height:calc(100vh - 48px); border-radius:14px; box-shadow:0 30px 90px rgba(0,0,0,.7); }
+.campaign-poster-close { position:absolute; top:10px; right:10px; display:grid; place-items:center; width:40px; height:40px; border:1px solid rgba(255,255,255,.18); border-radius:9px; background:rgba(0,0,0,.78); color:#fff; cursor:pointer; }
 
 @media (max-width: 980px) {
     .profile-shell { padding:0 16px 56px; }
@@ -182,7 +193,9 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     .profile-action { width:100%; }
     .priority-grid, .parliament-overview { grid-template-columns:1fr; }
     .parliament-activity { grid-template-columns:1fr; }
-    .campaign-video-float { left:12px; right:12px; bottom:96px; width:auto; }
+    .campaign-media-grid { grid-template-columns:1fr; }
+    .campaign-poster-row { grid-template-columns:64px minmax(0,1fr); }
+    .campaign-poster-thumb { width:64px; }
 }
 </style>
 
@@ -197,29 +210,36 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     $maskedPhone = $candidate->maskedPhone();
     $maskedEmail = $candidate->maskedEmail();
     $canEditCoverPhoto = auth()->check() && auth()->id() === $candidate->user_id && Route::has('aspirant.cover-photo.update');
-    $campaignVideoId = null;
-    if (filled($candidate->campaign_video_url)) {
-        $videoUrl = parse_url($candidate->campaign_video_url);
-        $videoHost = strtolower((string) ($videoUrl['host'] ?? ''));
-        $videoPath = trim((string) ($videoUrl['path'] ?? ''), '/');
+    $youtubeVideoId = function (?string $url): ?string {
+        if (blank($url)) return null;
 
-        if (str_ends_with($videoHost, 'youtu.be')) {
-            $campaignVideoId = explode('/', $videoPath)[0] ?? null;
-        } elseif (str_ends_with($videoHost, 'youtube.com')) {
-            parse_str((string) ($videoUrl['query'] ?? ''), $videoQuery);
-            $pathParts = array_values(array_filter(explode('/', $videoPath)));
-            $campaignVideoId = $videoQuery['v'] ?? null;
+        $parts = parse_url($url);
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = trim((string) ($parts['path'] ?? ''), '/');
+        $videoId = null;
 
-            if (! $campaignVideoId && in_array($pathParts[0] ?? null, ['embed', 'shorts', 'live'], true)) {
-                $campaignVideoId = $pathParts[1] ?? null;
+        if ($host === 'youtu.be' || $host === 'www.youtu.be') {
+            $videoId = explode('/', $path)[0] ?? null;
+        } elseif ($host === 'youtube.com' || $host === 'www.youtube.com' || $host === 'm.youtube.com') {
+            parse_str((string) ($parts['query'] ?? ''), $query);
+            $pathParts = array_values(array_filter(explode('/', $path)));
+            $videoId = $query['v'] ?? null;
+
+            if (! $videoId && in_array($pathParts[0] ?? null, ['embed', 'shorts', 'live'], true)) {
+                $videoId = $pathParts[1] ?? null;
             }
         }
 
-        if (! is_string($campaignVideoId) || ! preg_match('/^[A-Za-z0-9_-]{6,20}$/', $campaignVideoId)) {
-            $campaignVideoId = null;
-        }
-    }
-    $socialLinks = collect([
+        return is_string($videoId) && preg_match('/^[A-Za-z0-9_-]{6,20}$/', $videoId)
+            ? $videoId
+            : null;
+    };
+    $campaignVideoId = $youtubeVideoId($candidate->campaign_video_url);
+    $campaignSongId = $youtubeVideoId($candidate->campaign_song_url);
+    $hasCampaignMedia = $campaignVideoId
+        || $campaignSongId
+        || filled($candidate->campaign_skiza_audio)
+        || filled($candidate->campaign_poster);    $socialLinks = collect([
         ['label' => 'Facebook', 'url' => $candidate->facebook_url, 'icon' => 'fa-brands fa-facebook-f'],
         ['label' => 'X', 'url' => $candidate->x_url, 'icon' => 'fa-brands fa-x-twitter'],
         ['label' => 'Instagram', 'url' => $candidate->instagram_url, 'icon' => 'fa-brands fa-instagram'],
@@ -313,6 +333,96 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                 </section>
                 @endif
 
+                @if($hasCampaignMedia)
+                <section class="profile-card">
+                    <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Campaign Media</div></div>
+                    <div class="profile-card-body campaign-media-grid">
+                        @if($campaignVideoId)
+                            <div class="campaign-media-video">
+                                <div class="campaign-media-label"><i class="fa-brands fa-youtube"></i> Campaign Video</div>
+                                <iframe
+                                    class="campaign-media-frame"
+                                    src="https://www.youtube.com/embed/{{ $campaignVideoId }}?mute=1&playsinline=1&rel=0"
+                                    title="{{ $candidate->name }} campaign video"
+                                    loading="lazy"
+                                    allow="autoplay; encrypted-media; picture-in-picture"
+                                    allowfullscreen
+                                ></iframe>
+                            </div>
+                        @endif
+
+                        @if($campaignSongId || $candidate->campaign_skiza_audio || $candidate->campaign_poster)
+                            <div class="campaign-media-side">
+                                @if($campaignSongId)
+                                    <div class="campaign-media-item">
+                                        <div class="campaign-media-label"><i class="fa-brands fa-youtube"></i> Campaign Song</div>
+                                        <iframe
+                                            class="campaign-media-frame"
+                                            src="https://www.youtube.com/embed/{{ $campaignSongId }}?mute=1&playsinline=1&rel=0"
+                                            title="{{ $candidate->name }} campaign song"
+                                            loading="lazy"
+                                            allow="autoplay; encrypted-media; picture-in-picture"
+                                            allowfullscreen
+                                        ></iframe>
+                                    </div>
+                                @endif
+
+                                @if($candidate->campaign_skiza_audio)
+                                    <div class="campaign-media-item">
+                                        <div class="campaign-media-label"><i class="fas fa-volume-high"></i> Skiza Tune</div>
+                                        <div class="campaign-media-audio">
+                                            <audio controls preload="metadata" src="{{ Storage::url($candidate->campaign_skiza_audio) }}">Your browser does not support audio playback.</audio>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if($candidate->campaign_poster)
+                                    <div class="campaign-media-item">
+                                        <div class="campaign-media-label"><i class="fas fa-image"></i> Campaign Poster</div>
+                                        <div class="campaign-poster-row">
+                                            <img src="{{ Storage::url($candidate->campaign_poster) }}" alt="{{ $candidate->name }} campaign poster" class="campaign-poster-thumb" loading="lazy">
+                                            <button type="button" class="campaign-poster-open" data-campaign-poster-open><i class="fas fa-eye"></i> View Poster</button>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </section>
+
+                @if($candidate->campaign_poster)
+                <div class="campaign-poster-modal" data-campaign-poster-modal aria-hidden="true">
+                    <div class="campaign-poster-dialog" role="dialog" aria-modal="true" aria-label="Campaign poster">
+                        <img src="{{ Storage::url($candidate->campaign_poster) }}" alt="{{ $candidate->name }} campaign poster">
+                        <button type="button" class="campaign-poster-close" data-campaign-poster-close aria-label="Close campaign poster"><i class="fas fa-xmark"></i></button>
+                    </div>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const modal = document.querySelector('[data-campaign-poster-modal]');
+                    const openButton = document.querySelector('[data-campaign-poster-open]');
+                    const closeButton = document.querySelector('[data-campaign-poster-close]');
+                    const closePoster = () => {
+                        modal?.classList.remove('is-open');
+                        modal?.setAttribute('aria-hidden', 'true');
+                    };
+
+                    openButton?.addEventListener('click', () => {
+                        modal?.classList.add('is-open');
+                        modal?.setAttribute('aria-hidden', 'false');
+                    });
+                    closeButton?.addEventListener('click', closePoster);
+                    modal?.addEventListener('click', (event) => {
+                        if (event.target === modal) closePoster();
+                    });
+                    document.addEventListener('keydown', (event) => {
+                        if (event.key === 'Escape') closePoster();
+                    });
+                });
+                </script>
+                @endif
+                @endif
+
                 <section class="profile-card">
                     <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">About {{ $candidate->name }}</div></div>
                     <div class="profile-card-body">
@@ -383,56 +493,6 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         </div>
     </div>
 </div>
-
-@if($campaignVideoId)
-<aside class="campaign-video-float" data-campaign-video aria-label="Campaign video">
-    <div class="campaign-video-head">
-        <div class="campaign-video-title"><i class="fa-brands fa-youtube"></i><span>Campaign Video</span></div>
-        <div class="campaign-video-actions">
-            <button type="button" class="campaign-video-control" data-campaign-video-mute aria-label="Unmute campaign video" title="Unmute">
-                <i class="fas fa-volume-xmark"></i>
-            </button>
-            <button type="button" class="campaign-video-control" data-campaign-video-close aria-label="Close campaign video" title="Close">
-                <i class="fas fa-xmark"></i>
-            </button>
-        </div>
-    </div>
-    <iframe
-        class="campaign-video-frame"
-        data-campaign-video-frame
-        src="https://www.youtube.com/embed/{{ $campaignVideoId }}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1"
-        title="{{ $candidate->name }} campaign video"
-        allow="autoplay; encrypted-media; picture-in-picture"
-        allowfullscreen
-    ></iframe>
-</aside>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const player = document.querySelector('[data-campaign-video]');
-    const frame = player?.querySelector('[data-campaign-video-frame]');
-    const muteButton = player?.querySelector('[data-campaign-video-mute]');
-    const closeButton = player?.querySelector('[data-campaign-video-close]');
-    let muted = true;
-
-    const sendPlayerCommand = (command) => {
-        frame?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: command, args: [] }), 'https://www.youtube.com');
-    };
-
-    muteButton?.addEventListener('click', () => {
-        muted = !muted;
-        sendPlayerCommand(muted ? 'mute' : 'unMute');
-        muteButton.innerHTML = muted ? '<i class="fas fa-volume-xmark"></i>' : '<i class="fas fa-volume-high"></i>';
-        muteButton.setAttribute('aria-label', muted ? 'Unmute campaign video' : 'Mute campaign video');
-        muteButton.setAttribute('title', muted ? 'Unmute' : 'Mute');
-    });
-
-    closeButton?.addEventListener('click', () => {
-        if (frame) frame.src = 'about:blank';
-        player?.remove();
-    });
-});
-</script>
-@endif
 
 @if($canEditCoverPhoto)
 <div class="profile-cover-modal{{ $errors->has('cover_photo') ? ' is-open' : '' }}" data-public-cover-modal aria-hidden="{{ $errors->has('cover_photo') ? 'false' : 'true' }}">
