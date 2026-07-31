@@ -83,7 +83,7 @@ class PoliticalPartyController extends Controller
             ->orderBy('positions.name')
             ->orderByDesc('candidates.created_at')
             ->orderByDesc('candidates.id')
-            ->paginate(30)
+            ->paginate(20)
             ->withQueryString();
 
         return view('political-parties.public.show', compact('politicalParty', 'candidates'));

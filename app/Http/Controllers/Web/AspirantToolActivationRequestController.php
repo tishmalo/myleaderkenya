@@ -5,25 +5,18 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\CampaignToolRequest;
 use App\Services\Web\AspirantWorkspaceService;
+use App\Http\Requests\Web\StoreAspirantToolActivationRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class AspirantToolActivationRequestController extends Controller
 {
     public function __construct(private AspirantWorkspaceService $workspaceService) {}
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreAspirantToolActivationRequest $request): RedirectResponse
     {
         $definitions = $this->workspaceService->toolDefinitions();
 
-        $validated = $request->validate([
-            'tool_key' => ['required', 'string', Rule::in(array_keys($definitions))],
-            'tool_title' => ['required', 'string', 'max:255'],
-            'campaign_tool_id' => ['nullable', 'integer', 'exists:campaign_tools,id'],
-            'disabled_reason' => ['nullable', 'string', 'max:2000'],
-            'message' => ['nullable', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         $user = $request->user();
         $candidate = $this->workspaceService->candidateForUser($user);

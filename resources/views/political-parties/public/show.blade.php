@@ -57,7 +57,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .party-aspirants-head h2 { margin:0 0 6px; color:white; font-size:32px; }
 .party-aspirants-head p { margin:0; color:rgba(245,245,240,0.45); }
 .party-aspirants-count { color:var(--green-bright); font-size:12px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; white-space:nowrap; }
-.party-aspirant-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.party-aspirant-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
 .asp-card { background:#101010; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; position:relative; transition:border-color .3s,transform .3s,box-shadow .3s; display:flex; flex-direction:column; }
 .asp-card:hover { border-color:rgba(0,168,107,.35); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 1px rgba(0,168,107,.15); }
 .asp-card-photo { position:relative; height:210px; overflow:hidden; }
