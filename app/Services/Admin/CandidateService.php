@@ -191,7 +191,7 @@ class CandidateService
             unset($data['approval_status']);
         }
 
-        $socialFields = ['facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url'];
+        $socialFields = ['facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url', 'whatsapp_group_url'];
 
         foreach ($socialFields as $field) {
             if (! Schema::hasColumn('candidates', $field)) {

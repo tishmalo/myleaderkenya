@@ -37,103 +37,93 @@
             </div>
 
             <section data-candidate-tab-panel="profile">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Full Name <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" value="{{ old('name', $candidate->name) }}" required
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Nick Name</label>
-                    <input type="text" name="nick_name" value="{{ old('nick_name', $candidate->nick_name) }}"
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                </div>
-            </div>
-
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Phone Number</label>
-                    <input type="tel" name="phone" value="{{ old('phone', $candidate->phone) }}"
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Email Address</label>
-                    <input type="email" name="email" value="{{ old('email', $candidate->email) }}"
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                </div>
-            </div>
-
-            <!-- Political Party -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Political Party</label>
-                <select name="political_party_id" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                    <option value="">No Political Party</option>
-                    @foreach($politicalParties as $party)
-                        <option value="{{ $party->id }}" {{ old('political_party_id', $candidate->political_party_id) == $party->id ? 'selected' : '' }}>
-                            {{ $party->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Position -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Position <span class="text-red-500">*</span></label>
-                <select name="position_id" id="positionSelect" required
-                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                    @foreach($positions as $pos)
-                        <option value="{{ $pos->id }}" {{ $candidate->position_id == $pos->id ? 'selected' : '' }}>
-                            {{ $pos->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Jurisdiction Fields (Cascading) -->
-            <div id="jurisdictionFields" class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Populated by JavaScript -->
-            </div>
-
-            <!-- Profile Picture -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Profile Picture</label>
-                @if($candidate->profile_picture)
-                    <div class="mb-3">
-                        <img src="{{ Storage::url($candidate->profile_picture) }}" 
-                             alt="Profile" class="w-28 h-28 object-cover rounded-2xl border border-zinc-700">
+                <div class="mb-7 overflow-x-auto border-b border-zinc-800" role="tablist" aria-label="Candidate profile sections">
+                    <div class="flex min-w-max gap-2">
+                        <button type="button" data-profile-tab-button="basic" class="profile-tab-btn rounded-t-xl border border-b-0 border-emerald-500 bg-emerald-600 px-4 py-3 text-sm font-semibold text-white" aria-controls="profile-basic"><i class="fas fa-address-card mr-2"></i>Basic Information</button>
+                        <button type="button" data-profile-tab-button="political" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-political"><i class="fas fa-landmark mr-2"></i>Political Aspirant</button>
+                        <button type="button" data-profile-tab-button="social" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-social"><i class="fas fa-share-nodes mr-2"></i>Social Media</button>
+                        <button type="button" data-profile-tab-button="media" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-media"><i class="fas fa-photo-film mr-2"></i>Media</button>
+                        <button type="button" data-profile-tab-button="support" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-support"><i class="fas fa-people-group mr-2"></i>Support Groups</button>
                     </div>
-                @endif
-                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp"
-                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-            </div>
+                </div>
 
-
-            <!-- Cover Photo -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Cover Photo</label>
-                @if($candidate->cover_photo)
-                    <div class="mb-3">
-                        <img src="{{ Storage::url($candidate->cover_photo) }}"
-                             alt="Cover" class="w-full h-40 object-cover rounded-2xl border border-zinc-700">
+                <section id="profile-basic" data-profile-tab-panel="basic">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" value="{{ old('name', $candidate->name) }}" required class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Nick Name</label>
+                            <input type="text" name="nick_name" value="{{ old('nick_name', $candidate->nick_name) }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Phone Number</label>
+                            <input type="tel" name="phone" value="{{ old('phone', $candidate->phone) }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Email Address</label>
+                            <input type="email" name="email" value="{{ old('email', $candidate->email) }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
                     </div>
-                @endif
-                <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp"
-                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                <p class="mt-2 text-xs text-zinc-500">Leave blank to keep the current cover photo. JPG, PNG, or WebP up to 5MB.</p>
-            </div>
-            <!-- About -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">About Candidate</label>
-                <textarea name="about" rows="5"
-                          class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">{{ old('about', $candidate->about) }}</textarea>
-            </div>
+                    <div class="mt-6">
+                        <label class="mb-2 block text-sm text-zinc-400">About Candidate</label>
+                        <textarea name="about" rows="6" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">{{ old('about', $candidate->about) }}</textarea>
+                    </div>
+                </section>
 
-            @include('candidates.partials.social-links', ['candidate' => $candidate])
+                <section id="profile-political" data-profile-tab-panel="political" class="hidden">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Political Party</label>
+                            <select name="political_party_id" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                <option value="">No Political Party</option>
+                                @foreach($politicalParties as $party)
+                                    <option value="{{ $party->id }}" {{ old('political_party_id', $candidate->political_party_id) == $party->id ? 'selected' : '' }}>{{ $party->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Position <span class="text-red-500">*</span></label>
+                            <select name="position_id" id="positionSelect" required class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                @foreach($positions as $pos)
+                                    <option value="{{ $pos->id }}" {{ old('position_id', $candidate->position_id) == $pos->id ? 'selected' : '' }}>{{ $pos->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div id="jurisdictionFields" class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3"></div>
+                </section>
 
-            @include('candidates.partials.support-contacts')
+                <section id="profile-social" data-profile-tab-panel="social" class="hidden">
+                    @include('candidates.partials.social-links', ['candidate' => $candidate])
+                </section>
 
+                <section id="profile-media" data-profile-tab-panel="media" class="hidden">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Profile Picture</label>
+                            @if($candidate->profile_picture)
+                                <img src="{{ Storage::url($candidate->profile_picture) }}" alt="Profile" class="mb-3 h-28 w-28 rounded-2xl border border-zinc-700 object-cover">
+                            @endif
+                            <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                            <p class="mt-2 text-xs text-zinc-500">JPG, PNG, or WebP up to 2MB.</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Cover Photo</label>
+                            @if($candidate->cover_photo)
+                                <img src="{{ Storage::url($candidate->cover_photo) }}" alt="Cover" class="mb-3 h-28 w-full rounded-2xl border border-zinc-700 object-cover">
+                            @endif
+                            <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                            <p class="mt-2 text-xs text-zinc-500">Leave blank to keep the current cover photo. JPG, PNG, or WebP up to 5MB.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="profile-support" data-profile-tab-panel="support" class="hidden">
+                    @include('candidates.partials.support-contacts')
+                </section>
             </section>
-
             <section data-candidate-tab-panel="priorities" class="hidden">
                 <div class="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                     <div class="flex flex-wrap items-start justify-between gap-4">
@@ -229,7 +219,16 @@
 document.addEventListener('DOMContentLoaded', function () {
     const tabButtons = document.querySelectorAll('[data-candidate-tab-button]');
     const tabPanels = document.querySelectorAll('[data-candidate-tab-panel]');
-    const initialCandidateTab = (window.location.hash || '').replace('#', '') || '{{ $errors->hasAny(["sms_enabled", "sms_provider", "sms_base_url", "sms_sender_name", "sms_username", "sms_password"]) ? "tools" : "profile" }}';
+    const profileTabButtons = document.querySelectorAll('[data-profile-tab-button]');
+    const profileTabPanels = document.querySelectorAll('[data-profile-tab-panel]');
+    const requestedTab = (window.location.hash || '').replace('#', '');
+    const requestedProfileTab = requestedTab.startsWith('profile-') ? requestedTab.replace('profile-', '') : '';
+    const validCandidateTabs = Array.from(tabButtons, (button) => button.dataset.candidateTabButton);
+    const validProfileTabs = Array.from(profileTabButtons, (button) => button.dataset.profileTabButton);
+    const defaultCandidateTab = '{{ $errors->hasAny(["sms_enabled", "sms_provider", "sms_base_url", "sms_sender_name", "sms_username", "sms_password"]) ? "tools" : "profile" }}';
+    const defaultProfileTab = '{{ $errors->hasAny(["facebook_url", "x_url", "instagram_url", "tiktok_url", "youtube_url", "whatsapp_group_url"]) ? "social" : ($errors->hasAny(["profile_picture", "cover_photo"]) ? "media" : ($errors->hasAny(["position_id", "political_party_id", "country", "county", "constituency", "ward"]) ? "political" : ($errors->has('support_contacts.*') ? "support" : "basic"))) }}';
+    const initialCandidateTab = requestedProfileTab ? 'profile' : (validCandidateTabs.includes(requestedTab) ? requestedTab : defaultCandidateTab);
+    const initialProfileTab = validProfileTabs.includes(requestedProfileTab) ? requestedProfileTab : defaultProfileTab;
 
     function activateCandidateTab(tab) {
         tabButtons.forEach((button) => {
@@ -248,11 +247,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function activateProfileTab(tab) {
+        profileTabButtons.forEach((button) => {
+            const active = button.dataset.profileTabButton === tab;
+            button.classList.toggle('bg-emerald-600', active);
+            button.classList.toggle('border-emerald-500', active);
+            button.classList.toggle('text-white', active);
+            button.classList.toggle('bg-zinc-950', !active);
+            button.classList.toggle('border-zinc-800', !active);
+            button.classList.toggle('text-zinc-400', !active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        profileTabPanels.forEach((panel) => {
+            panel.classList.toggle('hidden', panel.dataset.profileTabPanel !== tab);
+        });
+    }
+
     tabButtons.forEach((button) => {
-        button.addEventListener('click', () => activateCandidateTab(button.dataset.candidateTabButton));
+        button.addEventListener('click', () => {
+            const tab = button.dataset.candidateTabButton;
+            activateCandidateTab(tab);
+            history.replaceState(null, '', '#' + tab);
+        });
+    });
+
+    profileTabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const tab = button.dataset.profileTabButton;
+            activateCandidateTab('profile');
+            activateProfileTab(tab);
+            history.replaceState(null, '', '#profile-' + tab);
+        });
     });
 
     activateCandidateTab(initialCandidateTab);
+    activateProfileTab(initialProfileTab);
     function initializeSupportContacts() {
         const panel = document.querySelector('[data-support-contacts-panel]');
         if (!panel) return;

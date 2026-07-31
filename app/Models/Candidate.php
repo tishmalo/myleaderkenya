@@ -21,7 +21,7 @@ class Candidate extends Model
         'name', 'slug', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id', 'user_id',
         'profile_picture', 'cover_photo', 'campaign_poster', 'campaign_video', 'campaign_skiza_audio',
         'phone_1', 'phone_2', 'email_1', 'email_2', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward',
-        'facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url',
+        'facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url', 'whatsapp_group_url',
         'claim_token_hash', 'claim_token_expires_at', 'claim_sent_at', 'claimed_at',
     ];
 

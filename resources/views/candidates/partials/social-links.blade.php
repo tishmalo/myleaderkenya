@@ -6,6 +6,7 @@
         'instagram_url' => ['label' => 'Instagram', 'icon' => 'fa-brands fa-instagram', 'placeholder' => 'https://instagram.com/handle'],
         'tiktok_url' => ['label' => 'TikTok', 'icon' => 'fa-brands fa-tiktok', 'placeholder' => 'https://tiktok.com/@handle'],
         'youtube_url' => ['label' => 'YouTube', 'icon' => 'fa-brands fa-youtube', 'placeholder' => 'https://youtube.com/@channel'],
+        'whatsapp_group_url' => ['label' => 'WhatsApp Group', 'icon' => 'fa-brands fa-whatsapp', 'placeholder' => 'https://chat.whatsapp.com/invite-code'],
     ];
 @endphp
 

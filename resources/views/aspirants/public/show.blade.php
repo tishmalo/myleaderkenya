@@ -194,6 +194,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         ['label' => 'Instagram', 'url' => $candidate->instagram_url, 'icon' => 'fa-brands fa-instagram'],
         ['label' => 'TikTok', 'url' => $candidate->tiktok_url, 'icon' => 'fa-brands fa-tiktok'],
         ['label' => 'YouTube', 'url' => $candidate->youtube_url, 'icon' => 'fa-brands fa-youtube'],
+        ['label' => 'WhatsApp Group', 'url' => $candidate->whatsapp_group_url, 'icon' => 'fa-brands fa-whatsapp'],
     ])->filter(fn ($link) => filled($link['url']))->values();
 @endphp
 

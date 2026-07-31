@@ -29,6 +29,7 @@ class CandidateUpdateRequest extends FormRequest
             'instagram_url' => 'nullable|url|max:255',
             'tiktok_url' => 'nullable|url|max:255',
             'youtube_url' => 'nullable|url|max:255',
+            'whatsapp_group_url' => 'nullable|url|max:255',
             'country' => 'nullable|string',
             'county' => 'nullable|string',
             'constituency' => 'nullable|string',

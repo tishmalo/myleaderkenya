@@ -406,6 +406,7 @@ body { background:#080808; color:#f5f5f0; }
                                         'instagram_url' => ['Instagram', 'fa-brands fa-instagram', 'https://instagram.com/handle'],
                                         'tiktok_url' => ['TikTok', 'fa-brands fa-tiktok', 'https://tiktok.com/@handle'],
                                         'youtube_url' => ['YouTube', 'fa-brands fa-youtube', 'https://youtube.com/@channel'],
+                                        'whatsapp_group_url' => ['WhatsApp Group', 'fa-brands fa-whatsapp', 'https://chat.whatsapp.com/invite-code'],
                                     ] as $field => [$label, $icon, $placeholder])
                                         <div class="asp-social-field">
                                             <label for="asp-{{ $field }}"><i class="{{ $icon }}"></i> {{ $label }}</label>
