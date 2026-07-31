@@ -101,7 +101,7 @@ class LandingRepository implements LandingRepositoryInterface
 
             $group['candidates'] = $query
                 ->latest('created_at')
-                ->take(5)
+                ->take(6)
                 ->get();
 
             return $group;
