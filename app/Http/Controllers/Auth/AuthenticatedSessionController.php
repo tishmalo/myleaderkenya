@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Services\Web\DashboardDestinationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +13,7 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function __construct(private CandidateRelationshipRepositoryInterface $relationships) {}
+    public function __construct(private DashboardDestinationService $dashboardDestination) {}
 
     /**
      * Display the login view.
@@ -32,14 +32,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
+        $dashboardUrl = $this->dashboardDestination->urlFor(
+            $request->user(),
+            absolute: false,
+        );
 
-        $hasPartyAccess = $user->politicalParties()->wherePivot('status', 'active')->exists();
-        $dashboard = $user->user_type === 'aspirant' || $this->relationships->hasApprovedCandidateRelationship($user)
-            ? route('aspirant.dashboard', absolute: false)
-            : ($hasPartyAccess ? route('party.dashboard', absolute: false) : route('dashboard', absolute: false));
-
-        return redirect()->intended($dashboard);
+        return redirect()->intended($dashboardUrl);
     }
 
     /**
