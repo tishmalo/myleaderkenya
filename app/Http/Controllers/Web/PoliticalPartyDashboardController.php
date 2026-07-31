@@ -1,32 +1,151 @@
 <?php
+
 namespace App\Http\Controllers\Web;
+
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PoliticalParty\DistributePartyTokensRequest;
+use App\Http\Requests\PoliticalParty\PurchasePartyTokensRequest;
+use App\Http\Requests\PoliticalParty\StorePartyCandidateRequest;
+use App\Http\Requests\PoliticalParty\StorePartyClaimRequest;
+use App\Http\Requests\PoliticalParty\StorePartyOfficialRequest;
+use App\Http\Requests\PoliticalParty\UpdatePartyCandidateRequest;
 use App\Models\Candidate;
-use App\Models\CandidateTokenPackage;
-use App\Models\PoliticalPartyCandidateClaim;
-use App\Models\PoliticalPartyTokenPurchase;
-use App\Models\PoliticalPartyTokenTransaction;
-use App\Models\Position;
 use App\Models\User;
-use App\Services\Admin\CandidateService;
-use App\Services\Web\PoliticalPartyAccessService;
+use App\Services\Web\PoliticalPartyManagementService;
 use App\Services\Web\PoliticalPartyTokenService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\View\View;
 use RuntimeException;
-class PoliticalPartyDashboardController extends Controller {
- public function __construct(private PoliticalPartyAccessService $access,private PoliticalPartyTokenService $tokens,private CandidateService $candidates){}
- private function party(Request $r){return $this->access->membership($r->user())??abort(403);}
- public function index(Request $r){$party=$this->party($r);$membership=$party->pivot;$query=Candidate::with(['position','tokenWallet'])->where('political_party_id',$party->id)->when($r->search,fn($q,$v)=>$q->where(fn($x)=>$x->where('name','like',"%$v%")->orWhere('nick_name','like',"%$v%")))->when($r->position,fn($q,$v)=>$q->where('position_id',$v))->when($r->approval_status,fn($q,$v)=>$q->where('approval_status',$v))->latest();return view('political-parties.dashboard.index',['party'=>$party,'membership'=>$membership,'candidates'=>$query->paginate(20)->withQueryString(),'positions'=>Position::ordered()->get(),'wallet'=>$this->tokens->wallet($party),'packages'=>CandidateTokenPackage::where('is_active',true)->orderBy('sort_order')->get(),'purchases'=>PoliticalPartyTokenPurchase::where('political_party_id',$party->id)->latest()->take(10)->get(),'transactions'=>PoliticalPartyTokenTransaction::with('candidate')->where('political_party_id',$party->id)->latest()->take(20)->get(),'officials'=>$party->officials()->get(),'claims'=>PoliticalPartyCandidateClaim::with('candidate')->where('political_party_id',$party->id)->latest()->take(10)->get()]);}
- public function createCandidate(Request $r){$party=$this->party($r);return view('political-parties.dashboard.candidate-form',['party'=>$party,'candidate'=>new Candidate,'positions'=>Position::ordered()->get()]);}
- public function storeCandidate(Request $r){$party=$this->party($r);$data=$this->validateCandidate($r);$data['political_party_id']=$party->id;$data['approval_status']='pending';$this->candidates->createCandidate($data,$r->file('profile_picture'),$r->file('cover_photo'),$r->file('campaign_poster'),null,$r->file('campaign_skiza_audio'));return redirect()->route('party.dashboard')->with('success','Aspirant added and submitted for admin approval.');}
- public function editCandidate(Request $r,Candidate $candidate){$party=$this->party($r);abort_unless($candidate->political_party_id===$party->id,403);return view('political-parties.dashboard.candidate-form',['party'=>$party,'candidate'=>$candidate,'positions'=>Position::ordered()->get()]);}
- public function updateCandidate(Request $r,Candidate $candidate){$party=$this->party($r);abort_unless($candidate->political_party_id===$party->id,403);$data=$this->validateCandidate($r);unset($data['political_party_id'],$data['approval_status'],$data['featured'],$data['user_id']);$this->candidates->updateCandidate($candidate,$data,$r->file('profile_picture'),$r->file('cover_photo'),$r->file('campaign_poster'),null,$r->file('campaign_skiza_audio'));return redirect()->route('party.candidates.edit',$candidate)->with('success','Aspirant updated successfully.');}
- public function claim(Request $r){$party=$this->party($r);$data=$r->validate(['candidate_id'=>'required|exists:candidates,id']);abort_if(PoliticalPartyCandidateClaim::where('political_party_id',$party->id)->where('candidate_id',$data['candidate_id'])->where('status','pending')->exists(),422,'A pending claim already exists.');PoliticalPartyCandidateClaim::create(['political_party_id'=>$party->id,'candidate_id'=>$data['candidate_id'],'requested_by'=>$r->user()->id]);return back()->with('success','Aspirant claim submitted for admin review.');}
- public function invite(Request $r){$party=$this->party($r);$this->access->authorize($r->user(),$party,true);$data=$r->validate(['name'=>'required|string|max:255','email'=>'required|email','password'=>'required|min:8','role'=>'required|in:party_admin,party_staff']);$hash=hash('sha256',strtolower(trim($data['email'])));$user=User::where('email_hash',$hash)->first()?:User::create(['name'=>$data['name'],'email'=>$data['email'],'password'=>Hash::make($data['password']),'role'=>'user']);$party->officials()->syncWithoutDetaching([$user->id=>['role'=>$data['role'],'status'=>'active']]);return back()->with('success','Party official access saved.');}
- public function removeOfficial(Request $r,User $user){$party=$this->party($r);$this->access->authorize($r->user(),$party,true);abort_if($user->is($r->user()),422,'You cannot remove your own access.');$party->officials()->detach($user->id);return back()->with('success','Party official removed.');}
- public function purchase(Request $r){$party=$this->party($r);$data=$r->validate(['package_id'=>'required|exists:candidate_token_packages,id','phone'=>'required|string','email'=>'required|email']);$package=CandidateTokenPackage::whereKey($data['package_id'])->where('is_active',true)->firstOrFail();return redirect()->away($this->tokens->purchase($party,$r->user(),$package,$data));}
- public function callback(Request $r){$result=$this->tokens->callback($r->query());return redirect()->route('party.dashboard')->with($result['status']==='success'?'success':'warning',$result['message']);}
- public function distribute(Request $r){$party=$this->party($r);$data=$r->validate(['candidate_id'=>'required|exists:candidates,id','amount'=>'required|integer|min:1']);try{$this->tokens->transfer($party,Candidate::findOrFail($data['candidate_id']),$r->user(),$data['amount']);}catch(RuntimeException $e){return back()->with('warning',$e->getMessage());}return back()->with('success',number_format($data['amount']).' tokens distributed successfully.');}
- private function validateCandidate(Request $r):array{return $r->validate(['name'=>'required|string|max:255','nick_name'=>'nullable|string|max:100','phone'=>'nullable|string|max:20','email'=>'nullable|email|max:255','position_id'=>'required|exists:positions,id','profile_picture'=>'nullable|image|max:2048','cover_photo'=>'nullable|image|max:5120','campaign_video_url'=>'nullable|url|max:255','campaign_song_url'=>'nullable|url|max:255','campaign_skiza_audio'=>'nullable|file|mimes:mp3,wav,m4a,aac,ogg|max:20480','campaign_poster'=>'nullable|image|max:5120','about'=>'nullable|string','facebook_url'=>'nullable|url|max:255','x_url'=>'nullable|url|max:255','instagram_url'=>'nullable|url|max:255','tiktok_url'=>'nullable|url|max:255','youtube_url'=>'nullable|url|max:255','whatsapp_group_url'=>'nullable|url|max:255','country'=>'nullable|string','county'=>'nullable|string','constituency'=>'nullable|string','ward'=>'nullable|string']);}
+
+class PoliticalPartyDashboardController extends Controller
+{
+    public function __construct(
+        private PoliticalPartyManagementService $management,
+        private PoliticalPartyTokenService $tokens,
+    ) {}
+
+    public function index(Request $request)
+    {
+        $filters = $request->only(['search', 'position', 'approval_status']);
+
+        return view(
+            'political-parties.dashboard.index',
+            $this->management->dashboardData($request->user(), $filters),
+        );
+    }
+
+    public function createCandidate(Request $request): View
+    {
+        return view(
+            'political-parties.dashboard.candidate-form',
+            $this->management->candidateFormData($request->user(), new Candidate),
+        );
+    }
+
+    public function storeCandidate(
+        StorePartyCandidateRequest $request,
+    ): RedirectResponse {
+        $this->management->createCandidate(
+            $request->user(),
+            $request->validated(),
+            $request->allFiles(),
+        );
+
+        return redirect()
+            ->route('party.dashboard')
+            ->with('success', 'Aspirant added and submitted for admin approval.');
+    }
+
+    public function editCandidate(Request $request, Candidate $candidate): View
+    {
+        return view(
+            'political-parties.dashboard.candidate-form',
+            $this->management->candidateFormData($request->user(), $candidate),
+        );
+    }
+
+    public function updateCandidate(
+        UpdatePartyCandidateRequest $request,
+        Candidate $candidate,
+    ): RedirectResponse {
+        $this->management->updateCandidate(
+            $request->user(),
+            $candidate,
+            $request->validated(),
+            $request->allFiles(),
+        );
+
+        return redirect()
+            ->route('party.candidates.edit', $candidate)
+            ->with('success', 'Aspirant updated successfully.');
+    }
+
+    public function claim(StorePartyClaimRequest $request): RedirectResponse
+    {
+        $this->management->createClaim(
+            $request->user(),
+            (int) $request->validated('candidate_id'),
+        );
+
+        return back()->with('success', 'Aspirant claim submitted for admin review.');
+    }
+
+    public function invite(StorePartyOfficialRequest $request): RedirectResponse
+    {
+        $party = $this->management->partyForUser($request->user());
+        $this->management->saveOfficial(
+            $request->user(),
+            $party,
+            $request->validated(),
+        );
+
+        return back()->with('success', 'Party official access saved.');
+    }
+
+    public function removeOfficial(Request $request, User $user): RedirectResponse
+    {
+        $this->management->removeOfficial($request->user(), $user);
+
+        return back()->with('success', 'Party official removed.');
+    }
+
+    public function purchase(PurchasePartyTokensRequest $request): RedirectResponse
+    {
+        $checkoutUrl = $this->management->purchaseTokens(
+            $request->user(),
+            $request->validated(),
+        );
+
+        return redirect()->away($checkoutUrl);
+    }
+
+    public function callback(Request $request): RedirectResponse
+    {
+        $result = $this->tokens->callback($request->query());
+        $flashType = $result['status'] === 'success' ? 'success' : 'warning';
+
+        return redirect()
+            ->route('party.dashboard')
+            ->with($flashType, $result['message']);
+    }
+
+    public function distribute(
+        DistributePartyTokensRequest $request,
+    ): RedirectResponse {
+        try {
+            $this->management->distributeTokens(
+                $request->user(),
+                $request->validated(),
+            );
+        } catch (RuntimeException $exception) {
+            return back()->with('warning', $exception->getMessage());
+        }
+
+        return back()->with(
+            'success',
+            number_format($request->integer('amount'))
+                .' tokens distributed successfully.',
+        );
+    }
 }

@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Middleware\EnsureUserHasPermission;
+use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsAspirant;
+use App\Http\Middleware\EnsureUserIsPartyOfficial;
+use App\Http\Middleware\EnsureUserIsSuperAdmin;
+use App\Http\Middleware\FixApiTokenHeader;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,25 +20,25 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'fix.token' => \App\Http\Middleware\FixApiTokenHeader::class,
-            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
-            'superadmin' => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
-            'permission' => \App\Http\Middleware\EnsureUserHasPermission::class,
-            'aspirant' => \App\Http\Middleware\EnsureUserIsAspirant::class,
-            'party' => \App\Http\Middleware\EnsureUserIsPartyOfficial::class,
+            'fix.token' => FixApiTokenHeader::class,
+            'admin' => EnsureUserIsAdmin::class,
+            'superadmin' => EnsureUserIsSuperAdmin::class,
+            'permission' => EnsureUserHasPermission::class,
+            'aspirant' => EnsureUserIsAspirant::class,
+            'party' => EnsureUserIsPartyOfficial::class,
         ]);
-        $middleware->prepend(\App\Http\Middleware\FixApiTokenHeader::class);
+        $middleware->prepend(FixApiTokenHeader::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-    $exceptions->shouldRenderJsonWhen(function ($request, $e) {
-        return $request->is('api/*') || $request->wantsJson();
-    });
-}) ->create();
+        $exceptions->shouldRenderJsonWhen(function ($request, $e) {
+            return $request->is('api/*') || $request->wantsJson();
+        });
+    })->create();
 
-    // ->withRouting(
-    // web: __DIR__.'/../routes/web.php',
-    // api: __DIR__.'/../routes/api.php',          // ← ADD THIS LINE
-    // apiPrefix: 'api',                           // ← optional but recommended (sets /api prefix automatically)
-    // commands: __DIR__.'/../routes/console.php',
-    // health: '/up',
+// ->withRouting(
+// web: __DIR__.'/../routes/web.php',
+// api: __DIR__.'/../routes/api.php',          // ← ADD THIS LINE
+// apiPrefix: 'api',                           // ← optional but recommended (sets /api prefix automatically)
+// commands: __DIR__.'/../routes/console.php',
+// health: '/up',
 // )

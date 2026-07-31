@@ -1,57 +1,61 @@
 <?php
 
-use App\Http\Controllers\Admin\ProfileController;
-use App\Http\Controllers\Admin\LocationController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\Admin\GroupController;
-use App\Http\Controllers\Admin\UserAccessController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\AspirantImpersonationController;
 use App\Http\Controllers\Admin\BlocController;
-use App\Http\Controllers\Admin\CountyController;
-use App\Http\Controllers\Admin\ConstituencyController;
-use App\Http\Controllers\Admin\WardController;
-use App\Http\Controllers\Admin\TagController;
-use App\Http\Controllers\Admin\DonorController;
-use App\Http\Controllers\Admin\PaymentMethodController;
-use App\Http\Controllers\Admin\PositionController;
-use App\Http\Controllers\Admin\PoliticalPartyController;
-use App\Http\Controllers\Admin\CoalitionController;
-use App\Http\Controllers\Admin\CandidateController;
 use App\Http\Controllers\Admin\CampaignPriorityCategoryController;
-use App\Http\Controllers\Admin\CandidateCampaignPriorityReviewController;
-use App\Http\Controllers\Admin\ParliamentMemberController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\CampaignToolRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteSampleController;
-use App\Http\Controllers\Admin\PublicPulseController;
-use App\Http\Controllers\Admin\NewsArticleController;
+use App\Http\Controllers\Admin\CandidateCampaignPriorityReviewController;
+use App\Http\Controllers\Admin\CandidateClaimRequestController as AdminCandidateClaimRequestController;
+use App\Http\Controllers\Admin\CandidateController;
+use App\Http\Controllers\Admin\CandidateTokenLedgerController;
+use App\Http\Controllers\Admin\CandidateTokenPackageController;
+use App\Http\Controllers\Admin\CandidateTokenPurchaseController;
+use App\Http\Controllers\Admin\CandidateTokenRateController;
+use App\Http\Controllers\Admin\CoalitionController;
+use App\Http\Controllers\Admin\ConstituencyController;
+use App\Http\Controllers\Admin\CountyController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DonorController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
+use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
-use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
+use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\NewsArticleController;
+use App\Http\Controllers\Admin\ParliamentMemberController;
+use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\PoliticalPartyController;
+use App\Http\Controllers\Admin\PoliticalPartyManagementController;
+use App\Http\Controllers\Admin\PositionController;
+use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\PublicPulseController;
+use App\Http\Controllers\Admin\SmsBalanceRequestController;
 use App\Http\Controllers\Admin\SmtpController;
-use App\Http\Controllers\Web\LandingController;
+use App\Http\Controllers\Admin\SupportGroupTypeController;
+use App\Http\Controllers\Admin\TagController;
+use App\Http\Controllers\Admin\UserAccessController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WardController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
+use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
+use App\Http\Controllers\Web\AspirantTokenController;
+use App\Http\Controllers\Web\AspirantToolActivationRequestController;
+use App\Http\Controllers\Web\AspirantToolController;
+use App\Http\Controllers\Web\CandidateCampaignPriorityController;
 use App\Http\Controllers\Web\CandidateClaimController;
 use App\Http\Controllers\Web\CandidateClaimRequestController;
-use App\Http\Controllers\Web\AspirantDashboardController;
-use App\Http\Controllers\Web\CandidateCampaignPriorityController;
-use App\Http\Controllers\Web\AspirantToolController;
-use App\Http\Controllers\Web\AspirantToolActivationRequestController;
-use App\Http\Controllers\Admin\CandidateTokenPackageController;
-use App\Http\Controllers\Admin\CandidateTokenRateController;
-use App\Http\Controllers\Admin\CandidateTokenPurchaseController;
-use App\Http\Controllers\Admin\CandidateTokenLedgerController;
-use App\Http\Controllers\Admin\SmsBalanceRequestController;
-use App\Http\Controllers\Admin\SupportGroupTypeController;
-use App\Http\Controllers\Web\AspirantTokenController;
-use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
-use App\Http\Controllers\Admin\CandidateClaimRequestController as AdminCandidateClaimRequestController;
-use App\Http\Controllers\Admin\AspirantImpersonationController;
+use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
+use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
-use App\Http\Controllers\Admin\PoliticalPartyManagementController;
+use App\Models\Constituency;
+use App\Models\County;
+use App\Models\Ward;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -60,23 +64,22 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-
 // Candidate location JSON helpers used by the admin candidate form.
 Route::get('/api/counties', function () {
-    return \App\Models\County::query()
+    return County::query()
         ->orderBy('name')
         ->get(['id', 'name']);
 })->middleware('throttle:api');
 
-Route::get('/api/constituencies', function (\Illuminate\Http\Request $request) {
-    return \App\Models\Constituency::query()
+Route::get('/api/constituencies', function (Request $request) {
+    return Constituency::query()
         ->when($request->query('county_id'), fn ($query, $countyId) => $query->where('county_id', $countyId))
         ->orderBy('name')
         ->get(['id', 'name', 'county_id']);
 })->middleware('throttle:api');
 
-Route::get('/api/wards', function (\Illuminate\Http\Request $request) {
-    return \App\Models\Ward::query()
+Route::get('/api/wards', function (Request $request) {
+    return Ward::query()
         ->when($request->query('constituency_id'), fn ($query, $constituencyId) => $query->where('constituency_id', $constituencyId))
         ->get(['id', 'name', 'constituency_id'])
         ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
@@ -91,7 +94,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/live-stats', [PublicFrontendPageController::class, 'liveStats'])->name('live-stats.public');
     Route::get('/download-app', [PublicFrontendPageController::class, 'downloadApp'])->name('download-app.public');
     Route::get('/contact-us', [PublicFrontendPageController::class, 'contact'])->name('contact.public');
-    
+
     Route::get('/privacy', function () {
         return view('privacy');
     })->name('privacy');
@@ -110,7 +113,7 @@ Route::middleware('throttle:web')->group(function () {
 
     Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
-    
+
     Route::get('/aspirants/search', [AspirantRegistrationController::class, 'search'])
         ->middleware(['throttle:30,1', 'cache.headers:no_store;private'])
         ->name('aspirants.search');
@@ -130,7 +133,6 @@ Route::middleware('throttle:web')->group(function () {
 
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
 Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::class, 'callback'])->name('party.payments.ipay.callback');
-
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
@@ -182,7 +184,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/live-stat-figures', [LiveStatFigureController::class, 'store'])->middleware('permission:live-stats.create')->name('live-stat-figures.store');
         Route::delete('/live-stat-figures/batches/{batchId}', [LiveStatFigureController::class, 'destroyBatch'])->middleware('permission:live-stats.delete')->name('live-stat-figures.batches.destroy');
         Route::delete('/live-stat-figures/{liveStatFigure}', [LiveStatFigureController::class, 'destroy'])->middleware('permission:live-stats.delete')->name('live-stat-figures.destroy');
-        
+
         Route::get('/smtp', [SmtpController::class, 'index'])->middleware('permission:settings.view')->name('admin.smtp');
         Route::post('/smtp', [SmtpController::class, 'update'])->middleware('permission:settings.update')->name('admin.smtp.update');
 
@@ -221,7 +223,7 @@ Route::middleware('auth')->group(function () {
             ->parameters(['coalitions' => 'coalition'])
             ->names('coalitions')
             ->except(['show'])->middleware('permission:parties.view');
-        
+
         Route::get('/news', [NewsArticleController::class, 'index'])->middleware('permission:frontend.view')->name('news.index');
         Route::get('/news.create', [NewsArticleController::class, 'create'])->middleware('permission:frontend.view')->name('news.create');
         Route::post('/news', [NewsArticleController::class, 'store'])->middleware('permission:frontend.update')->name('news.store');
@@ -298,4 +300,3 @@ Route::middleware('auth')->group(function () {
     Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop');
 });
 require __DIR__.'/auth.php';
-

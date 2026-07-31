@@ -39,10 +39,12 @@ class PoliticalParty extends Model
     {
         return $this->belongsToMany(Coalition::class, 'coalition_political_party');
     }
+
     public function newsArticles()
     {
         return $this->belongsToMany(NewsArticle::class, 'news_article_political_party');
     }
+
     public function officials()
     {
         return $this->belongsToMany(User::class, 'political_party_user')->withPivot('role', 'status')->withTimestamps();
@@ -73,5 +75,3 @@ class PoliticalParty extends Model
         return $this->abbreviation ?: $this->name;
     }
 }
-
-

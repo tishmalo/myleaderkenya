@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
@@ -46,7 +45,6 @@ class User extends Authenticatable
         'relationship',
         'email_verified_at',
     ];
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -86,6 +84,7 @@ class User extends Authenticatable
         if ($value === null || $value === '') {
             $this->attributes['email'] = null;
             $this->attributes['email_hash'] = null;
+
             return;
         }
 
@@ -104,6 +103,7 @@ class User extends Authenticatable
     {
         if ($value === null || $value === '') {
             $this->attributes['phone'] = null;
+
             return;
         }
 
@@ -204,6 +204,7 @@ class User extends Authenticatable
     {
         return $this->resolvedRole()?->label ?? Str::headline($this->roleName() ?? Role::USER);
     }
+
     public function getUserTypeAttribute(): string
     {
         if ($this->isAdmin()) {
@@ -214,7 +215,7 @@ class User extends Authenticatable
             return 'aspirant';
         }
 
-        if (!empty($this->relationship)) {
+        if (! empty($this->relationship)) {
             return $this->relationship;
         }
 
@@ -224,11 +225,11 @@ class User extends Authenticatable
 
         $hasCandidateProfile = Candidate::query()
             ->where(function ($query) {
-                if (!empty($this->email)) {
+                if (! empty($this->email)) {
                     $query->orWhere('email', $this->email);
                 }
 
-                if (!empty($this->phone)) {
+                if (! empty($this->phone)) {
                     $query->orWhere('phone', $this->phone);
                 }
             })
@@ -237,17 +238,17 @@ class User extends Authenticatable
         return $hasCandidateProfile ? 'aspirant' : 'user';
     }
 
-        // Voter status relationship (optional)
+    // Voter status relationship (optional)
     public function messages()
     {
         return $this->hasMany(Message::class, 'username', 'username');
     }
 
     public function groups()
-{
-    return $this->belongsToMany(Group::class, 'group_members')
-                ->withTimestamps();
-}
+    {
+        return $this->belongsToMany(Group::class, 'group_members')
+            ->withTimestamps();
+    }
 
     public function politicalParties(): BelongsToMany
     {
