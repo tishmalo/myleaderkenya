@@ -11,23 +11,46 @@ use RuntimeException;
 class ParliamentMembersApiClient
 {
     public function members(): array { return $this->request('members'); }
-    public function member(string $slug): array { return $this->request('members/'.rawurlencode($slug)); }
-
-    private function request(string $path): array
+    public function member(string $slug, ?string $house = null): array
     {
+        $normalizedHouse = match (strtolower(trim((string) $house))) {
+            'senate' => 'senate',
+            'national assembly', 'national-assembly', 'national_assembly' => 'national-assembly',
+            default => null,
+        };
+
+        return $this->request(
+            'members/'.rawurlencode($slug),
+            $normalizedHouse ? ['house' => $normalizedHouse] : []
+        );
+    }
+
+    private function request(string $path, array $query = []): array
+    {
+        $endpoint = rtrim((string) config('services.parliament_members.base_url'), '/')
+            .'/'.ltrim($path, '/');
+        if ($query !== []) {
+            $endpoint .= '?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        }
+
         try {
-            $response = $this->client()->get($path)->throw();
+            $response = $this->client()->get($path, $query)->throw();
             $payload = $response->json();
         } catch (ConnectionException $exception) {
-            throw new RuntimeException('Parliament members API connection failed.');
+            throw new RuntimeException(
+                'Parliament members API connection failed for '.$endpoint.'.'
+            );
         } catch (RequestException $exception) {
             throw new RuntimeException(
-                'Parliament members API returned HTTP '.$exception->response->status().'.'
+                'Parliament members API returned HTTP '.$exception->response->status()
+                .' for '.$endpoint.'.'
             );
         }
 
         if (! is_array($payload) || (($payload['success'] ?? true) !== true)) {
-            throw new RuntimeException('Parliament members API returned an invalid response.');
+            throw new RuntimeException(
+                'Parliament members API returned an invalid response for '.$endpoint.'.'
+            );
         }
 
         return $payload;

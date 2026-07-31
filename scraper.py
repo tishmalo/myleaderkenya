@@ -92,19 +92,39 @@ def get_all_members(api_key: str = Security(verify_api_key)):
         raise HTTPException(status_code=502, detail="Parliament data request failed")
 
 @app.get("/members/{slug}")
-def get_member_profile(slug: str, api_key: str = Security(verify_api_key)):
-    """Get a specific member's profile by slug"""
-    try:
-        for house in ["national-assembly", "senate"]:
-            url = f"https://mzalendo.com/mps-performance/{house}/13th-parliament/{slug}/"
-            try:
-                data = run_odnelazm([ODNELAZM_PATH, "profile", url, "--output", "json"])
-                return {"success": True, "data": data}
-            except Exception:
-                continue
-        raise Exception("Member profile was not found")
-    except Exception:
-        raise HTTPException(status_code=502, detail="Member profile lookup failed")
+def get_member_profile(
+    slug: str,
+    house: str | None = None,
+    api_key: str = Security(verify_api_key),
+):
+    """Get a member profile, preferring the caller's validated house."""
+    valid_houses = ["national-assembly", "senate"]
+    if house is not None and house not in valid_houses:
+        raise HTTPException(status_code=422, detail="Invalid parliamentary house")
+
+    houses = valid_houses
+    if house:
+        houses = [house, *[candidate for candidate in valid_houses if candidate != house]]
+
+    for candidate_house in houses:
+        source_url = (
+            "https://mzalendo.com/mps-performance/"
+            f"{candidate_house}/13th-parliament/{slug}/"
+        )
+        try:
+            data = run_odnelazm(
+                [ODNELAZM_PATH, "profile", source_url, "--output", "json"]
+            )
+            return {
+                "success": True,
+                "data": data,
+                "source_url": source_url,
+                "source_house": candidate_house,
+            }
+        except Exception:
+            continue
+
+    raise HTTPException(status_code=502, detail="Member profile lookup failed")
 
 @app.get("/members/house/{house}")
 def get_members_by_house(house: str, api_key: str = Security(verify_api_key)):

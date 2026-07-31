@@ -79,9 +79,27 @@ class ParliamentMemberImportTest extends TestCase
 
         Http::fake(['https://members.test/members' => Http::response(['secret_body' => 'must-not-leak'], 500)]);
         try { app(ParliamentMembersApiClient::class)->members(); $this->fail('Expected API failure.'); }
-        catch (RuntimeException $exception) { $this->assertSame('Parliament members API request failed.', $exception->getMessage()); $this->assertStringNotContainsString('must-not-leak', $exception->getMessage()); }
+        catch (RuntimeException $exception) { $this->assertSame('Parliament members API returned HTTP 500 for https://members.test/members.', $exception->getMessage()); $this->assertStringNotContainsString('must-not-leak', $exception->getMessage()); }
     }
 
+    public function test_api_client_sends_the_known_house_for_member_details(): void
+    {
+        config()->set('services.parliament_members.base_url', 'https://members.test');
+        config()->set('services.parliament_members.token', 'private-test-token');
+        Http::fake([
+            'https://members.test/members/sifuna-edwin-watenya?house=senate' => Http::response([
+                'success' => true,
+                'data' => ['name' => 'Sifuna Edwin Watenya'],
+            ]),
+        ]);
+
+        app(ParliamentMembersApiClient::class)->member('sifuna-edwin-watenya', 'senate');
+
+        Http::assertSent(fn ($request): bool =>
+            $request->url() === 'https://members.test/members/sifuna-edwin-watenya?house=senate'
+            && $request->hasHeader('Authorization', 'Bearer private-test-token')
+        );
+    }
     public function test_public_profile_shows_only_completed_and_published_linked_data(): void
     {
         $position = Position::create(['name' => 'Member of Parliament', 'sort_order' => 1]);
