@@ -33,9 +33,9 @@ interface PoliticalPartyManagementRepositoryInterface
 
     public function recentClaims(PoliticalParty $party, int $limit): Collection;
 
-    public function eligibleCandidates(PoliticalParty $party): Collection;
+    public function searchEligibleCandidates(PoliticalParty $party, string $query, int $limit): Collection;
 
-    public function claimableCandidates(PoliticalParty $party, int $limit): Collection;
+    public function searchClaimableCandidates(PoliticalParty $party, string $query, int $limit): Collection;
 
     public function supportGroupTypes(): Collection;
 

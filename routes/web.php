@@ -162,6 +162,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('party')->prefix('party')->name('party.')->group(function () {
         Route::get('/dashboard', [PoliticalPartyDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/aspirants/search/{context}', [PoliticalPartyDashboardController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('candidates.search');
         Route::get('/aspirants/create', [PoliticalPartyDashboardController::class, 'createCandidate'])->name('candidates.create');
         Route::post('/aspirants', [PoliticalPartyDashboardController::class, 'storeCandidate'])->name('candidates.store');
         Route::get('/aspirants/{candidate}/edit', [PoliticalPartyDashboardController::class, 'editCandidate'])->name('candidates.edit');

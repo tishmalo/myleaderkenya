@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PoliticalParty\DistributePartyTokensRequest;
 use App\Http\Requests\PoliticalParty\PurchasePartyTokensRequest;
+use App\Http\Requests\PoliticalParty\SearchPartyCandidatesRequest;
 use App\Http\Requests\PoliticalParty\StorePartyCandidateRequest;
 use App\Http\Requests\PoliticalParty\StorePartyClaimRequest;
 use App\Http\Requests\PoliticalParty\StorePartyOfficialRequest;
 use App\Http\Requests\PoliticalParty\UpdatePartyCandidateRequest;
+use App\Http\Resources\PoliticalPartyCandidateSearchResource;
 use App\Models\Candidate;
 use App\Models\User;
 use App\Services\Web\PoliticalPartyManagementService;
 use App\Services\Web\PoliticalPartyTokenService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -33,6 +36,22 @@ class PoliticalPartyDashboardController extends Controller
             'political-parties.dashboard.index',
             $this->management->dashboardData($request->user(), $filters),
         );
+    }
+
+    public function searchCandidates(
+        SearchPartyCandidatesRequest $request,
+    ): JsonResponse {
+        $candidates = $this->management->searchCandidates(
+            $request->user(),
+            $request->validated('q'),
+            $request->validated('context'),
+        );
+
+        return response()->json([
+            'results' => PoliticalPartyCandidateSearchResource::collection(
+                $candidates,
+            )->resolve($request),
+        ])->header('Cache-Control', 'no-store, private');
     }
 
     public function createCandidate(Request $request): View

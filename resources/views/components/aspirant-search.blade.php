@@ -6,11 +6,22 @@
     'selectedId' => null,
     'selectedCandidate' => null,
     'locked' => false,
+    'help' => 'Select a match to request access, or continue below to create a new profile.',
+    'emptyText' => 'No matching public aspirant found.',
+    'selectionNote' => 'Existing profile details are protected and cannot be edited here.',
+    'required' => false,
 ])
 
+@once
+@push('styles')
+<style>
+.aspirant-field-label{display:block;margin-bottom:8px;color:#d4d4d8;font-size:13px;font-weight:700}.aspirant-search{position:relative}.aspirant-search-control{display:flex;align-items:center;gap:10px;border:1px solid #3f3f46;border-radius:14px;background:#242427;padding:0 14px}.aspirant-search-control:focus-within{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1)}.aspirant-search-control input{width:100%;height:50px;border:0;background:transparent;color:#fff;outline:0}.aspirant-search-spinner.is-active{width:15px;height:15px;border:2px solid #52525b;border-top-color:#34d399;border-radius:50%;animation:asp-spin .7s linear infinite}@keyframes asp-spin{to{transform:rotate(360deg)}}.aspirant-search-results{position:absolute;z-index:30;top:82px;right:0;left:0;max-height:330px;overflow:auto;border:1px solid #3f3f46;border-radius:14px;background:#18181b;padding:7px;box-shadow:0 22px 50px rgba(0,0,0,.55)}.aspirant-search-option{display:flex;width:100%;align-items:center;gap:12px;border:0;border-radius:10px;background:transparent;padding:10px;color:#fff;text-align:left;cursor:pointer}.aspirant-search-option:hover,.aspirant-search-option.is-active{background:#29292d}.aspirant-search-option-avatar,.aspirant-search-avatar{display:grid;flex:0 0 auto;place-items:center;width:45px;height:45px;overflow:hidden;border-radius:12px;background:#064e3b;color:#a7f3d0;font-weight:900}.aspirant-search-option-avatar img,.aspirant-search-avatar img{width:100%;height:100%;object-fit:cover}.aspirant-search-option-copy,.aspirant-search-selected-copy{display:grid;min-width:0;gap:3px}.aspirant-search-option-copy small,.aspirant-search-selected-copy span{color:#a1a1aa;font-size:12px}.aspirant-search-message{padding:24px;text-align:center;color:#a1a1aa}.aspirant-search-selection{align-items:center;gap:13px;border:1px solid rgba(16,185,129,.35);border-radius:15px;background:rgba(16,185,129,.07);padding:14px}.aspirant-search-selection:not([hidden]){display:flex}.aspirant-search-selected-copy{flex:1}.aspirant-search-selected-copy small{color:#6ee7b7}.aspirant-search-selection button{border:1px solid #3f3f46;border-radius:9px;background:#242427;padding:8px 11px;color:#fff;font-size:12px;font-weight:800;cursor:pointer}.aspirant-search-help{margin-top:9px;color:#71717a;font-size:12px}.aspirant-search [hidden]{display:none!important}
+</style>
+@endpush
+@endonce
 @php($searchInputId = 'aspirant-search-' . md5($name . $searchUrl . uniqid('', true)))
 
-<div class="aspirant-search" data-aspirant-search data-search-url="{{ $searchUrl }}" @if($locked) data-aspirant-search-locked @endif>
+<div class="aspirant-search" data-aspirant-search data-search-url="{{ $searchUrl }}" data-empty-text="{{ $emptyText }}" @if($required) data-aspirant-search-required @endif @if($locked) data-aspirant-search-locked @endif>
     <label class="aspirant-field-label" for="{{ $searchInputId }}">{{ $label }}</label>
     <div class="aspirant-search-control" @if($locked) hidden @endif>
         <i class="fas fa-search" aria-hidden="true"></i>
@@ -38,7 +49,7 @@
         <div class="aspirant-search-selected-copy">
             <strong data-aspirant-search-name>{{ $selectedCandidate['name'] ?? '' }}</strong>
             <span data-aspirant-search-meta>{{ $selectedCandidate ? collect([$selectedCandidate['position'], $selectedCandidate['party'], $selectedCandidate['jurisdiction']])->filter()->implode(' • ') : '' }}</span>
-            <small><i class="fas fa-lock"></i> Existing profile details are protected and cannot be edited here.</small>
+            <small><i class="fas fa-lock"></i> {{ $selectionNote }}</small>
         </div>
         @unless($locked)
             <button type="button" data-aspirant-search-clear aria-label="Choose a different aspirant">
@@ -47,7 +58,7 @@
         @endunless
     </div>
     <p class="aspirant-search-help" data-aspirant-search-help>
-        {{ $locked ? 'This aspirant is preselected for your access request.' : 'Select a match to request access, or continue below to create a new profile.' }}
+        {{ $locked ? 'This aspirant is preselected for your access request.' : $help }}
     </p>
 </div>
 
@@ -86,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function choose(item) {
             value.value = String(item.id);
+            input.setCustomValidity('');
             root.querySelector('[data-aspirant-search-name]').textContent = item.name;
             root.querySelector('[data-aspirant-search-meta]').textContent =
                 [item.position, item.party, item.jurisdiction].filter(Boolean).join(' â€¢ ');
@@ -110,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
         function render(items) {
             results.replaceChildren();
             if (!items.length) {
-                setMessage('No matching public aspirant found. Continue below to create a new profile.');
+                setMessage(root.dataset.emptyText);
                 return;
             }
 
@@ -176,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         input.addEventListener('input', function () {
             value.value = '';
+            input.setCustomValidity('');
             clearTimeout(timer);
             timer = setTimeout(search, 300);
         });
@@ -206,7 +219,15 @@ document.addEventListener('DOMContentLoaded', function () {
             input.focus();
             root.dispatchEvent(new CustomEvent('aspirant:cleared', { bubbles: true }));
         });
-        document.addEventListener('click', function (event) {
+        var form = root.closest('form');
+        if (form && root.hasAttribute('data-aspirant-search-required')) {
+            form.addEventListener('submit', function (event) {
+                if (value.value) return;
+                event.preventDefault();
+                input.setCustomValidity('Search for and select an aspirant.');
+                input.reportValidity();
+            });
+        }        document.addEventListener('click', function (event) {
             if (!root.contains(event.target)) closeResults();
         });
     });

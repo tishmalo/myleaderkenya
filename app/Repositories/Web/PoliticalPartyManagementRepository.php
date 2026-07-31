@@ -113,24 +113,42 @@ class PoliticalPartyManagementRepository implements PoliticalPartyManagementRepo
             ->get();
     }
 
-    public function eligibleCandidates(PoliticalParty $party): Collection
-    {
-        return Candidate::where('political_party_id', $party->id)
+    public function searchEligibleCandidates(
+        PoliticalParty $party,
+        string $query,
+        int $limit,
+    ): Collection {
+        return Candidate::with('position')
+            ->where('political_party_id', $party->id)
             ->where('approval_status', 'approved')
+            ->where(function ($candidateQuery) use ($query): void {
+                $candidateQuery
+                    ->where('name', 'like', "%{$query}%")
+                    ->orWhere('nick_name', 'like', "%{$query}%");
+            })
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->limit($limit)
+            ->get();
     }
 
-    public function claimableCandidates(PoliticalParty $party, int $limit): Collection
-    {
-        return Candidate::with('politicalParty')
-            ->where(function ($query) use ($party): void {
-                $query
+    public function searchClaimableCandidates(
+        PoliticalParty $party,
+        string $query,
+        int $limit,
+    ): Collection {
+        return Candidate::with(['politicalParty', 'position'])
+            ->where(function ($partyQuery) use ($party): void {
+                $partyQuery
                     ->whereNull('political_party_id')
                     ->orWhere('political_party_id', '!=', $party->id);
             })
+            ->where(function ($candidateQuery) use ($query): void {
+                $candidateQuery
+                    ->where('name', 'like', "%{$query}%")
+                    ->orWhere('nick_name', 'like', "%{$query}%");
+            })
             ->orderBy('name')
-            ->take($limit)
+            ->limit($limit)
             ->get();
     }
 

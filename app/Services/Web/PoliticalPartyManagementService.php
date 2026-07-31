@@ -10,6 +10,7 @@ use App\Models\PoliticalPartyAccountRequest;
 use App\Models\PoliticalPartyCandidateClaim;
 use App\Models\User;
 use App\Services\Admin\CandidateService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -44,9 +45,19 @@ class PoliticalPartyManagementService
             'transactions' => $this->parties->recentTransactions($party, 20),
             'officials' => $this->parties->officials($party),
             'claims' => $this->parties->recentClaims($party, 10),
-            'eligibleCandidates' => $this->parties->eligibleCandidates($party),
-            'claimableCandidates' => $this->parties->claimableCandidates($party, 100),
         ];
+    }
+
+    public function searchCandidates(
+        User $user,
+        string $query,
+        string $context,
+    ): Collection {
+        $party = $this->partyForUser($user);
+
+        return $context === 'distribution'
+            ? $this->parties->searchEligibleCandidates($party, $query, 20)
+            : $this->parties->searchClaimableCandidates($party, $query, 20);
     }
 
     public function candidateFormData(User $user, Candidate $candidate): array
