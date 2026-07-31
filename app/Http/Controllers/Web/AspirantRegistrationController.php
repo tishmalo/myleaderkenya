@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Web\AspirantEmailAvailabilityRequest;
 use App\Http\Requests\Web\AspirantRegisterRequest;
 use App\Models\Candidate;
 use App\Models\PoliticalParty;
@@ -72,11 +73,9 @@ class AspirantRegistrationController extends Controller
             ->header('Pragma', 'no-cache');
     }
 
-    public function emailAvailability(Request $request): JsonResponse
+    public function emailAvailability(AspirantEmailAvailabilityRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $exists = User::query()
             ->where('email_hash', hash('sha256', Str::lower(trim($validated['email']))))

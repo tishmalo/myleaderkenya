@@ -25,6 +25,18 @@ class IpayService
         return rtrim($this->checkoutEndpoint(), '?') . '?' . http_build_query($fields);
     }
 
+    public function partyCheckoutUrl(\App\Models\PoliticalPartyTokenPurchase $purchase, User $user, CandidateTokenPackage $package, array $contact): string
+    {
+        $fields = $this->partyCheckoutFields($purchase, $user, $package, $contact);
+        $fields['hsh'] = $this->checkoutHash($fields);
+        return rtrim($this->checkoutEndpoint(), '?') . '?' . http_build_query($fields);
+    }
+
+    private function partyCheckoutFields(\App\Models\PoliticalPartyTokenPurchase $purchase, User $user, CandidateTokenPackage $package, array $contact): array
+    {
+        $reference = (string) $purchase->checkout_reference;
+        return ['live'=>$this->live(),'oid'=>$reference,'inv'=>$reference,'ttl'=>$this->amount($package->price),'tel'=>$this->phone($contact['phone']??''),'eml'=>$contact['email']??$user->email,'vid'=>$this->vendorId(),'curr'=>$this->currency(),'p1'=>(string)$purchase->political_party_id,'p2'=>(string)$package->id,'p3'=>'party_tokens','p4'=>(string)$package->token_amount,'cbk'=>route('party.payments.ipay.callback'),'cst'=>'1','crl'=>'0'];
+    }
     public function checkoutFields(CandidateTokenPurchase $purchase, User $user, CandidateTokenPackage $package, array $contact): array
     {
         $reference = (string) $purchase->checkout_reference;

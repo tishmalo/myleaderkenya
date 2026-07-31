@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
             'permission' => \App\Http\Middleware\EnsureUserHasPermission::class,
             'aspirant' => \App\Http\Middleware\EnsureUserIsAspirant::class,
+            'party' => \App\Http\Middleware\EnsureUserIsPartyOfficial::class,
         ]);
         $middleware->prepend(\App\Http\Middleware\FixApiTokenHeader::class);
     })

@@ -43,6 +43,16 @@ class PoliticalParty extends Model
     {
         return $this->belongsToMany(NewsArticle::class, 'news_article_political_party');
     }
+    public function officials()
+    {
+        return $this->belongsToMany(User::class, 'political_party_user')->withPivot('role', 'status')->withTimestamps();
+    }
+
+    public function tokenWallet()
+    {
+        return $this->hasOne(PoliticalPartyTokenWallet::class);
+    }
+
     public function candidates(): HasMany
     {
         return $this->hasMany(Candidate::class);

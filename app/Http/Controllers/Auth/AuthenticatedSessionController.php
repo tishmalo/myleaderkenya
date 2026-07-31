@@ -34,9 +34,10 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
+        $hasPartyAccess = $user->politicalParties()->wherePivot('status', 'active')->exists();
         $dashboard = $user->user_type === 'aspirant' || $this->relationships->hasApprovedCandidateRelationship($user)
             ? route('aspirant.dashboard', absolute: false)
-            : route('dashboard', absolute: false);
+            : ($hasPartyAccess ? route('party.dashboard', absolute: false) : route('dashboard', absolute: false));
 
         return redirect()->intended($dashboard);
     }

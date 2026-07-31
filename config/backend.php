@@ -77,6 +77,7 @@ return [
                 'label' => 'Political Structures',
                 'items' => [
                     ['label' => 'Political Parties', 'route' => 'political-parties.index', 'icon' => 'fas fa-landmark', 'active' => ['political-parties.*'], 'permission' => 'parties.view'],
+                    ['label' => 'Party Access & Claims', 'route' => 'party-management.index', 'icon' => 'fas fa-users-gear', 'active' => ['party-management.*'], 'permission' => 'parties.view'],
                     ['label' => 'Coalitions', 'route' => 'coalitions.index', 'icon' => 'fas fa-handshake', 'active' => ['coalitions.*'], 'permission' => 'parties.view'],
                 ],
             ],

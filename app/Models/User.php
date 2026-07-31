@@ -249,6 +249,11 @@ class User extends Authenticatable
                 ->withTimestamps();
 }
 
+    public function politicalParties(): BelongsToMany
+    {
+        return $this->belongsToMany(PoliticalParty::class, 'political_party_user')->withPivot('role', 'status')->withTimestamps();
+    }
+
     public function relatedCandidates(): BelongsToMany
     {
         return $this->belongsToMany(Candidate::class, 'candidate_user_relationships')

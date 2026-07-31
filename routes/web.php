@@ -49,6 +49,9 @@ use App\Http\Controllers\Web\AspirantTokenController;
 use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
 use App\Http\Controllers\Admin\CandidateClaimRequestController as AdminCandidateClaimRequestController;
 use App\Http\Controllers\Admin\AspirantImpersonationController;
+use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
+use App\Http\Controllers\Web\PoliticalPartyDashboardController;
+use App\Http\Controllers\Admin\PoliticalPartyManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -100,6 +103,8 @@ Route::middleware('throttle:web')->group(function () {
 
     Route::get('/parties', [PoliticalPartyController::class, 'publicIndex'])->name('parties.public');
     Route::get('/parties/{slug}', [PoliticalPartyController::class, 'publicShow'])->name('parties.show');
+    Route::get('/parties/{politicalParty}/request-access', [PoliticalPartyAccountRequestController::class, 'create'])->name('parties.access.create');
+    Route::post('/parties/{politicalParty}/request-access', [PoliticalPartyAccountRequestController::class, 'store'])->middleware('throttle:3,10')->name('parties.access.store');
     Route::get('/coalitions', [CoalitionController::class, 'publicIndex'])->name('coalitions.public');
     Route::get('/coalitions/{slug}', [CoalitionController::class, 'publicShow'])->name('coalitions.show');
 
@@ -124,6 +129,7 @@ Route::middleware('throttle:web')->group(function () {
 });
 
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
+Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::class, 'callback'])->name('party.payments.ipay.callback');
 
 
 // ====================== AUTHENTICATED ROUTES ======================
@@ -152,6 +158,18 @@ Route::middleware('auth')->group(function () {
         Route::delete('/aspirant/tools/support-groups/contacts/{candidateSupportContact}', [AspirantToolController::class, 'destroySupportContact'])->middleware('throttle:30,1')->name('aspirant.tools.support-groups.contacts.destroy');
     });
 
+    Route::middleware('party')->prefix('party')->name('party.')->group(function () {
+        Route::get('/dashboard', [PoliticalPartyDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/aspirants/create', [PoliticalPartyDashboardController::class, 'createCandidate'])->name('candidates.create');
+        Route::post('/aspirants', [PoliticalPartyDashboardController::class, 'storeCandidate'])->name('candidates.store');
+        Route::get('/aspirants/{candidate}/edit', [PoliticalPartyDashboardController::class, 'editCandidate'])->name('candidates.edit');
+        Route::put('/aspirants/{candidate}', [PoliticalPartyDashboardController::class, 'updateCandidate'])->name('candidates.update');
+        Route::post('/aspirant-claims', [PoliticalPartyDashboardController::class, 'claim'])->name('claims.store');
+        Route::post('/officials', [PoliticalPartyDashboardController::class, 'invite'])->name('officials.store');
+        Route::delete('/officials/{user}', [PoliticalPartyDashboardController::class, 'removeOfficial'])->name('officials.destroy');
+        Route::post('/tokens/purchase', [PoliticalPartyDashboardController::class, 'purchase'])->name('tokens.purchase');
+        Route::post('/tokens/distribute', [PoliticalPartyDashboardController::class, 'distribute'])->name('tokens.distribute');
+    });
     Route::middleware('admin')->group(function () {
         // --- Core Admin & Dashboard ---
         Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
@@ -189,6 +207,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/parliament-members/{parliamentMember}/retry', [ParliamentMemberController::class, 'retry'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('parliament-members.retry');
         Route::resource('candidates', CandidateController::class)->middleware('permission:aspirants.view');
         Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy'])->middleware('permission:frontend.view');
+        Route::get('/admin/party-management', [PoliticalPartyManagementController::class, 'index'])->middleware('permission:parties.view')->name('party-management.index');
+        Route::post('/admin/party-management/officials', [PoliticalPartyManagementController::class, 'storeOfficial'])->middleware('permission:parties.update')->name('party-management.officials.store');
+        Route::patch('/admin/party-management/parties/{politicalParty}/officials/{user}', [PoliticalPartyManagementController::class, 'status'])->middleware('permission:parties.update')->name('party-management.officials.status');
+        Route::patch('/admin/party-management/accounts/{accountRequest}', [PoliticalPartyManagementController::class, 'account'])->middleware('permission:parties.update')->name('party-management.accounts.update');
+        Route::get('/admin/party-management/accounts/{accountRequest}/document', [PoliticalPartyManagementController::class, 'document'])->middleware('permission:parties.view')->name('party-management.accounts.document');
+        Route::patch('/admin/party-management/claims/{claim}', [PoliticalPartyManagementController::class, 'claim'])->middleware('permission:parties.update')->name('party-management.claims.update');
         Route::resource('/admin/political-parties', PoliticalPartyController::class)
             ->parameters(['political-parties' => 'politicalParty'])
             ->names('political-parties')
