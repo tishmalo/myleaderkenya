@@ -6,15 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AspirantSubmissionRequest;
 use App\Http\Requests\Api\AspirantUpdateRequest;
 use App\Models\Candidate;
-use App\Models\User;
 use App\Models\NewsArticle;
+use App\Models\User;
 use App\Services\Admin\CandidateService;
 use App\Services\Web\AspirantWorkspaceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AspirantController extends Controller
@@ -45,14 +45,13 @@ class AspirantController extends Controller
         return response()->json($aspirants);
     }
 
-
     public function store(AspirantSubmissionRequest $request): JsonResponse
     {
         $validated = $request->validated();
         $phone1 = $validated['phone_1'] ?? $validated['phone'] ?? null;
         $email1 = $validated['email_1'] ?? $validated['email'] ?? null;
         $username = $this->uniqueUsername($validated['username'] ?? null, $validated['name']);
-        $userEmail = $email1 ?: $username . '@regista.local';
+        $userEmail = $email1 ?: $username.'@regista.local';
         $user = null;
 
         $candidate = DB::transaction(function () use ($request, $validated, $phone1, $email1, $username, $userEmail, &$user): Candidate {
@@ -173,6 +172,7 @@ class AspirantController extends Controller
             'data' => $this->formatAspirant($candidate, true),
         ]);
     }
+
     public function show(Candidate $candidate): JsonResponse
     {
         if (Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
@@ -222,7 +222,7 @@ class AspirantController extends Controller
         $suffix = 1;
 
         while (User::where('username', $username)->exists()) {
-            $username = $base . '_' . $suffix++;
+            $username = $base.'_'.$suffix++;
         }
 
         return $username;
@@ -266,6 +266,7 @@ class AspirantController extends Controller
 
         return $data;
     }
+
     private function formatAspirant(Candidate $candidate, bool $includeAbout = false): array
     {
         $data = [
@@ -285,9 +286,26 @@ class AspirantController extends Controller
             'campaign_poster' => $candidate->campaign_poster,
             'campaign_poster_url' => $this->storageUrl($candidate->campaign_poster),
             'campaign_video' => $candidate->campaign_video,
-            'campaign_video_url' => $this->storageUrl($candidate->campaign_video),
+            'campaign_video_url' => $candidate->campaign_video_url
+                ?: $this->storageUrl($candidate->campaign_video),
+            'campaign_song_url' => $candidate->campaign_song_url,
             'campaign_skiza_audio' => $candidate->campaign_skiza_audio,
             'campaign_skiza_audio_url' => $this->storageUrl($candidate->campaign_skiza_audio),
+            'social_media' => [
+                'facebook_url' => $candidate->facebook_url,
+                'x_url' => $candidate->x_url,
+                'instagram_url' => $candidate->instagram_url,
+                'tiktok_url' => $candidate->tiktok_url,
+                'youtube_url' => $candidate->youtube_url,
+                'whatsapp_group_url' => $candidate->whatsapp_group_url,
+            ],
+            'media' => [
+                'campaign_video_url' => $candidate->campaign_video_url
+                    ?: $this->storageUrl($candidate->campaign_video),
+                'campaign_song_url' => $candidate->campaign_song_url,
+                'campaign_skiza_audio_url' => $this->storageUrl($candidate->campaign_skiza_audio),
+                'campaign_poster_url' => $this->storageUrl($candidate->campaign_poster),
+            ],
             'country' => $this->formatLocationValue($candidate->country),
             'county' => $this->formatLocationValue($candidate->county),
             'constituency' => $this->formatLocationValue($candidate->constituency),
@@ -348,7 +366,4 @@ class AspirantController extends Controller
     {
         return $path ? asset(Storage::url($path)) : null;
     }
-
 }
-
-
