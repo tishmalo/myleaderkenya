@@ -191,7 +191,16 @@ class PoliticalPartyManagementRepository implements PoliticalPartyManagementRepo
 
     public function createAccountRequest(array $data): PoliticalPartyAccountRequest
     {
-        return PoliticalPartyAccountRequest::create($data);
+        return PoliticalPartyAccountRequest::create($data)
+            ->load(['politicalParty', 'user']);
+    }
+
+    public function accountRequestsForUser(User $user): Collection
+    {
+        return PoliticalPartyAccountRequest::with(['politicalParty', 'user'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
     }
 
     public function pendingCandidateClaimExists(

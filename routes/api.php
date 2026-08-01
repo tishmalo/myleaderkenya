@@ -1,21 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\AspirantController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\Api\PaymentMethodController;
-use App\Http\Controllers\Api\LocationController;
-use App\Http\Controllers\Api\DonorController;
-use App\Http\Controllers\Api\StatsController;
+use App\Http\Controllers\Api\CampaignToolController as ApiCampaignToolController;
 use App\Http\Controllers\Api\CoalitionController as ApiCoalitionController;
+use App\Http\Controllers\Api\DonorController;
+use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\NewsController;
+use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\PoliticalPartyAccessRequestController;
 use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyController;
 use App\Http\Controllers\Api\PositionController as ApiPositionController;
-use App\Http\Controllers\Api\NewsController;
-use App\Http\Controllers\Api\AspirantController;
 use App\Http\Controllers\Api\PublicApprovalController;
-use App\Http\Controllers\Api\CampaignToolController as ApiCampaignToolController;
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\StatsController;
 use App\Http\Middleware\EnsureAllowedPublicApprovalDomain;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,7 +61,6 @@ Route::get('/tags', [MessageController::class, 'getTags'])->middleware('throttle
 Route::post('/nearby_messages', [MessageController::class, 'nearbyMessages'])->middleware('throttle:api');
 Route::get('/constituency_messages', [MessageController::class, 'getConstituencyMessages'])->middleware('throttle:api');
 
-
 // Public Content APIs
 Route::middleware('throttle:api')->group(function () {
     Route::get('/news', [NewsController::class, 'list']);
@@ -69,6 +69,10 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
     Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
     Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+    Route::post(
+        '/political-parties/{politicalParty}/access-requests',
+        [PoliticalPartyAccessRequestController::class, 'store'],
+    )->middleware('throttle:3,10');
     Route::get('/positions', [ApiPositionController::class, 'list']);
     Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
     Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
@@ -89,9 +93,13 @@ Route::middleware('auth:sanctum')->get('/aspirant/profile', [AspirantController:
 Route::get('/public-approval/presidential', [PublicApprovalController::class, 'presidential'])
     ->middleware(['throttle:api-heavy', EnsureAllowedPublicApprovalDomain::class]);
 
-
 // ====================== PROTECTED ROUTES ======================
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get(
+        '/political-party/access-requests',
+        [PoliticalPartyAccessRequestController::class, 'index'],
+    );
 
     Route::post('/auth/refresh-token', [AuthController::class, 'refresh']);
 
@@ -153,4 +161,3 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
-

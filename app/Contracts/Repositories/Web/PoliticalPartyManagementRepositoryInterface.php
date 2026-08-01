@@ -51,6 +51,8 @@ interface PoliticalPartyManagementRepositoryInterface
 
     public function createAccountRequest(array $data): PoliticalPartyAccountRequest;
 
+    public function accountRequestsForUser(User $user): Collection;
+
     public function pendingCandidateClaimExists(PoliticalParty $party, Candidate $candidate): bool;
 
     public function createCandidateClaim(array $data): PoliticalPartyCandidateClaim;

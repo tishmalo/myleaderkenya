@@ -125,6 +125,8 @@ class PoliticalPartyManagementService
         array $data,
         UploadedFile $authorizationDocument,
     ): PoliticalPartyAccountRequest {
+        abort_unless($party->status === 'published', 404);
+
         $normalizedEmail = strtolower(trim($data['email']));
 
         if ($this->parties->pendingAccountRequestExists($party, $normalizedEmail)) {
@@ -163,6 +165,11 @@ class PoliticalPartyManagementService
                     ->store('party-authorizations'),
             ]);
         });
+    }
+
+    public function accountRequestsForUser(User $user): Collection
+    {
+        return $this->parties->accountRequestsForUser($user);
     }
 
     public function createClaim(User $user, int $candidateId): PoliticalPartyCandidateClaim
