@@ -1,7 +1,8 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 @section('title', 'Legacy Pulse Mentions')
 @section('content')
 <div class="p-6 space-y-5"><div class="flex justify-between"><div><a href="{{ route('public-pulse.index') }}" class="text-blue-600">? Engine Jobs</a><h1 class="text-2xl font-bold">Legacy Mentions</h1><p class="text-sm text-gray-500">Read-only historical Laravel data. Reclassification is disabled.</p></div></div>
 <form class="grid gap-3 rounded bg-white p-4 shadow md:grid-cols-6"><input name="search" value="{{ $filters['search']??'' }}" placeholder="Search" class="rounded border-gray-300"><input name="language" value="{{ $filters['language']??'' }}" placeholder="Language" class="rounded border-gray-300"><input name="tone" value="{{ $filters['tone']??'' }}" placeholder="Tone" class="rounded border-gray-300"><input name="sentiment" value="{{ $filters['sentiment']??'' }}" placeholder="Sentiment" class="rounded border-gray-300"><input name="topic" value="{{ $filters['topic']??'' }}" placeholder="Topic" class="rounded border-gray-300"><button class="rounded bg-gray-800 text-white">Filter</button></form>
 <div class="overflow-x-auto rounded bg-white shadow"><table class="min-w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3 text-left">Source</th><th class="p-3 text-left">Text</th><th class="p-3 text-left">Language</th><th class="p-3 text-left">Tone</th><th class="p-3 text-left">Sentiment</th></tr></thead><tbody>@forelse($mentions as $mention)<tr class="border-t"><td class="p-3">{{ $mention->source ?? '—' }}</td><td class="max-w-xl p-3">{{ $mention->text }}</td><td class="p-3">{{ $mention->language }}</td><td class="p-3">{{ $mention->tone }}</td><td class="p-3">{{ $mention->sentiment }}</td></tr>@empty<tr><td colspan="5" class="p-8 text-center text-gray-500">No legacy mentions found.</td></tr>@endforelse</tbody></table></div>{{ $mentions->withQueryString()->links() }}</div>
 @endsection
+

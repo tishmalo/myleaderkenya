@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 @section('title', 'Public Pulse')
 @section('content')
 <div class="p-6 space-y-6">
@@ -29,3 +29,4 @@
 </div>
 <script>document.querySelector('form[action="{{ route('public-pulse.jobs.store') }}"]')?.addEventListener('submit',e=>{const f=e.currentTarget,t=f.querySelector('[name=keywords_text]');t.value.split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{const i=document.createElement('input');i.type='hidden';i.name='keywords[]';i.value=v;f.appendChild(i)});t.removeAttribute('name')});</script>
 @endsection
+

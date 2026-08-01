@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 @section('title', 'Pulse Job')
 @section('content')
 <div class="p-6 space-y-6"><div class="flex justify-between"><div><a href="{{ route('public-pulse.index') }}" class="text-blue-600">? Jobs</a><h1 class="text-2xl font-bold">{{ $job->candidate?->name }} Pulse Job</h1><p class="font-mono text-xs text-gray-500">{{ $job->job_ref }}</p></div><div class="flex gap-2">@if(!$job->isTerminal() && $job->engine_job_id)<form method="POST" action="{{ route('public-pulse.jobs.sync',$job) }}">@csrf @method('PATCH')<button class="rounded bg-gray-800 px-4 py-2 text-white">Poll now</button></form>@elseif(!$job->engine_job_id)<form method="POST" action="{{ route('public-pulse.jobs.retry',$job) }}">@csrf<button class="rounded bg-amber-600 px-4 py-2 text-white">Retry submission</button></form>@endif</div></div>
@@ -8,3 +8,4 @@
 <div class="rounded bg-white p-5 shadow"><div class="flex justify-between"><h2 class="font-semibold">Raw mentions (proxied, not persisted)</h2><form><select name="sentiment" class="rounded border-gray-300"><option value="">All sentiment</option>@foreach(['positive','neutral','negative'] as $s)<option @selected(($filters['sentiment']??null)===$s)>{{ $s }}</option>@endforeach</select><button class="ml-2 rounded bg-gray-800 px-3 py-2 text-white">Filter</button></form></div>
 @if($tweets)<div class="mt-4 space-y-3">@forelse(data_get($tweets,'items',data_get($tweets,'tweets',[])) as $tweet)<article class="rounded border p-3"><div class="text-xs text-gray-500">{{ data_get($tweet,'username',data_get($tweet,'author.username','')) }} · {{ data_get($tweet,'created_at','') }}</div><p class="mt-1">{{ data_get($tweet,'text','') }}</p><div class="mt-1 text-xs">{{ data_get($tweet,'sentiment','') }}</div></article>@empty<p class="text-gray-500">No raw mentions returned.</p>@endforelse</div>@else<p class="mt-4 text-gray-500">Raw details are available after the engine accepts this job.</p>@endif</div></div>
 @endsection
+
