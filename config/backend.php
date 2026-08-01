@@ -63,6 +63,7 @@ return [
                     ['label' => 'Frontend Pages', 'route' => 'frontend-pages.index', 'icon' => 'fas fa-file-alt', 'active' => ['frontend-pages.*'], 'permission' => 'frontend.view'],
                     ['label' => 'News', 'route' => 'news.index', 'icon' => 'fas fa-newspaper', 'active' => ['news.*'], 'permission' => 'frontend.view'],
                     ['label' => 'Tags', 'route' => 'tags.index', 'icon' => 'fas fa-tags', 'active' => ['tags.*'], 'permission' => 'frontend.view'],
+                    ['label' => 'Public Pulse', 'route' => 'public-pulse.index', 'icon' => 'fas fa-wave-square', 'active' => ['public-pulse.*'], 'permission' => 'frontend.view'],
                 ],
             ],
             [
@@ -101,3 +102,4 @@ return [
         ],
     ],
 ];
+
