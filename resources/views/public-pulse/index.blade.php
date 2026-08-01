@@ -1,32 +1,110 @@
 @extends('layouts.app')
-@section('title', 'Public Pulse')
+
+@section('page_title', 'Public Pulse')
+
 @section('content')
-<div class="p-6 space-y-6">
-  <div class="flex items-center justify-between"><div><h1 class="text-2xl font-bold">Public Pulse Engine Jobs</h1><p class="text-sm text-gray-500">Laravel stores requests and summaries; raw mentions remain in Pulse Engine.</p></div><div class="space-x-3"><a class="text-blue-600" href="{{ route('public-pulse.legacy') }}">Legacy Mentions</a><a class="text-blue-600" href="{{ route('public-pulse.x-sessions.index') }}">X Sessions</a></div></div>
-  @if(session('success'))<div class="rounded bg-green-100 p-3 text-green-800">{{ session('success') }}</div>@endif
-  @if(session('error'))<div class="rounded bg-red-100 p-3 text-red-800">{{ session('error') }}</div>@endif
-  <div class="grid gap-6 lg:grid-cols-3">
-    <form method="POST" action="{{ route('public-pulse.jobs.store') }}" class="rounded bg-white p-5 shadow space-y-4">@csrf
-      <h2 class="font-semibold">Submit MVP job</h2>
-      <label class="block text-sm">Candidate<select name="candidate_id" required class="mt-1 w-full rounded border-gray-300"><option value="">Select candidate</option>@foreach($candidates as $candidate)<option value="{{ $candidate->id }}" @selected(old('candidate_id')==$candidate->id)>{{ $candidate->name }}</option>@endforeach</select></label>
-      <label class="block text-sm">Extra keywords (comma separated)<input name="keywords_text" value="{{ old('keywords_text') }}" class="mt-1 w-full rounded border-gray-300" placeholder="nickname, slogan"></label>
-      <div class="grid grid-cols-2 gap-3"><label class="text-sm">From<input type="date" name="date_from" value="{{ old('date_from', now()->subDays(7)->toDateString()) }}" required class="mt-1 w-full rounded border-gray-300"></label><label class="text-sm">To<input type="date" name="date_to" value="{{ old('date_to', now()->toDateString()) }}" required class="mt-1 w-full rounded border-gray-300"></label></div>
-      <label class="block text-sm">Mention limit<input type="number" min="1" max="1000" name="limit" value="{{ old('limit',20) }}" required class="mt-1 w-full rounded border-gray-300"></label>
-      @if($errors->any())<ul class="text-sm text-red-600">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>@endif
-      <button class="rounded bg-blue-600 px-4 py-2 text-white">Submit job</button>
-    </form>
-    <div class="lg:col-span-2 space-y-4">
-      <form class="grid grid-cols-2 gap-3 rounded bg-white p-4 shadow md:grid-cols-5">
-        <select name="candidate_id" class="rounded border-gray-300"><option value="">All candidates</option>@foreach($candidates as $candidate)<option value="{{ $candidate->id }}" @selected(($filters['candidate_id']??null)==$candidate->id)>{{ $candidate->name }}</option>@endforeach</select>
-        <select name="status" class="rounded border-gray-300"><option value="">All statuses</option>@foreach(['submitting','submission_failed','queued_pending_capacity','queued','running','degraded','completed','failed'] as $status)<option @selected(($filters['status']??null)===$status)>{{ $status }}</option>@endforeach</select>
-        <input type="date" name="date_from" value="{{ $filters['date_from']??'' }}" class="rounded border-gray-300"><input type="date" name="date_to" value="{{ $filters['date_to']??'' }}" class="rounded border-gray-300"><button class="rounded bg-gray-800 px-3 text-white">Filter</button>
-      </form>
-      <div class="overflow-x-auto rounded bg-white shadow"><table class="min-w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3 text-left">Candidate</th><th class="p-3 text-left">Status</th><th class="p-3 text-left">Range / limit</th><th class="p-3 text-left">Summary</th><th class="p-3"></th></tr></thead><tbody>
-      @forelse($jobs as $job)<tr class="border-t"><td class="p-3">{{ $job->candidate?->name }}</td><td class="p-3"><span class="rounded bg-gray-100 px-2 py-1">{{ $job->status }}</span>@if($job->partial)<span class="text-amber-600"> partial</span>@endif</td><td class="p-3">{{ $job->date_from?->format('Y-m-d') }} – {{ $job->date_to?->format('Y-m-d') }}<br>{{ $job->requested_limit }}</td><td class="p-3">{{ data_get($job->summary,'overall_sentiment',data_get($job->summary,'sentiment','—')) }}<br><span class="text-gray-500">confidence {{ data_get($job->summary,'confidence','—') }}</span></td><td class="p-3 text-right"><a class="text-blue-600" href="{{ route('public-pulse.jobs.show',$job) }}">Open</a></td></tr>@empty<tr><td colspan="5" class="p-8 text-center text-gray-500">No Pulse Engine jobs yet.</td></tr>@endforelse
-      </tbody></table></div>{{ $jobs->withQueryString()->links() }}
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <h1 class="text-3xl font-semibold text-white">Pulse Engine Jobs</h1>
+            <p class="mt-1 text-sm text-zinc-400">Submit candidate monitoring jobs and review summaries generated by Pulse Engine.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('public-pulse.legacy') }}" class="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-300 hover:border-zinc-600 hover:text-white">Legacy Mentions</a>
+            <a href="{{ route('public-pulse.x-sessions.index') }}" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"><i class="fas fa-key mr-2"></i>X Sessions</a>
+        </div>
     </div>
-  </div>
+
+    @if(session('success'))
+        <div class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-emerald-300">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-red-300">{{ session('error') }}</div>
+    @endif
+
+    <div class="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <form method="POST" action="{{ route('public-pulse.jobs.store') }}" class="h-fit space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+            @csrf
+            <div>
+                <h2 class="text-lg font-semibold text-white">Submit monitoring job</h2>
+                <p class="mt-1 text-xs text-zinc-500">The candidate name is always included in the search.</p>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-sm text-zinc-400">Candidate</label>
+                <select name="candidate_id" required class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-white">
+                    <option value="">Select candidate</option>
+                    @foreach($candidates as $candidate)
+                        <option value="{{ $candidate->id }}" @selected(old('candidate_id') == $candidate->id)>{{ $candidate->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-sm text-zinc-400">Extra keywords</label>
+                <input name="keywords_text" value="{{ old('keywords_text') }}" class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-white placeholder:text-zinc-600" placeholder="housing levy, cost of living">
+                <p class="mt-2 text-xs text-zinc-500">Separate multiple topics with commas.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="mb-2 block text-sm text-zinc-400">From</label><input type="date" name="date_from" value="{{ old('date_from', now()->subDays(7)->toDateString()) }}" required class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-white [color-scheme:dark]"></div>
+                <div><label class="mb-2 block text-sm text-zinc-400">To</label><input type="date" name="date_to" value="{{ old('date_to', now()->toDateString()) }}" required class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-white [color-scheme:dark]"></div>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-sm text-zinc-400">Mention limit</label>
+                <input type="number" min="1" max="1000" name="limit" value="{{ old('limit', 20) }}" required class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-white">
+            </div>
+
+            @if($errors->any())
+                <ul class="space-y-1 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            @endif
+
+            <button class="w-full rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-500" data-loading-label="Submitting job..."><i class="fas fa-wave-square mr-2"></i>Submit job</button>
+        </form>
+
+        <div class="min-w-0 space-y-4">
+            <form method="GET" class="grid gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:grid-cols-2 xl:grid-cols-5">
+                <select name="candidate_id" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white"><option value="">All candidates</option>@foreach($candidates as $candidate)<option value="{{ $candidate->id }}" @selected(($filters['candidate_id'] ?? null) == $candidate->id)>{{ $candidate->name }}</option>@endforeach</select>
+                <select name="status" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white"><option value="">All statuses</option>@foreach(['submitting','submission_failed','queued_pending_capacity','queued','running','degraded','completed','failed'] as $status)<option value="{{ $status }}" @selected(($filters['status'] ?? null) === $status)>{{ str_replace('_', ' ', ucfirst($status)) }}</option>@endforeach</select>
+                <input type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]">
+                <input type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]">
+                <button class="rounded-xl bg-zinc-800 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700">Filter</button>
+            </form>
+
+            <div class="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-900/60">
+                <table class="min-w-full divide-y divide-zinc-800 text-sm">
+                    <thead class="bg-zinc-950/70 text-left text-xs uppercase tracking-wider text-zinc-500"><tr><th class="px-4 py-3">Candidate</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Range / limit</th><th class="px-4 py-3">Summary</th><th class="px-4 py-3"></th></tr></thead>
+                    <tbody class="divide-y divide-zinc-800 text-zinc-300">
+                    @forelse($jobs as $job)
+                        @php($terminal = in_array($job->status, ['completed', 'failed'], true))
+                        <tr class="hover:bg-zinc-800/30">
+                            <td class="px-4 py-4"><div class="font-semibold text-white">{{ $job->candidate?->name }}</div><div class="mt-1 font-mono text-[11px] text-zinc-600">{{ Str::limit($job->job_ref, 14) }}</div></td>
+                            <td class="px-4 py-4"><span class="rounded-full px-3 py-1 text-xs font-semibold {{ $job->status === 'completed' ? 'bg-emerald-500/15 text-emerald-300' : ($job->status === 'failed' || $job->status === 'submission_failed' ? 'bg-red-500/15 text-red-300' : 'bg-amber-500/15 text-amber-300') }}">{{ str_replace('_', ' ', $job->status) }}</span>@if($job->partial)<div class="mt-2 text-xs text-amber-400">Partial result</div>@endif</td>
+                            <td class="whitespace-nowrap px-4 py-4">{{ $job->date_from?->format('d M Y') }}<br><span class="text-zinc-500">to {{ $job->date_to?->format('d M Y') }} · {{ $job->requested_limit }}</span></td>
+                            <td class="px-4 py-4"><div class="font-semibold text-white">Score: {{ data_get($job->summary, 'pulse_score', '—') }}</div><div class="mt-1 text-xs text-zinc-500">Confidence: {{ data_get($job->summary, 'overall_confidence', '—') }}</div></td>
+                            <td class="px-4 py-4 text-right"><a class="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-semibold text-zinc-300 hover:border-emerald-500/50 hover:text-emerald-300" href="{{ route('public-pulse.jobs.show', $job) }}">Open</a></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="px-4 py-14 text-center"><i class="fas fa-wave-square mb-3 block text-3xl text-zinc-700"></i><span class="text-zinc-500">No Pulse Engine jobs yet.</span></td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div>{{ $jobs->withQueryString()->links() }}</div>
+        </div>
+    </div>
 </div>
-<script>document.querySelector('form[action="{{ route('public-pulse.jobs.store') }}"]')?.addEventListener('submit',e=>{const f=e.currentTarget,t=f.querySelector('[name=keywords_text]');t.value.split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{const i=document.createElement('input');i.type='hidden';i.name='keywords[]';i.value=v;f.appendChild(i)});t.removeAttribute('name')});</script>
 @endsection
 
+@push('scripts')
+<script>
+document.querySelector('form[action="{{ route('public-pulse.jobs.store') }}"]')?.addEventListener('submit', function () {
+    const field = this.querySelector('[name="keywords_text"]');
+    field.value.split(',').map(value => value.trim()).filter(Boolean).forEach(value => {
+        const input = document.createElement('input'); input.type = 'hidden'; input.name = 'keywords[]'; input.value = value; this.appendChild(input);
+    });
+    field.removeAttribute('name');
+});
+</script>
+@endpush
