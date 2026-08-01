@@ -50,6 +50,11 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
+    public function find(int $id): ?Candidate
+    {
+        return Candidate::query()->find($id);
+    }
+
     public function create(array $data): Candidate
     {
         return Candidate::create($data);

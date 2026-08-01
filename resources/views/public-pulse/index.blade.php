@@ -1,119 +1,31 @@
-@extends('layouts.app')
-
+@extends('layouts.admin')
+@section('title', 'Public Pulse')
 @section('content')
-<div class="space-y-6">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-            <h1 class="text-3xl font-semibold text-white">Public Pulse</h1>
-            <p class="mt-1 text-sm text-zinc-400">Inspect language, tone, sentiment, topics, and classifier confidence for collected public mentions.</p>
-        </div>
+<div class="p-6 space-y-6">
+  <div class="flex items-center justify-between"><div><h1 class="text-2xl font-bold">Public Pulse Engine Jobs</h1><p class="text-sm text-gray-500">Laravel stores requests and summaries; raw mentions remain in Pulse Engine.</p></div><div class="space-x-3"><a class="text-blue-600" href="{{ route('public-pulse.legacy') }}">Legacy Mentions</a><a class="text-blue-600" href="{{ route('public-pulse.x-sessions.index') }}">X Sessions</a></div></div>
+  @if(session('success'))<div class="rounded bg-green-100 p-3 text-green-800">{{ session('success') }}</div>@endif
+  @if(session('error'))<div class="rounded bg-red-100 p-3 text-red-800">{{ session('error') }}</div>@endif
+  <div class="grid gap-6 lg:grid-cols-3">
+    <form method="POST" action="{{ route('public-pulse.jobs.store') }}" class="rounded bg-white p-5 shadow space-y-4">@csrf
+      <h2 class="font-semibold">Submit MVP job</h2>
+      <label class="block text-sm">Candidate<select name="candidate_id" required class="mt-1 w-full rounded border-gray-300"><option value="">Select candidate</option>@foreach($candidates as $candidate)<option value="{{ $candidate->id }}" @selected(old('candidate_id')==$candidate->id)>{{ $candidate->name }}</option>@endforeach</select></label>
+      <label class="block text-sm">Extra keywords (comma separated)<input name="keywords_text" value="{{ old('keywords_text') }}" class="mt-1 w-full rounded border-gray-300" placeholder="nickname, slogan"></label>
+      <div class="grid grid-cols-2 gap-3"><label class="text-sm">From<input type="date" name="date_from" value="{{ old('date_from', now()->subDays(7)->toDateString()) }}" required class="mt-1 w-full rounded border-gray-300"></label><label class="text-sm">To<input type="date" name="date_to" value="{{ old('date_to', now()->toDateString()) }}" required class="mt-1 w-full rounded border-gray-300"></label></div>
+      <label class="block text-sm">Mention limit<input type="number" min="1" max="1000" name="limit" value="{{ old('limit',20) }}" required class="mt-1 w-full rounded border-gray-300"></label>
+      @if($errors->any())<ul class="text-sm text-red-600">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>@endif
+      <button class="rounded bg-blue-600 px-4 py-2 text-white">Submit job</button>
+    </form>
+    <div class="lg:col-span-2 space-y-4">
+      <form class="grid grid-cols-2 gap-3 rounded bg-white p-4 shadow md:grid-cols-5">
+        <select name="candidate_id" class="rounded border-gray-300"><option value="">All candidates</option>@foreach($candidates as $candidate)<option value="{{ $candidate->id }}" @selected(($filters['candidate_id']??null)==$candidate->id)>{{ $candidate->name }}</option>@endforeach</select>
+        <select name="status" class="rounded border-gray-300"><option value="">All statuses</option>@foreach(['submitting','submission_failed','queued_pending_capacity','queued','running','degraded','completed','failed'] as $status)<option @selected(($filters['status']??null)===$status)>{{ $status }}</option>@endforeach</select>
+        <input type="date" name="date_from" value="{{ $filters['date_from']??'' }}" class="rounded border-gray-300"><input type="date" name="date_to" value="{{ $filters['date_to']??'' }}" class="rounded border-gray-300"><button class="rounded bg-gray-800 px-3 text-white">Filter</button>
+      </form>
+      <div class="overflow-x-auto rounded bg-white shadow"><table class="min-w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3 text-left">Candidate</th><th class="p-3 text-left">Status</th><th class="p-3 text-left">Range / limit</th><th class="p-3 text-left">Summary</th><th class="p-3"></th></tr></thead><tbody>
+      @forelse($jobs as $job)<tr class="border-t"><td class="p-3">{{ $job->candidate?->name }}</td><td class="p-3"><span class="rounded bg-gray-100 px-2 py-1">{{ $job->status }}</span>@if($job->partial)<span class="text-amber-600"> partial</span>@endif</td><td class="p-3">{{ $job->date_from?->format('Y-m-d') }} – {{ $job->date_to?->format('Y-m-d') }}<br>{{ $job->requested_limit }}</td><td class="p-3">{{ data_get($job->summary,'overall_sentiment',data_get($job->summary,'sentiment','—')) }}<br><span class="text-gray-500">confidence {{ data_get($job->summary,'confidence','—') }}</span></td><td class="p-3 text-right"><a class="text-blue-600" href="{{ route('public-pulse.jobs.show',$job) }}">Open</a></td></tr>@empty<tr><td colspan="5" class="p-8 text-center text-gray-500">No Pulse Engine jobs yet.</td></tr>@endforelse
+      </tbody></table></div>{{ $jobs->withQueryString()->links() }}
     </div>
-
-    @if(session('success'))
-        <div class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-emerald-300">{{ session('success') }}</div>
-    @endif
-
-    <form method="GET" action="{{ route('public-pulse.index') }}" class="grid gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 md:grid-cols-6">
-        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Search mention or candidate" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white md:col-span-2">
-
-        <select name="language" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
-            <option value="">All languages</option>
-            @foreach(['en', 'sw', 'sheng', 'mixed', 'unknown'] as $language)
-                <option value="{{ $language }}" @selected(($filters['language'] ?? '') === $language)>{{ strtoupper($language) }}</option>
-            @endforeach
-        </select>
-
-        <select name="sentiment" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
-            <option value="">All sentiment</option>
-            @foreach(['positive', 'neutral', 'negative', 'mixed'] as $sentiment)
-                <option value="{{ $sentiment }}" @selected(($filters['sentiment'] ?? '') === $sentiment)>{{ ucfirst($sentiment) }}</option>
-            @endforeach
-        </select>
-
-        <select name="tone" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
-            <option value="">All tones</option>
-            @foreach(['supportive', 'critical', 'mocking', 'angry', 'concerned', 'informational', 'campaigning', 'attack', 'unclear'] as $tone)
-                <option value="{{ $tone }}" @selected(($filters['tone'] ?? '') === $tone)>{{ ucfirst(str_replace('_', ' ', $tone)) }}</option>
-            @endforeach
-        </select>
-
-        <button class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">Filter</button>
-
-        <input type="text" name="topic" value="{{ $filters['topic'] ?? '' }}" placeholder="Topic, e.g. economy" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white md:col-span-2">
-        <label class="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-300">
-            <input type="checkbox" name="low_confidence" value="1" @checked(! empty($filters['low_confidence']))>
-            Low confidence
-        </label>
-        <a href="{{ route('public-pulse.index') }}" class="rounded-xl border border-zinc-700 px-4 py-2 text-center text-sm font-semibold text-zinc-300 hover:text-white">Clear</a>
-    </form>
-
-    <form method="POST" action="{{ route('public-pulse.reclassify') }}" class="rounded-2xl border border-zinc-800 bg-zinc-900/60">
-        @csrf
-        <div class="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-            <div class="text-sm text-zinc-400">{{ $mentions->total() }} mentions</div>
-            <button class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500">Reclassify Selected</button>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-800 text-sm">
-                <thead class="bg-zinc-950/70 text-left text-xs uppercase tracking-wider text-zinc-500">
-                    <tr>
-                        <th class="px-4 py-3"><input type="checkbox" data-select-all></th>
-                        <th class="px-4 py-3">Mention</th>
-                        <th class="px-4 py-3">Candidate</th>
-                        <th class="px-4 py-3">Language</th>
-                        <th class="px-4 py-3">Sentiment</th>
-                        <th class="px-4 py-3">Tone</th>
-                        <th class="px-4 py-3">Stance</th>
-                        <th class="px-4 py-3">Topics</th>
-                        <th class="px-4 py-3">Confidence</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-800 text-zinc-300">
-                    @forelse($mentions as $mention)
-                        @php($classification = $mention->classification)
-                        <tr>
-                            <td class="px-4 py-4 align-top"><input type="checkbox" name="mentions[]" value="{{ $mention->id }}" data-row-check></td>
-                            <td class="max-w-xl px-4 py-4 align-top">
-                                <div class="font-semibold text-white">{{ $mention->title ?: Str::limit($mention->text, 90) }}</div>
-                                <div class="mt-1 text-xs text-zinc-500">{{ $mention->source_key }} @if($mention->published_at) Â· {{ $mention->published_at->format('d M Y H:i') }} @endif</div>
-                                @if($classification?->translated_summary)
-                                    <div class="mt-2 rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-300">{{ $classification->translated_summary }}</div>
-                                @endif
-                                @if($mention->url)
-                                    <a href="{{ $mention->url }}" target="_blank" class="mt-2 inline-block text-xs text-emerald-400 hover:text-emerald-300">Open source</a>
-                                @endif
-                            </td>
-                            <td class="px-4 py-4 align-top text-white">{{ $mention->candidate?->name ?? 'Unknown' }}</td>
-                            <td class="px-4 py-4 align-top">{{ strtoupper($mention->language ?? 'unknown') }}</td>
-                            <td class="px-4 py-4 align-top">{{ ucfirst($mention->sentiment ?? 'unclassified') }}</td>
-                            <td class="px-4 py-4 align-top">{{ ucfirst(str_replace('_', ' ', $mention->tone ?? 'unclassified')) }}</td>
-                            <td class="px-4 py-4 align-top">{{ ucfirst(str_replace('_', ' ', $classification->stance ?? 'unknown')) }}</td>
-                            <td class="px-4 py-4 align-top">
-                                <div class="flex flex-wrap gap-1">
-                                    @foreach(($classification->topics ?? []) as $topic)
-                                        <span class="rounded-full bg-zinc-800 px-2 py-1 text-xs">{{ str_replace('_', ' ', $topic) }}</span>
-                                    @endforeach
-                                </div>
-                            </td>
-                            <td class="px-4 py-4 align-top">{{ $mention->classification_confidence !== null ? number_format($mention->classification_confidence * 100, 0).'%' : 'Pending' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="px-4 py-10 text-center text-zinc-500">No public pulse mentions found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </form>
-
-    <div>{{ $mentions->links() }}</div>
+  </div>
 </div>
-
-<script>
-document.querySelector('[data-select-all]')?.addEventListener('change', function () {
-    document.querySelectorAll('[data-row-check]').forEach((checkbox) => checkbox.checked = this.checked);
-});
-</script>
+<script>document.querySelector('form[action="{{ route('public-pulse.jobs.store') }}"]')?.addEventListener('submit',e=>{const f=e.currentTarget,t=f.querySelector('[name=keywords_text]');t.value.split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{const i=document.createElement('input');i.type='hidden';i.name='keywords[]';i.value=v;f.appendChild(i)});t.removeAttribute('name')});</script>
 @endsection

@@ -62,6 +62,22 @@ return [
         'max_tokens' => (int) env('DEEPSEEK_PUBLIC_PULSE_MAX_TOKENS', 3500),
     ],
 
+    'pulse_engine' => [
+        'base_url' => env('PULSE_ENGINE_BASE_URL', 'http://127.0.0.1:8010'),
+        'api_key' => env('PULSE_ENGINE_API_KEY'),
+        'webhook_secret' => env('PULSE_ENGINE_WEBHOOK_SECRET'),
+        'connect_timeout' => (int) env('PULSE_ENGINE_CONNECT_TIMEOUT', 10),
+        'timeout' => (int) env('PULSE_ENGINE_TIMEOUT', 120),
+    ],
+
+    'public_pulse_x' => [
+        'health_endpoint' => env('PUBLIC_PULSE_X_HEALTH_ENDPOINT'),
+        'health_test_query' => env('PUBLIC_PULSE_X_HEALTH_TEST_QUERY', 'Kenya'),
+        'health_check_interval_minutes' => (int) env('PUBLIC_PULSE_X_HEALTH_CHECK_INTERVAL_MINUTES', 30),
+        'connect_timeout' => (int) env('PUBLIC_PULSE_X_CONNECT_TIMEOUT', 10),
+        'timeout' => (int) env('PUBLIC_PULSE_X_TIMEOUT', 60),
+    ],
+
     'ipay' => [
         'vendor_id' => env('IPAY_VENDOR_ID'),
         'security_key' => env('IPAY_SECURITY_KEY'),
@@ -72,6 +88,8 @@ return [
         'timeout' => (int) env('IPAY_TIMEOUT', 30),
     ],
 ];
+
+
 
 
 

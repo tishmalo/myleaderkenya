@@ -1,6 +1,8 @@
 <?php
 
+use App\Jobs\CheckPublicPulseSourceAccountHealth;
 use App\Jobs\RefreshPublicApprovalScores;
+use App\Jobs\SyncPublicPulseJobs;
 use App\Jobs\VerifyMissingParliamentMemberDetails;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -19,3 +21,12 @@ Schedule::job(new VerifyMissingParliamentMemberDetails)
     ->at('23:00')
     ->timezone('Africa/Nairobi')
     ->withoutOverlapping();
+
+Schedule::job(new CheckPublicPulseSourceAccountHealth)
+    ->everyThirtyMinutes()
+    ->withoutOverlapping();
+
+Schedule::job(new SyncPublicPulseJobs)
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+

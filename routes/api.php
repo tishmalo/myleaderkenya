@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\PoliticalPartyAccessRequestController;
 use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyController;
 use App\Http\Controllers\Api\PositionController as ApiPositionController;
 use App\Http\Controllers\Api\PublicApprovalController;
+use App\Http\Controllers\Api\PulseEngineAccountController;
+use App\Http\Controllers\Api\PulseWebhookController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Middleware\EnsureAllowedPublicApprovalDomain;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +27,13 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ====================== PUBLIC ROUTES ======================
+
+Route::middleware('pulse.engine')->group(function () {
+    Route::get('/scraper/accounts', [PulseEngineAccountController::class, 'index'])->name('api.scraper.accounts');
+    Route::post('/scraper/accounts/{publicPulseSourceAccount}/invalid', [PulseEngineAccountController::class, 'invalid'])->name('api.scraper.accounts.invalid');
+    Route::post('/pulse/webhook', PulseWebhookController::class)->name('api.pulse.webhook');
+});
+
 
 // Authentication
 Route::prefix('auth')->middleware('throttle:auth')->group(function () {
@@ -161,3 +170,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
+

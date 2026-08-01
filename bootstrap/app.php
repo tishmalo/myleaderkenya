@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureUserIsAspirant;
 use App\Http\Middleware\EnsureUserIsPartyOfficial;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
 use App\Http\Middleware\FixApiTokenHeader;
+use App\Http\Middleware\EnsurePulseEngineApiKey;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'fix.token' => FixApiTokenHeader::class,
+            'pulse.engine' => EnsurePulseEngineApiKey::class,
             'admin' => EnsureUserIsAdmin::class,
             'superadmin' => EnsureUserIsSuperAdmin::class,
             'permission' => EnsureUserHasPermission::class,
@@ -42,3 +44,4 @@ return Application::configure(basePath: dirname(__DIR__))
 // commands: __DIR__.'/../routes/console.php',
 // health: '/up',
 // )
+

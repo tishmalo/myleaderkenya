@@ -31,6 +31,8 @@ use App\Http\Controllers\Admin\PoliticalPartyManagementController;
 use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PublicPulseController;
+use App\Http\Controllers\Admin\PublicPulseJobController;
+use App\Http\Controllers\Admin\PublicPulseSourceAccountController;
 use App\Http\Controllers\Admin\SmsBalanceRequestController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Admin\SupportGroupTypeController;
@@ -246,8 +248,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/campaign-tool-requests', [CampaignToolRequestController::class, 'index'])->middleware('permission:campaign-tool-requests.view')->name('campaign-tool-requests.index');
         Route::patch('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.update');
         Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');
-        Route::get('/admin/public-pulse', [PublicPulseController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.index');
-        Route::post('/admin/public-pulse/reclassify', [PublicPulseController::class, 'reclassify'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.reclassify');
+        Route::get('/admin/public-pulse', [PublicPulseJobController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.index');
+        Route::post('/admin/public-pulse/jobs', [PublicPulseJobController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.jobs.store');
+        Route::get('/admin/public-pulse/jobs/{publicPulseJob}', [PublicPulseJobController::class, 'show'])->middleware('permission:frontend.view')->name('public-pulse.jobs.show');
+        Route::patch('/admin/public-pulse/jobs/{publicPulseJob}/sync', [PublicPulseJobController::class, 'sync'])->middleware(['permission:frontend.update', 'throttle:20,10'])->name('public-pulse.jobs.sync');
+        Route::post('/admin/public-pulse/jobs/{publicPulseJob}/retry', [PublicPulseJobController::class, 'retry'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.jobs.retry');
+        Route::get('/admin/public-pulse/legacy', [PublicPulseController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.legacy');
+        Route::get('/admin/public-pulse/x-sessions', [PublicPulseSourceAccountController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.x-sessions.index');
+        Route::post('/admin/public-pulse/x-sessions', [PublicPulseSourceAccountController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.x-sessions.store');
+        Route::put('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}', [PublicPulseSourceAccountController::class, 'update'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.x-sessions.update');
+        Route::patch('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}/check', [PublicPulseSourceAccountController::class, 'check'])->middleware(['permission:frontend.update', 'throttle:20,10'])->name('public-pulse.x-sessions.check');
+        Route::patch('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}/replace', [PublicPulseSourceAccountController::class, 'replace'])->middleware('permission:frontend.update')->name('public-pulse.x-sessions.replace');
         Route::get('/admin/support-group-types', [SupportGroupTypeController::class, 'index'])->middleware('permission:support-groups.view')->name('support-group-types.index');
         Route::post('/admin/support-group-types', [SupportGroupTypeController::class, 'store'])->middleware('permission:support-groups.create')->name('support-group-types.store');
         Route::patch('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'update'])->middleware('permission:support-groups.update')->name('support-group-types.update');
@@ -301,3 +312,4 @@ Route::middleware('auth')->group(function () {
     Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop');
 });
 require __DIR__.'/auth.php';
+

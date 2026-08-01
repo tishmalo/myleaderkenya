@@ -10,6 +10,8 @@ interface CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
+    public function find(int $id): ?Candidate;
+
     public function create(array $data): Candidate;
 
     public function update(Candidate $candidate, array $data): bool;
