@@ -18,7 +18,7 @@ interface PublicPulseJobRepositoryInterface
 
     public function paginateForAdmin(array $filters = [], int $perPage = 20): LengthAwarePaginator;
 
-    public function candidateOptions(): Collection;
+    public function candidateOption(?int $candidateId): ?array;
 
     public function dueForSync(int $limit = 50): Collection;
 

@@ -17,7 +17,12 @@ class PublicPulseJobController extends Controller
     public function index(Request $request): View
     {
         $filters = $request->only(['candidate_id','status','date_from','date_to']);
-        return view('public-pulse.index', ['jobs'=>$this->jobs->paginateForAdmin($filters), 'candidates'=>$this->jobs->candidateOptions(), 'filters'=>$filters]);
+        return view('public-pulse.index', [
+            'jobs' => $this->jobs->paginateForAdmin($filters),
+            'filters' => $filters,
+            'submissionCandidate' => $this->jobs->candidateOption((int) old('candidate_id')),
+            'filterCandidate' => $this->jobs->candidateOption(isset($filters['candidate_id']) ? (int) $filters['candidate_id'] : null),
+        ]);
     }
     public function store(StorePublicPulseJobRequest $request): RedirectResponse
     {
@@ -40,6 +45,7 @@ class PublicPulseJobController extends Controller
         return back()->with('success', 'Pulse job submission retried.');
     }
 }
+
 
 
 

@@ -42,10 +42,25 @@ class PublicPulseJobRepository implements PublicPulseJobRepositoryInterface
             ->paginate($perPage)
             ->withQueryString();
     }
-
-    public function candidateOptions(): Collection
+    public function candidateOption(?int $candidateId): ?array
     {
-        return Candidate::query()->orderBy('name')->get(['id', 'name', 'nick_name']);
+        if (! $candidateId) {
+            return null;
+        }
+
+        $candidate = Candidate::query()
+            ->select(['id', 'name', 'nick_name'])
+            ->find($candidateId);
+
+        return $candidate ? [
+            'id' => $candidate->id,
+            'name' => $candidate->name,
+            'nickname' => $candidate->nick_name,
+            'image_url' => null,
+            'position' => null,
+            'party' => null,
+            'jurisdiction' => null,
+        ] : null;
     }
 
     public function dueForSync(int $limit = 50): Collection

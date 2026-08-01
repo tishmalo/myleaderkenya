@@ -48,7 +48,13 @@ class CandidateController extends Controller
             ->get()
             ->map(fn (Candidate $candidate) => [
                 'id' => $candidate->id,
+                'name' => $candidate->name,
+                'nickname' => $candidate->nick_name,
                 'text' => trim($candidate->name . ($candidate->nick_name ? ' (' . $candidate->nick_name . ')' : '')),
+                'image_url' => null,
+                'position' => null,
+                'party' => null,
+                'jurisdiction' => null,
             ]);
 
         return response()->json(['results' => $candidates]);
@@ -234,3 +240,4 @@ class CandidateController extends Controller
         return view('aspirants.public.show', compact('candidate'));
     }
 }
+

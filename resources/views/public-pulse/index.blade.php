@@ -30,15 +30,17 @@
                 <p class="mt-1 text-xs text-zinc-500">The candidate name is always included in the search.</p>
             </div>
 
-            <div>
-                <label class="mb-2 block text-sm text-zinc-400">Candidate</label>
-                <select name="candidate_id" required class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-white">
-                    <option value="">Select candidate</option>
-                    @foreach($candidates as $candidate)
-                        <option value="{{ $candidate->id }}" @selected(old('candidate_id') == $candidate->id)>{{ $candidate->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <x-aspirant-search
+                name="candidate_id"
+                :search-url="route('candidates.search')"
+                label="Search candidate"
+                placeholder="Type at least 2 characters..."
+                help="Search by aspirant name or nickname."
+                empty-text="No matching aspirant found."
+                selection-note="Selected for this monitoring job."
+                :selected-candidate="$submissionCandidate"
+                :required="true"
+            />
 
             <div>
                 <label class="mb-2 block text-sm text-zinc-400">Extra keywords</label>
@@ -65,7 +67,18 @@
 
         <div class="min-w-0 space-y-4">
             <form method="GET" class="grid gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:grid-cols-2 xl:grid-cols-5">
-                <select name="candidate_id" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white"><option value="">All candidates</option>@foreach($candidates as $candidate)<option value="{{ $candidate->id }}" @selected(($filters['candidate_id'] ?? null) == $candidate->id)>{{ $candidate->name }}</option>@endforeach</select>
+                <div class="sm:col-span-2 xl:col-span-1">
+                    <x-aspirant-search
+                        name="candidate_id"
+                        :search-url="route('candidates.search')"
+                        label="Candidate filter"
+                        placeholder="Search candidate..."
+                        help="Leave empty for all candidates."
+                        empty-text="No matching aspirant found."
+                        selection-note="Filtering by this candidate."
+                        :selected-candidate="$filterCandidate"
+                    />
+                </div>
                 <select name="status" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white"><option value="">All statuses</option>@foreach(['submitting','submission_failed','queued_pending_capacity','queued','running','degraded','completed','failed'] as $status)<option value="{{ $status }}" @selected(($filters['status'] ?? null) === $status)>{{ str_replace('_', ' ', ucfirst($status)) }}</option>@endforeach</select>
                 <input type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]">
                 <input type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]">
@@ -108,3 +121,4 @@ document.querySelector('form[action="{{ route('public-pulse.jobs.store') }}"]')?
 });
 </script>
 @endpush
+
