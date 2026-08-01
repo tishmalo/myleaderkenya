@@ -41,14 +41,14 @@
         <div class="flex items-center justify-between gap-3"><div><h2 class="text-lg font-semibold text-white">Analysis summary</h2><p class="mt-1 text-xs text-zinc-500">Summary data is stored in Laravel; raw posts remain in Pulse Engine.</p></div>@if($job->summary)<span class="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300">Ready</span>@endif</div>
         @if($job->summary)
             <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <div class="rounded-xl bg-zinc-950/70 p-4"><div class="text-xs uppercase text-zinc-500">Pulse score</div><div class="mt-2 text-2xl font-semibold text-white">{{ data_get($job->summary, 'pulse_score', 'N/A') }}</div></div>
+                <div class="rounded-xl bg-zinc-950/70 p-4"><div class="text-xs uppercase text-zinc-500">Pulse score</div><x-pulse-score :score="data_get($job->summary, 'pulse_score')" /></div>
                 <div class="rounded-xl bg-zinc-950/70 p-4"><div class="text-xs uppercase text-zinc-500">Mentions</div><div class="mt-2 text-2xl font-semibold text-white">{{ number_format((int) data_get($job->summary, 'total_mentions', 0)) }}</div></div>
                 <div class="rounded-xl bg-zinc-950/70 p-4"><div class="text-xs uppercase text-zinc-500">Unique authors</div><div class="mt-2 text-2xl font-semibold text-white">{{ number_format((int) data_get($job->summary, 'unique_authors', 0)) }}</div></div>
-                <div class="rounded-xl bg-zinc-950/70 p-4"><div class="text-xs uppercase text-zinc-500">Confidence</div><div class="mt-2 text-2xl font-semibold capitalize text-white">{{ data_get($job->summary, 'overall_confidence', 'N/A') }}</div></div>
+                <div class="rounded-xl bg-zinc-950/70 p-4"><div class="text-xs uppercase text-zinc-500">Confidence</div><div class="mt-2 text-2xl font-semibold capitalize text-white">{{ data_get($job->summary, 'overall_confidence', 'N/A') }}</div>@if(data_get($job->summary, 'overall_confidence') === 'low')<div class="mt-2 text-xs text-amber-300">Interpret cautiously: the sample is below the confidence threshold.</div>@endif</div>
             </div>
             <div class="mt-4 grid gap-3 sm:grid-cols-3">
                 @foreach(['positive' => 'emerald', 'neutral' => 'zinc', 'negative' => 'red'] as $sentiment => $color)
-                    <div class="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4"><div class="text-sm capitalize text-zinc-400">{{ $sentiment }}</div><div class="mt-1 text-xl font-semibold text-white">{{ number_format((float) data_get($job->summary, 'sentiment.'.$sentiment, 0), 1) }}%</div></div>
+                    <div class="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4"><div class="text-sm capitalize text-zinc-400">{{ $sentiment }}</div><div class="mt-1 text-xl font-semibold text-white"><x-pulse-percentage :value="data_get($job->summary, 'sentiment.'.$sentiment, 0)" /></div></div>
                 @endforeach
             </div>
         @else
@@ -75,4 +75,5 @@
     </section>
 </div>
 @endsection
+
 
