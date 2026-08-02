@@ -434,7 +434,7 @@
         <section class="public-approval-section">
             <div class="section-inner">
                 <div class="section-header">
-                    <div class="section-label">Public Approval</div>
+                    <div class="section-label">Public Sentiment</div>
                     <h2 class="section-title">Presidential Public Pulse</h2>
                 </div>
                 <div class="approval-card-grid">
@@ -447,8 +447,9 @@
                                 <h3>{{ $approvalCard['name'] }}</h3>
                                 <div class="approval-score-row">
                                     <span class="approval-arrow">{!! $approvalCard['direction'] === 'up' ? '&uarr;' : '&darr;' !!}</span>
-                                    <span class="approval-score">{{ number_format($approvalCard['approval'], 1) }}%</span>
+                                    <span class="approval-score">{{ $approvalCard['approval'] > 0 ? '+' : '' }}{{ number_format($approvalCard['approval'], 1) }}</span>
                                 </div>
+                                <div class="approval-confidence">Pulse Score � {{ ucfirst($approvalCard['confidence']) }} confidence</div>
                             </div>
                         </article>
                     @endforeach

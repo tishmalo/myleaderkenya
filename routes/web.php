@@ -250,6 +250,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');
         Route::get('/admin/public-pulse', [PublicPulseJobController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.index');
         Route::post('/admin/public-pulse/jobs', [PublicPulseJobController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.jobs.store');
+        Route::put('/admin/public-pulse/homepage', [PublicPulseJobController::class, 'updateHomepage'])->middleware('permission:frontend.update')->name('public-pulse.homepage.update');
         Route::get('/admin/public-pulse/jobs/{publicPulseJob}', [PublicPulseJobController::class, 'show'])->middleware('permission:frontend.view')->name('public-pulse.jobs.show');
         Route::patch('/admin/public-pulse/jobs/{publicPulseJob}/sync', [PublicPulseJobController::class, 'sync'])->middleware(['permission:frontend.update', 'throttle:20,10'])->name('public-pulse.jobs.sync');
         Route::post('/admin/public-pulse/jobs/{publicPulseJob}/retry', [PublicPulseJobController::class, 'retry'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.jobs.retry');
@@ -312,4 +313,3 @@ Route::middleware('auth')->group(function () {
     Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop');
 });
 require __DIR__.'/auth.php';
-

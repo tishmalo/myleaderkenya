@@ -4,7 +4,9 @@ use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PublicPulseTweetFilterRequest;
 use App\Http\Requests\Admin\StorePublicPulseJobRequest;
+use App\Http\Requests\Admin\UpdatePublicPulseHomepageRequest;
 use App\Models\PublicPulseJob;
+use App\Services\PublicPulse\PublicPulseHomepageService;
 use App\Services\PublicPulse\PublicPulseJobSubmissionService;
 use App\Services\PublicPulse\PublicPulseJobDetailService;
 use App\Services\PublicPulse\PublicPulseJobSyncService;
@@ -13,7 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 class PublicPulseJobController extends Controller
 {
-    public function __construct(private PublicPulseJobRepositoryInterface $jobs, private PublicPulseJobSubmissionService $submission, private PublicPulseJobSyncService $sync, private PublicPulseJobDetailService $details) {}
+    public function __construct(private PublicPulseJobRepositoryInterface $jobs, private PublicPulseJobSubmissionService $submission, private PublicPulseJobSyncService $sync, private PublicPulseJobDetailService $details, private PublicPulseHomepageService $homepage) {}
     public function index(Request $request): View
     {
         $filters = $request->only(['candidate_id','status','date_from','date_to']);
@@ -22,7 +24,15 @@ class PublicPulseJobController extends Controller
             'filters' => $filters,
             'submissionCandidate' => $this->jobs->candidateOption((int) old('candidate_id')),
             'filterCandidate' => $this->jobs->candidateOption(isset($filters['candidate_id']) ? (int) $filters['candidate_id'] : null),
+            'homepageCandidates' => $this->homepage->configuration(),
         ]);
+    }
+    public function updateHomepage(UpdatePublicPulseHomepageRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $this->homepage->configure($data['candidate_ids'] ?? [], $data['orders'] ?? []);
+
+        return back()->with('success', 'Homepage Public Pulse candidates updated.');
     }
     public function store(StorePublicPulseJobRequest $request): RedirectResponse
     {
@@ -45,7 +55,3 @@ class PublicPulseJobController extends Controller
         return back()->with('success', 'Pulse job submission retried.');
     }
 }
-
-
-
-

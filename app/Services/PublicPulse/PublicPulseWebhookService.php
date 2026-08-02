@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
 use App\Models\PublicPulseJob;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Validation\ValidationException;
+use App\Support\HomepageCache;
 
 class PublicPulseWebhookService
 {
@@ -59,6 +60,10 @@ class PublicPulseWebhookService
         }
 
         $this->jobs->updateNonTerminal($job, $attributes);
+
+        if ($next === PublicPulseJob::STATUS_COMPLETED) {
+            HomepageCache::flush();
+        }
 
         return $job->refresh();
     }

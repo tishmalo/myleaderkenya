@@ -5,6 +5,7 @@ namespace App\Services\PublicPulse;
 use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
 use App\Contracts\Services\PublicPulseEngineClientInterface;
 use App\Models\PublicPulseJob;
+use App\Support\HomepageCache;
 use Throwable;
 
 class PublicPulseJobSyncService
@@ -47,6 +48,10 @@ class PublicPulseJobSyncService
             }
 
             $this->jobs->updateNonTerminal($job, $attributes);
+
+            if (($payload['status'] ?? null) === PublicPulseJob::STATUS_COMPLETED) {
+                HomepageCache::flush();
+            }
 
             return true;
         } catch (Throwable $exception) {

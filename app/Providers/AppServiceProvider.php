@@ -46,6 +46,7 @@ use App\Contracts\Repositories\Web\PoliticalPartyManagementRepositoryInterface;
 use App\Contracts\Repositories\Web\PoliticalPartyTokenRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseMentionRepositoryInterface;
+use App\Contracts\Repositories\Web\PublicPulseHomepageRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
 use App\Contracts\Services\PublicPulseEngineClientInterface;
 use App\Contracts\Repositories\Web\PublicPulseSourceAccountRepositoryInterface;
@@ -100,6 +101,7 @@ use App\Repositories\Web\PoliticalPartyManagementRepository;
 use App\Repositories\Web\PoliticalPartyTokenRepository;
 use App\Repositories\Web\PublicApprovalRepository;
 use App\Repositories\Web\PublicPulseMentionRepository;
+use App\Repositories\Web\PublicPulseHomepageRepository;
 use App\Repositories\Web\PublicPulseJobRepository;
 use App\Services\PublicPulse\PublicPulseEngineClient;
 use App\Repositories\Web\PublicPulseSourceAccountRepository;
@@ -172,6 +174,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PublicApprovalRepositoryInterface::class, PublicApprovalRepository::class);
         $this->app->bind(StoredPublicApprovalRepositoryInterface::class, StoredPublicApprovalRepository::class);
         $this->app->bind(PublicPulseMentionRepositoryInterface::class, PublicPulseMentionRepository::class);
+        $this->app->bind(PublicPulseHomepageRepositoryInterface::class, PublicPulseHomepageRepository::class);
         $this->app->bind(PublicPulseJobRepositoryInterface::class, PublicPulseJobRepository::class);
         $this->app->bind(PublicPulseEngineClientInterface::class, PublicPulseEngineClient::class);
         $this->app->bind(PublicPulseSourceAccountRepositoryInterface::class, PublicPulseSourceAccountRepository::class);
@@ -259,4 +262,3 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
-

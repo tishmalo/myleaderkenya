@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\PublicApprovalScore;
+use App\Services\PublicPulse\PublicPulseHomepageService;
 use App\Support\HomepageCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -16,15 +17,16 @@ class PublicApprovalService
 {
     public function __construct(
         private PublicApprovalRepositoryInterface $approvalRepository,
-        private StoredPublicApprovalRepositoryInterface $storedApprovalRepository
+        private StoredPublicApprovalRepositoryInterface $storedApprovalRepository,
+        private PublicPulseHomepageService $pulseHomepage
     ) {}
 
     public function presidentialCards(): array
     {
         return Cache::remember(
-            HomepageCache::key('public-approval-presidential-v8'),
+            HomepageCache::key('public-pulse-presidential-v9'),
             HomepageCache::ttl(),
-            fn (): array => $this->buildPresidentialCards()
+            fn (): array => $this->pulseHomepage->cards()
         );
     }
 

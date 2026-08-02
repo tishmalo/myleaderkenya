@@ -22,6 +22,25 @@
         <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-red-300">{{ session('error') }}</div>
     @endif
 
+    <form method="POST" action="{{ route('public-pulse.homepage.update') }}" class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+        @csrf
+        @method('PUT')
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div><h2 class="text-lg font-semibold text-white">Homepage Presidential Public Pulse</h2><p class="mt-1 text-xs text-zinc-500">Choose and order up to five presidential candidates. Only candidates with a completed Pulse job will appear publicly.</p></div>
+            <button class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"><i class="fas fa-save mr-2"></i>Save homepage</button>
+        </div>
+        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            @forelse($homepageCandidates as $homepageCandidate)
+                <label class="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+                    <input type="checkbox" name="candidate_ids[]" value="{{ $homepageCandidate['id'] }}" class="h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-emerald-500" @checked($homepageCandidate['selected'])>
+                    <span class="min-w-0 flex-1"><span class="block truncate text-sm font-semibold text-white">{{ $homepageCandidate['name'] }}</span><span class="mt-1 block text-xs {{ $homepageCandidate['has_result'] ? 'text-emerald-400' : 'text-amber-400' }}">{{ $homepageCandidate['has_result'] ? 'Latest score: '.number_format((float) $homepageCandidate['pulse_score'], 1) : 'No completed Pulse job yet' }}</span></span>
+                    <input type="number" name="orders[{{ $homepageCandidate['id'] }}]" min="0" max="999" value="{{ $homepageCandidate['sort_order'] }}" class="w-16 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-center text-sm text-white" aria-label="Display order for {{ $homepageCandidate['name'] }}">
+                </label>
+            @empty
+                <p class="text-sm text-zinc-500">No approved presidential candidates are available.</p>
+            @endforelse
+        </div>
+    </form>
     <div class="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
         <form method="POST" action="{{ route('public-pulse.jobs.store') }}" class="h-fit space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
             @csrf
