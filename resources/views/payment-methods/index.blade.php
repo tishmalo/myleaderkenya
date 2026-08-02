@@ -17,7 +17,8 @@
     </div>
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <table class="w-full">
+        <div class="w-full max-w-full overflow-x-auto">
+        <table class="min-w-[900px] w-full">
             <thead>
                 <tr class="border-b border-zinc-800">
                     <th class="px-8 py-5 text-left">Method</th>
@@ -64,6 +65,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 @endsection

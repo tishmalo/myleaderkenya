@@ -1,17 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\Api\PaymentMethodController;
-use App\Http\Controllers\Api\LocationController;
-use App\Http\Controllers\Api\DonorController;
-use App\Http\Controllers\Api\StatsController;
-use App\Http\Controllers\Api\CoalitionController as ApiCoalitionController;
-use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyController;
-use App\Http\Controllers\Api\NewsController;
-use App\Http\Controllers\Api\AspirantController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\AspirantController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CampaignToolController as ApiCampaignToolController;
+use App\Http\Controllers\Api\CoalitionController as ApiCoalitionController;
+use App\Http\Controllers\Api\DonorController;
+use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\NewsController;
+use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\PoliticalPartyAccessRequestController;
+use App\Http\Controllers\Api\PoliticalPartyController as ApiPoliticalPartyController;
+use App\Http\Controllers\Api\PositionController as ApiPositionController;
+use App\Http\Controllers\Api\PublicApprovalController;
+use App\Http\Controllers\Api\PulseEngineAccountController;
+use App\Http\Controllers\Api\PulseWebhookController;
+use App\Http\Controllers\Api\StatsController;
+use App\Http\Middleware\EnsureAllowedPublicApprovalDomain;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,8 +28,15 @@ use App\Http\Controllers\Admin\DashboardController;
 
 // ====================== PUBLIC ROUTES ======================
 
+Route::middleware('pulse.engine')->group(function () {
+    Route::get('/scraper/accounts', [PulseEngineAccountController::class, 'index'])->name('api.scraper.accounts');
+    Route::post('/scraper/accounts/{publicPulseSourceAccount}/invalid', [PulseEngineAccountController::class, 'invalid'])->name('api.scraper.accounts.invalid');
+    Route::post('/pulse/webhook', PulseWebhookController::class)->name('api.pulse.webhook');
+});
+
+
 // Authentication
-Route::prefix('auth')->group(function () {
+Route::prefix('auth')->middleware('throttle:auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
@@ -33,15 +47,18 @@ Route::prefix('auth')->group(function () {
 });
 
 // Location Hierarchy (Public API)
-Route::prefix('locations')->group(function () {
+Route::prefix('locations')->middleware('throttle:api')->group(function () {
     Route::get('/counties', [LocationController::class, 'getCounties']);
     Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty']);
     Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency']);
     Route::get('/all', [LocationController::class, 'getLocations']);
 });
 
+Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty'])->middleware('throttle:api');
+Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency'])->middleware('throttle:api');
+
 // Admin-Specific API (Consolidated from web.php)
-Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/counties/by-bloc/{blocId}', [DashboardController::class, 'getCountiesByBloc'])->name('api.counties.by-bloc');
     Route::get('/constituencies/by-county', [DashboardController::class, 'getConstituenciesByCounty'])->name('api.constituencies.by-county');
     Route::get('/wards/by-constituency', [DashboardController::class, 'getWardsByConstituency'])->name('api.wards.by-constituency');
@@ -49,33 +66,54 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 });
 
 // Messaging & Content
-Route::get('/tags', [MessageController::class, 'getTags']);
-Route::post('/nearby_messages', [MessageController::class, 'nearbyMessages']);
-Route::get('/constituency_messages', [MessageController::class, 'getConstituencyMessages']);
-
+Route::get('/tags', [MessageController::class, 'getTags'])->middleware('throttle:api');
+Route::post('/nearby_messages', [MessageController::class, 'nearbyMessages'])->middleware('throttle:api');
+Route::get('/constituency_messages', [MessageController::class, 'getConstituencyMessages'])->middleware('throttle:api');
 
 // Public Content APIs
-Route::get('/news', [NewsController::class, 'list']);
-Route::get('/news/{slug}', [NewsController::class, 'show']);
-Route::get('/parties', [ApiPoliticalPartyController::class, 'list']);
-Route::get('/parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
-Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
-Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
-Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
-Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
-Route::get('/aspirants', [AspirantController::class, 'list']);
-Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
-// Donations
-Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+Route::middleware('throttle:api')->group(function () {
+    Route::get('/news', [NewsController::class, 'list']);
+    Route::get('/news/{slug}', [NewsController::class, 'show']);
+    Route::get('/parties', [ApiPoliticalPartyController::class, 'list']);
+    Route::get('/parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+    Route::get('/political-parties', [ApiPoliticalPartyController::class, 'list']);
+    Route::get('/political-parties/{slug}', [ApiPoliticalPartyController::class, 'show']);
+    Route::post(
+        '/political-parties/{politicalParty}/access-requests',
+        [PoliticalPartyAccessRequestController::class, 'store'],
+    )->middleware('throttle:3,10');
+    Route::get('/positions', [ApiPositionController::class, 'list']);
+    Route::get('/coalitions', [ApiCoalitionController::class, 'list']);
+    Route::get('/coalitions/{slug}', [ApiCoalitionController::class, 'show']);
+    Route::get('/aspirants', [AspirantController::class, 'list']);
+    Route::post('/aspirants/register', [AspirantController::class, 'store'])->middleware('throttle:3,10');
+    Route::post('/aspirants', [AspirantController::class, 'store'])->middleware('throttle:3,10');
+    Route::match(['put', 'patch'], '/aspirants/{candidate}', [AspirantController::class, 'update']);
+    Route::post('/aspirants/{candidate}/update', [AspirantController::class, 'update']);
+    Route::get('/aspirants/{candidate}', [AspirantController::class, 'show']);
+    Route::get('/campaign-tools', [ApiCampaignToolController::class, 'list']);
+    Route::get('/campaign-tools/{campaignTool}', [ApiCampaignToolController::class, 'show']);
+    Route::post('/campaign-tools/{campaignTool}/requests', [ApiCampaignToolController::class, 'storeFeatureRequest']);
+    Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+    Route::get('/stats/live', [StatsController::class, 'liveStats']);
+});
 
-// Stats
-Route::get('/stats/live', [StatsController::class, 'liveStats']);
-
+Route::middleware('auth:sanctum')->get('/aspirant/profile', [AspirantController::class, 'profile']);
+Route::get('/public-approval/presidential', [PublicApprovalController::class, 'presidential'])
+    ->middleware(['throttle:api-heavy', EnsureAllowedPublicApprovalDomain::class]);
 
 // ====================== PROTECTED ROUTES ======================
 Route::middleware('auth:sanctum')->group(function () {
 
+    Route::get(
+        '/political-party/access-requests',
+        [PoliticalPartyAccessRequestController::class, 'index'],
+    );
+
     Route::post('/auth/refresh-token', [AuthController::class, 'refresh']);
+
+    // Homepage
+    Route::get('/polls/home', [MessageController::class, 'getHomePolls']);
 
     // Profile
     Route::prefix('profile')->group(function () {
@@ -108,6 +146,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{group_id}/messages', [MessageController::class, 'getGroupMessages']);
     });
 
+    Route::prefix('aspirant')->group(function () {
+        Route::get('/campaign-tools', [ApiCampaignToolController::class, 'aspirantTools']);
+        Route::get('/campaign-tools/{key}', [ApiCampaignToolController::class, 'aspirantTool']);
+        Route::post('/campaign-tools/bulk-sms/send', [ApiCampaignToolController::class, 'sendBulkSms']);
+        Route::post('/campaign-tools/opinion-polls/polls', [ApiCampaignToolController::class, 'storePoll']);
+        Route::post('/campaign-tools/call-center/script', [ApiCampaignToolController::class, 'saveCallScript']);
+        Route::post('/campaign-tools/call-center/calls', [ApiCampaignToolController::class, 'storeCallLog']);
+        Route::post('/campaign-tools/campaign-website/request', [ApiCampaignToolController::class, 'storeWebsiteRequest']);
+        Route::get('/support-groups/types', [ApiCampaignToolController::class, 'supportGroupTypes']);
+        Route::get('/support-groups/contacts', [ApiCampaignToolController::class, 'supportContacts']);
+        Route::post('/support-groups/contacts', [ApiCampaignToolController::class, 'storeSupportContact']);
+        Route::match(['put', 'patch'], '/support-groups/contacts/{candidateSupportContact}', [ApiCampaignToolController::class, 'updateSupportContact']);
+        Route::delete('/support-groups/contacts/{candidateSupportContact}', [ApiCampaignToolController::class, 'destroySupportContact']);
+    });
+
     // Tracking/Upload
     Route::post('/upload-location', [LocationController::class, 'upload']);
 
@@ -117,3 +170,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
+

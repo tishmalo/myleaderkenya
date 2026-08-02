@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\UserRepositoryInterface;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -27,6 +28,10 @@ class UserService
         $data['is_voter'] = false;
         $data['is_registered'] = false;
         $data['country_of_residence'] = $data['country_of_residence'] ?? 'Kenya';
+        $data['role_id'] = $data['role_id'] ?? Role::idFor(Role::USER);
+
+        $roleName = $data['role_id'] ? Role::query()->whereKey($data['role_id'])->value('name') : Role::USER;
+        $data['role'] = in_array($roleName, [Role::ADMIN, Role::SUPERADMIN], true) ? 'admin' : 'user';
 
         return $this->userRepository->createUser($data);
     }

@@ -2,35 +2,37 @@
 
 namespace App\Http\Middleware;
 
+use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsAdmin
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
-     */
+    public function __construct(private CandidateRelationshipRepositoryInterface $relationships) {}
+
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is authenticated
-        if (!$request->user()) {
-            return response()->json([
-                'message' => 'Unauthenticated'
-            ], 401);
+        $user = $request->user();
+
+        if (! $user) {
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Unauthenticated'], 401)
+                : redirect()->route('login');
         }
 
-        // Check if user is admin (using email domain or specific check)
-        // For now, check if user has admin email domain or specific emails
-        $adminEmails = config('auth.admin_emails', []);
-        //!in_array($request->user()->email, $adminEmails) || 
+        if (! $user->isAdmin()) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized. Admin access required.'], 403);
+            }
 
-        if ($request->user()->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.'
-            ], 403);
+            if ($user->user_type === 'aspirant' || $this->relationships->hasApprovedCandidateRelationship($user)) {
+                return redirect()->route('aspirant.dashboard')
+                    ->with('warning', 'Admin access is required for that page.');
+            }
+
+            return redirect()->route('landing')
+                ->with('warning', 'Admin access is required for that page.');
         }
 
         return $next($request);

@@ -3,7 +3,9 @@
 namespace App\Repositories\Admin;
 
 use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
+use App\Models\Candidate;
 use App\Models\PoliticalParty;
+use App\Models\Position;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -13,15 +15,15 @@ class PoliticalPartyRepository implements PoliticalPartyRepositoryInterface
     {
         $query = PoliticalParty::query();
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('name', 'like', "%{$filters['search']}%")
-                  ->orWhere('abbreviation', 'like', "%{$filters['search']}%")
-                  ->orWhere('content', 'like', "%{$filters['search']}%");
+                    ->orWhere('abbreviation', 'like', "%{$filters['search']}%")
+                    ->orWhere('content', 'like', "%{$filters['search']}%");
             });
         }
 
@@ -44,6 +46,37 @@ class PoliticalPartyRepository implements PoliticalPartyRepositoryInterface
             ->published()
             ->where('slug', $slug)
             ->firstOrFail();
+    }
+
+    public function positionsWithApprovedCandidates(
+        PoliticalParty $politicalParty,
+    ): Collection {
+        $positionIds = Candidate::query()
+            ->select('position_id')
+            ->where('political_party_id', $politicalParty->id)
+            ->where('approval_status', 'approved')
+            ->whereNotNull('position_id');
+
+        return Position::query()
+            ->whereIn('id', $positionIds)
+            ->ordered()
+            ->get();
+    }
+
+    public function paginateApprovedCandidatesForPosition(
+        PoliticalParty $politicalParty,
+        Position $position,
+        int $perPage,
+        string $pageName,
+    ): LengthAwarePaginator {
+        return $politicalParty->candidates()
+            ->with(['position', 'politicalParty'])
+            ->where('approval_status', 'approved')
+            ->where('position_id', $position->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($perPage, ['*'], $pageName)
+            ->withQueryString();
     }
 
     public function create(array $data): PoliticalParty

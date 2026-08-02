@@ -12,6 +12,12 @@
         <a href="{{ route('frontend-pages.index') }}" class="text-zinc-400 hover:text-white">Back to Pages</a>
     </div>
 
+    @if($pageData['key'] === 'aspirants')
+        <div class="bg-emerald-950/40 border border-emerald-800/50 rounded-2xl p-5 text-sm text-emerald-100">
+            <p class="font-semibold text-white">Available placeholders</p>
+            <p class="mt-2 text-emerald-100/80">Use <code>{region}</code>, <code>{area}</code>, <code>{position}</code>, and <code>{year}</code> in Hero Title, Excerpt, Meta Title, and Meta Description.</p>
+        </div>
+    @endif
     <form action="{{ route('frontend-pages.update', $pageData['key']) }}" method="POST" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
         @csrf
         @method('PUT')

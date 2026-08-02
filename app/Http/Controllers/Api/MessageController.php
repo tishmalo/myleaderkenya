@@ -18,6 +18,9 @@ use App\Http\Requests\Api\SendLocationMessageRequest;
 use App\Http\Requests\Api\SendMessageRequest;
 use App\Http\Requests\Api\StoreMessageFromWebRequest;
 use App\Http\Requests\Api\UpdateVoterStatusRequest;
+use App\Http\Requests\Api\RespondToPollRequest;
+use App\Models\AspirantPoll;
+use App\Support\AspirantPollPresenter;
 use App\Services\Api\GroupService;
 use App\Services\Api\MessageService;
 use App\Services\Api\PollingStationService;
@@ -226,6 +229,55 @@ class MessageController extends Controller
         }
     }
 
+
+    public function getHomePolls(Request $request)
+    {
+        $user = $request->user();
+        $limit = min(max((int) $request->query('limit', 20), 1), 50);
+
+        $polls = AspirantPoll::with(['candidate.position', 'responses'])
+            ->where('status', 'published')
+            ->where(function ($query) use ($user): void {
+                $query->where('scope_type', 'national');
+
+                if (! empty($user->county)) {
+                    $query->orWhere(function ($scopeQuery) use ($user): void {
+                        $scopeQuery->where('scope_column', 'county')
+                            ->where('scope_value', $user->county);
+                    });
+                }
+
+                if (! empty($user->constituency)) {
+                    $query->orWhere(function ($scopeQuery) use ($user): void {
+                        $scopeQuery->where('scope_column', 'constituency')
+                            ->where('scope_value', $user->constituency);
+                    });
+                }
+
+                if (! empty($user->ward)) {
+                    $query->orWhere(function ($scopeQuery) use ($user): void {
+                        $scopeQuery->where('scope_column', 'ward')
+                            ->where('scope_value', $user->ward);
+                    });
+                }
+            })
+            ->latest('published_at')
+            ->latest()
+            ->take($limit)
+            ->get()
+            ->map(fn (AspirantPoll $poll): array => AspirantPollPresenter::format($poll, $user->id));
+
+        return response()->json([
+            'success' => true,
+            'match_location' => [
+                'country' => $user->country_of_residence ?: 'Kenya',
+                'county' => $user->county,
+                'constituency' => $user->constituency,
+                'ward' => $user->ward,
+            ],
+            'polls' => $polls,
+        ]);
+    }
     public function respondToPoll(RespondToPollRequest $request, AspirantPoll $poll)
     {
         try {
@@ -336,3 +388,6 @@ class MessageController extends Controller
         }
     }
 }
+
+
+

@@ -7,8 +7,9 @@ use App\Http\Requests\Admin\ImportConstituencyRequest;
 use App\Http\Requests\Admin\StoreConstituencyRequest;
 use App\Http\Requests\Admin\UpdateConstituencyRequest;
 use App\Models\Constituency;
-use App\Models\County;
 use App\Services\Admin\ConstituencyService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class ConstituencyController extends Controller
 {
@@ -31,7 +32,8 @@ class ConstituencyController extends Controller
 
     public function store(StoreConstituencyRequest $request)
     {
-        $this->constituencyService->createConstituency($request->validated());
+        $data = $this->withStoredImage($request->validated(), $request->file('image'), 'constituencies');
+        $this->constituencyService->createConstituency($data);
 
         return redirect()->route('constituencies.index')
             ->with('success', 'Constituency created successfully');
@@ -45,7 +47,16 @@ class ConstituencyController extends Controller
 
     public function update(UpdateConstituencyRequest $request, Constituency $constituency)
     {
-        $this->constituencyService->updateConstituency($constituency, $request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $this->deleteImage($constituency->image);
+            $data = $this->withStoredImage($data, $request->file('image'), 'constituencies');
+        } else {
+            unset($data['image']);
+        }
+
+        $this->constituencyService->updateConstituency($constituency, $data);
 
         return redirect()->route('constituencies.index')
             ->with('success', 'Constituency updated successfully');
@@ -53,6 +64,7 @@ class ConstituencyController extends Controller
 
     public function destroy(Constituency $constituency)
     {
+        $this->deleteImage($constituency->image);
         $this->constituencyService->deleteConstituency($constituency);
 
         return redirect()->route('constituencies.index')
@@ -67,5 +79,21 @@ class ConstituencyController extends Controller
             'message' => 'Constituencies imported successfully',
             'imported' => $imported
         ]);
+    }
+
+    private function withStoredImage(array $data, ?UploadedFile $image, string $directory): array
+    {
+        if ($image) {
+            $data['image'] = $image->store($directory, 'public');
+        }
+
+        return $data;
+    }
+
+    private function deleteImage(?string $path): void
+    {
+        if ($path) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

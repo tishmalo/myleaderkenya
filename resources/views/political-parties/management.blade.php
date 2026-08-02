@@ -1,0 +1,175 @@
+@extends('layouts.app')
+@section('page_title','Political Party Access & Claims')
+@section('content')
+<div class="max-w-7xl mx-auto">
+<h1 class="text-3xl font-semibold mb-8">Political Party Access & Claims</h1>
+@if(session('success'))
+<div class="bg-emerald-950 border border-emerald-700 rounded-xl p-4 mb-6">
+    {{ session('success') }}
+</div>
+@endif
+
+<section class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-8">
+<h2 class="text-xl font-semibold mb-5">Create party official access</h2>
+<form method="POST" action="{{ route('party-management.officials.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+
+@csrf
+
+<select name="political_party_id" required class="bg-zinc-800 rounded-xl p-3">
+<option value="">Party</option>@foreach($parties as $party)<option value="{{ $party->id }}">{{ $party->name }}</option>
+@endforeach
+</select>
+<input name="name" placeholder="Official name" required class="bg-zinc-800 rounded-xl p-3">
+<input type="email" name="email" placeholder="Email" required class="bg-zinc-800 rounded-xl p-3">
+<input type="password" name="password" placeholder="Temporary password" required class="bg-zinc-800 rounded-xl p-3">
+<select name="role" class="bg-zinc-800 rounded-xl p-3">
+<option value="party_admin">Party admin</option>
+<option value="party_staff">Party staff</option>
+</select>
+<button class="md:col-span-5 bg-emerald-700 rounded-xl p-3">Create access</button>
+</form>
+<div class="mt-6 grid md:grid-cols-2 gap-3">@foreach($parties as $party)@foreach($party->officials as $official)<div class="border border-zinc-800 rounded-xl p-3 flex justify-between items-center">
+<span>
+    {{ $party->name }} &mdash;
+    {{ $official->name }}
+    ({{ str($official->pivot->role)->headline() }})
+</span>
+<form method="POST" action="{{ route('party-management.officials.status',[$party,$official]) }}">
+
+@csrf
+
+
+@method('PATCH')
+@php
+    $nextStatus = $official->pivot->status === 'active' ? 'suspended' : 'active';
+    $statusClass = $official->pivot->status === 'active' ? 'bg-amber-700' : 'bg-emerald-700';
+    $statusLabel = $official->pivot->status === 'active' ? 'Suspend' : 'Activate';
+@endphp
+<button name="status" value="{{ $nextStatus }}" class="{{ $statusClass }} rounded px-3 py-2">
+    {{ $statusLabel }}
+</button>
+</form>
+</div>
+@endforeach
+
+@endforeach
+</div>
+</section>
+<section class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-8 overflow-auto">
+<h2 class="text-xl font-semibold mb-5">Party account requests</h2>
+<table class="w-full">
+<thead>
+<tr class="text-zinc-400">
+<th class="p-3 text-left">Official</th>
+<th>Party / title</th>
+<th>Evidence</th>
+<th>Status</th>
+<th>Review</th>
+</tr>
+</thead>
+<tbody>@forelse($accountRequests as $item)<tr class="border-t border-zinc-800">
+<td class="p-3">{{ $item->name }}<br>
+<small>{{ $item->email }} / {{ $item->phone }}</small>
+</td>
+<td>{{ $item->politicalParty->name }}<br>
+<small>{{ $item->party_title }}</small>
+</td>
+<td>
+<a class="text-emerald-400" href="{{ route('party-management.accounts.document',$item) }}">Download</a>
+</td>
+<td>{{ ucfirst($item->status) }}</td>
+<td>
+<form method="POST" action="{{ route('party-management.accounts.update',$item) }}" class="flex gap-2">
+
+@csrf
+
+
+@method('PATCH')
+<input name="review_notes" placeholder="Notes" class="bg-zinc-800 rounded-lg p-2">
+<button name="status" value="approved" class="bg-emerald-700 px-3 rounded">Approve</button>
+<button name="status" value="rejected" class="bg-red-800 px-3 rounded">Reject</button>
+</form>
+</td>
+</tr>
+@empty
+<tr>
+<td colspan="5" class="p-8 text-center">No requests.</td>
+</tr>
+@endforelse
+</tbody>
+</table>{{ $accountRequests->links() }}</section>
+<section class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 overflow-auto">
+<h2 class="text-xl font-semibold mb-5">Aspirant affiliation claims</h2>
+<table class="w-full">
+<thead>
+<tr class="text-zinc-400">
+<th class="p-3 text-left">Aspirant</th>
+<th>Current party</th>
+<th>Requesting party</th>
+<th>Status</th>
+<th>Review</th>
+</tr>
+</thead>
+<tbody>@forelse($candidateClaims as $claim)<tr class="border-t border-zinc-800">
+<td class="p-3">{{ $claim->candidate->name }}</td>
+<td
+    class="{{ $claim->candidate->political_party_id && $claim->candidate->political_party_id !== $claim->political_party_id ? 'text-amber-400' : '' }}"
+>
+    {{ $claim->candidate->politicalParty->name ?? 'Unassigned' }}
+</td>
+<td>{{ $claim->politicalParty->name }}</td>
+<td>{{ ucfirst($claim->status) }}</td>
+<td>
+<form method="POST" action="{{ route('party-management.claims.update',$claim) }}" class="flex gap-2">
+
+@csrf
+
+
+@method('PATCH')
+<input name="review_notes" placeholder="Notes" class="bg-zinc-800 rounded-lg p-2">
+<button name="status" value="approved" class="bg-emerald-700 px-3 rounded">Approve</button>
+<button name="status" value="rejected" class="bg-red-800 px-3 rounded">Reject</button>
+</form>
+</td>
+</tr>
+@empty
+<tr>
+<td colspan="5" class="p-8 text-center">No claims.</td>
+</tr>
+@endforelse
+</tbody>
+</table>{{ $candidateClaims->links() }}</section>
+<section class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mt-8 overflow-auto">
+<h2 class="text-xl font-semibold mb-5">Party wallet audit</h2>
+<table class="w-full">
+<thead>
+<tr>
+<th class="text-left p-3">Date</th>
+<th>Party / activity</th>
+<th>Aspirant</th>
+<th>Amount</th>
+<th>Balance after</th>
+</tr>
+</thead>
+<tbody>@foreach($partyTransactions as $tx)<tr class="border-t border-zinc-800">
+<td class="p-3">{{ $tx->created_at->format('d M Y H:i') }}</td>
+<td>{{ $parties->firstWhere('id',$tx->political_party_id)?->name }} / {{ str($tx->type)->headline() }}</td>
+<td>{{ $tx->candidate->name??'-' }}</td>
+<td>{{ number_format($tx->amount) }}</td>
+<td>{{ number_format($tx->balance_after) }}</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+<h3 class="font-semibold mt-8 mb-3">Recent purchases</h3>
+@foreach($partyPurchases as $purchase)
+<p>
+    {{ $purchase->politicalParty->name }} &mdash;
+    {{ $purchase->package_name }} &mdash;
+    {{ number_format($purchase->token_amount) }} tokens &mdash;
+    {{ ucfirst($purchase->status) }}
+</p>
+@endforeach
+</section>
+</div>
+@endsection

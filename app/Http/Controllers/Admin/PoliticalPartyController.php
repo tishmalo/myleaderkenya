@@ -72,8 +72,9 @@ class PoliticalPartyController extends Controller
 
     public function publicShow(string $slug)
     {
-        $politicalParty = $this->politicalPartyService->getPublicShowData($slug);
-
-        return view('political-parties.public.show', compact('politicalParty'));
+        return view(
+            'political-parties.public.show',
+            $this->politicalPartyService->getPublicPageData($slug, 20),
+        );
     }
 }

@@ -35,6 +35,9 @@
 
     <!-- Optional: Apple Touch Icon -->
     <link rel="apple-touch-icon" href="{{ asset('images/mlkfav.png') }}">
+    <link rel="preload" as="video" href="{{ asset('images/kenya-flag-loader.webm') }}" type="video/webm" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('images/mlkfav.png') }}" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('images/ml1.jpg') }}" fetchpriority="high">
 
     @stack('styles')
 
@@ -45,13 +48,62 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link href="https://app.telvoip.io/web-chat.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<style>
+  .frontend-submit-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: frontend-submit-spin .65s linear infinite;
+  }
+  [data-submit-loading="true"] {
+    cursor: wait !important;
+    opacity: .84;
+  }
+  @keyframes frontend-submit-spin { to { transform: rotate(360deg); } }
+  .site-boot-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: grid;
+    place-items: center;
+    background: #000;
+    transition: opacity .28s ease, visibility .28s ease;
+  }
+  .site-boot-loader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .site-boot-flag-video,
+  .site-boot-flag-img {
+    display: block;
+    width: min(560px, 78vw);
+    height: auto;
+    object-fit: contain;
+  }
+  @media (max-width: 640px) {
+    .site-boot-flag-video,
+  .site-boot-flag-img { width: min(380px, 82vw); }
+  }
+</style>
 </head>
 <body class="bg-zinc-950 text-white antialiased">
+    <div class="site-boot-loader" id="siteBootLoader" aria-hidden="true">
+        <video class="site-boot-flag-video" autoplay muted loop playsinline preload="auto" poster="{{ asset('images/kenya-flag-loader-poster.jpg') }}" aria-hidden="true">
+            <source src="{{ asset('images/kenya-flag-loader.webm') }}" type="video/webm">
+            <source src="{{ asset('images/kenya-flag-loader.mp4') }}" type="video/mp4">
+            <img class="site-boot-flag-img" src="{{ asset('images/kenya-flag-loader-poster.jpg') }}" alt="" decoding="async">
+        </video>
+    </div>
     @yield('content')
     
  
+@unless(request()->boolean('modal'))
 <style>
-  /* ===== TELVOIP BUTTON — RIGHT SIDE ===== */
+  /* ===== TELVOIP BUTTON â€” RIGHT SIDE ===== */
   .floating-button {
     position: fixed !important;
     bottom: 30px !important;
@@ -119,7 +171,7 @@
     justify-content: center !important;
   }
  
-  /* ===== WHATSAPP BUTTON — LEFT SIDE ===== */
+  /* ===== WHATSAPP BUTTON â€” LEFT SIDE ===== */
   .whatsapp-button {
     position: fixed !important;
     bottom: 30px !important;
@@ -146,7 +198,7 @@
   }
 </style>
  
-<!-- TELVOIP BUTTON — RIGHT -->
+<!-- TELVOIP BUTTON â€” RIGHT -->
 <button class="floating-button" aria-label="Open chat support" onclick="toggleChat()">
 <span class="badge-telvoip"></span>
 <span class="material-icons-telvoip">forum</span>
@@ -156,16 +208,16 @@
 <div id="chat-container">
 <iframe
     id="chat-iframe"
-    src="https://app.telvoip.io/web-chat?t=4e94c913-1775-4530-aeba-dbf4787af75a"
+    data-src="https://app.telvoip.io/web-chat?t=4e94c913-1775-4530-aeba-dbf4787af75a"
     title="Web Chat Widget"
     frameborder="0"
     width="100%"
     height="100%">
 </iframe>
-<button class="close-button" onclick="toggleChat()">✖</button>
+<button class="close-button" onclick="toggleChat()">âœ–</button>
 </div>
  
-<!-- WHATSAPP BUTTON — LEFT -->
+<!-- WHATSAPP BUTTON â€” LEFT -->
 <a class="whatsapp-button" 
    href="https://wa.me/254141102334" 
    target="_blank" 
@@ -178,9 +230,81 @@
 <script>
   function toggleChat() {
     var chatContainer = document.getElementById("chat-container");
+    var chatIframe = document.getElementById("chat-iframe");
+    if (chatIframe && !chatIframe.src && chatIframe.dataset.src) {
+      chatIframe.src = chatIframe.dataset.src;
+    }
     chatContainer.classList.toggle("show");
   }
+</script>
+@endunless
+<script>
+(function () {
+  var loader = document.getElementById('siteBootLoader');
+  if (!loader) return;
+
+  function hideLoader() {
+    loader.classList.add('is-hidden');
+    window.setTimeout(function () {
+      if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+    }, 500);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      window.requestAnimationFrame(hideLoader);
+    }, { once: true });
+    window.setTimeout(hideLoader, 1800);
+  } else {
+    window.requestAnimationFrame(hideLoader);
+  }
+})();
+</script>
+<script>
+(function () {
+  function preserveSubmitterValue(form, button) {
+    if (!button || !button.name || button.disabled) return;
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = button.name;
+    hidden.value = button.value;
+    form.appendChild(hidden);
+  }
+
+  function setFrontendSubmitLoading(button, label) {
+    if (!button || button.dataset.submitLoading === 'true') return;
+    button.dataset.submitLoading = 'true';
+    button.dataset.originalHtml = button.innerHTML;
+    button.style.minWidth = `${button.offsetWidth}px`;
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;"><span class="frontend-submit-spinner" aria-hidden="true"></span><span>${label}</span></span>`;
+  }
+
+  document.addEventListener('submit', function (event) {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.dataset.noLoader === 'true') return;
+    const submitter = event.submitter || document.activeElement;
+    const button = submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement
+      ? submitter
+      : form.querySelector('button[type="submit"], input[type="submit"]');
+
+    if (button instanceof HTMLButtonElement) {
+      preserveSubmitterValue(form, button);
+      setFrontendSubmitLoading(button, button.dataset.loadingLabel || button.dataset.loadingText || 'Submitting...');
+    } else if (button instanceof HTMLInputElement) {
+      preserveSubmitterValue(form, button);
+      button.dataset.originalValue = button.value;
+      button.value = button.dataset.loadingLabel || button.dataset.loadingText || 'Submitting...';
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+    }
+  }, true);
+
+  window.setFrontendSubmitLoading = setFrontendSubmitLoading;
+})();
 </script>
 @stack('scripts')
 </body>
 </html>
+

@@ -3,34 +3,96 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class CandidateUpdateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
-            'name'            => 'required|string|max:255',
-            'nick_name'       => 'nullable|string|max:100',
-            'phone'           => 'nullable|string|max:20',
-            'email'           => 'nullable|email|max:255',
-            'position_id'     => 'required|exists:positions,id',
+            'name' => 'required|string|max:255',
+            'nick_name' => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'position_id' => 'required|exists:positions,id',
             'political_party_id' => 'nullable|exists:political_parties,id',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'about'           => 'nullable|string',
-            'county'          => 'nullable|string',
-            'constituency'    => 'nullable|string',
-            'ward'            => 'nullable|string',
+            'cover_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'campaign_video_url' => ['nullable', 'url', 'max:255', 'regex:/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i'],
+            'campaign_song_url' => ['nullable', 'url', 'max:255', 'regex:/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i'],
+            'campaign_skiza_audio' => 'nullable|file|mimes:mp3,wav,m4a,aac,ogg|max:20480',
+            'campaign_poster' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'about' => 'nullable|string',
+            'facebook_url' => 'nullable|url|max:255',
+            'x_url' => 'nullable|url|max:255',
+            'instagram_url' => 'nullable|url|max:255',
+            'tiktok_url' => 'nullable|url|max:255',
+            'youtube_url' => 'nullable|url|max:255',
+            'whatsapp_group_url' => 'nullable|url|max:255',
+            'country' => 'nullable|string',
+            'county' => 'nullable|string',
+            'constituency' => 'nullable|string',
+            'ward' => 'nullable|string',
+            'support_contacts' => ['nullable', 'array'],
+            'support_contacts.*.id' => ['nullable', 'integer', 'exists:candidate_support_contacts,id'],
+            'support_contacts.*.support_group_type_id' => ['nullable', 'exists:support_group_types,id'],
+            'support_contacts.*.name' => ['nullable', 'string', 'max:255'],
+            'support_contacts.*.email' => ['nullable', 'email', 'max:255'],
+            'support_contacts.*.phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+() .-]+$/'],
+            'sms_enabled' => 'nullable|boolean',
+            'sms_provider' => 'nullable|in:infobip',
+            'sms_base_url' => 'nullable|url|max:255',
+            'sms_sender_name' => 'nullable|string|max:50',
+            'sms_username' => 'nullable|string|max:255',
+            'sms_password' => 'nullable|string|max:500',
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        $activeTab = in_array($this->input('active_tab'), [
+            'profile-basic',
+            'profile-political',
+            'profile-social',
+            'profile-media',
+            'profile-support',
+            'tools',
+            'priorities',
+            'parliament',
+        ], true) ? $this->input('active_tab') : 'profile-basic';
+
+        return preg_replace('/#.*$/', '', parent::getRedirectUrl()) . '#' . $activeTab;
+    }
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            foreach ((array) $this->input('support_contacts', []) as $index => $contact) {
+                $hasAny = filled($contact['support_group_type_id'] ?? null)
+                    || filled($contact['name'] ?? null)
+                    || filled($contact['email'] ?? null)
+                    || filled($contact['phone'] ?? null);
+
+                if (! $hasAny) {
+                    continue;
+                }
+
+                if (blank($contact['support_group_type_id'] ?? null)) {
+                    $validator->errors()->add("support_contacts.$index.support_group_type_id", 'Choose a support group.');
+                }
+
+                if (blank($contact['name'] ?? null)) {
+                    $validator->errors()->add("support_contacts.$index.name", 'Enter the support contact name.');
+                }
+
+                if (blank($contact['email'] ?? null) && blank($contact['phone'] ?? null)) {
+                    $validator->errors()->add("support_contacts.$index.phone", 'Enter an email or phone for each support contact.');
+                }
+            }
+        });
     }
 }

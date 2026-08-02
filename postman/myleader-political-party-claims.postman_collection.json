@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "MyLeader Political Party Claims API",
+    "description": "Create and track political-party dashboard access claims. The authorization document is uploaded privately and is never returned by the API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://nikokadi.digitallyfit.top" },
+    { "key": "party_slug", "value": "united-democratic-alliance" },
+    { "key": "claimant_name", "value": "Jane Party Official" },
+    { "key": "claimant_email", "value": "jane.official@example.com" },
+    { "key": "claimant_phone", "value": "+254700000000" },
+    { "key": "party_title", "value": "County Secretary" },
+    { "key": "password", "value": "ChangeMe123!" },
+    { "key": "username", "value": "" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. List Political Parties",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/api/political-parties?search=&per_page=20&page=1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "political-parties"],
+          "query": [
+            { "key": "search", "value": "", "disabled": true },
+            { "key": "per_page", "value": "20" },
+            { "key": "page", "value": "1" }
+          ]
+        },
+        "description": "Find the published political party and copy its slug into the party_slug collection variable."
+      }
+    },
+    {
+      "name": "2. Show Political Party",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/api/political-parties/{{party_slug}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "political-parties", "{{party_slug}}"]
+        }
+      }
+    },
+    {
+      "name": "3. Submit Party Access Claim",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('claim created', function () {",
+            "    pm.response.to.have.status(201);",
+            "    const json = pm.response.json();",
+            "    pm.expect(json.data.status).to.eql('pending');",
+            "    pm.expect(json.data.party.slug).to.eql(pm.collectionVariables.get('party_slug'));",
+            "});",
+            "const json = pm.response.json();",
+            "if (json.data && json.data.account && json.data.account.username) {",
+            "    pm.collectionVariables.set('username', json.data.account.username);",
+            "}"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "name", "value": "{{claimant_name}}", "type": "text" },
+            { "key": "email", "value": "{{claimant_email}}", "type": "text" },
+            { "key": "phone", "value": "{{claimant_phone}}", "type": "text" },
+            { "key": "party_title", "value": "{{party_title}}", "type": "text" },
+            { "key": "password", "value": "{{password}}", "type": "text" },
+            { "key": "password_confirmation", "value": "{{password}}", "type": "text" },
+            { "key": "authorization_document", "type": "file", "src": "", "description": "Choose a PDF, JPG, JPEG, or PNG file up to 5 MB." }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/political-parties/{{party_slug}}/access-requests",
+          "host": ["{{base_url}}"],
+          "path": ["api", "political-parties", "{{party_slug}}", "access-requests"]
+        },
+        "description": "Public multipart submission. Choose the authorization document file manually in Postman before sending. The generated username is captured automatically."
+      }
+    },
+    {
+      "name": "4. Login Claimant",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('login successful', function () { pm.response.to.have.status(200); });",
+            "const json = pm.response.json();",
+            "if (json.token) pm.collectionVariables.set('token', json.token);"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "5. My Party Access Claims",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('returns claim history', function () {",
+            "    pm.response.to.have.status(200);",
+            "    const json = pm.response.json();",
+            "    pm.expect(json.data).to.be.an('array');",
+            "});"
+          ]
+        }
+      }],
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/api/political-party/access-requests",
+          "host": ["{{base_url}}"],
+          "path": ["api", "political-party", "access-requests"]
+        }
+      }
+    }
+  ]
+}

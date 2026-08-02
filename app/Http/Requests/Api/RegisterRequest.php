@@ -5,6 +5,7 @@ namespace App\Http\Requests\Api;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
@@ -53,6 +54,10 @@ class RegisterRequest extends FormRequest
             'ward'           => 'nullable|string|max:100',
             'polling_station'=> 'nullable|string|max:255',
             'country_of_residence' => 'nullable|string|max:100',
+            'relationship'    => ['nullable', Rule::in(User::USER_TYPES)],
+            'user_type'       => ['nullable', Rule::in(User::USER_TYPES)],
+            'candidate_ids'   => 'nullable|array',
+            'candidate_ids.*' => 'integer|exists:candidates,id',
             'password'       => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
         ];
     }

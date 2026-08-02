@@ -2,8 +2,11 @@
 
 namespace App\Services\Web;
 
+use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
+use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
 use App\Models\CampaignTool;
 use App\Models\Candidate;
+use App\Models\CampaignToolRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -11,9 +14,19 @@ use Illuminate\Support\Facades\Schema;
 
 class AspirantWorkspaceService
 {
+    public function __construct(
+        private CandidateRelationshipRepositoryInterface $relationships,
+        private CampaignToolRequestRepositoryInterface $toolRequests
+    ) {}
+
     public function candidateForUser(User $user): ?Candidate
     {
-        $query = Candidate::with(['position', 'politicalParty']);
+        $relations = ['position', 'politicalParty'];
+        if (Schema::hasTable('candidate_sms_settings')) {
+            $relations[] = 'smsSetting';
+        }
+
+        $query = Candidate::with($relations);
 
         if (Schema::hasColumn('candidates', 'user_id')) {
             $candidate = (clone $query)->where('user_id', $user->id)->latest()->first();
@@ -23,15 +36,29 @@ class AspirantWorkspaceService
             }
         }
 
-        return $query->where(function (Builder $candidateQuery) use ($user): void {
-            if (! empty($user->email)) {
-                $candidateQuery->orWhere('email', $user->email);
-            }
+        $relatedCandidate = $this->relationships->firstRelatedCandidate($user);
 
-            if (! empty($user->phone)) {
-                $candidateQuery->orWhere('phone', $user->phone);
-            }
-        })->latest()->first();
+        if ($relatedCandidate) {
+            return $relatedCandidate;
+        }
+
+        if (empty($user->email) && empty($user->phone)) {
+            return null;
+        }
+
+        return $query
+            ->when(Schema::hasColumn('candidates', 'user_id'), fn (Builder $candidateQuery) => $candidateQuery->whereNull('user_id'))
+            ->where(function (Builder $candidateQuery) use ($user): void {
+                if (! empty($user->email)) {
+                    $candidateQuery->orWhere('email', $user->email);
+                }
+
+                if (! empty($user->phone)) {
+                    $candidateQuery->orWhere('phone', $user->phone);
+                }
+            })
+            ->latest()
+            ->first();
     }
 
     public function toolDefinitions(): array
@@ -61,6 +88,12 @@ class AspirantWorkspaceService
                 'summary' => 'Publish your biography, agenda, donation links, photos, and updates.',
                 'voter_facing' => false,
             ],
+            'support-groups' => [
+                'title' => 'Support Groups',
+                'icon' => 'fa-people-group',
+                'summary' => 'Organize friends, family, volunteers, and other private campaign contacts.',
+                'voter_facing' => false,
+            ],
             'voter-database' => [
                 'title' => 'Voter Database',
                 'icon' => 'fa-database',
@@ -76,16 +109,18 @@ class AspirantWorkspaceService
         ];
     }
 
-    public function toolModules(Collection $campaignTools): array
+    public function toolModules(Collection $campaignTools, ?Candidate $candidate = null): array
     {
-        return collect($this->toolDefinitions())->map(function (array $module, string $key) use ($campaignTools): array {
+        return collect($this->toolDefinitions())->map(function (array $module, string $key) use ($campaignTools, $candidate): array {
             $match = $this->matchingCampaignTool($campaignTools, $key, $module['title']);
+            $availability = $this->toolAvailability($key, $match, $candidate);
 
             return array_merge($module, [
                 'key' => $key,
                 'tool' => $match,
-                'url' => $match ? route('aspirant.tools.show', $key) : route('campaign-tools.public'),
-                'available' => (bool) $match,
+                'url' => $availability['available'] ? route('aspirant.tools.show', $key) : '#',
+                'available' => $availability['available'],
+                'disabled_reason' => $availability['reason'],
             ]);
         })->values()->all();
     }
@@ -99,6 +134,20 @@ class AspirantWorkspaceService
         }
 
         return $this->matchingCampaignTool(CampaignTool::published()->ordered()->get(), $key, $definition['title']);
+    }
+
+
+    public function canUseTool(string $key, ?Candidate $candidate): array
+    {
+        $definition = $this->toolDefinitions()[$key] ?? null;
+
+        if (! $definition) {
+            return ['available' => false, 'reason' => 'Unknown campaign tool.'];
+        }
+
+        $tool = $this->publishedToolForKey($key);
+
+        return $this->toolAvailability($key, $tool, $candidate);
     }
 
     public function scopeForCandidate(?Candidate $candidate): array
@@ -175,6 +224,36 @@ class AspirantWorkspaceService
         return $query;
     }
 
+
+    private function toolAvailability(string $key, ?CampaignTool $tool, ?Candidate $candidate): array
+    {
+        if (! $tool) {
+            if (in_array($key, ['campaign-website', 'support-groups'], true)) {
+                return ['available' => true, 'reason' => null];
+            }
+
+            return ['available' => false, 'reason' => 'Ask an admin to publish this campaign tool.'];
+        }
+
+        if ($key === 'bulk-sms') {
+            if (! Schema::hasTable('candidate_sms_settings')) {
+                return ['available' => false, 'reason' => 'Run the Bulk SMS settings migration before enabling this tool.'];
+            }
+
+            if (! $candidate) {
+                return ['available' => false, 'reason' => 'Link an aspirant profile before using Bulk SMS.'];
+            }
+
+            $setting = $candidate->smsSetting;
+
+            if (! $setting || ! $setting->isReady()) {
+                return ['available' => false, 'reason' => 'Ask an admin to enable Bulk SMS and add Infobip credentials for this candidate.'];
+            }
+        }
+
+        return ['available' => true, 'reason' => null];
+    }
+
     private function matchingCampaignTool(Collection $campaignTools, string $key, string $title): ?CampaignTool
     {
         return $campaignTools->first(function (CampaignTool $tool) use ($key, $title): bool {
@@ -199,4 +278,30 @@ class AspirantWorkspaceService
             'message' => $missing ? 'Ask an admin to complete your campaign jurisdiction before using voter-facing tools.' : null,
         ];
     }
+
+    public function requestToolActivation(User $user, Candidate $candidate, array $validated): CampaignToolRequest
+    {
+        $definitions = $this->toolDefinitions();
+        $toolKey = $validated['tool_key'];
+        $toolTitle = $definitions[$toolKey]['title'] ?? $validated['tool_title'];
+        $disabledReason = trim((string) ($validated['disabled_reason'] ?? ''));
+        $message = trim((string) ($validated['message'] ?? ''));
+
+        return $this->toolRequests->create([
+            'campaign_tool_id' => $validated['campaign_tool_id'] ?? null,
+            'user_id' => $user->id,
+            'candidate_id' => $candidate->id,
+            'request_type' => 'activation',
+            'tool_key' => $toolKey,
+            'tool_title' => $toolTitle,
+            'requester_name' => $candidate->name ?: $user->name,
+            'email' => $candidate->email ?: $user->email,
+            'phone' => $candidate->phone ?: $user->phone,
+            'requested_feature' => 'Activate ' . $toolTitle,
+            'use_case' => $message,
+            'disabled_reason' => $disabledReason,
+            'status' => 'new',
+        ]);
+    }
 }
+

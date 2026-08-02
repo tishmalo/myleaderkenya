@@ -2,16 +2,37 @@
 
 namespace App\Http\Middleware;
 
+use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsAspirant
 {
+    public function __construct(private CandidateRelationshipRepositoryInterface $relationships) {}
+
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || $request->user()->user_type !== 'aspirant') {
-            abort(403);
+        $user = $request->user();
+
+        if (! $user) {
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Unauthenticated'], 401)
+                : redirect()->route('login');
+        }
+
+        if ($user->user_type !== 'aspirant' && ! $this->relationships->hasApprovedCandidateRelationship($user)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized. Aspirant access required.'], 403);
+            }
+
+            if ($user->isAdmin()) {
+                return redirect()->route('dashboard')
+                    ->with('warning', 'Aspirant access is required for that page.');
+            }
+
+            return redirect()->route('landing')
+                ->with('warning', 'Aspirant access is required for that page.');
         }
 
         return $next($request);

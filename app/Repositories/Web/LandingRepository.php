@@ -99,12 +99,10 @@ class LandingRepository implements LandingRepositoryInterface
                 $query->orderByDesc('featured');
             }
 
-            if ($group['county_scoped']) {
-                $query->orderByRaw("CASE WHEN county IS NULL OR county = '' THEN 1 ELSE 0 END")
-                    ->orderBy('county');
-            }
-
-            $group['candidates'] = $query->latest()->take(10)->get();
+            $group['candidates'] = $query
+                ->latest('created_at')
+                ->take(6)
+                ->get();
 
             return $group;
         })->all();
@@ -202,3 +200,4 @@ class LandingRepository implements LandingRepositoryInterface
         return $genderData;
     }
 }
+

@@ -13,6 +13,10 @@ interface UserRepositoryInterface
     public function getDistinctCounties(): \Illuminate\Support\Collection;
     
     public function createUser(array $data): User;
+
+    public function findByEmailHash(string $emailHash): ?User;
+
+    public function usernameExists(string $username): bool;
     
     public function updateUser(User $user, array $data): bool;
     

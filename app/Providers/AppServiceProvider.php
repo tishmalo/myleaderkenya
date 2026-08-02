@@ -3,17 +3,25 @@
 namespace App\Providers;
 
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
-use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateSmsBalanceRequestRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenPackageRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenPurchaseRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenRateRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTokenTransactionRepositoryInterface;
 use App\Contracts\Repositories\Admin\CoalitionRepositoryInterface;
-use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
 use App\Contracts\Repositories\Admin\ConstituencyRepositoryInterface;
 use App\Contracts\Repositories\Admin\CountyRepositoryInterface;
+use App\Contracts\Repositories\Admin\DashboardRepositoryInterface;
 use App\Contracts\Repositories\Admin\DonorRepositoryInterface;
 use App\Contracts\Repositories\Admin\LiveStatFigureRepositoryInterface;
 use App\Contracts\Repositories\Admin\NewsArticleRepositoryInterface;
 use App\Contracts\Repositories\Admin\PaymentMethodRepositoryInterface;
+use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
 use App\Contracts\Repositories\Admin\PositionRepositoryInterface;
+use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Admin\SmtpRepositoryInterface;
 use App\Contracts\Repositories\Admin\WardRepositoryInterface;
 use App\Contracts\Repositories\Api\GroupMemberRepositoryInterface;
@@ -26,19 +34,47 @@ use App\Contracts\Repositories\Api\PollingStationRepositoryInterface;
 use App\Contracts\Repositories\Api\StatsRepositoryInterface;
 use App\Contracts\Repositories\Api\TagRepositoryInterface;
 use App\Contracts\Repositories\Api\UserRepositoryInterface;
-use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
+use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateClaimRequestRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateTokenWalletRepositoryInterface;
+use App\Contracts\Repositories\Web\LandingRepositoryInterface;
+use App\Contracts\Repositories\Web\MentionClassificationCacheRepositoryInterface;
+use App\Contracts\Repositories\Web\PoliticalPartyManagementRepositoryInterface;
+use App\Contracts\Repositories\Web\PoliticalPartyTokenRepositoryInterface;
+use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
+use App\Contracts\Repositories\Web\PublicPulseMentionRepositoryInterface;
+use App\Contracts\Repositories\Web\PublicPulseHomepageRepositoryInterface;
+use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
+use App\Contracts\Services\PublicPulseEngineClientInterface;
+use App\Contracts\Repositories\Web\PublicPulseSourceAccountRepositoryInterface;
+use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
+use App\Contracts\Services\MentionLanguageDetectorInterface;
+use App\Contracts\Services\MentionToneClassifierInterface;
+use App\Models\Candidate;
+use App\Models\Role;
+use App\Observers\CandidateObserver;
+use App\Policies\UserAccessPolicy;
 use App\Repositories\Admin\BlocRepository;
-use App\Repositories\Admin\CandidateRepository;
 use App\Repositories\Admin\CampaignToolRepository;
+use App\Repositories\Admin\CandidateRepository;
+use App\Repositories\Admin\CandidateSmsBalanceRequestRepository;
+use App\Repositories\Admin\CandidateSmsSettingRepository;
+use App\Repositories\Admin\CandidateTokenPackageRepository;
+use App\Repositories\Admin\CandidateTokenPurchaseRepository;
+use App\Repositories\Admin\CandidateTokenRateRepository;
+use App\Repositories\Admin\CandidateTokenTransactionRepository;
 use App\Repositories\Admin\CoalitionRepository;
-use App\Repositories\Admin\PoliticalPartyRepository;
 use App\Repositories\Admin\ConstituencyRepository;
 use App\Repositories\Admin\CountyRepository;
+use App\Repositories\Admin\DashboardRepository;
 use App\Repositories\Admin\DonorRepository;
 use App\Repositories\Admin\LiveStatFigureRepository;
 use App\Repositories\Admin\NewsArticleRepository;
 use App\Repositories\Admin\PaymentMethodRepository;
+use App\Repositories\Admin\PoliticalPartyRepository;
 use App\Repositories\Admin\PositionRepository;
 use App\Repositories\Admin\SettingRepository;
 use App\Repositories\Admin\SmtpRepository;
@@ -54,10 +90,30 @@ use App\Repositories\Api\StatsRepository;
 use App\Repositories\Api\TagRepository;
 use App\Repositories\Api\UserRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
-use App\Contracts\Repositories\Web\LandingRepositoryInterface;
+use App\Repositories\Web\CampaignToolRequestRepository;
+use App\Repositories\Web\CandidateClaimRequestRepository;
+use App\Repositories\Web\CandidateRelationshipRepository;
+use App\Repositories\Web\CandidateSmsMessageRepository;
+use App\Repositories\Web\CandidateTokenWalletRepository;
 use App\Repositories\Web\LandingRepository;
+use App\Repositories\Web\MentionClassificationCacheRepository;
+use App\Repositories\Web\PoliticalPartyManagementRepository;
+use App\Repositories\Web\PoliticalPartyTokenRepository;
+use App\Repositories\Web\PublicApprovalRepository;
+use App\Repositories\Web\PublicPulseMentionRepository;
+use App\Repositories\Web\PublicPulseHomepageRepository;
+use App\Repositories\Web\PublicPulseJobRepository;
+use App\Services\PublicPulse\PublicPulseEngineClient;
+use App\Repositories\Web\PublicPulseSourceAccountRepository;
+use App\Repositories\Web\StoredPublicApprovalRepository;
+use App\Services\PublicPulse\DeepSeekMentionToneClassifierService;
+use App\Services\PublicPulse\LocalMentionLanguageDetector;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -71,6 +127,12 @@ class AppServiceProvider extends ServiceProvider
         // Register Admin Repositories
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
         $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
+        $this->app->bind(CandidateSmsBalanceRequestRepositoryInterface::class, CandidateSmsBalanceRequestRepository::class);
+        $this->app->bind(CandidateTokenPackageRepositoryInterface::class, CandidateTokenPackageRepository::class);
+        $this->app->bind(CandidateTokenPurchaseRepositoryInterface::class, CandidateTokenPurchaseRepository::class);
+        $this->app->bind(CandidateTokenRateRepositoryInterface::class, CandidateTokenRateRepository::class);
+        $this->app->bind(CandidateTokenTransactionRepositoryInterface::class, CandidateTokenTransactionRepository::class);
+        $this->app->bind(CandidateSmsSettingRepositoryInterface::class, CandidateSmsSettingRepository::class);
         $this->app->bind(CampaignToolRepositoryInterface::class, CampaignToolRepository::class);
         $this->app->bind(CoalitionRepositoryInterface::class, CoalitionRepository::class);
         $this->app->bind(PoliticalPartyRepositoryInterface::class, PoliticalPartyRepository::class);
@@ -83,14 +145,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(WardRepositoryInterface::class, WardRepository::class);
         $this->app->bind(CountyRepositoryInterface::class, CountyRepository::class);
         $this->app->bind(ConstituencyRepositoryInterface::class, ConstituencyRepository::class);
-        
+
         $this->app->bind(\App\Contracts\Repositories\Admin\UserRepositoryInterface::class, \App\Repositories\Admin\UserRepository::class);
-        $this->app->bind(\App\Contracts\Repositories\Admin\DashboardRepositoryInterface::class, \App\Repositories\Admin\DashboardRepository::class);
+        $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(\App\Contracts\Repositories\Admin\GroupRepositoryInterface::class, \App\Repositories\Admin\GroupRepository::class);
         $this->app->bind(\App\Contracts\Repositories\Admin\LocationRepositoryInterface::class, \App\Repositories\Admin\LocationRepository::class);
         $this->app->bind(\App\Contracts\Repositories\Admin\TagRepositoryInterface::class, \App\Repositories\Admin\TagRepository::class);
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
-        $this->app->bind(\App\Contracts\Repositories\Admin\PaymentMethodRepositoryInterface::class, \App\Repositories\Admin\PaymentMethodRepository::class);
+        $this->app->bind(PaymentMethodRepositoryInterface::class, PaymentMethodRepository::class);
 
         // Register Api Repositories
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
@@ -104,11 +166,30 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TagRepositoryInterface::class, TagRepository::class);
         $this->app->bind(LocationRepositoryInterface::class, LocationRepository::class);
 
-        //Register Kenya Data Repository
+        // Register Kenya Data Repository
         $this->app->bind(KenyaCountyRepositoryInterface::class, KenyaDataRepository::class);
 
         // Register Web Repositories
         $this->app->bind(LandingRepositoryInterface::class, LandingRepository::class);
+        $this->app->bind(PublicApprovalRepositoryInterface::class, PublicApprovalRepository::class);
+        $this->app->bind(StoredPublicApprovalRepositoryInterface::class, StoredPublicApprovalRepository::class);
+        $this->app->bind(PublicPulseMentionRepositoryInterface::class, PublicPulseMentionRepository::class);
+        $this->app->bind(PublicPulseHomepageRepositoryInterface::class, PublicPulseHomepageRepository::class);
+        $this->app->bind(PublicPulseJobRepositoryInterface::class, PublicPulseJobRepository::class);
+        $this->app->bind(PublicPulseEngineClientInterface::class, PublicPulseEngineClient::class);
+        $this->app->bind(PublicPulseSourceAccountRepositoryInterface::class, PublicPulseSourceAccountRepository::class);
+        $this->app->bind(MentionClassificationCacheRepositoryInterface::class, MentionClassificationCacheRepository::class);
+        $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);
+        $this->app->bind(CandidateClaimRequestRepositoryInterface::class, CandidateClaimRequestRepository::class);
+        $this->app->bind(CandidateRelationshipRepositoryInterface::class, CandidateRelationshipRepository::class);
+        $this->app->bind(CandidateTokenWalletRepositoryInterface::class, CandidateTokenWalletRepository::class);
+        $this->app->bind(CampaignToolRequestRepositoryInterface::class, CampaignToolRequestRepository::class);
+        $this->app->bind(PoliticalPartyManagementRepositoryInterface::class, PoliticalPartyManagementRepository::class);
+        $this->app->bind(PoliticalPartyTokenRepositoryInterface::class, PoliticalPartyTokenRepository::class);
+
+        // Public Pulse classification services
+        $this->app->bind(MentionLanguageDetectorInterface::class, LocalMentionLanguageDetector::class);
+        $this->app->bind(MentionToneClassifierInterface::class, DeepSeekMentionToneClassifierService::class);
     }
 
     /**
@@ -116,8 +197,39 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Role::class, UserAccessPolicy::class);
+        Candidate::observe(CandidateObserver::class);
+
+        $this->listenForDatabaseQueries();
+
         // Configure rate limiters for API routes
         $this->configureRateLimiting();
+    }
+
+    /**
+     * Log database query timings when DB_QUERY_LISTEN is enabled.
+     */
+    private function listenForDatabaseQueries(): void
+    {
+        if (! filter_var(env('DB_QUERY_LISTEN', false), FILTER_VALIDATE_BOOL)) {
+            return;
+        }
+
+        $slowMs = (float) env('DB_QUERY_SLOW_MS', 0);
+
+        DB::listen(function (QueryExecuted $query) use ($slowMs): void {
+            if ($slowMs > 0 && $query->time < $slowMs) {
+                return;
+            }
+
+            Log::info('Database query executed.', [
+                'time_ms' => round($query->time, 2),
+                'connection' => $query->connectionName,
+                'sql' => $query->sql,
+                'method' => request()?->method(),
+                'url' => request()?->fullUrl(),
+            ]);
+        });
     }
 
     /**
@@ -150,7 +262,3 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
-
-
-
-

@@ -1,3 +1,4 @@
+@inject('dashboardDestination', 'App\Services\Web\DashboardDestinationService')
 @php
     $menuItems = config('menu.frontend', []);
 
@@ -24,12 +25,13 @@
                     ->all();
             }
             if ($dynamicType === 'positions' && class_exists(\App\Models\Position::class) && Route::has('aspirants.public')) {
-                $politicalBlocs = class_exists(\App\Models\Bloc::class)
-                    && \Illuminate\Support\Facades\Schema::hasColumn('blocs', 'type')
+                $regionalBlocNames = config('regional-blocs.names', []);
+                $regionalBlocs = class_exists(\App\Models\Bloc::class)
                     ? \App\Models\Bloc::query()
-                        ->where('type', 'political')
-                        ->orderBy('name')
+                        ->when($regionalBlocNames, fn ($query) => $query->whereIn('name', $regionalBlocNames))
                         ->get(['id', 'name'])
+                        ->sortBy(fn ($bloc) => array_search($bloc->name, $regionalBlocNames, true))
+                        ->values()
                     : collect();
 
                 $isCountyScopedPosition = function (string $name): bool {
@@ -82,7 +84,10 @@
     }
     unset($menuItem);
 
-    $joinNowUrl = Route::has('aspirants.register') ? route('aspirants.register') : url('/aspirants/register');
+    $submitAspirantUrl = Route::has('aspirants.register') ? route('aspirants.register') : '#';
+    $dashboardUrl = auth()->check()
+        ? $dashboardDestination->urlFor(auth()->user())
+        : null;
     $buildMenuUrl = function (array $item): string {
         $query = $item['query'] ?? [];
 
@@ -148,7 +153,7 @@
     border-bottom: 1px solid rgba(255,255,255,0.07);
     backdrop-filter: blur(16px);
     position: sticky;
-    top: 5px;
+    top: 0;
     z-index: 100;
 }
 .frontend-nav-inner {
@@ -168,20 +173,19 @@
     flex-shrink: 0;
 }
 .frontend-nav-brand-logo {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    overflow: hidden;
 }
-.frontend-nav-logo-img {
+.frontend-nav-brand-logo img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
 }
-.frontend-nav-brand-text { line-height: 1.1; }
 .frontend-nav-brand-name {
     font-family: 'Oswald', sans-serif;
     font-size: 22px;
@@ -247,6 +251,13 @@
     transform: translateY(6px);
     transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
 }
+.frontend-nav-subdropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.frontend-nav-subdropdown::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+}
 .frontend-nav-item:hover > .frontend-nav-dropdown,
 .frontend-nav-item:focus-within > .frontend-nav-dropdown {
     opacity: 1;
@@ -286,6 +297,9 @@
     top: -8px;
     left: calc(100% + 8px);
     min-width: 240px;
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 8px;
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
@@ -371,6 +385,63 @@
 .frontend-nav-actions .btn-primary:hover { background: #cc0000; }
 .frontend-nav-mobile-toggle { display: none; }
 .frontend-nav-mobile-panel { display: none; }
+.aspirant-register-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0,0,0,0.76);
+    backdrop-filter: blur(10px);
+}
+.aspirant-register-modal.is-open { display: flex; }
+.aspirant-register-dialog {
+    width: min(960px, 100%);
+    height: min(820px, calc(100vh - 48px));
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 18px;
+    background: #0a0a0a;
+    box-shadow: 0 28px 80px rgba(0,0,0,0.65);
+}
+.aspirant-register-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 54px;
+    padding: 12px 16px 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: #111;
+}
+.aspirant-register-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--kenya-white, #f5f5f0);
+    text-transform: uppercase;
+}
+.aspirant-register-close {
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    color: var(--kenya-white, #f5f5f0);
+    cursor: pointer;
+}
+.aspirant-register-close:hover {
+    border-color: rgba(0,168,107,0.45);
+    color: var(--green-bright, #00A86B);
+}
+.aspirant-register-frame {
+    width: 100%;
+    height: calc(100% - 54px);
+    border: 0;
+    background: #0a0a0a;
+}
 
 @media (max-width: 1100px) {
     .frontend-nav-inner { padding: 14px 20px; }
@@ -409,15 +480,31 @@
         text-decoration: none;
         text-transform: uppercase;
     }
-    .frontend-nav-mobile-group summary { cursor: pointer; list-style: none; }
-    .frontend-nav-mobile-group summary::-webkit-details-marker { display: none; }
+    .frontend-nav-mobile-group summary,
+    .frontend-nav-mobile-subgroup summary {
+        cursor: pointer;
+        list-style: none;
+    }
+    .frontend-nav-mobile-group summary::-webkit-details-marker,
+    .frontend-nav-mobile-subgroup summary::-webkit-details-marker {
+        display: none;
+    }
     .frontend-nav-mobile-children { padding: 0 0 8px 14px; }
-    .frontend-nav-mobile-children a {
+    .frontend-nav-mobile-children a,
+    .frontend-nav-mobile-subsummary {
         display: block;
         padding: 9px 0;
         color: rgba(255,255,255,0.58);
         font-size: 13px;
         text-decoration: none;
+    }
+    .frontend-nav-mobile-subsummary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        border: 0;
+        background: transparent;
     }
     .frontend-nav-mobile-grandchildren {
         padding: 0 0 4px 14px;
@@ -432,13 +519,8 @@
 <nav class="frontend-nav" data-frontend-nav>
     <div class="frontend-nav-inner">
         <a href="{{ route('landing') }}" class="frontend-nav-brand" aria-label="My Leader Kenya home">
-            <div class="frontend-nav-brand-logo">
-                <img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya Logo" class="frontend-nav-logo-img">
-            </div>
-            <div class="frontend-nav-brand-text">
-                <div class="frontend-nav-brand-name">MY LEADER KENYA</div>
-                <div class="frontend-nav-brand-sub">THE KENYA &bull; WE WANT</div>
-            </div>
+            <div class="frontend-nav-brand-logo"><img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya"></div>
+            <div class="frontend-nav-brand-name">MY LEADER KENYA</div>
         </a>
 
         <ul class="frontend-nav-menu" aria-label="Primary navigation">
@@ -481,9 +563,9 @@
         <div class="frontend-nav-actions">
             @guest
                 <button class="btn-ghost" onclick="window.openFrontendAuth('login')">Login</button>
-                <a href="{{ $joinNowUrl }}" class="btn-primary">Join Now</a>
+                <a href="{{ $submitAspirantUrl }}" class="btn-primary" data-aspirant-register-popup>Submit Aspirant</a>
             @else
-                <a href="{{ route('dashboard') }}" class="btn-primary">Dashboard</a>
+                <a href="{{ $dashboardUrl }}" class="btn-primary">Dashboard</a>
             @endguest
         </div>
 
@@ -506,17 +588,19 @@
                     <div class="frontend-nav-mobile-children">
                         <a href="{{ $buildMenuUrl($item) }}">All {{ $item['label'] }}</a>
                         @foreach($children as $child)
-                            @php($grandchildren = $child['children'] ?? [])
-                            @if($grandchildren)
-                                <details class="frontend-nav-mobile-group">
-                                    <summary class="frontend-nav-mobile-summary">
+                            @php
+                                $grandChildren = $child['children'] ?? [];
+                            @endphp
+                            @if($grandChildren)
+                                <details class="frontend-nav-mobile-subgroup">
+                                    <summary class="frontend-nav-mobile-subsummary">
                                         <span>{{ $child['label'] }}</span>
                                         <i class="fas fa-chevron-down" aria-hidden="true"></i>
                                     </summary>
-                                    <div class="frontend-nav-mobile-children">
+                                    <div class="frontend-nav-mobile-grandchildren">
                                         <a href="{{ $buildMenuUrl($child) }}">All {{ $child['label'] }}</a>
-                                        @foreach($grandchildren as $grandchild)
-                                            <a href="{{ $buildMenuUrl($grandchild) }}">{{ $grandchild['label'] }}</a>
+                                        @foreach($grandChildren as $grandChild)
+                                            <a href="{{ $buildMenuUrl($grandChild) }}">{{ $grandChild['label'] }}</a>
                                         @endforeach
                                     </div>
                                 </details>
@@ -533,12 +617,24 @@
 
         @guest
             <button class="frontend-nav-mobile-link" type="button" onclick="window.openFrontendAuth('login')">Login</button>
-            <a href="{{ $joinNowUrl }}" class="frontend-nav-mobile-link">Join Now</a>
+            <a href="{{ $submitAspirantUrl }}" class="frontend-nav-mobile-link" data-aspirant-register-popup>Submit Aspirant</a>
         @else
-            <a href="{{ route('dashboard') }}" class="frontend-nav-mobile-link">Dashboard</a>
+            <a href="{{ $dashboardUrl }}" class="frontend-nav-mobile-link">Dashboard</a>
         @endguest
     </div>
 </nav>
+
+<div class="aspirant-register-modal" data-aspirant-register-modal aria-hidden="true">
+    <div class="aspirant-register-dialog" role="dialog" aria-modal="true" aria-labelledby="aspirantRegisterTitle">
+        <div class="aspirant-register-head">
+            <div class="aspirant-register-title" id="aspirantRegisterTitle" data-aspirant-register-title>Submit Aspirant</div>
+            <button type="button" class="aspirant-register-close" data-aspirant-register-close aria-label="Close aspirant registration">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <iframe class="aspirant-register-frame" data-aspirant-register-frame title="Aspirant registration"></iframe>
+    </div>
+</div>
 
 <script>
 window.openFrontendAuth = window.openFrontendAuth || function (tab) {
@@ -550,15 +646,100 @@ window.openFrontendAuth = window.openFrontendAuth || function (tab) {
     window.location.href = '{{ route('landing') }}?auth=' + encodeURIComponent(tab);
 };
 document.addEventListener('DOMContentLoaded', function () {
+    var registerModal = document.querySelector('[data-aspirant-register-modal]');
+    var registerFrame = document.querySelector('[data-aspirant-register-frame]');
+    var registerCloseButton = document.querySelector('[data-aspirant-register-close]');
+    var registerTitle = document.querySelector('[data-aspirant-register-title]');
+    var activeRegisterLink = null;
+
+    function openAspirantRegisterModal(event) {
+        var registerLink = event.currentTarget;
+
+        if (!registerModal || !registerFrame || !registerCloseButton || !registerLink.href) return;
+
+        event.preventDefault();
+        activeRegisterLink = registerLink;
+
+        var modalUrl = new URL(registerLink.href, window.location.origin);
+        var modalTitle = registerLink.dataset.aspirantRegisterTitle || 'Submit Aspirant';
+        modalUrl.searchParams.set('modal', '1');
+        registerFrame.src = modalUrl.toString();
+        registerFrame.title = modalTitle;
+        if (registerTitle) registerTitle.textContent = modalTitle;
+
+        registerModal.classList.add('is-open');
+        registerModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        registerCloseButton.focus();
+    }
+
+    function closeAspirantRegisterModal() {
+        if (!registerModal) return;
+
+        registerModal.classList.remove('is-open');
+        registerModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (activeRegisterLink) activeRegisterLink.focus();
+    }
+
+    document.querySelectorAll('[data-aspirant-register-popup]').forEach(function (registerLink) {
+        registerLink.addEventListener('click', openAspirantRegisterModal);
+    });
+
+    if (registerModal && registerCloseButton) {
+        registerCloseButton.addEventListener('click', closeAspirantRegisterModal);
+        registerModal.addEventListener('click', function (event) {
+            if (event.target === registerModal) closeAspirantRegisterModal();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && registerModal.classList.contains('is-open')) {
+                closeAspirantRegisterModal();
+            }
+        });
+    }
+
     document.querySelectorAll('[data-frontend-nav]').forEach(function (nav) {
         var toggle = nav.querySelector('[data-frontend-nav-toggle]');
         var panel = nav.querySelector('[data-frontend-nav-panel]');
-        if (!toggle || !panel) return;
 
-        toggle.addEventListener('click', function () {
-            var isOpen = panel.classList.toggle('open');
-            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        if (toggle && panel) {
+            toggle.addEventListener('click', function () {
+                var isOpen = panel.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        }
+
+        nav.querySelectorAll('.frontend-nav-dropdown-row.has-children').forEach(function (row) {
+            var subdropdown = row.querySelector('.frontend-nav-subdropdown');
+            if (!subdropdown) return;
+
+            function fitSubdropdown() {
+                var viewportPadding = 16;
+                subdropdown.style.top = '-8px';
+                subdropdown.style.maxHeight = 'calc(100vh - 32px)';
+
+                window.requestAnimationFrame(function () {
+                    var rect = subdropdown.getBoundingClientRect();
+                    var topOffset = -8;
+                    var bottomOverflow = rect.bottom - (window.innerHeight - viewportPadding);
+
+                    if (bottomOverflow > 0) {
+                        topOffset -= bottomOverflow;
+                    }
+
+                    if (rect.top + topOffset + 8 < viewportPadding) {
+                        topOffset += viewportPadding - (rect.top + topOffset + 8);
+                    }
+
+                    subdropdown.style.top = topOffset + 'px';
+                    subdropdown.style.maxHeight = Math.max(180, window.innerHeight - viewportPadding - subdropdown.getBoundingClientRect().top) + 'px';
+                });
+            }
+
+            row.addEventListener('mouseenter', fitSubdropdown);
+            row.addEventListener('focusin', fitSubdropdown);
         });
     });
 });
 </script>
+

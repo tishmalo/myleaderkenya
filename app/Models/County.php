@@ -17,6 +17,7 @@ class County extends Model
         'capital',
         'registered_voters',
         'postal_abbreviation',
+        'image',
     ];
 
     public function bloc()
@@ -35,7 +36,12 @@ class County extends Model
     }
 
     public function pollingStations()
-    {
-        return $this->hasMany(PollingStation::class, 'county', 'name');
-    }
+{
+    return $this->hasMany(PollingStation::class, 'county', 'name');   // 'county' column in polling_stations = 'name' in counties
+}
+
+//     public function pollingStations()
+// {
+//     return $this->hasMany(\App\Models\PollingStation::class);
+// }
 }

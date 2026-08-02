@@ -6,9 +6,9 @@
 @endpush
 
 
-<!-- ══════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      AUTH MODAL
-══════════════════════════════════════════════════ -->
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="auth-modal-backdrop" id="authModal" onclick="handleBackdropClick(event)">
     <div class="auth-modal" role="dialog" aria-modal="true" aria-label="Login or Register">
         <div class="auth-modal-stripe"></div>
@@ -19,9 +19,9 @@
             <!-- Left brand panel -->
             <div class="auth-panel-left">
                 <div class="auth-panel-logo">
-                    <img src="{{ asset('images/myleader.png') }}" alt="My Leader Kenya">
+                    <img src="{{ asset('images/mlkfav.png') }}" alt="My Leader Kenya">
                 </div>
-                <div class="auth-panel-title">TUKO KADI</div>
+                <div class="auth-panel-title">MY LEADER KENYA</div>
                 <p class="auth-panel-sub">Kenya's youth voter movement.<br>Register. Vote. Lead.</p>
                 <div class="auth-panel-flags">
                     <div class="auth-flag-bar" style="background:var(--kenya-green)"></div>
@@ -44,7 +44,7 @@
                 </div>
                 @endif
 
-                <!-- ── LOGIN ── -->
+                <!-- â”€â”€ LOGIN â”€â”€ -->
                 <div class="auth-form-panel active" id="panel-login">
                     <form action="{{ route('login') }}" method="POST">
                         @csrf
@@ -63,7 +63,7 @@
                             <label>Password</label>
                             <div class="auth-field-wrap">
                                 <input type="password" id="modal-login-pwd" name="password"
-                                       placeholder="••••••••" required autocomplete="current-password">
+                                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required autocomplete="new-password" autocomplete="current-password">
                                 <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                 <button type="button" class="auth-pwd-toggle"
                                         onclick="togglePwd('modal-login-pwd',this)" aria-label="Toggle password">
@@ -77,11 +77,11 @@
                         </button>
                     </form>
                     <div class="auth-bottom-link">
-                        Don't have an account? <button onclick="switchTab('register')">Register now →</button>
+                        Don't have an account? <button onclick="switchTab('register')">Register now â†’</button>
                     </div>
                 </div>
 
-                <!-- ── REGISTER ── -->
+                <!-- â”€â”€ REGISTER â”€â”€ -->
                 <div class="auth-form-panel" id="panel-register">
                     <form action="{{ route('register') }}" method="POST">
                         @csrf
@@ -154,7 +154,7 @@
                                 <label>Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd" name="password"
-                                           placeholder="••••••••" required
+                                           placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required autocomplete="new-password"
                                            oninput="modalPwdStrength(this.value)">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
@@ -169,7 +169,7 @@
                                 <label>Confirm Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd2" name="password_confirmation"
-                                           placeholder="••••••••" required>
+                                           placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required autocomplete="new-password">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
                                             onclick="togglePwd('modal-reg-pwd2',this)" aria-label="Toggle password">
@@ -184,7 +184,7 @@
                         </button>
                     </form>
                     <div class="auth-bottom-link">
-                        Already have an account? <button onclick="switchTab('login')">Login here →</button>
+                        Already have an account? <button onclick="switchTab('login')">Login here â†’</button>
                     </div>
                 </div>
 
@@ -194,23 +194,29 @@
 </div><!-- /backdrop -->
 
 
-<!-- ══════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      PAGE
-══════════════════════════════════════════════════ -->
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div>
     <div class="flag-stripe"></div>
 
     @include('components.frontend-nav')
+
+    @if(session('success'))
+    <div class="ct-flash">
+        <div>{{ session('success') }}</div>
+    </div>
+    @endif
 
 
     <!-- HERO -->
 <section class="hero">
     <div id="hero-slider">
         <div class="hero-slide active" style="background-image: url('{{ asset('images/ml1.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml2.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml3.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml4.jpg') }}')"></div>
-        <div class="hero-slide"        style="background-image: url('{{ asset('images/ml5.jpg') }}')"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml2.jpg') }}"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml3.jpg') }}"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml4.jpg') }}"></div>
+        <div class="hero-slide" data-bg="{{ asset('images/ml5.jpg') }}"></div>
     </div>
 
     <div class="hero-overlay"></div>
@@ -229,12 +235,14 @@
     <div class="hero-inner">
         <div>
             <h1 class="hero-headline">
-                <span class="line-1">Niko Kadi,</span>
-                <span class="line-2"><span>Je Wewe?</span></span>
+                <span class="line-2 typing-headline" aria-label="2027 Kenya Candidates">
+                    <span class="typing-line typing-line-one">2027 Kenya</span>
+                    <span class="typing-line typing-line-two">Candidates</span>
+                </span>
             </h1>
             <p class="hero-sub">
                 Your future. Your voice. Your vote.<br>
-                Young Kenyans are rising — don't be left behind.
+                Meet the leaders shaping Kenya's next chapter.
             </p>
             <div class="hero-actions">
                 <a href="https://play.google.com/store/apps/details?id=com.mlk.tukokadi"
@@ -242,12 +250,12 @@
                     <i class="fas fa-mobile-alt"></i> Download App
                     <i class="fas fa-external-link-alt" style="font-size:11px;opacity:0.7"></i>
                 </a>
-                <a href="#analytics" class="btn-hero-secondary">
-                    <i class="fas fa-chart-bar"></i> Live Stats
+                <a href="{{ route('campaign-tools.public') }}" class="btn-hero-secondary">
+                    <i class="fas fa-bullhorn"></i> Campaign Tools
                 </a>
             </div>
             <div class="hero-divider">
-                <span class="hero-divider-text">TUKO KADI &bull; JE WEWE? &bull; 2027 &bull; KENYA</span>
+                <span class="hero-divider-text">MY LEADER KENYA &bull; 2027 AGENDA &bull; CANDIDATES &bull; KENYA</span>
             </div>
         </div>
 
@@ -273,19 +281,21 @@
                 @if(($latestBlogs ?? collect())->isNotEmpty())
                     <div class="latest-blog-list">
                         @foreach($latestBlogs as $blog)
-                            <a href="{{ route('news.public.show', $blog->slug) }}" class="latest-blog-item">
-                                <div class="latest-blog-image">
-                                    @if($blog->featured_image)
-                                        <img src="{{ Storage::url($blog->featured_image) }}" alt="{{ $blog->title }}">
-                                    @else
-                                        <i class="fas fa-newspaper"></i>
-                                    @endif
-                                </div>
-                                <div class="latest-blog-copy">
-                                    <div class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</div>
-                                    <div class="latest-blog-title">{{ $blog->title }}</div>
-                                    <div class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</div>
-                                </div>
+                            <a href="{{ route('news.public.show', $blog->slug) }}"
+                               class="latest-blog-item{{ $blog->featured_image ? ' has-image' : '' }}">
+                                @if($blog->featured_image)
+                                    <span class="latest-blog-image">
+                                        <img src="{{ Storage::url($blog->featured_image) }}"
+                                             alt="{{ $blog->title }}"
+                                             loading="lazy"
+                                             decoding="async">
+                                    </span>
+                                @endif
+                                <span class="latest-blog-content">
+                                    <span class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</span>
+                                    <span class="latest-blog-title">{{ $blog->title }}</span>
+                                    <span class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</span>
+                                </span>
                             </a>
                         @endforeach
                     </div>
@@ -301,11 +311,6 @@
 
     <div class="slider-dots" id="slider-dots"></div>
 </section>
-
-    <div class="section-stripe"></div>
-
-    <!-- ANALYTICS -->
-    @include('components.live-registration-statistics')
 
     <div class="section-stripe" style="background:linear-gradient(90deg, var(--kenya-red) 0% 33.3%, #111 33.3% 66.6%, var(--kenya-green) 66.6% 100%)"></div>
 
@@ -323,74 +328,43 @@
             @endphp
 
             @if($hasAspirants)
-                <style>
-                    .aspirants-county-row td {
-                        padding: 14px 14px 8px;
-                        color: var(--green-bright);
-                        font-family: 'Oswald', sans-serif;
-                        font-size: 12px;
-                        font-weight: 700;
-                        letter-spacing: 1.5px;
-                        text-transform: uppercase;
-                        border-top: 1px solid rgba(0,168,107,0.22);
-                        background: rgba(0,168,107,0.04);
-                    }
-                    .aspirants-county-row:first-child td { border-top: 0; }
-                </style>
-                <div class="aspirants-table-grid">
+                <div class="aspirants-position-stack">
                     @foreach($aspirantGroups as $group)
-                        <div class="aspirants-table-card">
-                            <div class="aspirants-table-head">
-                                <div class="aspirants-table-title">{{ $group['label'] }}</div>
+                        <div class="aspirants-position-block">
+                            <div class="aspirants-position-head">
+                                <div class="aspirants-position-title">{{ $group['label'] }}</div>
                                 <a href="{{ route('aspirants.public', ['position' => $group['position']]) }}" class="aspirants-view-more">
                                     View more <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
                             @if($group['candidates']->isNotEmpty())
-                                <div class="aspirants-table-wrap">
-                                    <table class="aspirants-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Party</th>
-                                                <th>County</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php $currentCounty = null; @endphp
-                                            @foreach($group['candidates'] as $candidate)
-                                                @php
-                                                    $countyName = $candidate->county ?: 'County not specified';
-                                                    $showCountyRow = ($group['county_scoped'] ?? false) && $countyName !== $currentCounty;
-                                                    if ($showCountyRow) {
-                                                        $currentCounty = $countyName;
-                                                    }
-                                                @endphp
-                                                @if($showCountyRow)
-                                                    <tr class="aspirants-county-row">
-                                                        <td colspan="4">{{ $countyName }}</td>
-                                                    </tr>
+                                <div class="aspirants-card-grid">
+                                    @foreach($group['candidates'] as $candidate)
+                                        @php
+                                            $party = $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? 'Independent';
+                                            $area = $candidate->display_area ?? 'Kenya';
+                                            $position = $candidate->position->name ?? $group['label'];
+                                        @endphp
+                                        <a href="{{ route('aspirants.show', $candidate) }}" class="aspirant-mini-card">
+                                            <span class="aspirant-mini-photo" aria-hidden="true">
+                                                @if($candidate->profile_picture)
+                                                    <img src="{{ Storage::url($candidate->profile_picture) }}" alt="" loading="lazy" decoding="async">
+                                                @else
+                                                    <span>{{ strtoupper(substr($candidate->name, 0, 1)) }}</span>
                                                 @endif
-                                                <tr>
-                                                    <td>
-                                                        <a href="{{ route('aspirants.show', $candidate) }}" class="aspirants-name-link">
-                                                            {{ $candidate->name }}
-                                                        </a>
-                                                    </td>
-                                                    <td>{{ $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? '-' }}</td>
-                                                    <td>{{ $candidate->county ?? $candidate->country ?? '-' }}</td>
-                                                    <td>
-                                                        @if($candidate->featured)
-                                                            <span class="aspirants-featured-pill">Featured</span>
-                                                        @else
-                                                            Newest
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+                                            </span>
+                                            <span class="aspirant-mini-body">
+                                                <span class="aspirant-mini-name">{{ $candidate->name }}</span>
+                                                <span class="aspirant-mini-meta">{{ $position }}, {{ $area }}</span>
+                                                <span class="aspirant-mini-footer">
+                                                    <span class="aspirant-mini-party">{{ $party }}</span>
+                                                    @if($candidate->featured)
+                                                        <span class="aspirant-mini-badge">Featured</span>
+                                                    @endif
+                                                </span>
+                                            </span>
+                                        </a>
+                                    @endforeach
                                 </div>
                             @else
                                 <div class="aspirants-empty">No {{ strtolower($group['label']) }} aspirants yet.</div>
@@ -403,6 +377,130 @@
             @endif
         </div>
     </section>
+
+    <div class="section-stripe"></div>
+
+    <!-- ANALYTICS -->
+    <section id="analytics" class="analytics-section">
+        <div class="section-inner">
+            <div class="section-header">
+                <div class="section-label">Real-Time Data</div>
+                <h2 class="section-title">Live Registration Statistics</h2>
+                <p class="section-sub">Real-time data showing how young Kenyans are taking charge of their future.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card green">
+                    <div class="stat-num" id="live-confirmed-voters">{{ number_format($voterStats['confirmedVoters'] ?? 0) }}</div>
+                    <div class="stat-label">Confirmed Voters</div>
+                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? 'â€”' }}</span></div>
+                    <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
+                </div>
+                <div class="stat-card white">
+                    <div class="stat-num" id="live-total-users">{{ number_format($totalUsers ?? 0) }}</div>
+                    <div class="stat-label">Tuko Kadi Members</div>
+                    <div class="stat-meta">&nbsp;</div>
+                    <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-num" id="live-total-messages">{{ number_format($totalMessages ?? 0) }}</div>
+                    <div class="stat-label">Community Messages</div>
+                    <div class="stat-meta">&nbsp;</div>
+                    <div class="live-badge"><span class="live-dot" style="background:#ff5555"></span><span class="live-text">Live</span></div>
+                </div>
+                <div class="stat-card pink">
+                    <div class="stat-num" id="live-stations">{{ number_format($stationsCount ?? 0) }}</div>
+                    <div class="stat-label">Polling Stations</div>
+                    <div class="stat-meta">&nbsp;</div>
+                    <div class="live-badge"><span class="live-dot" style="background:#ff6eb4"></span><span class="live-text">Live</span></div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-card-title">Confirmed Voters by County</div>
+                    <div class="chart-wrap"><canvas id="countyChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-title">Gender Distribution</div>
+                    <div class="chart-wrap"><canvas id="genderChart"></canvas></div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    @if(! empty($publicApprovalCards))
+        <section class="public-approval-section">
+            <div class="section-inner">
+                <div class="section-header">
+                    <div class="section-label">Public Sentiment</div>
+                    <h2 class="section-title">Presidential Public Pulse</h2>
+                </div>
+                <div class="approval-card-grid">
+                    @foreach($publicApprovalCards as $approvalCard)
+                        <article class="approval-card {{ $approvalCard['theme'] === 'positive' ? 'is-positive' : 'is-negative' }}">
+                            <div class="approval-portrait">
+                                <img src="{{ $approvalCard['portrait_url'] }}" alt="" loading="lazy" decoding="async">
+                            </div>
+                            <div class="approval-body">
+                                <h3>{{ $approvalCard['name'] }}</h3>
+                                <div class="approval-score-row">
+                                    <span class="approval-arrow">{!! $approvalCard['direction'] === 'up' ? '&uarr;' : '&darr;' !!}</span>
+                                    <span class="approval-score">{{ $approvalCard['approval'] > 0 ? '+' : '' }}{{ number_format($approvalCard['approval'], 1) }}</span>
+                                </div>
+                                <div class="approval-confidence">Pulse Score � {{ ucfirst($approvalCard['confidence']) }} confidence</div>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+
+        @if(isset($landingCampaignTools) && $landingCampaignTools->isNotEmpty())
+            <section class="landing-tools-section" aria-labelledby="landing-tools-title">
+                <div class="section-inner">
+                    <div class="landing-tools-head">
+                        <div>
+                            <div class="section-label">Campaign Tools</div>
+                            <h2 class="section-title" id="landing-tools-title">Tools for Serious Campaigns</h2>
+                        </div>
+                        <div class="landing-tools-actions">
+                            <button type="button" class="landing-tools-nav" data-tools-carousel-prev aria-label="Previous campaign tools"><i class="fas fa-chevron-left"></i></button>
+                            <button type="button" class="landing-tools-nav" data-tools-carousel-next aria-label="Next campaign tools"><i class="fas fa-chevron-right"></i></button>
+                            <a href="{{ route('campaign-tools.public') }}" class="landing-tools-more">View More <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="landing-tools-carousel" data-tools-carousel>
+                        @foreach($landingCampaignTools as $tool)
+                            @php($modalId = 'landing-campaign-tool-request-' . $tool->id)
+                            <article class="landing-tool-card">
+                                <a href="{{ route('campaign-tools.show', $tool->slug) }}" class="landing-tool-link">
+                                    @if($tool->featured_image)
+                                        <span class="landing-tool-media"><img src="{{ Storage::url($tool->featured_image) }}" alt="{{ $tool->title }}" loading="lazy" decoding="async"></span>
+                                    @else
+                                        <span class="landing-tool-media landing-tool-media-empty"><i class="fas fa-bullhorn"></i></span>
+                                    @endif
+                                    <span class="landing-tool-body">
+                                        <span class="landing-tool-kicker">Campaign Tool</span>
+                                        <span class="landing-tool-title">{{ $tool->title }}</span>
+                                        @if($tool->excerpt)
+                                            <span class="landing-tool-excerpt">{{ $tool->excerpt }}</span>
+                                        @endif
+                                    </span>
+                                </a>
+                                <button type="button" class="landing-tool-request" data-feature-request-open="{{ $modalId }}"><i class="fas fa-lightbulb"></i> Request Feature</button>
+                            </article>
+                            @include('campaign-tools.public._request-modal', ['tool' => $tool, 'modalId' => $modalId])
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+        <div class="section-stripe"></div>
+    @endif
+
     <!-- HOW IT WORKS -->
     <section id="how" class="how-section">
         <div class="section-inner">
@@ -444,7 +542,7 @@
         <p class="cta-sub">This is not just registration.</p>
         <p class="cta-main">This is <em>our</em> Future.</p>
         <div class="cta-tag">
-            <span class="t1">Niko Kadi.</span><span class="t2"> Je Wewe?</span><span class="t3"> 🇰🇪</span>
+            <span class="t1">Kenya 2027.</span><span class="t2"> Candidates &amp; Agenda</span>
         </div>
         @guest
         <div style="margin-top:40px">
@@ -474,6 +572,5 @@
 
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 @vite('resources/js/views/landing.js')
 @endpush

@@ -61,7 +61,7 @@
             </a>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="w-full max-w-full overflow-x-auto">
             <table class="w-full">
                 <thead>
                     <tr class="border-b border-zinc-800">

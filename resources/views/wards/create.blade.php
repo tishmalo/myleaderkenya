@@ -7,10 +7,15 @@
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-10">
         <h1 class="text-3xl font-semibold mb-8">Create New Ward</h1>
 
-        <form action="{{ route('wards.store') }}" method="POST">
+        <form action="{{ route('wards.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="space-y-8">
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Image</label>
+                    <input type="file" name="image" accept="image/*" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500">
+                    <p class="mt-2 text-xs text-zinc-500">Upload a JPG, PNG, or WebP image for public location cards.</p>
+                </div>
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Ward Name</label>
                     <input type="text" name="name" required 
@@ -99,3 +104,5 @@ document.addEventListener('DOMContentLoaded', function() {
 @endpush
 
 @endsection
+
+

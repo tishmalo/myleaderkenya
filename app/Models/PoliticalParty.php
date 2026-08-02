@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class PoliticalParty extends Model
@@ -39,10 +40,27 @@ class PoliticalParty extends Model
     {
         return $this->belongsToMany(Coalition::class, 'coalition_political_party');
     }
+
     public function newsArticles()
     {
         return $this->belongsToMany(NewsArticle::class, 'news_article_political_party');
     }
+
+    public function officials()
+    {
+        return $this->belongsToMany(User::class, 'political_party_user')->withPivot('role', 'status')->withTimestamps();
+    }
+
+    public function tokenWallet()
+    {
+        return $this->hasOne(PoliticalPartyTokenWallet::class);
+    }
+
+    public function candidates(): HasMany
+    {
+        return $this->hasMany(Candidate::class);
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', 'published');
@@ -58,5 +76,3 @@ class PoliticalParty extends Model
         return $this->abbreviation ?: $this->name;
     }
 }
-
-

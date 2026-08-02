@@ -12,14 +12,21 @@ use App\Models\NewsArticle;
 use App\Models\Position;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class CandidateRepository implements CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $query = Candidate::with(['position', 'politicalParty']);
+        $query = Candidate::with(['position', 'politicalParty', 'user', 'claimRequests.user.relatedCandidates', 'claimRequests.reviewer'])
+            ->withCount([
+                'claimRequests as pending_claim_requests_count' => fn ($query) => $query->where('status', 'pending'),
+                'claimRequests as approved_claim_requests_count' => fn ($query) => $query->where('status', 'approved'),
+                'claimRequests as rejected_claim_requests_count' => fn ($query) => $query->where('status', 'rejected'),
+            ]);
 
         if (!empty($filters['candidate'])) {
             $candidate = $filters['candidate'];
@@ -42,6 +49,11 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         return $query->latest()->paginate($perPage)->withQueryString();
+    }
+
+    public function find(int $id): ?Candidate
+    {
+        return Candidate::query()->find($id);
     }
 
     public function create(array $data): Candidate
@@ -82,7 +94,6 @@ class CandidateRepository implements CandidateRepositoryInterface
         if (Schema::hasColumn('candidates', 'approval_status')) {
             $query->where('approval_status', 'approved');
         }
-
         return $query
             ->distinct()
             ->orderBy('country')
@@ -107,31 +118,96 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->values();
     }
 
-    public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator
+    public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator
     {
         $query = $this->publicQuery($filters);
 
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
-    public function publicCountyGroups(array $filters, int $limit = 5): Collection
+    public function filterPublic(array $filters, int $perPage = 30): LengthAwarePaginator
     {
-        $counties = $this->countiesForPublicFilters($filters);
+        $query = $this->publicQuery($filters);
+
+        return $query->latest()->paginate($perPage)->withQueryString();
+    }
+
+    public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
+    {
+        $counties = $includeEmpty ? $this->allCountyNamesForPublicFilters($filters) : $this->countiesForPublicFilters($filters);
 
         return $counties
-            ->map(function (string $county) use ($filters, $limit) {
+            ->map(function (string $county) use ($filters, $limit, $withCandidates) {
                 $countyFilters = array_merge($filters, ['county' => $county]);
                 unset($countyFilters['bloc']);
 
                 $baseQuery = $this->publicQuery($countyFilters);
+                $countyModel = County::where('name', $county)->first();
 
                 return [
+                    'label' => $county,
                     'county' => $county,
+                    'filter_key' => 'county',
+                    'filter_value' => $county,
+                    'image' => $countyModel?->image,
+                    'image_url' => $countyModel?->image ? Storage::url($countyModel->image) : null,
                     'total' => (clone $baseQuery)->count(),
-                    'candidates' => $baseQuery->latest()->take($limit)->get(),
+                    'candidates' => $withCandidates ? $baseQuery->latest()->take($limit)->get() : collect(),
                 ];
             })
-            ->filter(fn (array $group) => $group['total'] > 0)
+            ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
+            ->values();
+    }
+
+    public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
+    {
+        $constituencies = $this->constituenciesForPublicFilters($filters);
+
+        return $constituencies
+            ->map(function (string $constituency) use ($filters, $limit, $withCandidates) {
+                $groupFilters = array_merge($filters, ['constituency' => $constituency]);
+
+                $baseQuery = $this->publicQuery($groupFilters);
+                $constituencyModel = Constituency::where('name', $constituency)->first();
+
+                return [
+                    'label' => $constituency,
+                    'constituency' => $constituency,
+                    'filter_key' => 'constituency',
+                    'filter_value' => $constituency,
+                    'image' => $constituencyModel?->image,
+                    'image_url' => $constituencyModel?->image ? Storage::url($constituencyModel->image) : null,
+                    'total' => (clone $baseQuery)->count(),
+                    'candidates' => $withCandidates ? $baseQuery->latest()->take($limit)->get() : collect(),
+                ];
+            })
+            ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
+            ->values();
+    }
+
+    public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
+    {
+        $wards = $this->wardsForPublicFilters($filters);
+
+        return $wards
+            ->map(function (string $ward) use ($filters, $limit, $withCandidates) {
+                $groupFilters = array_merge($filters, ['ward' => $ward]);
+
+                $baseQuery = $this->publicQuery($groupFilters);
+                $wardModel = Ward::where('name', $ward)->first();
+
+                return [
+                    'label' => $ward,
+                    'ward' => $ward,
+                    'filter_key' => 'ward',
+                    'filter_value' => $ward,
+                    'image' => $wardModel?->image,
+                    'image_url' => $wardModel?->image ? Storage::url($wardModel->image) : null,
+                    'total' => (clone $baseQuery)->count(),
+                    'candidates' => $withCandidates ? $baseQuery->latest()->take($limit)->get() : collect(),
+                ];
+            })
+            ->when(! $includeEmpty, fn ($groups) => $groups->filter(fn (array $group) => $group['total'] > 0))
             ->values();
     }
 
@@ -139,11 +215,16 @@ class CandidateRepository implements CandidateRepositoryInterface
     {
         $query = Candidate::with('position', 'politicalParty')->where('approval_status', 'approved');
 
+        if (array_key_exists('featured', $filters) && $filters['featured'] !== null) {
+            $query->where('featured', filter_var($filters['featured'], FILTER_VALIDATE_BOOLEAN));
+        }
+
         $candidate = $filters['candidate'] ?? $filters['search'] ?? null;
         if (!empty($candidate)) {
             $query->where(function ($query) use ($candidate) {
                 $query->where('name', 'like', "%{$candidate}%")
-                    ->orWhere('nick_name', 'like', "%{$candidate}%");
+                    ->orWhere('nick_name', 'like', "%{$candidate}%")
+                    ->orWhere('about', 'like', "%{$candidate}%");
             });
         }
 
@@ -181,24 +262,22 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         if (!empty($filters['position'])) {
-            $position = $filters['position'];
+            $position = trim((string) $filters['position']);
+
+            if (in_array(strtolower($position), ['all', 'any'], true)) {
+                return $query;
+            }
 
             if (is_numeric($position)) {
                 $query->where('position_id', $position);
             } else {
-                $positionAliases = [
-                    'presidential' => ['presidential', 'president'],
-                    'governor' => ['governor'],
-                    'senator' => ['senator'],
-                    'women-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
-                    'mp' => ['mp', 'member of parliament'],
-                    'mca' => ['mca', 'member of county assembly'],
-                ];
-                $positionKey = strtolower(str_replace('_', '-', trim($position)));
-                $names = $positionAliases[$positionKey] ?? [str_replace('-', ' ', $positionKey)];
+                $names = $this->positionFilterNames($position);
 
                 $query->whereHas('position', function ($positionQuery) use ($names) {
-                    $positionQuery->whereIn($positionQuery->getModel()->getTable() . '.name', $names);
+                    $positionQuery->whereIn(
+                        DB::raw('LOWER(' . $positionQuery->getModel()->getTable() . '.name)'),
+                        $names
+                    );
                 });
             }
         }
@@ -210,7 +289,8 @@ class CandidateRepository implements CandidateRepositoryInterface
                 $query->where('political_party_id', $party);
             } else {
                 $query->whereHas('politicalParty', function ($partyQuery) use ($party) {
-                    $partyQuery->where('name', 'like', "%{$party}%")
+                    $partyQuery->where('slug', $party)
+                        ->orWhere('name', 'like', "%{$party}%")
                         ->orWhere('abbreviation', 'like', "%{$party}%");
                 });
             }
@@ -224,7 +304,41 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
-    private function filtersTargetPresidential(array $filters): bool
+    private function positionFilterNames(string $position): array
+    {
+        $positionKey = strtolower(str_replace(['_', ' '], '-', trim($position)));
+
+        $positionAliases = [
+            'president' => ['presidential', 'president'],
+            'presidential' => ['presidential', 'president'],
+            'governor' => ['governor'],
+            'senator' => ['senator'],
+            'women-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'woman-rep' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'women-representative' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'woman-representative' => ['women rep', 'woman rep', 'women representative', 'woman representative'],
+            'mp' => ['mp', 'member of parliament'],
+            'member-of-parliament' => ['mp', 'member of parliament'],
+            'mca' => ['mca', 'member of county assembly'],
+            'member-of-county-assembly' => ['mca', 'member of county assembly'],
+        ];
+
+        return $positionAliases[$positionKey] ?? [str_replace('-', ' ', $positionKey)];
+    }
+
+    private function allCountyNamesForPublicFilters(array $filters): Collection
+    {
+        if (! empty($filters['county'])) {
+            return collect([$filters['county']]);
+        }
+
+        return County::query()
+            ->when(! empty($filters['bloc']), fn ($query) => $query->where('bloc_id', $filters['bloc']))
+            ->orderBy('name')
+            ->pluck('name');
+    }
+
+    private function countiesForPublicFilters(array $filters): Collection
     {
         if (empty($filters['position'])) {
             return false;
@@ -245,9 +359,38 @@ class CandidateRepository implements CandidateRepositoryInterface
         return str_contains($position, 'president');
     }
 
+    private function constituenciesForPublicFilters(array $filters): Collection
+    {
+        if (!empty($filters['constituency'])) {
+            return collect([$filters['constituency']]);
+        }
+
+        return Constituency::query()
+            ->when(!empty($filters['county']), fn ($query) => $query->whereHas('county', fn ($countyQuery) => $countyQuery->where('name', $filters['county'])))
+            ->orderBy('name')
+            ->pluck('name');
+    }
+
+    private function wardsForPublicFilters(array $filters): Collection
+    {
+        if (!empty($filters['ward'])) {
+            return collect([$filters['ward']]);
+        }
+
+        return Ward::query()
+            ->when(!empty($filters['constituency']), fn ($query) => $query->whereHas('constituency', fn ($constituencyQuery) => $constituencyQuery->where('name', $filters['constituency'])))
+            ->pluck('name')
+            ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+    }
     public function loadPublicShow(Candidate $candidate): Candidate
     {
-        $candidate->load('position', 'politicalParty');
+        $candidate->load([
+            'position',
+            'politicalParty',
+            'campaignPriorities' => fn ($query) => $query->where('status', 'approved')->with(['category' => fn ($categoryQuery) => $categoryQuery->where('is_active', true)])->orderBy('sort_order'),
+            'parliamentMember' => fn ($query) => $query->where('is_published', true)->where('detail_status', 'complete')->with(['committees', 'activities']),
+        ]);
 
         $candidate->setRelation(
             'relatedArticles',
@@ -262,8 +405,4 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
-
-
-
-
 

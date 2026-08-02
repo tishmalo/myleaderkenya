@@ -12,7 +12,7 @@ class UserRepository implements UserRepositoryInterface
 {
     public function getFilteredUsersPaginated(array $filters, int $perPage): LengthAwarePaginator
     {
-        $query = User::where('username', '!=', 'admin');
+        $query = User::with('role')->where('username', '!=', 'admin');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -50,6 +50,16 @@ class UserRepository implements UserRepositoryInterface
     public function createUser(array $data): User
     {
         return User::create($data);
+    }
+
+    public function findByEmailHash(string $emailHash): ?User
+    {
+        return User::where('email_hash', $emailHash)->first();
+    }
+
+    public function usernameExists(string $username): bool
+    {
+        return User::where('username', $username)->exists();
     }
 
     public function updateUser(User $user, array $data): bool

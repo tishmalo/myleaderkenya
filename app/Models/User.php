@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\EncryptsPiiAttributes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
@@ -13,6 +14,8 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     use EncryptsPiiAttributes, HasApiTokens, HasFactory, Notifiable;
+
+    public const USER_TYPES = ['PA', 'campaign_manager', 'aspirant', 'voter'];
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +28,7 @@ class User extends Authenticatable
         'email_hash',
         'password',
         'role',
+        'role_id',
         'username',
         'phone',
         'id_number',
@@ -38,6 +42,7 @@ class User extends Authenticatable
         'is_voter',
         'is_registered',
         'is_aspirant',
+        'relationship',
         'email_verified_at',
     ];
 
@@ -53,6 +58,10 @@ class User extends Authenticatable
         'phone_hash',
         'id_number_hash',
     ];
+
+    protected ?Role $resolvedRole = null;
+
+    protected ?Role $resolvedPermissionRole = null;
 
     /**
      * Get the attributes that should be cast.
@@ -70,6 +79,43 @@ class User extends Authenticatable
 
     public function getEmailAttribute($value): ?string
     {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setEmailAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['email'] = null;
+            $this->attributes['email_hash'] = null;
+
+            return;
+        }
+
+        $email = Str::lower(trim((string) $value));
+
+        $this->attributes['email'] = Crypt::encryptString($email);
+        $this->attributes['email_hash'] = hash('sha256', $email);
+    }
+
+    public function getPhoneAttribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setPhoneAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['phone'] = null;
+
+            return;
+        }
+
+        $phone = trim((string) $value);
+        $this->attributes['phone'] = Crypt::encryptString($phone);
+    }
+
+    private function decryptNullableString($value): ?string
+    {
         if ($value === null || $value === '') {
             return null;
         }
@@ -81,20 +127,6 @@ class User extends Authenticatable
         }
     }
 
-    public function setEmailAttribute($value): void
-    {
-        if ($value === null || $value === '') {
-            $this->attributes['email'] = null;
-            $this->attributes['email_hash'] = null;
-            return;
-        }
-
-        $email = Str::lower(trim((string) $value));
-
-        $this->attributes['email'] = Crypt::encryptString($email);
-        $this->attributes['email_hash'] = hash('sha256', $email);
-    }
-
     /**
      * Relationship: One user has one location (linked by username)
      */
@@ -103,136 +135,105 @@ class User extends Authenticatable
         return $this->hasOne(Location::class, 'name', 'username');
     }
 
-    public static function findByEmailValue(string $email): ?self
+    public function role(): BelongsTo
     {
-        if (static::piiHash($email) === null) {
+        return $this->belongsTo(Role::class);
+    }
+
+    private function resolvedRole(): ?Role
+    {
+        if ($this->relationLoaded('role')) {
+            return $this->getRelation('role');
+        }
+
+        if (! $this->role_id) {
             return null;
         }
 
-        $query = static::query();
-
-        if (Schema::hasColumn('users', 'email_hash')) {
-            return $query->where('email_hash', static::piiHash($email))->first();
-        }
-
-        return $query->where('email', $email)->first();
+        return $this->resolvedRole ??= $this->role()->first();
     }
 
-    public static function emailExists(string $email, ?int $ignoreUserId = null): bool
+    private function resolvedPermissionRole(): ?Role
     {
-        if (static::piiHash($email) === null) {
-            return false;
+        $role = $this->resolvedRole();
+
+        if (! $role) {
+            return null;
         }
 
-        $query = static::query();
-
-        if (Schema::hasColumn('users', 'email_hash')) {
-            $query->where('email_hash', static::piiHash($email));
-        } else {
-            $query->where('email', $email);
+        if ($role->relationLoaded('permissions')) {
+            return $role;
         }
 
-        if ($ignoreUserId) {
-            $query->whereKeyNot($ignoreUserId);
+        if ($this->resolvedPermissionRole?->is($role)) {
+            return $this->resolvedPermissionRole;
         }
 
-        return $query->exists();
+        return $this->resolvedPermissionRole = $this->role()
+            ->with('permissions:id,name')
+            ->first();
     }
 
-    public static function idNumberExists(string $idNumber, ?int $ignoreUserId = null): bool
+    public function roleName(): ?string
     {
-        if (static::piiHash($idNumber) === null) {
-            return false;
-        }
-
-        $query = static::query();
-
-        if (Schema::hasColumn('users', 'id_number_hash')) {
-            $query->where('id_number_hash', static::piiHash($idNumber));
-        } else {
-            $query->where('id_number', $idNumber);
-        }
-
-        if ($ignoreUserId) {
-            $query->whereKeyNot($ignoreUserId);
-        }
-
-        return $query->exists();
+        return $this->resolvedRole()?->name ?? ($this->attributes['role'] ?? null);
     }
 
-    public function getEmailAttribute($value): ?string
+    public function hasRole(string $name): bool
     {
-        return $this->decryptPiiValue($value);
+        return $this->roleName() === $name;
     }
 
-    public function setEmailAttribute($value): void
+    public function isAdmin(): bool
     {
-        $this->attributes['email'] = $this->encryptPiiValue($value);
+        return in_array($this->roleName(), [Role::ADMIN, Role::SUPERADMIN], true);
+    }
 
-        if (Schema::hasColumn($this->getTable(), 'email_hash')) {
-            $this->attributes['email_hash'] = static::piiHash($value);
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(Role::SUPERADMIN);
+    }
+
+    public function canAccess(string $permission): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
         }
+
+        return $this->resolvedPermissionRole()?->hasPermission($permission) ?? false;
     }
 
-    public function getPhoneAttribute($value): ?string
+    public function roleLabel(): string
     {
-        return $this->decryptPiiValue($value);
-    }
-
-    public function setPhoneAttribute($value): void
-    {
-        $this->attributes['phone'] = $this->encryptPiiValue($value);
-
-        if (Schema::hasColumn($this->getTable(), 'phone_hash')) {
-            $this->attributes['phone_hash'] = static::piiHash($value);
-        }
-    }
-
-    public function getIdNumberAttribute($value): ?string
-    {
-        return $this->decryptPiiValue($value);
-    }
-
-    public function setIdNumberAttribute($value): void
-    {
-        $this->attributes['id_number'] = $this->encryptPiiValue($value);
-
-        if (Schema::hasColumn($this->getTable(), 'id_number_hash')) {
-            $this->attributes['id_number_hash'] = static::piiHash($value);
-        }
+        return $this->resolvedRole()?->label ?? Str::headline($this->roleName() ?? Role::USER);
     }
 
     public function getUserTypeAttribute(): string
     {
-        if (($this->role ?? null) === 'admin') {
+        if ($this->isAdmin()) {
             return 'admin';
         }
 
-        return $this->candidateProfile() ? 'aspirant' : 'user';
-    }
+        if ((bool) ($this->is_aspirant ?? false)) {
+            return 'aspirant';
+        }
 
-    public function candidateProfile(): ?Candidate
-    {
+        if (! empty($this->relationship)) {
+            return $this->relationship;
+        }
+
         if (empty($this->email) && empty($this->phone)) {
             return null;
         }
 
         return Candidate::query()
             ->where(function ($query) {
-                if (!empty($this->email)) {
-                    if (Schema::hasColumn('candidates', 'email_hash')) {
-                        $query->orWhere('email_hash', Candidate::piiHash($this->email));
-                    } else {
-                        $query->orWhere('email', $this->email);
-                    }
+                if (! empty($this->email)) {
+                    $query->orWhere('email', $this->email);
                 }
 
-                if (!empty($this->phone)) {
-                    if (Schema::hasColumn('candidates', 'phone_hash')) {
-                        $query->orWhere('phone_hash', Candidate::piiHash($this->phone));
-                    } else {
-                        $query->orWhere('phone', $this->phone);
-                    }
+                if (! empty($this->phone)) {
+                    $query->orWhere('phone', $this->phone);
                 }
             })
             ->with(['position', 'politicalParty'])
@@ -240,6 +241,7 @@ class User extends Authenticatable
             ->first();
     }
 
+    // Voter status relationship (optional)
     public function messages()
     {
         return $this->hasMany(Message::class, 'username', 'username');
@@ -248,6 +250,18 @@ class User extends Authenticatable
     public function groups()
     {
         return $this->belongsToMany(Group::class, 'group_members')
+            ->withTimestamps();
+    }
+
+    public function politicalParties(): BelongsToMany
+    {
+        return $this->belongsToMany(PoliticalParty::class, 'political_party_user')->withPivot('role', 'status')->withTimestamps();
+    }
+
+    public function relatedCandidates(): BelongsToMany
+    {
+        return $this->belongsToMany(Candidate::class, 'candidate_user_relationships')
+            ->withPivot('relationship', 'dashboard_access_enabled')
             ->withTimestamps();
     }
 }

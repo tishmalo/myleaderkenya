@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
 use App\Models\Bloc;
 use App\Models\County;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
@@ -13,13 +14,9 @@ class BlocRepository implements BlocRepositoryInterface
 {
     public function paginate(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        $query = Bloc::with('counties')->withCount('counties');
-
-        if ($search) {
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        return $query->latest()->paginate($perPage)->withQueryString();
+        return $this->canonicalQuery()
+            ->withCount('counties')
+            ->paginate($perPage);
     }
 
     public function create(array $data): Bloc
@@ -86,7 +83,27 @@ class BlocRepository implements BlocRepositoryInterface
 
     public function all(): Collection
     {
-        return Bloc::orderBy('name')->get();
+        return $this->canonicalQuery()->get();
+    }
+
+    private function canonicalQuery(): Builder
+    {
+        $names = config('regional-blocs.names', []);
+
+        $query = Bloc::query();
+
+        if ($names !== []) {
+            $quotedNames = collect($names)
+                ->map(fn (string $name) => "'" . str_replace("'", "''", $name) . "'")
+                ->implode(',');
+
+            $query->whereIn('name', $names)
+                ->orderByRaw("FIELD(name, {$quotedNames})");
+        } else {
+            $query->orderBy('name');
+        }
+
+        return $query;
     }
 
     public function allCounties(): Collection

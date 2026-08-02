@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', ($campaignTool->meta_title ?: $campaignTool->title) . ' - Campaign Tools')
+@section('title'){{ $campaignTool->meta_title ?: ($campaignTool->title . ' - Campaign Tools') }}@endsection
 @section('meta_description', $campaignTool->meta_description ?: ($campaignTool->excerpt ?: Str::limit(strip_tags($campaignTool->content), 155)))
 @section('og_image', $campaignTool->featured_image ? Storage::url($campaignTool->featured_image) : asset('images/myleader.png'))
 
@@ -32,11 +32,36 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .ct-content h2,.ct-content h3 { color:white; margin:1.6em 0 .55em; line-height:1.1; }
 .ct-content ul,.ct-content ol { padding-left:1.4em; margin:0 0 1.2em; }
 .ct-content a { color:var(--green-bright); }
-@media (max-width:768px) { .ct-back,.ct-show-hero,.ct-content-wrap { padding-left:18px; padding-right:18px; } .ct-hero-content { padding:26px; } .ct-content { padding:24px; } }
+.ct-flash { max-width:1120px; margin:24px auto 0; padding:0 32px; }
+.ct-flash div { border:1px solid rgba(34,197,94,.3); border-radius:12px; background:rgba(34,197,94,.12); color:#bbf7d0; padding:14px 16px; }
+.ct-hero-actions { margin-top:24px; display:flex; flex-wrap:wrap; gap:12px; }
+.ct-request-trigger { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:8px; padding:13px 16px; background:#006600; color:#fff; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+.ct-request-modal { position:fixed; inset:0; z-index:10020; display:none; align-items:center; justify-content:center; padding:20px; }
+.ct-request-modal.is-open { display:flex; }
+.ct-request-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.72); }
+.ct-request-dialog { position:relative; width:min(560px,100%); max-height:calc(100vh - 40px); overflow:auto; border:1px solid rgba(255,255,255,.12); border-radius:16px; background:#121212; padding:28px; box-shadow:0 24px 80px rgba(0,0,0,.55); }
+.ct-request-close { position:absolute; top:14px; right:14px; border:1px solid rgba(255,255,255,.12); border-radius:999px; width:38px; height:38px; background:#0b0b0b; color:#fff; cursor:pointer; }
+.ct-request-kicker { color:var(--green-bright); font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; }
+.ct-request-dialog h2 { margin:8px 0 8px; font-size:34px; }
+.ct-request-dialog p { color:rgba(245,245,240,.62); line-height:1.55; margin:0 0 18px; }
+.ct-request-form { display:grid; gap:14px; }
+.ct-request-form label { display:grid; gap:7px; color:rgba(245,245,240,.68); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.ct-request-form input,.ct-request-form textarea { width:100%; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#0b0b0b; color:#fff; padding:12px 13px; font:inherit; }
+.ct-request-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ct-request-tool-picker { min-width: 0; margin: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 14px; } .ct-request-tool-picker legend { padding: 0 6px; color: rgba(245,245,240,.68); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; } .ct-request-tool-help { display: block; margin-bottom: 10px; color: rgba(245,245,240,.48); font-size: 12px; line-height: 1.4; } .ct-request-tool-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; max-height: 190px; overflow-y: auto; } .ct-request-form .ct-request-tool-option { display: flex; align-items: flex-start; gap: 9px; min-width: 0; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: #0b0b0b; padding: 10px; color: rgba(245,245,240,.78); font-size: 12px; font-weight: 700; letter-spacing: 0; line-height: 1.35; text-transform: none; cursor: pointer; } .ct-request-form .ct-request-tool-option:has(input:checked) { border-color: rgba(0,168,107,.55); background: rgba(0,168,107,.12); color: #fff; } .ct-request-form .ct-request-tool-option input { flex: 0 0 auto; width: 16px; height: 16px; margin: 1px 0 0; padding: 0; accent-color: #00a86b; } .ct-request-submit { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:48px; border:0; border-radius:8px; padding:13px 16px; background:#006600; color:#fff; font-weight:900; text-transform:uppercase; letter-spacing:.08em; cursor:pointer; }
+.ct-request-error { border:1px solid rgba(239,68,68,.3); border-radius:8px; background:rgba(239,68,68,.1); color:#fca5a5; padding:10px 12px; font-size:13px; }
+body.ct-modal-open { overflow:hidden; }
+@media (max-width:768px) { .ct-back,.ct-show-hero,.ct-content-wrap { padding-left:18px; padding-right:18px; } .ct-hero-content { padding:26px; } .ct-content { padding:24px; } .ct-request-fields { grid-template-columns:1fr; } .ct-request-tool-options { grid-template-columns:1fr; } .ct-hero-actions,.ct-request-trigger { width:100%; justify-content:center; } }
 </style>
 
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
+
+@if(session('success'))
+<div class="ct-flash">
+    <div>{{ session('success') }}</div>
+</div>
+@endif
 
 <div class="ct-back">
     <a href="{{ route('campaign-tools.public') }}"><i class="fas fa-arrow-left"></i> All Campaign Tools</a>
@@ -54,6 +79,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
             <div class="ct-kicker">Campaign Tool</div>
             <h1 class="ct-title">{{ $campaignTool->title }}</h1>
             @if($campaignTool->excerpt)<p class="ct-excerpt">{{ $campaignTool->excerpt }}</p>@endif
+            <div class="ct-hero-actions">
+                <button type="button" class="ct-request-trigger" data-feature-request-open="campaign-tool-request-{{ $campaignTool->id }}"><i class="fas fa-lightbulb"></i> Request Feature</button>
+            </div>
         </div>
     </div>
 </section>
@@ -63,4 +91,40 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
         {!! nl2br(e($campaignTool->content)) !!}
     </article>
 </main>
-@endsection
+
+@include('campaign-tools.public._request-modal', ['tool' => $campaignTool, 'modalId' => 'campaign-tool-request-' . $campaignTool->id])
+
+<script>
+const openFeatureRequestModal = (id) => {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('ct-modal-open');
+    modal.querySelector('input, textarea, button')?.focus();
+};
+
+const closeFeatureRequestModal = (modal) => {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('ct-modal-open');
+};
+
+document.querySelectorAll('[data-feature-request-open]').forEach((button) => {
+    button.addEventListener('click', () => openFeatureRequestModal(button.dataset.featureRequestOpen));
+});
+
+document.querySelectorAll('[data-feature-request-close]').forEach((button) => {
+    button.addEventListener('click', () => closeFeatureRequestModal(button.closest('.ct-request-modal')));
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeFeatureRequestModal(document.querySelector('.ct-request-modal.is-open'));
+});
+
+const featureRequestToolId = '{{ old('feature_request_tool_id') }}';
+@if($errors->any())
+if (featureRequestToolId) openFeatureRequestModal(`campaign-tool-request-${featureRequestToolId}`);
+@endif
+</script>@endsection

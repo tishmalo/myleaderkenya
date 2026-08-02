@@ -68,6 +68,34 @@ class SettingService
                 'cta_url' => 'mailto:info@myleader.co.ke',
             ],
         ],
+        'aspirants' => [
+            'label' => 'Aspirants Directory SEO',
+            'route' => 'aspirants.public',
+            'defaults' => [
+                'title' => 'Aspirants Directory',
+                'hero_title' => '{region} {position} Aspirants',
+                'excerpt' => 'Meet the candidates and aspirants seeking to represent {region} in the 2027 Kenya elections.',
+                'content' => 'Use {region}, {area}, {position}, and {year} to generate SEO headings and metadata for aspirant listing pages.',
+                'meta_title' => '{region} {position} Candidates and Aspirants {year} Kenya Elections',
+                'meta_description' => 'Find {region} {position} candidates and aspirants for the {year} Kenya elections. Compare aspirant profiles, regions, parties, and campaign updates.',
+                'cta_label' => 'View Aspirants',
+                'cta_url' => '/aspirants',
+            ],
+        ],
+        'campaign-tools' => [
+            'label' => 'Campaign Tools SEO',
+            'route' => 'campaign-tools.public',
+            'defaults' => [
+                'title' => 'Campaign Tools',
+                'hero_title' => 'Campaign Tools for Kenya Elections',
+                'excerpt' => 'Explore campaign tools for call centers, bulk SMS, bulk WhatsApp, websites, voter databases, opinion polls, and aspirant profile management.',
+                'content' => 'Use this page to manage SEO content for the public campaign tools directory.',
+                'meta_title' => 'Campaign Tools for Kenya Election Aspirants - My Leader Kenya',
+                'meta_description' => 'Explore campaign tools for Kenya election aspirants, including call centers, bulk SMS, bulk WhatsApp, websites, voter databases, opinion polls, and profile management.',
+                'cta_label' => 'View Tools',
+                'cta_url' => '/campaign-tools',
+            ],
+        ],
     ];
 
     public function getDonateSettings(): array

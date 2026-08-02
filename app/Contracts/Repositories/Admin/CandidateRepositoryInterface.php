@@ -10,6 +10,8 @@ interface CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
+    public function find(int $id): ?Candidate;
+
     public function create(array $data): Candidate;
 
     public function update(Candidate $candidate, array $data): bool;
@@ -28,9 +30,14 @@ interface CandidateRepositoryInterface
 
     public function allWards(?string $constituency = null): Collection;
 
-    public function filterPublic(array $filters, int $perPage = 16): LengthAwarePaginator;
+    public function filterPublic(array $filters, int $perPage = 30): LengthAwarePaginator;
 
-    public function publicCountyGroups(array $filters, int $limit = 5): Collection;
+    public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator;
+    public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;
+
+    public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;
+
+    public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;
 
     public function loadPublicShow(Candidate $candidate): Candidate;
 }

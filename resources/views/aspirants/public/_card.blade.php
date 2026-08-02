@@ -16,10 +16,10 @@
             <div class="asp-card-position-badge">{{ $candidate->position->name }}</div>
         @endif
 
-        @if($candidate->county)
+        @if($candidate->display_area)
             <div class="asp-card-county-tag">
                 <i class="fas fa-map-marker-alt" style="font-size:9px"></i>
-                {{ $candidate->county }}
+                {{ $candidate->display_area }}
             </div>
         @endif
     </div>
@@ -29,16 +29,6 @@
 
         @if($candidate->nick_name)
             <div class="asp-card-nick">"{{ $candidate->nick_name }}"</div>
-        @endif
-
-        @if($candidate->constituency)
-            <div class="asp-card-location">
-                <i class="fas fa-circle" style="font-size:4px;color:var(--green-bright)"></i>
-                {{ $candidate->constituency }}
-                @if($candidate->ward)
-                    &nbsp;&middot;&nbsp; {{ $candidate->ward }}
-                @endif
-            </div>
         @endif
 
         <div class="asp-card-divider"></div>

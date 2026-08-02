@@ -59,9 +59,24 @@ class CountyRepository implements CountyRepositoryInterface
         return $deleted;
     }
 
+
     public function getOrderedBlocs(): Collection
     {
-        return Bloc::orderBy('name')->get();
+        $names = config('regional-blocs.names', []);
+
+        $query = Bloc::query();
+
+        if ($names !== []) {
+            $quotedNames = collect($names)
+                ->map(fn (string $name) => "'" . str_replace("'", "''", $name) . "'")
+                ->implode(',');
+
+            return $query->whereIn('name', $names)
+                ->orderByRaw("FIELD(name, {$quotedNames})")
+                ->get();
+        }
+
+        return $query->orderBy('name')->get();
     }
 
     public function import(array $counties): int
@@ -97,53 +112,5 @@ class CountyRepository implements CountyRepositoryInterface
     {
         return County::with(['bloc', 'blocs'])->orderBy('name')->get();
     }
-
-    private function extractBlocIds(array $data): array
-    {
-        $blocIds = $data['bloc_ids'] ?? [];
-
-        if (empty($blocIds) && ! empty($data['bloc_id'])) {
-            $blocIds = [$data['bloc_id']];
-        }
-
-        return collect($blocIds)
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    private function syncBlocs(County $county, array $blocIds, ?array $previousBlocIds = null): void
-    {
-        if (! Schema::hasTable('bloc_county')) {
-            return;
-        }
-
-        $previousBlocIds ??= $county->blocs()->pluck('blocs.id')->all();
-        $county->blocs()->sync($blocIds);
-
-        $this->recalculateTotals(array_unique(array_merge($previousBlocIds, $blocIds)));
-    }
-
-    private function recalculateTotals(array $blocIds): void
-    {
-        if (! Schema::hasTable('bloc_county')) {
-            return;
-        }
-
-        collect($blocIds)->filter()->unique()->each(function ($blocId) {
-            $totals = County::query()
-                ->join('bloc_county', 'counties.id', '=', 'bloc_county.county_id')
-                ->where('bloc_county.bloc_id', $blocId)
-                ->selectRaw('COALESCE(SUM(counties.population), 0) as population')
-                ->selectRaw('COALESCE(SUM(counties.registered_voters), 0) as registered_voters')
-                ->first();
-
-            Bloc::whereKey($blocId)->update([
-                'total_population' => (int) $totals->population,
-                'total_registered_voters' => (int) $totals->registered_voters,
-            ]);
-        });
-    }
 }
+

@@ -52,7 +52,45 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .member-party-chip { display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; background:#101010; border:1px solid color-mix(in srgb, var(--brand) 36%, rgba(255,255,255,0.1)); color:white; text-decoration:none; }
 .member-party-chip img,.member-party-chip span { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:var(--brand); color:white; object-fit:cover; font-size:11px; }
 .member-party-empty { color:rgba(245,245,240,0.45); }
-@media (max-width:768px) { .party-hero { padding:58px 18px 42px; } .party-grid,.party-show,.party-back { padding-left:18px; padding-right:18px; } .party-show-head,.party-content,.member-section { padding:24px; } .party-show-head.has-logo { display:block; } .party-show-logo { width:130px; height:130px; margin-bottom:20px; } }
+.party-aspirants { margin-top:32px; padding:36px; border-radius:20px; border:1px solid rgba(255,255,255,0.08); background:#141414; }
+.party-aspirants-head { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:26px; }
+.party-aspirants-head h2 { margin:0 0 6px; color:white; font-size:32px; }
+.party-aspirants-head p { margin:0; color:rgba(245,245,240,0.45); }
+.party-aspirants-count { color:var(--green-bright); font-size:12px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; white-space:nowrap; }
+.party-position-group + .party-position-group { margin-top:38px; padding-top:34px; border-top:1px solid rgba(255,255,255,.08); }
+.party-position-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.party-position-title { display:flex; align-items:center; gap:12px; margin:0; color:white; font-size:25px; }
+.party-position-title::before { content:''; width:4px; height:28px; border-radius:999px; background:linear-gradient(to bottom,var(--kenya-red),var(--kenya-green)); }
+.party-position-count { color:rgba(245,245,240,.45); font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; white-space:nowrap; }
+.party-aspirant-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
+.asp-card { background:#101010; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; position:relative; transition:border-color .3s,transform .3s,box-shadow .3s; display:flex; flex-direction:column; }
+.asp-card:hover { border-color:rgba(0,168,107,.35); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 1px rgba(0,168,107,.15); }
+.asp-card-photo { position:relative; height:210px; overflow:hidden; }
+.asp-card-photo img { width:100%; height:100%; object-fit:cover; object-position:top center; transition:transform .5s ease; }
+.asp-card:hover .asp-card-photo img { transform:scale(1.05); }
+.asp-card-photo-placeholder { width:100%; height:100%; background:linear-gradient(135deg,rgba(187,0,0,.2),rgba(0,102,0,.2)); display:flex; align-items:center; justify-content:center; }
+.asp-card-photo-placeholder .initials { font-family:'Oswald',sans-serif; font-size:52px; font-weight:700; color:rgba(255,255,255,.12); line-height:1; }
+.asp-card-photo-overlay { position:absolute; inset:0; background:linear-gradient(to top,#101010 0%,rgba(16,16,16,.3) 50%,transparent 100%); }
+.asp-card-position-badge { position:absolute; top:14px; left:14px; background:rgba(0,0,0,.65); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:5px 12px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:rgba(245,245,240,.7); }
+.asp-card-county-tag { position:absolute; bottom:14px; right:14px; display:flex; align-items:center; gap:6px; background:rgba(0,0,0,.6); backdrop-filter:blur(8px); border:1px solid rgba(0,168,107,.25); border-radius:6px; padding:4px 10px; font-size:11px; color:var(--green-bright); font-weight:600; }
+.asp-card-body { padding:16px; flex:1; display:flex; flex-direction:column; }
+.asp-card-name { font-family:'Oswald',sans-serif; font-size:20px; font-weight:700; line-height:1.1; margin-bottom:4px; color:var(--kenya-white); }
+.asp-card-nick { font-size:13px; color:rgba(0,168,107,.8); font-style:italic; margin-bottom:10px; }
+.asp-card-divider { height:1px; background:linear-gradient(90deg,rgba(0,168,107,.2),rgba(187,0,0,.2),transparent); margin:10px 0 12px; }
+.asp-card-action { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; text-decoration:none; transition:background .2s,border-color .2s; margin-top:auto; }
+.asp-card-action:hover { background:rgba(0,168,107,.08); border-color:rgba(0,168,107,.3); }
+.asp-card-action-text { font-family:'Oswald',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:rgba(245,245,240,.7); }
+.asp-card-action:hover .asp-card-action-text { color:var(--green-bright); }
+.asp-card-action-arrow { width:28px; height:28px; background:var(--kenya-red); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; color:white; transition:background .2s,transform .2s; }
+.asp-card:hover .asp-card-action-arrow { background:var(--green-bright); transform:translateX(2px); }
+.party-aspirants-empty { grid-column:1/-1; padding:54px 20px; text-align:center; color:rgba(245,245,240,.4); }
+.party-aspirants-empty i { display:block; margin-bottom:16px; color:rgba(0,168,107,.5); font-size:38px; }
+.party-aspirants-empty h3 { margin:0 0 8px; color:rgba(245,245,240,.65); font-size:24px; }
+.party-aspirants-empty p { margin:0; }
+.party-aspirants-pagination { margin-top:30px; display:flex; justify-content:center; }
+@media (max-width:900px) { .party-aspirant-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:768px) { .party-hero { padding:58px 18px 42px; } .party-grid,.party-show,.party-back { padding-left:18px; padding-right:18px; } .party-show-head,.party-content,.member-section,.party-aspirants { padding:24px; } .party-show-head.has-logo { display:block; } .party-show-logo { width:130px; height:130px; margin-bottom:20px; } .party-aspirants-head { align-items:start; flex-direction:column; } }
+@media (max-width:520px) { .party-position-head { align-items:flex-start; flex-direction:column; } .party-aspirant-grid { grid-template-columns:1fr; } .asp-card-photo { height:240px; } }
 </style>
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
@@ -61,11 +99,57 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
     <article class="party-show-card">
         <header class="party-show-head {{ $politicalParty->logo ? 'has-logo' : '' }}" style="background:linear-gradient(135deg, {{ $politicalParty->brand_color ?: '#00A86B' }}33, rgba(187,0,0,0.16));">
             @if($politicalParty->logo)<div class="party-show-logo"><img src="{{ Storage::url($politicalParty->logo) }}" alt="{{ $politicalParty->name }}"></div>@endif
-            <div><div class="party-show-kicker">Political Party{{ $politicalParty->abbreviation ? ' / ' . $politicalParty->abbreviation : '' }}</div><h1 class="party-show-title">{{ $politicalParty->name }}</h1>@if($politicalParty->excerpt)<p class="party-show-excerpt">{{ $politicalParty->excerpt }}</p>@endif @if($politicalParty->website_url)<p><a href="{{ $politicalParty->website_url }}" target="_blank" rel="noopener" style="color:var(--green-bright);text-decoration:none;font-weight:700;">Official Website <i class="fas fa-arrow-up-right-from-square"></i></a></p>@endif</div>
+            <div><div class="party-show-kicker">Political Party{{ $politicalParty->abbreviation ? ' / ' . $politicalParty->abbreviation : '' }}</div><h1 class="party-show-title">{{ $politicalParty->name }}</h1>@if($politicalParty->excerpt)<p class="party-show-excerpt">{{ $politicalParty->excerpt }}</p>@endif @if($politicalParty->website_url)<p><a href="{{ $politicalParty->website_url }}" target="_blank" rel="noopener" style="color:var(--green-bright);text-decoration:none;font-weight:700;">Official Website <i class="fas fa-arrow-up-right-from-square"></i></a></p>@endif<p><a href="{{ route('parties.access.create', $politicalParty) }}" style="display:inline-flex;margin-top:10px;padding:10px 16px;border:1px solid rgba(0,168,107,.45);border-radius:10px;color:var(--green-bright);text-decoration:none;font-weight:700;"><i class="fas fa-shield-halved" style="margin-right:8px"></i> Request Party Dashboard Access</a></p></div>
         </header>
         <div class="party-content">{!! nl2br(e($politicalParty->content)) !!}</div>
         <section class="member-section"><h2>Coalitions</h2><x-member-party-list :parties="$politicalParty->coalitions" route-name="coalitions.show" /></section>
     </article>
+    <section class="party-aspirants" aria-labelledby="party-aspirants-title">
+        <div class="party-aspirants-head">
+            <div>
+                <h2 id="party-aspirants-title">Aspirants vying under {{ $politicalParty->name }}</h2>
+                <p>Explore approved aspirants representing this political party.</p>
+            </div>
+            @if($candidateTotal > 0)
+                <div class="party-aspirants-count">
+                    {{ number_format($candidateTotal) }}
+                    {{ Str::plural('aspirant', $candidateTotal) }}
+                </div>
+            @endif
+        </div>
+        @forelse($candidateGroups as $group)
+            <section class="party-position-group" aria-labelledby="position-{{ $group['position']->id }}">
+                <div class="party-position-head">
+                    <h3 class="party-position-title" id="position-{{ $group['position']->id }}">
+                        {{ $group['position']->name }}
+                    </h3>
+                    <span class="party-position-count">
+                        {{ number_format($group['candidates']->total()) }}
+                        {{ Str::plural('aspirant', $group['candidates']->total()) }}
+                    </span>
+                </div>
+
+                <div class="party-aspirant-grid">
+                    @foreach($group['candidates'] as $candidate)
+                        @include('aspirants.public._card', ['candidate' => $candidate])
+                    @endforeach
+                </div>
+
+                @if($group['candidates']->hasPages())
+                    <div class="party-aspirants-pagination">
+                        {{ $group['candidates']->links() }}
+                    </div>
+                @endif
+            </section>
+        @empty
+            <div class="party-aspirants-empty">
+                <i class="fas fa-users"></i>
+                <h3>No approved aspirants yet</h3>
+                <p>Approved aspirants for this party will appear here.</p>
+            </div>
+        @endforelse
+
+    </section>
 </main>
 @endsection
 

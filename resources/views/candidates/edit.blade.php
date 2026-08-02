@@ -4,6 +4,14 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
+    @if(session('success'))
+        <div class="fixed right-5 top-24 z-[10050] flex max-w-md items-start gap-3 rounded-2xl border border-emerald-500/35 bg-emerald-950/95 px-5 py-4 text-emerald-100 shadow-2xl backdrop-blur transition duration-300" role="status" data-candidate-success-flash>
+            <i class="fas fa-circle-check mt-0.5 text-emerald-400"></i>
+            <span class="flex-1 font-medium">{{ session('success') }}</span>
+            <button type="button" class="text-emerald-300 hover:text-white" aria-label="Dismiss success message" data-candidate-success-close><i class="fas fa-xmark"></i></button>
+        </div>
+    @endif
+
     <div class="flex items-center justify-between mb-8">
         <h1 class="text-3xl font-semibold text-white flex items-center gap-3">
             <i class="fas fa-user-edit text-emerald-500"></i>
@@ -16,83 +24,224 @@
         <form action="{{ route('candidates.update', $candidate) }}" method="POST" enctype="multipart/form-data" id="candidateForm">
             @csrf
             @method('PUT')
+            <input type="hidden" name="active_tab" value="profile-basic" data-active-candidate-tab>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Full Name <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" value="{{ old('name', $candidate->name) }}" required
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Nick Name</label>
-                    <input type="text" name="nick_name" value="{{ old('nick_name', $candidate->nick_name) }}"
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                </div>
-            </div>
-
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Phone Number</label>
-                    <input type="tel" name="phone" value="{{ old('phone', $candidate->phone) }}"
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                </div>
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Email Address</label>
-                    <input type="email" name="email" value="{{ old('email', $candidate->email) }}"
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+            <div class="mb-8 border-b border-zinc-800">
+                <div class="flex flex-wrap gap-2" role="tablist" aria-label="Candidate edit sections">
+                    <button type="button" data-candidate-tab-button="profile" class="candidate-tab-btn active px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-emerald-500 bg-emerald-600 text-white">
+                        <i class="fas fa-user mr-2"></i> Profile
+                    </button>
+                    <button type="button" data-candidate-tab-button="tools" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
+                        <i class="fas fa-toolbox mr-2"></i> Tools
+                    </button>
+                    <button type="button" data-candidate-tab-button="priorities" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
+                        <i class="fas fa-bullseye mr-2"></i> Campaign Priorities
+                    </button>
+                    @if($candidate->parliamentMember)
+                    <button type="button" data-candidate-tab-button="parliament" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
+                        <i class="fas fa-landmark-dome mr-2"></i> Parliamentary Data
+                    </button>
+                    @endif
                 </div>
             </div>
 
-            <!-- Political Party -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Political Party</label>
-                <select name="political_party_id" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                    <option value="">No Political Party</option>
-                    @foreach($politicalParties as $party)
-                        <option value="{{ $party->id }}" {{ old('political_party_id', $candidate->political_party_id) == $party->id ? 'selected' : '' }}>
-                            {{ $party->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Position -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Position <span class="text-red-500">*</span></label>
-                <select name="position_id" id="positionSelect" required
-                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                    @foreach($positions as $pos)
-                        <option value="{{ $pos->id }}" {{ $candidate->position_id == $pos->id ? 'selected' : '' }}>
-                            {{ $pos->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Jurisdiction Fields (Cascading) -->
-            <div id="jurisdictionFields" class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Populated by JavaScript -->
-            </div>
-
-            <!-- Profile Picture -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">Profile Picture</label>
-                @if($candidate->profile_picture)
-                    <div class="mb-3">
-                        <img src="{{ Storage::url($candidate->profile_picture) }}" 
-                             alt="Profile" class="w-28 h-28 object-cover rounded-2xl border border-zinc-700">
+            <section data-candidate-tab-panel="profile">
+                <div class="mb-7 overflow-x-auto border-b border-zinc-800" role="tablist" aria-label="Candidate profile sections">
+                    <div class="flex min-w-max gap-2">
+                        <button type="button" data-profile-tab-button="basic" class="profile-tab-btn rounded-t-xl border border-b-0 border-emerald-500 bg-emerald-600 px-4 py-3 text-sm font-semibold text-white" aria-controls="profile-basic"><i class="fas fa-address-card mr-2"></i>Basic Information</button>
+                        <button type="button" data-profile-tab-button="political" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-political"><i class="fas fa-landmark mr-2"></i>Political Aspirant</button>
+                        <button type="button" data-profile-tab-button="social" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-social"><i class="fas fa-share-nodes mr-2"></i>Social Media</button>
+                        <button type="button" data-profile-tab-button="media" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-media"><i class="fas fa-photo-film mr-2"></i>Media</button>
+                        <button type="button" data-profile-tab-button="support" class="profile-tab-btn rounded-t-xl border border-b-0 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold text-zinc-400" aria-controls="profile-support"><i class="fas fa-people-group mr-2"></i>Support Groups</button>
                     </div>
-                @endif
-                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp"
-                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                </div>
+
+                <section id="profile-basic" data-profile-tab-panel="basic">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" value="{{ old('name', $candidate->name) }}" required class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Nick Name</label>
+                            <input type="text" name="nick_name" value="{{ old('nick_name', $candidate->nick_name) }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Phone Number</label>
+                            <input type="tel" name="phone" value="{{ old('phone', $candidate->phone) }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Email Address</label>
+                            <input type="email" name="email" value="{{ old('email', $candidate->email) }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label class="mb-2 block text-sm text-zinc-400">About Candidate</label>
+                        <textarea name="about" rows="6" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">{{ old('about', $candidate->about) }}</textarea>
+                    </div>
+                </section>
+
+                <section id="profile-political" data-profile-tab-panel="political" class="hidden">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Political Party</label>
+                            <select name="political_party_id" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                <option value="">No Political Party</option>
+                                @foreach($politicalParties as $party)
+                                    <option value="{{ $party->id }}" {{ old('political_party_id', $candidate->political_party_id) == $party->id ? 'selected' : '' }}>{{ $party->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Position <span class="text-red-500">*</span></label>
+                            <select name="position_id" id="positionSelect" required class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                @foreach($positions as $pos)
+                                    <option value="{{ $pos->id }}" {{ old('position_id', $candidate->position_id) == $pos->id ? 'selected' : '' }}>{{ $pos->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div id="jurisdictionFields" class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3"></div>
+                </section>
+
+                <section id="profile-social" data-profile-tab-panel="social" class="hidden">
+                    @include('candidates.partials.social-links', ['candidate' => $candidate])
+                </section>
+
+                <section id="profile-media" data-profile-tab-panel="media" class="hidden">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Profile Picture</label>
+                            @if($candidate->profile_picture)
+                                <img src="{{ Storage::url($candidate->profile_picture) }}" alt="Profile" class="mb-3 h-28 w-28 rounded-2xl border border-zinc-700 object-cover">
+                            @endif
+                            <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                            <p class="mt-2 text-xs text-zinc-500">JPG, PNG, or WebP up to 2MB.</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-zinc-400">Cover Photo</label>
+                            @if($candidate->cover_photo)
+                                <img src="{{ Storage::url($candidate->cover_photo) }}" alt="Cover" class="mb-3 h-28 w-full rounded-2xl border border-zinc-700 object-cover">
+                            @endif
+                            <input type="file" name="cover_photo" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                            <p class="mt-2 text-xs text-zinc-500">Leave blank to retain the current cover. Maximum 5MB.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t border-zinc-800 pt-7">
+                        <h2 class="text-xl font-semibold text-white"><i class="fas fa-photo-film mr-2 text-emerald-500"></i>Campaign Media</h2>
+                        <p class="mt-1 text-sm text-zinc-500">Add campaign videos, music, Skiza audio, and artwork for this aspirant.</p>
+
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Video <span class="text-xs text-zinc-500">(YouTube)</span></label>
+                                <input type="url" name="campaign_video_url" value="{{ old('campaign_video_url', $candidate->campaign_video_url) }}" placeholder="https://www.youtube.com/watch?v=..." class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                @error('campaign_video_url')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Song <span class="text-xs text-zinc-500">(YouTube)</span></label>
+                                <input type="url" name="campaign_song_url" value="{{ old('campaign_song_url', $candidate->campaign_song_url) }}" placeholder="https://youtu.be/..." class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                @error('campaign_song_url')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Skiza <span class="text-xs text-zinc-500">(Audio file)</span></label>
+                                @if($candidate->campaign_skiza_audio)
+                                    <audio controls preload="metadata" class="mb-3 w-full" src="{{ Storage::url($candidate->campaign_skiza_audio) }}">Your browser does not support audio playback.</audio>
+                                @endif
+                                <input type="file" name="campaign_skiza_audio" accept="audio/mpeg,audio/wav,audio/mp4,audio/aac,audio/ogg,.mp3,.wav,.m4a,.aac,.ogg" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                <p class="mt-2 text-xs text-zinc-500">MP3, WAV, M4A, AAC, or OGG up to 20MB. Leave blank to retain the current audio.</p>
+                                @error('campaign_skiza_audio')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm text-zinc-400">Campaign Poster</label>
+                                @if($candidate->campaign_poster)
+                                    <img src="{{ Storage::url($candidate->campaign_poster) }}" alt="Campaign poster" class="mb-3 max-h-64 w-full rounded-2xl border border-zinc-700 object-contain bg-zinc-950">
+                                @endif
+                                <input type="file" name="campaign_poster" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white">
+                                <p class="mt-2 text-xs text-zinc-500">JPG, PNG, or WebP up to 5MB. Leave blank to retain the current poster.</p>
+                                @error('campaign_poster')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="profile-support" data-profile-tab-panel="support" class="hidden">
+                    @include('candidates.partials.support-contacts')
+                </section>
+            </section>
+            <section data-candidate-tab-panel="priorities" class="hidden">
+                <div class="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div><h2 class="text-xl font-semibold text-white">Campaign manifesto priorities</h2><p class="mt-2 text-sm text-zinc-500">Aspirant submissions are read-only here. Approve or reject them from the central review queue.</p></div>
+                        <a href="{{ route('campaign-priority-categories.index', ['candidate' => $candidate->name]) }}" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">Open review queue</a>
+                    </div>
+                    <div class="mt-5 grid gap-3">
+                        @forelse($candidate->campaignPriorities->sortBy(fn ($priority) => $priority->category?->sort_order ?? $priority->sort_order) as $priority)
+                            <article class="rounded-2xl border border-zinc-800 bg-zinc-900 p-4"><div class="flex items-center gap-3"><i class="{{ $priority->category?->icon }} text-emerald-400"></i><strong class="text-white">{{ $priority->category?->name ?: 'Retired category' }}</strong><span class="rounded-full px-2 py-1 text-[10px] font-bold uppercase {{ $priority->status==='approved'?'bg-emerald-500/10 text-emerald-300':($priority->status==='rejected'?'bg-red-500/10 text-red-300':'bg-amber-500/10 text-amber-300') }}">{{ $priority->status }}</span></div><p class="mt-3 whitespace-pre-line text-sm leading-6 text-zinc-400">{{ $priority->manifesto }}</p></article>
+                        @empty
+                            <p class="rounded-2xl border border-dashed border-zinc-800 p-7 text-center text-zinc-500">This aspirant has not submitted campaign priorities.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </section>
+            @if($candidate->parliamentMember)
+            <section data-candidate-tab-panel="parliament" class="hidden">
+                <div class="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div><h2 class="text-xl font-semibold text-white">{{ $candidate->parliamentMember->source_name }}</h2><p class="mt-2 text-sm text-zinc-400">{{ collect([$candidate->parliamentMember->house, $candidate->parliamentMember->constituency, $candidate->parliamentMember->party])->filter()->implode(' / ') }}</p></div>
+                        <a href="{{ route('parliament-members.index', ['search' => $candidate->parliamentMember->source_name]) }}" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold">Review Parliamentary Record</a>
+                    </div>
+                    <div class="mt-5 grid gap-3 md:grid-cols-3"><div class="rounded-2xl bg-zinc-900 p-4"><span class="text-xs uppercase text-zinc-500">Match</span><strong class="mt-1 block text-white">{{ ucfirst($candidate->parliamentMember->match_method ?: 'Unmatched') }}</strong></div><div class="rounded-2xl bg-zinc-900 p-4"><span class="text-xs uppercase text-zinc-500">Detail</span><strong class="mt-1 block text-white">{{ ucfirst($candidate->parliamentMember->detail_status) }}</strong></div><div class="rounded-2xl bg-zinc-900 p-4"><span class="text-xs uppercase text-zinc-500">Publication</span><strong class="mt-1 block {{ $candidate->parliamentMember->is_published ? 'text-emerald-400' : 'text-amber-400' }}">{{ $candidate->parliamentMember->is_published ? 'Published' : 'Not published' }}</strong></div></div>
+                </div>
+            </section>
+            @endif
+            <section data-candidate-tab-panel="tools" class="hidden">
+            @php($smsSetting = \Illuminate\Support\Facades\Schema::hasTable('candidate_sms_settings') ? $candidate->smsSetting : null)
+            <div class="border border-zinc-800 rounded-3xl p-6 bg-zinc-950">
+                <div class="flex items-start justify-between gap-4 mb-5">
+                    <div>
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-comment-sms text-emerald-500"></i>
+                            Bulk SMS Settings
+                        </h2>
+                        <p class="text-sm text-zinc-500 mt-1">Infobip username and password are stored encrypted and are only used by this candidate's Bulk SMS workspace.</p>
+                    </div>
+                    <label class="inline-flex items-center gap-3 text-sm text-zinc-300">
+                        <input type="hidden" name="sms_enabled" value="0">
+                        <input type="checkbox" name="sms_enabled" value="1" class="rounded border-zinc-700 bg-zinc-800 text-emerald-600" {{ old('sms_enabled', optional($smsSetting)->enabled) ? 'checked' : '' }}>
+                        Enabled
+                    </label>
+                </div>
+
+                <input type="hidden" name="sms_provider" value="infobip">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Infobip Base URL</label>
+                        <input type="url" name="sms_base_url" value="{{ old('sms_base_url', optional($smsSetting)->base_url) }}" placeholder="https://xxxxx.api.infobip.com"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Sender Name</label>
+                        <input type="text" name="sms_sender_name" value="{{ old('sms_sender_name', optional($smsSetting)->sender_name) }}" placeholder="EGEMEOARDHI"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Username</label>
+                        <input type="text" name="sms_username" value="{{ old('sms_username', optional($smsSetting)->username) }}" placeholder="EGEMEOARDHI"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-zinc-400 mb-2">Password</label>
+                        <input type="password" name="sms_password" value="" placeholder="{{ $smsSetting && $smsSetting->password ? 'Leave blank to keep existing password' : 'Paste candidate Infobip password' }}"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                    </div>
+                </div>
             </div>
 
-            <!-- About -->
-            <div class="mt-6">
-                <label class="block text-sm text-zinc-400 mb-2">About Candidate</label>
-                <textarea name="about" rows="5"
-                          class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">{{ old('about', $candidate->about) }}</textarea>
-            </div>
+            </section>
 
             <div class="mt-10 flex gap-4">
                 <a href="{{ route('candidates.index') }}" 
@@ -112,6 +261,124 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const tabButtons = document.querySelectorAll('[data-candidate-tab-button]');
+    const tabPanels = document.querySelectorAll('[data-candidate-tab-panel]');
+    const profileTabButtons = document.querySelectorAll('[data-profile-tab-button]');
+    const profileTabPanels = document.querySelectorAll('[data-profile-tab-panel]');
+    const activeTabInput = document.querySelector('[data-active-candidate-tab]');
+    const successFlash = document.querySelector('[data-candidate-success-flash]');
+    const dismissSuccessFlash = () => {
+        if (!successFlash) return;
+        successFlash.classList.add('translate-y-[-8px]', 'opacity-0');
+        window.setTimeout(() => successFlash.remove(), 300);
+    };
+    document.querySelector('[data-candidate-success-close]')?.addEventListener('click', dismissSuccessFlash);
+    if (successFlash) window.setTimeout(dismissSuccessFlash, 6000);
+    const requestedTab = (window.location.hash || '').replace('#', '');
+    const requestedProfileTab = requestedTab.startsWith('profile-') ? requestedTab.replace('profile-', '') : '';
+    const validCandidateTabs = Array.from(tabButtons, (button) => button.dataset.candidateTabButton);
+    const validProfileTabs = Array.from(profileTabButtons, (button) => button.dataset.profileTabButton);
+    const defaultCandidateTab = '{{ $errors->hasAny(["sms_enabled", "sms_provider", "sms_base_url", "sms_sender_name", "sms_username", "sms_password"]) ? "tools" : "profile" }}';
+    const defaultProfileTab = '{{ $errors->hasAny(["facebook_url", "x_url", "instagram_url", "tiktok_url", "youtube_url", "whatsapp_group_url"]) ? "social" : ($errors->hasAny(["profile_picture", "cover_photo", "campaign_video_url", "campaign_song_url", "campaign_skiza_audio", "campaign_poster"]) ? "media" : ($errors->hasAny(["position_id", "political_party_id", "country", "county", "constituency", "ward"]) ? "political" : ($errors->has('support_contacts.*') ? "support" : "basic"))) }}';
+    const initialCandidateTab = requestedProfileTab ? 'profile' : (validCandidateTabs.includes(requestedTab) ? requestedTab : defaultCandidateTab);
+    const initialProfileTab = validProfileTabs.includes(requestedProfileTab) ? requestedProfileTab : defaultProfileTab;
+
+    function activateCandidateTab(tab) {
+        tabButtons.forEach((button) => {
+            const active = button.dataset.candidateTabButton === tab;
+            button.classList.toggle('active', active);
+            button.classList.toggle('bg-emerald-600', active);
+            button.classList.toggle('border-emerald-500', active);
+            button.classList.toggle('text-white', active);
+            button.classList.toggle('bg-zinc-950', !active);
+            button.classList.toggle('border-zinc-800', !active);
+            button.classList.toggle('text-zinc-400', !active);
+        });
+
+        tabPanels.forEach((panel) => {
+            panel.classList.toggle('hidden', panel.dataset.candidateTabPanel !== tab);
+        });
+    }
+
+    function activateProfileTab(tab) {
+        profileTabButtons.forEach((button) => {
+            const active = button.dataset.profileTabButton === tab;
+            button.classList.toggle('bg-emerald-600', active);
+            button.classList.toggle('border-emerald-500', active);
+            button.classList.toggle('text-white', active);
+            button.classList.toggle('bg-zinc-950', !active);
+            button.classList.toggle('border-zinc-800', !active);
+            button.classList.toggle('text-zinc-400', !active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        profileTabPanels.forEach((panel) => {
+            panel.classList.toggle('hidden', panel.dataset.profileTabPanel !== tab);
+        });
+    }
+
+    tabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const tab = button.dataset.candidateTabButton;
+            activateCandidateTab(tab);
+            if (activeTabInput) activeTabInput.value = tab;
+            history.replaceState(null, '', '#' + tab);
+        });
+    });
+
+    profileTabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const tab = button.dataset.profileTabButton;
+            activateCandidateTab('profile');
+            activateProfileTab(tab);
+            if (activeTabInput) activeTabInput.value = 'profile-' + tab;
+            history.replaceState(null, '', '#profile-' + tab);
+        });
+    });
+
+    activateCandidateTab(initialCandidateTab);
+    activateProfileTab(initialProfileTab);
+    if (activeTabInput) {
+        activeTabInput.value = initialCandidateTab === 'profile'
+            ? 'profile-' + initialProfileTab
+            : initialCandidateTab;
+    }
+    function initializeSupportContacts() {
+        const panel = document.querySelector('[data-support-contacts-panel]');
+        if (!panel) return;
+
+        const list = panel.querySelector('[data-support-contact-list]');
+        const template = document.querySelector('[data-support-contact-template]');
+        const addButton = panel.querySelector('[data-add-support-contact]');
+
+        function renumber() {
+            panel.querySelectorAll('[data-support-contact-row]').forEach((row, index) => {
+                row.querySelectorAll('[name^="support_contacts"], [data-name]').forEach((input) => {
+                    const key = input.dataset.name || input.name.match(/\[([^\]]+)\]$/)?.[1];
+                    if (key) input.name = `support_contacts[${index}][${key}]`;
+                });
+            });
+        }
+
+        addButton?.addEventListener('click', () => {
+            if (!template || !list) return;
+            list.appendChild(template.content.firstElementChild.cloneNode(true));
+            renumber();
+        });
+
+        panel.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-remove-support-contact]');
+            if (!button) return;
+            const row = button.closest('[data-support-contact-row]');
+            row?.remove();
+            renumber();
+        });
+
+        renumber();
+    }
+
+    initializeSupportContacts();
+
     const positionSelect = document.getElementById('positionSelect');
     const fieldsContainer = document.getElementById('jurisdictionFields');
 
@@ -203,15 +470,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 counties.forEach(county => {
                     const name = optionName(county);
                     if (!name) return;
-
                     const opt = new Option(name, name);
-                    opt.dataset.id = optionId(county);
-
-                    if (name === currentCounty) {
-                        opt.selected = true;
-                        selectedCountyId = opt.dataset.id;
-                    }
-
+                    if (name === currentCounty) opt.selected = true;
                     countySelect.add(opt);
                 });
 
@@ -232,9 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (constituencySelect) {
             constituencySelect.addEventListener('change', function() {
-                const constituency = this.selectedOptions[0]?.dataset.id || this.value;
-                currentWard = '';
-                if (wardSelect) loadWards(constituency);
+                loadWards(this.value);
             });
         }
     }
@@ -252,15 +510,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 data.forEach(consti => {
                     const name = optionName(consti);
                     if (!name) return;
-
                     const opt = new Option(name, name);
-                    opt.dataset.id = optionId(consti);
-
-                    if (name === currentConstituency) {
-                        opt.selected = true;
-                        selectedConstituencyId = opt.dataset.id;
-                    }
-
+                    if (name === currentConstituency) opt.selected = true;
                     constituencySelect.add(opt);
                 });
 
@@ -281,9 +532,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data.forEach(ward => {
                     const name = optionName(ward);
                     if (!name) return;
-
                     const opt = new Option(name, name);
-                    opt.dataset.id = optionId(ward);
                     if (name === currentWard) opt.selected = true;
                     wardSelect.add(opt);
                 });

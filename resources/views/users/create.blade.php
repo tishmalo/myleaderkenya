@@ -105,8 +105,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Password -->
+<!-- Password -->
             <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Password <span class="text-red-500">*</span></label>

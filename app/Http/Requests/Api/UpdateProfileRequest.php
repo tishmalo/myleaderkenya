@@ -5,6 +5,7 @@ namespace App\Http\Requests\Api;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProfileRequest extends FormRequest
 {
@@ -43,6 +44,10 @@ class UpdateProfileRequest extends FormRequest
             ],
             'is_voter'        => 'boolean',
             'country_of_residence' => 'nullable|string|max:100',
+            'relationship'     => ['nullable', Rule::in(User::USER_TYPES)],
+            'user_type'        => ['nullable', Rule::in(User::USER_TYPES)],
+            'candidate_ids'    => 'nullable|array',
+            'candidate_ids.*'  => 'integer|exists:candidates,id',
         ];
     }
 }
