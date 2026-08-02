@@ -19,6 +19,10 @@ class PublicPulseEngineClient implements PublicPulseEngineClientInterface
         return $this->request()->get('/pulse/jobs/'.urlencode($engineJobId))->throw()->json();
     }
 
+    public function mentions(string $engineJobId, array $filters = []): array
+    {
+        return $this->request()->get('/pulse/jobs/'.urlencode($engineJobId).'/mentions', $filters)->throw()->json();
+    }
     public function tweets(string $engineJobId, array $filters = []): array
     {
         return $this->request()->get('/pulse/jobs/'.urlencode($engineJobId).'/tweets', $filters)->throw()->json();

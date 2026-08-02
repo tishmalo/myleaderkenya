@@ -42,6 +42,18 @@
                 :required="true"
             />
 
+            <fieldset>
+                <legend class="mb-2 text-sm text-zinc-400">Sources</legend>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    @foreach(['x' => ['X', 'fa-x-twitter'], 'youtube' => ['YouTube', 'fa-youtube'], 'reddit' => ['Reddit', 'fa-reddit'], 'rss' => ['RSS', 'fas fa-rss']] as $source => [$label, $icon])
+                        <label class="cursor-pointer rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-center text-xs text-zinc-300 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 has-[:checked]:text-emerald-300">
+                            <input type="checkbox" name="sources[]" value="{{ $source }}" class="sr-only" @checked(in_array($source, old('sources', ['x']), true))>
+                            <i class="{{ str_contains($icon, ' ') ? $icon : 'fab '. $icon }} mb-2 block text-lg"></i>{{ $label }}
+                        </label>
+                    @endforeach
+                </div>
+                <p class="mt-2 text-xs text-zinc-500">RSS searches Kenya-wide Google News plus configured feeds. News receives a separate Media Sentiment Score and never changes the Public Pulse Score.</p>
+            </fieldset>
             <div>
                 <label class="mb-2 block text-sm text-zinc-400">Extra keywords</label>
                 <input name="keywords_text" value="{{ old('keywords_text') }}" class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-white placeholder:text-zinc-600" placeholder="housing levy, cost of living">
@@ -92,10 +104,10 @@
                     @forelse($jobs as $job)
                         @php($terminal = in_array($job->status, ['completed', 'failed'], true))
                         <tr class="hover:bg-zinc-800/30">
-                            <td class="px-4 py-4"><div class="font-semibold text-white">{{ $job->candidate?->name }}</div><div class="mt-1 font-mono text-[11px] text-zinc-600">{{ Str::limit($job->job_ref, 14) }}</div></td>
+                            <td class="px-4 py-4"><div class="font-semibold text-white">{{ $job->candidate?->name }}</div><div class="mt-1 font-mono text-[11px] text-zinc-600">{{ Str::limit($job->job_ref, 14) }}</div><div class="mt-2 flex flex-wrap gap-1">@foreach(($job->sources ?: ['x']) as $source)<span class="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-400">{{ $source }}</span>@endforeach</div></td>
                             <td class="px-4 py-4"><span class="rounded-full px-3 py-1 text-xs font-semibold {{ $job->status === 'completed' ? 'bg-emerald-500/15 text-emerald-300' : ($job->status === 'failed' || $job->status === 'submission_failed' ? 'bg-red-500/15 text-red-300' : 'bg-amber-500/15 text-amber-300') }}">{{ str_replace('_', ' ', $job->status) }}</span>@if($job->partial)<div class="mt-2 text-xs text-amber-400">Partial result</div>@endif</td>
-                            <td class="whitespace-nowrap px-4 py-4">{{ $job->date_from?->format('d M Y') }}<br><span class="text-zinc-500">to {{ $job->date_to?->format('d M Y') }} · {{ $job->requested_limit }}</span></td>
-                            <td class="px-4 py-4"><div class="font-semibold text-white">Score: {{ data_get($job->summary, 'pulse_score', '—') }}</div><div class="mt-1 text-xs text-zinc-500">Confidence: {{ data_get($job->summary, 'overall_confidence', '—') }}</div></td>
+                            <td class="whitespace-nowrap px-4 py-4">{{ $job->date_from?->format('d M Y') }}<br><span class="text-zinc-500">to {{ $job->date_to?->format('d M Y') }} ï¿½ {{ $job->requested_limit }}</span></td>
+                            <td class="px-4 py-4"><div class="font-semibold text-white">Score: {{ data_get($job->summary, 'pulse_score', 'ï¿½') }}</div><div class="mt-1 text-xs text-zinc-500">Confidence: {{ data_get($job->summary, 'overall_confidence', 'ï¿½') }}</div></td>
                             <td class="px-4 py-4 text-right"><a class="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-semibold text-zinc-300 hover:border-emerald-500/50 hover:text-emerald-300" href="{{ route('public-pulse.jobs.show', $job) }}">Open</a></td>
                         </tr>
                     @empty
@@ -121,4 +133,3 @@ document.querySelector('form[action="{{ route('public-pulse.jobs.store') }}"]')?
 });
 </script>
 @endpush
-

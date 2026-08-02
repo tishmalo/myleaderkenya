@@ -12,6 +12,8 @@ class StorePublicPulseJobRequest extends FormRequest
             'candidate_id' => ['required','integer','exists:candidates,id'],
             'keywords' => ['nullable','array','max:20'],
             'keywords.*' => ['string','max:100','distinct'],
+            'sources' => ['required','array','min:1'],
+            'sources.*' => ['distinct','in:x,youtube,reddit,rss'],
             'date_from' => ['required','date'],
             'date_to' => ['required','date','after_or_equal:date_from'],
             'limit' => ['required','integer','min:1','max:1000'],

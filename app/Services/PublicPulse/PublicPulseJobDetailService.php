@@ -8,6 +8,6 @@ class PublicPulseJobDetailService
     public function tweets(PublicPulseJob $job, array $filters = []): ?array
     {
         if (! $job->engine_job_id) return null;
-        return $this->engine->tweets($job->engine_job_id, $filters);
+        return $this->engine->mentions($job->engine_job_id, $filters);
     }
 }

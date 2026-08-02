@@ -18,13 +18,14 @@ class PublicPulseJob extends Model
     public const TERMINAL_STATUSES = [self::STATUS_COMPLETED, self::STATUS_FAILED];
 
     protected $fillable = [
-        'job_ref', 'engine_job_id', 'candidate_id', 'submitted_by', 'keywords',
+        'job_ref', 'engine_job_id', 'candidate_id', 'submitted_by', 'keywords', 'sources',
         'date_from', 'date_to', 'requested_limit', 'status', 'partial', 'summary',
         'error_message', 'submitted_at', 'last_synced_at', 'completed_at',
     ];
 
     protected $casts = [
         'keywords' => 'array',
+        'sources' => 'array',
         'date_from' => 'date',
         'date_to' => 'date',
         'requested_limit' => 'integer',

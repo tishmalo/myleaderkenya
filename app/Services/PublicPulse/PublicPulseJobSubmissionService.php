@@ -39,6 +39,7 @@ class PublicPulseJobSubmissionService
             'candidate_id' => $candidate->id,
             'submitted_by' => $submittedBy,
             'keywords' => $keywords,
+            'sources' => array_values(array_unique($data['sources'] ?? ['x'])),
             'date_from' => $data['date_from'],
             'date_to' => $data['date_to'],
             'requested_limit' => (int) $data['limit'],
@@ -68,6 +69,7 @@ class PublicPulseJobSubmissionService
             $response = $this->engine->submitJob([
                 'candidate' => $candidateName,
                 'keywords' => $job->keywords,
+                'sources' => $job->sources ?: ['x'],
                 'date_from' => $job->date_from->toDateString(),
                 'date_to' => $job->date_to->toDateString(),
                 'limit' => $job->requested_limit,
