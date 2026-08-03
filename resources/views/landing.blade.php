@@ -150,6 +150,10 @@
 
     @include('components.frontend-nav')
 
+    @if(session('warning'))
+        <div class="ct-flash"><div>{{ session('warning') }}</div></div>
+    @endif
+
     @if(session('success'))
     <div class="ct-flash">
         <div>{{ session('success') }}</div>
