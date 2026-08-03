@@ -14,16 +14,7 @@ return [
             'route' => 'my-account',
             'active' => ['my-account'],
         ],
-        [
-            'label' => 'Available Dashboards',
-            'icon' => 'fas fa-gauge-high',
-            'href' => '#dashboards',
-        ],
-        [
-            'label' => 'Claim Requests',
-            'icon' => 'fas fa-file-signature',
-            'href' => '#claims',
-        ],
+
         [
             'label' => 'Submit or Claim',
             'icon' => 'fas fa-user-plus',
