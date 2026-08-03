@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use App\Models\Concerns\EncryptsPiiAttributes;
 
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -15,8 +18,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements AuditableContract
 {
+    use AuditsChanges;
     use EncryptsPiiAttributes, HasApiTokens, HasFactory, Notifiable;
 
     public const USER_TYPES = ['PA', 'campaign_manager', 'aspirant', 'voter'];
@@ -253,4 +257,3 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 }
-

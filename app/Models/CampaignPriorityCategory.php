@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class CampaignPriorityCategory extends Model
+class CampaignPriorityCategory extends Model implements AuditableContract
 {
+    use AuditsChanges;
     public const ICONS = [
         'fas fa-seedling', 'fas fa-briefcase', 'fas fa-graduation-cap', 'fas fa-shield-halved',
         'fas fa-heart-pulse', 'fas fa-road', 'fas fa-droplet', 'fas fa-house',

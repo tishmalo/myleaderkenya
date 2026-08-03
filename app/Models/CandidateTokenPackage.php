@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class CandidateTokenPackage extends Model
+class CandidateTokenPackage extends Model implements AuditableContract
 {
+    use AuditsChanges;
     protected $fillable = [
         'name',
         'token_amount',

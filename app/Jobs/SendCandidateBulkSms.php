@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Web\CandidateBulkSmsContactRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Models\CandidateSmsMessage;
 use App\Models\User;
+use App\Services\Audit\AuditService;
 use App\Services\Sms\InfobipSmsService;
 use App\Services\Web\AspirantTokenService;
 use Illuminate\Bus\Queueable;
@@ -32,7 +33,8 @@ class SendCandidateBulkSms implements ShouldQueue
         InfobipSmsService $smsService,
         CandidateSmsMessageRepositoryInterface $messages,
         AspirantTokenService $tokenService,
-        CandidateBulkSmsContactRepositoryInterface $contacts
+        CandidateBulkSmsContactRepositoryInterface $contacts,
+        AuditService $auditService
     ): void {
         $smsMessage = CandidateSmsMessage::with(['candidate.smsSetting', 'tokenTransaction'])->find($this->smsMessageId);
 
@@ -61,6 +63,7 @@ class SendCandidateBulkSms implements ShouldQueue
             return;
         }
 
+        $auditService->record('sms.send_started', 'Bulk SMS processing started.', ['actor' => $smsMessage->user, 'candidate_id' => $smsMessage->candidate_id, 'auditable' => $smsMessage, 'module' => 'sms', 'status' => 'pending', 'batch_id' => $this->job?->getJobId()]);
         $messages->update($smsMessage, ['status' => 'processing']);
         Log::info('Bulk SMS job processing started.', [
             'sms_message_id' => $smsMessage->id,
@@ -94,6 +97,8 @@ class SendCandidateBulkSms implements ShouldQueue
             } else {
                 $tokenService->refundReservation($smsMessage->tokenTransaction, $result['message'] ?? 'Bulk SMS provider did not accept the request.');
             }
+
+            $auditService->record('sms.send_completed', 'Bulk SMS provider request completed.', ['actor' => $smsMessage->user, 'candidate_id' => $smsMessage->candidate_id, 'auditable' => $smsMessage, 'module' => 'sms', 'status' => $result['success'] ? 'success' : 'failure', 'batch_id' => $this->job?->getJobId(), 'metadata' => ['recipient_count' => $result['recipient_count']]]);
 
             Log::info('Bulk SMS provider request completed.', [
                 'sms_message_id' => $smsMessage->id,
@@ -131,7 +136,8 @@ class SendCandidateBulkSms implements ShouldQueue
 
     private function recipients(
         CandidateSmsMessage $smsMessage,
-        CandidateBulkSmsContactRepositoryInterface $contacts
+        CandidateBulkSmsContactRepositoryInterface $contacts,
+        AuditService $auditService
     ): Collection {
         if ($smsMessage->recipient_source === 'uploaded_contacts') {
             return $contacts->recipientsForCandidate(
@@ -154,6 +160,3 @@ class SendCandidateBulkSms implements ShouldQueue
             ->get();
     }
 }
-
-
-

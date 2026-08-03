@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class CandidateTokenRate extends Model
+class CandidateTokenRate extends Model implements AuditableContract
 {
+    use AuditsChanges;
     public const CALCULATION_TYPES = ['fixed', 'per_recipient', 'per_sms_unit'];
 
     protected $fillable = [

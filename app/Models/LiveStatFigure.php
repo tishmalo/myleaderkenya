@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LiveStatFigure extends Model
+class LiveStatFigure extends Model implements AuditableContract
 {
+    use AuditsChanges;
     use HasFactory;
 
     public const METRICS = [

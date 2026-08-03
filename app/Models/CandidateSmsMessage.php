@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CandidateSmsMessage extends Model
+class CandidateSmsMessage extends Model implements AuditableContract
 {
+    use AuditsChanges;
     protected $fillable = [
         'candidate_id',
         'user_id',
@@ -50,5 +54,3 @@ class CandidateSmsMessage extends Model
         return $this->belongsTo(CandidateTokenTransaction::class, 'token_transaction_id');
     }
 }
-
-

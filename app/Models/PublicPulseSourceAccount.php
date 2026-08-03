@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 
-class PublicPulseSourceAccount extends Model
+class PublicPulseSourceAccount extends Model implements AuditableContract
 {
+    use AuditsChanges;
     public const STATUS_HEALTHY = 'healthy';
     public const STATUS_RATE_LIMITED = 'rate_limited';
     public const STATUS_EXPIRED = 'expired';

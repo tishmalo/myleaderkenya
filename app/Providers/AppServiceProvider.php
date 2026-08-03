@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
+use App\Contracts\Repositories\Audit\AuditRepositoryInterface;
 use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsBalanceRequestRepositoryInterface;
@@ -59,6 +60,7 @@ use App\Models\Role;
 use App\Observers\CandidateObserver;
 use App\Policies\UserAccessPolicy;
 use App\Repositories\Admin\BlocRepository;
+use App\Repositories\Audit\AuditRepository;
 use App\Repositories\Admin\CampaignToolRepository;
 use App\Repositories\Admin\CandidateRepository;
 use App\Repositories\Admin\CandidateSmsBalanceRequestRepository;
@@ -112,8 +114,12 @@ use App\Services\PublicPulse\DeepSeekMentionToneClassifierService;
 use App\Services\PublicPulse\LocalMentionLanguageDetector;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -127,6 +133,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register Admin Repositories
+        $this->app->bind(AuditRepositoryInterface::class, AuditRepository::class);
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
         $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
         $this->app->bind(CandidateSmsBalanceRequestRepositoryInterface::class, CandidateSmsBalanceRequestRepository::class);
@@ -202,6 +209,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Role::class, UserAccessPolicy::class);
         Candidate::observe(CandidateObserver::class);
+        Event::listen(Login::class, fn (Login $event) => app(\App\Services\Audit\AuditService::class)->record('auth.login', 'User signed in.', ['actor' => $event->user, 'module' => 'authentication']));
+        Event::listen(Logout::class, fn (Logout $event) => app(\App\Services\Audit\AuditService::class)->record('auth.logout', 'User signed out.', ['actor' => $event->user, 'module' => 'authentication']));
+        Event::listen(Failed::class, fn (Failed $event) => app(\App\Services\Audit\AuditService::class)->record('auth.login_failed', 'Sign-in attempt failed.', ['actor' => $event->user, 'module' => 'authentication', 'status' => 'failure', 'metadata' => ['email' => $event->credentials['email'] ?? null]]));
 
         $this->listenForDatabaseQueries();
 

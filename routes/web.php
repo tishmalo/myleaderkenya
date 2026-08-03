@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AspirantImpersonationController;
+use App\Http\Controllers\Admin\AuditController;
 use App\Http\Controllers\Admin\BlocController;
 use App\Http\Controllers\Admin\CampaignPriorityCategoryController;
 use App\Http\Controllers\Admin\CampaignToolController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WardController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Web\AspirantAuditController;
 use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
@@ -141,6 +143,10 @@ Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::
 Route::middleware('auth')->group(function () {
     Route::get('/my-account', [MyAccountController::class, 'index'])->name('my-account');
     Route::post('/my-account/aspirants/select', [MyAccountController::class, 'select'])->middleware('throttle:20,1')->name('my-account.aspirants.select');
+    Route::middleware(['aspirant','aspirant.owner'])->group(function () {
+        Route::get('/aspirant/audits', [AspirantAuditController::class, 'index'])->name('aspirant.audits.index');
+        Route::get('/aspirant/audits/{audit}', [AspirantAuditController::class, 'show'])->name('aspirant.audits.show');
+    });
     Route::middleware('aspirant')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
         Route::post('/aspirant/cover-photo', [AspirantDashboardController::class, 'updateCoverPhoto'])->middleware('throttle:6,10')->name('aspirant.cover-photo.update');
@@ -178,6 +184,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/officials/{user}', [PoliticalPartyDashboardController::class, 'removeOfficial'])->name('officials.destroy');
         Route::post('/tokens/purchase', [PoliticalPartyDashboardController::class, 'purchase'])->name('tokens.purchase');
         Route::post('/tokens/distribute', [PoliticalPartyDashboardController::class, 'distribute'])->name('tokens.distribute');
+    });
+    Route::middleware(['admin','superadmin'])->group(function () {
+        Route::get('/admin/audits', [AuditController::class, 'index'])->name('audits.index');
+        Route::get('/admin/audits/{audit}', [AuditController::class, 'show'])->name('audits.show');
     });
     Route::middleware('admin')->group(function () {
         // --- Core Admin & Dashboard ---
@@ -317,6 +327,3 @@ Route::middleware('auth')->group(function () {
     Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop');
 });
 require __DIR__.'/auth.php';
-
-
-

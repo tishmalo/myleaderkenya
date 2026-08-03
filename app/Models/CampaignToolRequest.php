@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class CampaignToolRequest extends Model
+class CampaignToolRequest extends Model implements AuditableContract
 {
+    use AuditsChanges;
     public const STATUSES = ['new', 'in_progress', 'completed', 'cancelled'];
 
     protected $fillable = [
@@ -49,4 +53,3 @@ class CampaignToolRequest extends Model
         return $this->belongsTo(Candidate::class);
     }
 }
-

@@ -1,8 +1,12 @@
 <?php
 namespace App\Models;
+
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use Illuminate\Database\Eloquent\Model;
 
-class GroupMember extends Model {
+class GroupMember extends Model implements AuditableContract {
+    use AuditsChanges;
     protected $fillable = ['group_id', 'user_id'];
     public $timestamps = true;
 

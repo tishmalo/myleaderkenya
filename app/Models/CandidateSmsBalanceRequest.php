@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CandidateSmsBalanceRequest extends Model
+class CandidateSmsBalanceRequest extends Model implements AuditableContract
 {
+    use AuditsChanges;
     public const STATUSES = ['new', 'in_review', 'followed_up', 'closed'];
 
     protected $fillable = [

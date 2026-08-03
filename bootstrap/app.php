@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Middleware\AuditMutatingRequests;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsAspirant;
 use App\Http\Middleware\EnsureUserIsPartyOfficial;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
+use App\Http\Middleware\EnsureUserOwnsActiveCandidate;
 use App\Http\Middleware\FixApiTokenHeader;
 use App\Http\Middleware\PreventStaleCsrfPages;
 use App\Http\Middleware\EnsurePulseEngineApiKey;
@@ -29,10 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => EnsureUserIsSuperAdmin::class,
             'permission' => EnsureUserHasPermission::class,
             'aspirant' => EnsureUserIsAspirant::class,
+            'aspirant.owner' => EnsureUserOwnsActiveCandidate::class,
             'party' => EnsureUserIsPartyOfficial::class,
         ]);
         $middleware->prepend(FixApiTokenHeader::class);
-        $middleware->appendToGroup('web', [PreventStaleCsrfPages::class]);
+        $middleware->appendToGroup('web', [PreventStaleCsrfPages::class, AuditMutatingRequests::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function ($request, $e) {
@@ -60,4 +63,3 @@ return Application::configure(basePath: dirname(__DIR__))
 // commands: __DIR__.'/../routes/console.php',
 // health: '/up',
 // )
-

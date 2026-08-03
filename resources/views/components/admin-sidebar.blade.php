@@ -12,6 +12,10 @@
             return false;
         }
 
+        if (($item['superadmin_only'] ?? false) && ! $currentUser?->isSuperAdmin()) {
+            return false;
+        }
+
         $permission = $item['permission'] ?? null;
 
         return $permission && $currentUser && $currentUser->canAccess($permission);
