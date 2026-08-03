@@ -11,20 +11,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-zinc-950 text-zinc-100">
-<div class="min-h-screen">
-    <header class="bg-zinc-900 border-b border-zinc-800 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <a href="{{ route('aspirant.dashboard') }}" class="flex items-center gap-3">
-                <img src="{{ asset('images/myleader.png') }}" class="w-10 h-10 rounded-2xl object-cover" alt="ML Kenya">
-                <span class="font-semibold text-xl">Aspirant Portal</span>
-            </a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="text-zinc-400 hover:text-red-400 flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            </form>
-        </div>
-    </header>
-    <main class="p-6 md:p-8">@yield('content')</main>
-</div>
+@yield('content')
 </body>
 </html>

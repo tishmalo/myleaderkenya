@@ -9,6 +9,9 @@
 @endpush
 
 @section('content')
+<div class="flag-stripe"></div>
+@include('components.frontend-nav')
+
 <main class="account-shell">
     <div class="account-layout">
         @include('components.my-account-sidebar')
