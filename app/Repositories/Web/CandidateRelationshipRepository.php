@@ -91,6 +91,35 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
             ->exists();
     }
 
+    public function accessibleCandidates(User $user): Collection
+    {
+        $owned = Candidate::query()
+            ->with(['position', 'politicalParty'])
+            ->where('user_id', $user->id)
+            ->latest('candidates.created_at')
+            ->get();
+
+        if (! Schema::hasTable('candidate_user_relationships')) {
+            return $owned;
+        }
+
+        $related = $user->relatedCandidates()
+            ->with(['position', 'politicalParty'])
+            ->whereIn('candidate_user_relationships.relationship', ['aspirant', 'PA', 'campaign_manager'])
+            ->when(
+                Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled'),
+                fn ($query) => $query->where('candidate_user_relationships.dashboard_access_enabled', true)
+            )
+            ->latest('candidates.created_at')
+            ->get();
+
+        return $owned->concat($related)->unique('id')->values();
+    }
+
+    public function findAccessibleCandidate(User $user, int $candidateId): ?Candidate
+    {
+        return $this->accessibleCandidates($user)->firstWhere('id', $candidateId);
+    }
     public function firstRelatedCandidate(User $user): ?Candidate
     {
         if (! Schema::hasTable('candidate_user_relationships')) {

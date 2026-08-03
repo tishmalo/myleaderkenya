@@ -28,6 +28,15 @@ class AspirantWorkspaceService
 
         $query = Candidate::with($relations);
 
+        $selectedCandidateId = (int) session('active_candidate_id', 0);
+        if ($selectedCandidateId > 0) {
+            $selectedCandidate = $this->relationships->findAccessibleCandidate($user, $selectedCandidateId);
+            if ($selectedCandidate) {
+                return $selectedCandidate;
+            }
+            session()->forget('active_candidate_id');
+        }
+
         if (Schema::hasColumn('candidates', 'user_id')) {
             $candidate = (clone $query)->where('user_id', $user->id)->latest()->first();
 
@@ -304,4 +313,3 @@ class AspirantWorkspaceService
         ]);
     }
 }
-

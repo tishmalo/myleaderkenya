@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
@@ -31,9 +30,10 @@ class RegisteredUserController extends Controller
         $this->authService->register([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+            'password' => $request->password,
         ]);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('my-account', absolute: false));
     }
 }

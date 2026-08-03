@@ -14,7 +14,11 @@ class CandidateClaimRequestController extends Controller
 
     public function store(StoreCandidateClaimRequest $request, Candidate $candidate): RedirectResponse
     {
-        $this->claimRequestService->createPublicRequest($candidate, $request->validated());
+        if ($request->user()) {
+            $this->claimRequestService->createAuthenticatedRequest($candidate, $request->user(), $request->validated('relationship'));
+        } else {
+            $this->claimRequestService->createPublicRequest($candidate, $request->validated());
+        }
 
         return back()->with('success', 'Your claim request has been submitted for admin verification.');
     }

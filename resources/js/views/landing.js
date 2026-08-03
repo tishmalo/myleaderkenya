@@ -486,3 +486,41 @@ window.modalPwdStrength = function modalPwdStrength(val) {
         }
     });
 })();
+
+window.checkModalPasswordMatch = function checkModalPasswordMatch() {
+    const password = document.getElementById('modal-reg-pwd');
+    const confirmation = document.getElementById('modal-reg-pwd2');
+    const status = document.getElementById('modal-pwd-match');
+    if (!password || !confirmation || !status) return;
+    const matches = !confirmation.value || password.value === confirmation.value;
+    confirmation.setCustomValidity(matches ? '' : 'Passwords do not match.');
+    status.textContent = !confirmation.value ? '' : (matches ? 'Passwords match.' : 'Passwords do not match.');
+    status.style.color = matches ? '#34d399' : '#f87171';
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+    const email = document.getElementById('modal-reg-email');
+    const status = document.getElementById('modal-email-status');
+    const password = document.getElementById('modal-reg-pwd');
+    if (password) password.addEventListener('input', window.checkModalPasswordMatch);
+    if (!email || !status) return;
+    let timer;
+    email.addEventListener('input', function () {
+        clearTimeout(timer);
+        email.setCustomValidity('');
+        const value = email.value.trim().toLowerCase();
+        if (!value || !email.validity.valid) { status.textContent = ''; return; }
+        status.textContent = 'Checking email...';
+        timer = setTimeout(async function () {
+            try {
+                const token = email.form.querySelector('input[name="_token"]').value;
+                const response = await fetch('/aspirants/email-availability', {method: 'POST', headers: {'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN':token}, body: JSON.stringify({email:value})});
+                const result = await response.json();
+                if (email.value.trim().toLowerCase() !== value) return;
+                email.setCustomValidity(result.available ? '' : result.message);
+                status.textContent = result.message;
+                status.style.color = result.available ? '#34d399' : '#f87171';
+            } catch (_) { status.textContent = ''; }
+        }, 450);
+    });
+});
