@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Models\User;
+use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
@@ -18,16 +18,12 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'nick_name' => ['nullable', 'string', 'max:100'],
             'phone' => ['required', 'string', 'max:20'],
-            'email' => [
-                'required', 'string', 'lowercase', 'email', 'max:255',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (User::emailExists((string) $value)) {
-                        $fail('The email has already been taken.');
-                    }
-                },
-            ],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (app(UserRepositoryInterface::class)->existsByEmailHash((string) $value)) {
+                    $fail('An account already exists for that email.');
+                }
+            }],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'position_id' => ['required', 'exists:positions,id'],
             'political_party_id' => ['nullable', 'exists:political_parties,id'],

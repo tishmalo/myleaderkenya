@@ -35,6 +35,12 @@ class UserRepository implements UserRepositoryInterface
         return User::findByEmailValue($email);
     }
 
+    public function existsByEmailHash(string $email): bool
+    {
+        return User::query()
+            ->where('email_hash', hash('sha256', strtolower(trim($email))))
+            ->exists();
+    }
     public function update(User $user, array $data): bool
     {
         $candidateIds = $data['candidate_ids'] ?? null;

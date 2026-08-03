@@ -211,4 +211,61 @@ class AspirantPrivacyTest extends TestCase
         $this->assertNull($user->email_verified_at);
         $this->assertNull($user->relationship);
     }
+    public function test_authenticated_user_does_not_see_secure_account_fields(): void
+    {
+        $user = User::factory()->create(['email' => 'signed-in@example.test']);
+
+        $this->actingAs($user)
+            ->get(route('aspirants.register'))
+            ->assertOk()
+            ->assertDontSee('Your secure account')
+            ->assertDontSee('name="account_email"', false)
+            ->assertDontSee('name="password_confirmation"', false)
+            ->assertSee('signed-in@example.test');
+    }
+
+    public function test_authenticated_existing_candidate_claim_reuses_current_user(): void
+    {
+        $user = User::factory()->create(['email' => 'current-user@example.test']);
+        $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
+        $candidate = Candidate::create([
+            'name' => 'Existing Aspirant',
+            'position_id' => $position->id,
+            'approval_status' => 'approved',
+        ]);
+
+        $this->actingAs($user)->post(route('aspirants.register.store'), [
+            'candidate_id' => $candidate->id,
+            'submission_mode' => 'representative',
+            'relationship' => 'PA',
+        ])->assertRedirect(route('aspirants.register', ['candidate_id' => $candidate->id]));
+
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseHas('candidate_claim_requests', [
+            'candidate_id' => $candidate->id,
+            'user_id' => $user->id,
+            'relationship' => 'PA',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_authenticated_self_submission_links_existing_user(): void
+    {
+        $user = User::factory()->create(['email' => 'self@example.test']);
+        $position = Position::create(['name' => 'Governor', 'sort_order' => 1]);
+
+        $this->actingAs($user)->post(route('aspirants.register.store'), [
+            'submission_mode' => 'self',
+            'aspirant_name' => 'Signed In Aspirant',
+            'position_id' => $position->id,
+            'county' => 'Nairobi',
+        ])->assertRedirect(route('aspirants.register'));
+
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseHas('candidates', [
+            'name' => 'Signed In Aspirant',
+            'user_id' => $user->id,
+            'approval_status' => 'pending',
+        ]);
+    }
 }

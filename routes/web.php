@@ -52,6 +52,7 @@ use App\Http\Controllers\Web\CandidateClaimController;
 use App\Http\Controllers\Web\CandidateClaimRequestController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Web\LandingController;
+use App\Http\Controllers\Web\MyAccountController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
 use App\Models\Constituency;
@@ -138,6 +139,8 @@ Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
+    Route::get('/my-account', [MyAccountController::class, 'index'])->name('my-account');
+    Route::post('/my-account/aspirants/select', [MyAccountController::class, 'select'])->middleware('throttle:20,1')->name('my-account.aspirants.select');
     Route::middleware('aspirant')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
         Route::post('/aspirant/cover-photo', [AspirantDashboardController::class, 'updateCoverPhoto'])->middleware('throttle:6,10')->name('aspirant.cover-photo.update');

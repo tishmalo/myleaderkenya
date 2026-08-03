@@ -24,8 +24,13 @@ class RegisteredUserController extends Controller
 
     public function store(RegisterRequest $request): RedirectResponse
     {
-        $user = $this->authService->register(array_merge($request->validated(), ['is_aspirant' => true]));
+        $this->authService->register([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => $request->password,
+        ]);
 
-        return redirect()->route($user->user_type === 'aspirant' ? 'aspirant.dashboard' : 'dashboard');
+        return redirect(route('my-account', absolute: false));
     }
 }

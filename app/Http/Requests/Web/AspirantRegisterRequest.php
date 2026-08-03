@@ -23,6 +23,7 @@ class AspirantRegisterRequest extends FormRequest
 
     public function rules(): array
     {
+        $authenticated = $this->user() !== null;
         $existingCandidate = $this->filled('candidate_id');
         $representative = $this->input('submission_mode') === 'representative';
 
@@ -34,20 +35,20 @@ class AspirantRegisterRequest extends FormRequest
             'aspirant_name' => [Rule::requiredIf(! $existingCandidate), 'nullable', 'string', 'max:255'],
             'nick_name' => ['nullable', 'string', 'max:100'],
             'aspirant_email' => [
-                Rule::requiredIf(! $existingCandidate && ! $representative),
+                Rule::requiredIf(! $authenticated && ! $existingCandidate && ! $representative),
                 'nullable', 'string', 'lowercase', 'email', 'max:255',
-                $this->uniqueAccountEmailRule(! $existingCandidate && ! $representative),
+                $this->uniqueAccountEmailRule(! $authenticated && ! $existingCandidate && ! $representative),
             ],
             'aspirant_phone' => ['nullable', 'string', 'max:20'],
 
-            'account_name' => [Rule::requiredIf($representative), 'nullable', 'string', 'max:255'],
+            'account_name' => [Rule::requiredIf(! $authenticated && $representative), 'nullable', 'string', 'max:255'],
             'account_email' => [
-                Rule::requiredIf($existingCandidate || $representative),
+                Rule::requiredIf(! $authenticated && ($existingCandidate || $representative)),
                 'nullable', 'string', 'lowercase', 'email', 'max:255',
-                $this->uniqueAccountEmailRule($existingCandidate || $representative),
+                $this->uniqueAccountEmailRule(! $authenticated && ($existingCandidate || $representative)),
             ],
             'account_phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => [Rule::requiredIf(! $authenticated), 'nullable', 'confirmed', Rules\Password::defaults()],
 
             'position_id' => [Rule::requiredIf(! $existingCandidate), 'nullable', 'exists:positions,id'],
             'political_party_id' => ['nullable', 'exists:political_parties,id'],

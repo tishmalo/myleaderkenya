@@ -20,5 +20,9 @@ interface CandidateRelationshipRepositoryInterface
 
     public function hasApprovedCandidateRelationship(User $user): bool;
 
+    public function accessibleCandidates(User $user): Collection;
+
+    public function findAccessibleCandidate(User $user, int $candidateId): ?Candidate;
+
     public function firstRelatedCandidate(User $user): ?Candidate;
 }
