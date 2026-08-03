@@ -18,6 +18,10 @@ class StoreCandidateClaimRequest extends FormRequest
 
     public function rules(): array
     {
+        if ($this->user()) {
+            return ['relationship' => ['required', Rule::in(CandidateClaimRequest::RELATIONSHIPS)]];
+        }
+
         return [
             'relationship' => ['required', Rule::in(CandidateClaimRequest::RELATIONSHIPS)],
             'name' => ['required', 'string', 'max:255'],

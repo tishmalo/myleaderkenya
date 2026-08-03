@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Contracts\Repositories\Api\UserRepositoryInterface as AccountRepositoryInterface;
 use App\Http\Requests\Web\AspirantEmailAvailabilityRequest;
 use App\Http\Requests\Web\AspirantRegisterRequest;
 use App\Models\Candidate;
@@ -24,7 +25,8 @@ class AspirantRegistrationController extends Controller
 {
     public function __construct(
         private CandidateService $candidateService,
-        private CandidateClaimRequestService $claimRequestService
+        private CandidateClaimRequestService $claimRequestService,
+        private AccountRepositoryInterface $accounts
     ) {}
 
     public function create(Request $request): View
@@ -77,9 +79,7 @@ class AspirantRegistrationController extends Controller
     {
         $validated = $request->validated();
 
-        $exists = User::query()
-            ->where('email_hash', hash('sha256', Str::lower(trim($validated['email']))))
-            ->exists();
+        $exists = $this->accounts->existsByEmailHash($validated['email']);
 
         return response()->json([
             'available' => ! $exists,
@@ -92,6 +92,7 @@ class AspirantRegistrationController extends Controller
     public function store(AspirantRegisterRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $authenticatedUser = $request->user();
         $isRepresentative = $validated['submission_mode'] === 'representative';
         $relationship = $isRepresentative ? $validated['relationship'] : 'aspirant';
 
@@ -104,19 +105,23 @@ class AspirantRegistrationController extends Controller
                 )
                 ->findOrFail($validated['candidate_id']);
 
-            $this->claimRequestService->createPublicRequest($candidate, [
-                'relationship' => $relationship,
-                'name' => $isRepresentative ? $validated['account_name'] : $candidate->name,
-                'email' => $validated['account_email'],
-                'phone' => $validated['account_phone'] ?? null,
-                'password' => $validated['password'],
-                '_email_field' => 'account_email',
-            ]);
+            if ($authenticatedUser) {
+                $this->claimRequestService->createAuthenticatedRequest($candidate, $authenticatedUser, $relationship);
+            } else {
+                $this->claimRequestService->createPublicRequest($candidate, [
+                    'relationship' => $relationship,
+                    'name' => $isRepresentative ? $validated['account_name'] : $candidate->name,
+                    'email' => $validated['account_email'],
+                    'phone' => $validated['account_phone'] ?? null,
+                    'password' => $validated['password'],
+                    '_email_field' => 'account_email',
+                ]);
+            }
 
             return $this->registrationRedirect($request, 'Your access request has been submitted for admin verification.');
         }
 
-        DB::transaction(function () use ($request, $validated, $isRepresentative, $relationship): void {
+        DB::transaction(function () use ($request, $validated, $authenticatedUser, $isRepresentative, $relationship): void {
             $candidateData = [
                 'name' => $validated['aspirant_name'],
                 'nick_name' => $validated['nick_name'] ?? null,
@@ -131,7 +136,7 @@ class AspirantRegistrationController extends Controller
                 'approval_status' => 'pending',
             ];
 
-            if (! $isRepresentative) {
+            if (! $isRepresentative && ! $authenticatedUser) {
                 $user = User::create([
                     'name' => $validated['aspirant_name'],
                     'username' => $this->uniqueUsername($validated['aspirant_name']),
@@ -143,6 +148,8 @@ class AspirantRegistrationController extends Controller
                     'is_aspirant' => true,
                 ]);
                 $candidateData['user_id'] = $user->id;
+            } elseif (! $isRepresentative) {
+                $candidateData['user_id'] = $authenticatedUser->id;
             }
 
             $candidate = $this->candidateService->createCandidate(
@@ -151,7 +158,9 @@ class AspirantRegistrationController extends Controller
                 $request->file('cover_photo')
             );
 
-            if ($isRepresentative) {
+            if ($isRepresentative && $authenticatedUser) {
+                $this->claimRequestService->createAuthenticatedRequest($candidate, $authenticatedUser, $relationship);
+            } elseif ($isRepresentative) {
                 $this->claimRequestService->createPublicRequest($candidate, [
                     'relationship' => $relationship,
                     'name' => $validated['account_name'],
@@ -167,7 +176,7 @@ class AspirantRegistrationController extends Controller
             ? 'The aspirant profile and your access request have been submitted for admin verification.'
             : 'Your aspirant registration has been submitted. Sign in while an admin reviews your profile.';
 
-        return $this->registrationRedirect($request, $message, ! $isRepresentative);
+        return $this->registrationRedirect($request, $message, ! $authenticatedUser && ! $isRepresentative);
     }
 
     private function registrationRedirect(Request $request, string $message, bool $toLogin = false): RedirectResponse

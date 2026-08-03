@@ -4,6 +4,7 @@ namespace App\Contracts\Repositories\Web;
 
 use App\Models\Candidate;
 use App\Models\CandidateClaimRequest;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 interface CandidateClaimRequestRepositoryInterface
@@ -11,6 +12,10 @@ interface CandidateClaimRequestRepositoryInterface
     public function create(Candidate $candidate, array $data): CandidateClaimRequest;
 
     public function pendingDuplicate(Candidate $candidate, string $email, string $relationship): ?CandidateClaimRequest;
+
+    public function activeDuplicateForUser(Candidate $candidate, User $user, string $relationship): ?CandidateClaimRequest;
+
+    public function forUser(User $user): Collection;
 
     public function forCandidate(Candidate $candidate): Collection;
 

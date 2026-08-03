@@ -2,30 +2,23 @@
 
 namespace App\Services\Web;
 
-use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
 use App\Contracts\Repositories\Web\PoliticalPartyManagementRepositoryInterface;
 use App\Models\User;
 
 class DashboardDestinationService
 {
-    public function __construct(
-        private CandidateRelationshipRepositoryInterface $relationships,
-        private PoliticalPartyManagementRepositoryInterface $parties,
-    ) {}
+    public function __construct(private PoliticalPartyManagementRepositoryInterface $parties) {}
 
     public function urlFor(User $user, bool $absolute = true): string
     {
-        if (
-            $user->user_type === 'aspirant'
-            || $this->relationships->hasApprovedCandidateRelationship($user)
-        ) {
-            return route('aspirant.dashboard', absolute: $absolute);
+        if ($user->isAdmin()) {
+            return route('dashboard', absolute: $absolute);
         }
 
         if ($this->parties->activePartyForUser($user)) {
             return route('party.dashboard', absolute: $absolute);
         }
 
-        return route('dashboard', absolute: $absolute);
+        return route('my-account', absolute: $absolute);
     }
 }

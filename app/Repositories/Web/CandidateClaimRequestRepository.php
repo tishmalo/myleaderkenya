@@ -5,6 +5,7 @@ namespace App\Repositories\Web;
 use App\Contracts\Repositories\Web\CandidateClaimRequestRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\CandidateClaimRequest;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
@@ -25,6 +26,24 @@ class CandidateClaimRequestRepository implements CandidateClaimRequestRepository
             ->first();
     }
 
+    public function activeDuplicateForUser(Candidate $candidate, User $user, string $relationship): ?CandidateClaimRequest
+    {
+        return CandidateClaimRequest::query()
+            ->where('candidate_id', $candidate->id)
+            ->where('user_id', $user->id)
+            ->where('relationship', $relationship)
+            ->whereIn('status', [CandidateClaimRequest::STATUS_PENDING, CandidateClaimRequest::STATUS_APPROVED])
+            ->first();
+    }
+
+    public function forUser(User $user): Collection
+    {
+        return CandidateClaimRequest::query()
+            ->where('user_id', $user->id)
+            ->with(['candidate.position', 'candidate.politicalParty'])
+            ->latest()
+            ->get();
+    }
     public function forCandidate(Candidate $candidate): Collection
     {
         return $candidate->claimRequests()

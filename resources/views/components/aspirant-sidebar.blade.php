@@ -30,6 +30,7 @@
 @endphp
 
 <aside class="asp-sidebar" aria-label="Aspirant dashboard navigation">
+    <a href="{{ route('my-account') }}" class="asp-sidebar-link mb-3"><i class="fas fa-arrow-left"></i><span>Back to My Account</span></a>
     <div class="asp-sidebar-brand">
         <span>{{ $sidebar['brand']['label'] ?? 'Aspirant' }}</span>
         <strong>{{ $sidebar['brand']['title'] ?? 'Dashboard' }}</strong>
@@ -62,4 +63,3 @@
         </form>
     </div>
 </aside>
-

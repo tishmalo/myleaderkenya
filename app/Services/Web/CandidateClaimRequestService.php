@@ -64,6 +64,31 @@ class CandidateClaimRequestService
         });
     }
 
+    public function createAuthenticatedRequest(Candidate $candidate, User $user, string $relationship): CandidateClaimRequest
+    {
+        return DB::transaction(function () use ($candidate, $user, $relationship): CandidateClaimRequest {
+            if ($this->claimRequests->activeDuplicateForUser($candidate, $user, $relationship)) {
+                throw ValidationException::withMessages([
+                    'relationship' => 'You already have a pending or approved claim for this aspirant in that role.',
+                ]);
+            }
+
+            return $this->claimRequests->create($candidate, [
+                'user_id' => $user->id,
+                'relationship' => $relationship,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'password' => $user->password,
+                'status' => CandidateClaimRequest::STATUS_PENDING,
+            ]);
+        });
+    }
+
+    public function claimsForUser(User $user): Collection
+    {
+        return $this->claimRequests->forUser($user);
+    }
     public function listForCandidate(Candidate $candidate): Collection
     {
         return $this->claimRequests->forCandidate($candidate);

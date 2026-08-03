@@ -40,7 +40,7 @@
         </section>
 
         <section class="aspirant-panel">
-            <div class="aspirant-panel-head"><span class="aspirant-panel-num">2</span><div><h2>Who is submitting?</h2><p>This determines whose login account and password will be created.</p></div></div>
+            <div class="aspirant-panel-head"><span class="aspirant-panel-num">2</span><div><h2>Who is submitting?</h2><p>{{ auth()->check() ? 'This determines your relationship to the aspirant.' : 'This determines whose login account and password will be created.' }}</p></div></div>
             <div class="aspirant-role-switch">
                 <label><input type="radio" name="submission_mode" value="self" {{ old('submission_mode','self') === 'self' ? 'checked' : '' }}><span><i class="fas fa-user"></i> I am the aspirant</span></label>
                 <label><input type="radio" name="submission_mode" value="representative" {{ old('submission_mode') === 'representative' ? 'checked' : '' }}><span><i class="fas fa-people-group"></i> I'm submitting on behalf</span></label>
@@ -52,7 +52,7 @@
                     <option value="campaign_manager" {{ old('relationship') === 'campaign_manager' ? 'selected' : '' }}>Campaign Team</option>
                 </select>
             </div>
-            <div class="aspirant-privacy-note"><i class="fas fa-shield-halved"></i><span>Your password always belongs to you - the person submitting this form. Existing aspirant email and phone data are never displayed or prefilled.</span></div>
+            <div class="aspirant-privacy-note"><i class="fas fa-shield-halved"></i><span>{{ auth()->check() ? 'This request will use your current signed-in account. Existing aspirant contact data is never displayed or prefilled.' : 'Your password always belongs to you - the person submitting this form. Existing aspirant email and phone data are never displayed or prefilled.' }}</span></div>
         </section>
 
         <div data-new-profile>
@@ -75,6 +75,7 @@
             </section>
         </div>
 
+        @guest
         <section class="aspirant-panel">
             <div class="aspirant-panel-head"><span class="aspirant-panel-num" data-account-step>4</span><div><h2>Your secure account</h2><p data-account-copy>The password below is yours and is never the aspirant's when you are a PA or campaign-team member.</p></div></div>
             <div class="aspirant-grid" data-account-identity hidden>
@@ -88,6 +89,12 @@
             </div>
             <button class="aspirant-submit" type="submit">Submit for Admin Verification</button>
         </section>
+        @else
+        <section class="aspirant-panel">
+            <div class="aspirant-privacy-note"><i class="fas fa-circle-check"></i><span><strong>{{ auth()->user()->name }}</strong><br>{{ auth()->user()->email }}</span></div>
+            <button class="aspirant-submit" type="submit">Submit for Admin Verification</button>
+        </section>
+        @endguest
     </form>
 </div>
 </main>
@@ -136,7 +143,7 @@ function syncRegistrationMode() {
 
     relationshipWrap.hidden = !representative;
     newProfileSection.hidden = hasExistingCandidate;
-    accountIdentity.hidden = !representative && !hasExistingCandidate;
+    if (accountIdentity) accountIdentity.hidden = !representative && !hasExistingCandidate;
     const accountStep = document.querySelector('[data-account-step]');
     if (accountStep) accountStep.textContent = hasExistingCandidate ? '3' : '4';
 
@@ -144,7 +151,7 @@ function syncRegistrationMode() {
         field.disabled = hasExistingCandidate;
     });
     document.querySelectorAll('[data-account-identity] input').forEach(function (field) {
-        field.disabled = accountIdentity.hidden;
+        field.disabled = accountIdentity ? accountIdentity.hidden : true;
     });
 }
 
@@ -465,4 +472,3 @@ function updatePhotoPreview(key, file, imageUrl) {
 }
 </script>
 @endpush
-
