@@ -53,7 +53,7 @@
 
                 $menuItem['children'] = \App\Models\Position::ordered()
                     ->get()
-                    ->map(function ($position) use ($politicalBlocs, $isCountyScopedPosition) {
+                    ->map(function ($position) use ($regionalBlocs, $isCountyScopedPosition) {
                         $child = [
                             'label' => $position->name,
                             'route' => 'aspirants.public',
@@ -61,8 +61,8 @@
                             'active' => ['aspirants.public', 'aspirants.show'],
                         ];
 
-                        if ($isCountyScopedPosition($position->name) && $politicalBlocs->isNotEmpty()) {
-                            $child['children'] = $politicalBlocs
+                        if ($isCountyScopedPosition($position->name) && $regionalBlocs->isNotEmpty()) {
+                            $child['children'] = $regionalBlocs
                                 ->map(fn ($bloc) => [
                                     'label' => $bloc->name,
                                     'route' => 'aspirants.public',
