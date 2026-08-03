@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CandidateStoreRequest;
 use App\Http\Requests\Admin\CandidateUpdateRequest;
+use App\Http\Requests\Admin\UpdateCandidateApprovalRequest;
 use App\Models\Candidate;
 use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
@@ -126,11 +127,12 @@ class CandidateController extends Controller
             'featured' => $candidate->featured,
         ]);
     }
-    public function approve(Candidate $candidate)
+    public function updateApproval(UpdateCandidateApprovalRequest $request, Candidate $candidate): RedirectResponse
     {
-        $this->candidateService->approveCandidate($candidate);
+        $status = $request->validated('status');
+        $this->candidateService->updateApprovalStatus($candidate, $status);
 
-        return back()->with('success', 'Aspirant approved successfully.');
+        return back()->with('success', 'Aspirant ' . $status . ' successfully.');
     }
 
     public function sendClaimLink(Candidate $candidate)

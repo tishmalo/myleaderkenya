@@ -146,6 +146,18 @@ class CandidateService
 
         return $this->candidateRepository->delete($candidate);
     }
+    public function updateApprovalStatus(Candidate $candidate, string $status): bool
+    {
+        if (! in_array($status, ['approved', 'rejected'], true)) {
+            throw ValidationException::withMessages([
+                'status' => 'The selected approval status is invalid.',
+            ]);
+        }
+
+        return $this->candidateRepository->update($candidate, [
+            'approval_status' => $status,
+        ]);
+    }
     private function storeCandidateImage(UploadedFile $picture, string $directoryName): string
     {
         $directory = storage_path('app/public/' . trim($directoryName, '/'));

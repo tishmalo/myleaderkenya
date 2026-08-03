@@ -185,14 +185,16 @@
                     <td class="px-6 py-4 text-center">
                         <div class="flex gap-4 justify-center">
                                                         @if(($candidate->approval_status ?? 'approved') !== 'approved')
-                                <form method="POST" action="{{ route('candidates.approve', $candidate) }}" class="inline">
+                                <form method="POST" action="{{ route('candidates.approval', $candidate) }}" class="inline">
                                     @csrf @method('PATCH')
+                                    <input type="hidden" name="status" value="approved">
                                     <button class="text-emerald-400 hover:text-emerald-500" title="Approve"><i class="fas fa-check"></i></button>
                                 </form>
                             @endif
                             @if(($candidate->approval_status ?? 'approved') !== 'rejected')
-                                <form method="POST" action="{{ route('candidates.reject', $candidate) }}" class="inline">
+                                <form method="POST" action="{{ route('candidates.approval', $candidate) }}" class="inline">
                                     @csrf @method('PATCH')
+                                    <input type="hidden" name="status" value="rejected">
                                     <button class="text-amber-400 hover:text-amber-500" title="Reject"><i class="fas fa-ban"></i></button>
                                 </form>
                             @endif
