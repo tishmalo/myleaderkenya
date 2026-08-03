@@ -4,7 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class ConfirmPasswordRequest extends FormRequest
@@ -36,10 +36,7 @@ class ConfirmPasswordRequest extends FormRequest
      */
     public function validatePassword(): void
     {
-        if (! Auth::guard('web')->validate([
-            'email' => $this->user()->email,
-            'password' => $this->password,
-        ])) {
+        if (! Hash::check((string) $this->password, $this->user()->password)) {
             throw ValidationException::withMessages([
                 'password' => __('auth.password'),
             ]);

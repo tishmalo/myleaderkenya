@@ -2,6 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
+use App\Models\Concerns\EncryptsPiiAttributes;
+
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,9 +18,10 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
-class Candidate extends Model
+class Candidate extends Model implements AuditableContract
 {
-    use HasFactory;
+    use AuditsChanges;
+    use EncryptsPiiAttributes, HasFactory;
 
     protected $fillable = [
         'name', 'slug', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id', 'bloc_id', 'user_id',

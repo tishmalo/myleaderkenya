@@ -13,14 +13,22 @@ class BlocService
         private BlocRepositoryInterface $blocRepository
     ) {}
 
-    public function getPaginatedBlocs(int $perPage = 15): LengthAwarePaginator
+    public function getPaginatedBlocs(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return $this->blocRepository->paginate($perPage);
+        return $this->blocRepository->paginate($perPage, $search);
     }
 
     public function getAllBlocs(): Collection
     {
         return $this->blocRepository->all();
+    }
+
+    public function getFormData(): array
+    {
+        return [
+            'counties' => $this->blocRepository->allCounties(),
+            'blocTypes' => $this->blocTypes(),
+        ];
     }
 
     public function createBloc(array $data): Bloc
@@ -45,22 +53,33 @@ class BlocService
         return $this->blocRepository->import($blocs);
     }
 
-    /**
-     * Transform request data into format suitable for storage.
-     */
     private function transformData(array $data): array
     {
-        // Convert tribes from comma-separated string to array
+        $data['type'] = $data['type'] ?? 'economic';
+        $data['county_ids'] = $data['county_ids'] ?? [];
+
         if (isset($data['tribes']) && is_string($data['tribes'])) {
-            $data['tribes'] = array_map('trim', explode(',', $data['tribes']));
+            $data['tribes'] = collect(explode(',', $data['tribes']))
+                ->map(fn ($tribe) => trim($tribe))
+                ->filter()
+                ->values()
+                ->all();
         }
 
-        // Convert voting_patterns from JSON string to array
         if (isset($data['voting_patterns']) && is_string($data['voting_patterns'])) {
             $decoded = json_decode($data['voting_patterns'], true);
             $data['voting_patterns'] = is_array($decoded) ? $decoded : null;
         }
 
         return $data;
+    }
+
+    private function blocTypes(): array
+    {
+        return [
+            'economic' => 'Economic',
+            'political' => 'Political',
+            'ethnic' => 'Ethnic',
+        ];
     }
 }

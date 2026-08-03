@@ -11,7 +11,7 @@
 .pd-kicker{margin:0 0 8px;color:var(--pd-green);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}.pd-brand h1{margin:0;font-size:23px;line-height:1.2}.pd-role{margin:8px 0 0;color:var(--pd-muted);font-size:13px}
 .pd-balance{margin-top:20px;padding:15px;border:1px solid rgba(0,168,115,.23);border-radius:14px;background:rgba(0,0,0,.2)}.pd-balance span{display:block;color:var(--pd-muted);font-size:11px;text-transform:uppercase}.pd-balance strong{display:block;margin-top:5px;font-size:25px}
 .pd-nav{display:grid;gap:5px;padding:14px}.pd-nav button{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-radius:11px;background:transparent;color:#aeb5b2;font:inherit;text-align:left;cursor:pointer}.pd-nav button i{width:19px;color:#65706c;text-align:center}.pd-nav button:hover,.pd-nav button.active{background:rgba(0,168,115,.12);color:white}.pd-nav button.active i{color:var(--pd-green)}
-.pd-add{display:block;margin:4px 14px 18px;padding:12px;border-radius:11px;background:var(--pd-green);color:white;font-weight:700;text-align:center;text-decoration:none}.pd-main{min-width:0}.pd-panel{display:none}.pd-panel.active{display:block}
+.pd-add{display:block;margin:4px 14px 10px;padding:12px;border-radius:11px;background:var(--pd-green);color:white;font-weight:700;text-align:center;text-decoration:none}.pd-logout{margin:0 14px 18px}.pd-logout button{display:flex;width:100%;align-items:center;justify-content:center;gap:9px;padding:12px;border:1px solid rgba(239,68,68,.25);border-radius:11px;background:rgba(127,29,29,.18);color:#fca5a5;font:inherit;font-weight:700;cursor:pointer}.pd-logout button:hover{background:rgba(127,29,29,.32);color:#fff}.pd-main{min-width:0}.pd-panel{display:none}.pd-panel.active{display:block}
 .pd-alert{margin-bottom:16px;padding:14px 17px;border:1px solid var(--pd-line);border-radius:12px;background:var(--pd-card)}.pd-alert.success{border-color:rgba(0,168,115,.5)}.pd-alert.error,.pd-alert.warning{border-color:rgba(220,80,65,.5)}.pd-alert ul{margin:0;padding-left:20px}
 .pd-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}.pd-heading h2{margin:0 0 6px;font-size:clamp(28px,3vw,38px)}.pd-heading p,.pd-muted{margin:0;color:var(--pd-muted)}
 .pd-stats,.pd-cols,.pd-form-grid{display:grid;gap:16px}.pd-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.pd-cols,.pd-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -34,6 +34,7 @@
 <button type="button" data-panel="transactions"><i class="fas fa-receipt"></i>Transactions</button>
 @if($membership->role === 'party_admin')<button type="button" data-panel="officials"><i class="fas fa-users-cog"></i>Officials</button>@endif
 </nav><a class="pd-add" href="{{ route('party.candidates.create') }}"><i class="fas fa-plus"></i> Add Aspirant</a>
+<form class="pd-logout" method="POST" action="{{ route('logout') }}">@csrf<button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button></form>
 </aside>
 <div class="pd-main">
 @if(session('success'))<div class="pd-alert success">{{ session('success') }}</div>@endif

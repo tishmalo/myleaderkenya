@@ -5,6 +5,7 @@ namespace App\Repositories\Admin;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Models\PoliticalParty;
 use App\Models\Candidate;
+use App\Models\Bloc;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\NewsArticle;
@@ -43,7 +44,7 @@ class CandidateRepository implements CandidateRepositoryInterface
             $query->where('political_party_id', $filters['political_party']);
         }
 
-        if (!empty($filters['approval_status']) && Schema::hasColumn('candidates', 'approval_status')) {
+        if (!empty($filters['approval_status'])) {
             $query->where('approval_status', $filters['approval_status']);
         }
 
@@ -212,11 +213,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     private function publicQuery(array $filters)
     {
-        $query = Candidate::with('position', 'politicalParty');
-
-        if (Schema::hasColumn('candidates', 'approval_status')) {
-            $query->where('approval_status', 'approved');
-        }
+        $query = Candidate::with('position', 'politicalParty')->where('approval_status', 'approved');
 
         if (array_key_exists('featured', $filters) && $filters['featured'] !== null) {
             $query->where('featured', filter_var($filters['featured'], FILTER_VALIDATE_BOOLEAN));
@@ -242,6 +239,18 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         if (!empty($filters['county'])) {
             $query->where('county', $filters['county']);
+        }
+
+        if (!empty($filters['bloc'])) {
+            $blocCountyNames = Schema::hasTable('bloc_county')
+                ? (Bloc::whereKey($filters['bloc'])->first()?->counties()->pluck('counties.name')->all() ?? [])
+                : County::where('bloc_id', $filters['bloc'])->pluck('name')->all();
+
+            if (empty($blocCountyNames)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('county', $blocCountyNames);
+            }
         }
 
         if (!empty($filters['constituency'])) {
@@ -285,6 +294,11 @@ class CandidateRepository implements CandidateRepositoryInterface
                         ->orWhere('abbreviation', 'like', "%{$party}%");
                 });
             }
+        }
+
+        if (! $this->filtersTargetPresidential($filters)) {
+            $query->orderByRaw("CASE WHEN county IS NULL OR county = '' THEN 1 ELSE 0 END")
+                ->orderBy('county');
         }
 
         return $query;
@@ -336,17 +350,33 @@ class CandidateRepository implements CandidateRepositoryInterface
                 ->pluck('name');
         }
 
-        $query = Candidate::whereNotNull('county')
-            ->where('county', '!=', '');
-
-        if (Schema::hasColumn('candidates', 'approval_status')) {
-            $query->where('approval_status', 'approved');
-        }
-
-        return $query
+        return Candidate::whereNotNull('county')
+            ->where('county', '!=', '')
+            ->where('approval_status', 'approved')
             ->distinct()
             ->orderBy('county')
             ->pluck('county');
+    }
+
+    private function filtersTargetPresidential(array $filters): bool
+    {
+        if (empty($filters['position'])) {
+            return false;
+        }
+
+        $position = $filters['position'];
+
+        if (is_numeric($position)) {
+            $position = Position::whereKey($position)->value('name');
+        }
+
+        if (! is_string($position)) {
+            return false;
+        }
+
+        $position = strtolower(str_replace(['_', '-'], ' ', trim($position)));
+
+        return str_contains($position, 'president');
     }
 
     private function constituenciesForPublicFilters(array $filters): Collection

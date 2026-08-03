@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,8 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 
-class CandidateSupportContact extends Model
+class CandidateSupportContact extends Model implements AuditableContract
 {
+    use AuditsChanges;
     use HasFactory;
 
     protected $fillable = [

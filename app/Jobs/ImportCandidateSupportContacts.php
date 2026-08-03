@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\User;
+use App\Services\Audit\AuditService;
 use App\Services\SupportGroups\SupportContactImportService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,9 +31,12 @@ class ImportCandidateSupportContacts implements ShouldQueue
         private ?int $defaultGroupId = null
     ) {}
 
-    public function handle(SupportContactImportService $importer): void
+    public function handle(SupportContactImportService $importer, AuditService $auditService): void
     {
         $disk = Storage::disk('local');
+        $actor = User::find($this->userId);
+        $batchId = $this->job?->getJobId();
+        $auditService->record('contacts.import_started', 'Contact import started.', ['actor' => $actor, 'candidate_id' => $this->candidateId, 'module' => 'contacts', 'status' => 'pending', 'batch_id' => $batchId]);
 
         if (! $disk->exists($this->storedPath)) {
             Log::warning('Support contacts import skipped because the uploaded file was not found.', [
@@ -52,6 +57,8 @@ class ImportCandidateSupportContacts implements ShouldQueue
                 $this->defaultGroupId
             );
 
+            $auditService->record('contacts.import_completed', 'Contact import completed.', ['actor' => $actor, 'candidate_id' => $this->candidateId, 'module' => 'contacts', 'batch_id' => $batchId, 'metadata' => $result]);
+
             Log::info('Support contacts import completed.', [
                 'candidate_id' => $this->candidateId,
                 'user_id' => $this->userId,
@@ -60,6 +67,8 @@ class ImportCandidateSupportContacts implements ShouldQueue
                 'errors' => $result['errors'],
             ]);
         } catch (Throwable $exception) {
+            $auditService->record('contacts.import_failed', 'Contact import failed.', ['actor' => $actor, 'candidate_id' => $this->candidateId, 'module' => 'contacts', 'batch_id' => $batchId, 'status' => 'failure', 'metadata' => ['error' => $exception->getMessage()]]);
+
             Log::error('Support contacts import failed.', [
                 'candidate_id' => $this->candidateId,
                 'user_id' => $this->userId,

@@ -9,6 +9,7 @@ export default defineConfig({
                  'resources/js/app.js',
                  'resources/css/views/landing.css',
                  'resources/js/views/landing.js',
+                 'resources/js/views/live-stats.js'
                 ],
             refresh: true,
         }),

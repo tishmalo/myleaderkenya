@@ -413,15 +413,32 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                             </div>
                         @endif
                     @elseif($module['key'] === 'bulk-sms')
-                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.send') }}" data-loading-form>
+                        <div class="tool-alert" style="border-color:rgba(245,158,11,.42);background:rgba(245,158,11,.1);color:#fde68a;">
+                            <strong><i class="fas fa-shield-halved"></i> Kenya data protection responsibility</strong>
+                            <p style="margin-top:6px;">Contact data must be collected, stored, and used lawfully under Kenya's Data Protection Act, 2019. You are responsible for having a valid lawful basis, respecting data-subject rights, keeping the data secure, and using it only for the stated purpose. You - not My Leader Kenya - may be held liable for unlawful uploads, disclosure, or messaging.</p>
+                        </div>
+
+                        <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.send') }}" data-loading-form data-sms-send-form>
                             @csrf
-                            <label>Recipients
-                                <input type="text" value="{{ number_format($voterCount ?? 0) }} registered voters in {{ $scope['label'] }}" readonly>
+                            <label>Recipient source
+                                <select name="recipient_source" required data-sms-recipient-source>
+                                    <option value="registered_voters" data-count="{{ $voterCount ?? 0 }}" @selected(old('recipient_source', 'registered_voters') === 'registered_voters')>{{ number_format($voterCount ?? 0) }} registered voters in {{ $scope['label'] }}</option>
+                                    <option value="uploaded_contacts" data-count="{{ $uploadedContactCount ?? 0 }}" @selected(old('recipient_source') === 'uploaded_contacts')>{{ number_format($uploadedContactCount ?? 0) }} uploaded contacts</option>
+                                </select>
+                            </label>
+                            <label data-sms-classification-wrap @if(old('recipient_source', 'registered_voters') !== 'uploaded_contacts') hidden @endif>Contact classification
+                                <select name="support_group_type_id" data-sms-classification>
+                                    <option value="">Choose a classification</option>
+                                    @foreach($supportGroupTypes as $type)
+                                        <option value="{{ $type->id }}" data-count="{{ (int) ($uploadedContactCounts[$type->id] ?? 0) }}" @selected((int) old('support_group_type_id') === (int) $type->id)>{{ $type->name }} ({{ number_format((int) ($uploadedContactCounts[$type->id] ?? 0)) }})</option>
+                                    @endforeach
+                                </select>
                             </label>
                             <label>Message
-                                <textarea name="message" rows="6" maxlength="918" required placeholder="Write a focused SMS update for voters in your bloc." data-sms-message>{{ old('message') }}</textarea>
+                                <textarea name="message" rows="6" maxlength="918" required placeholder="Write a focused SMS update for your selected contacts." data-sms-message>{{ old('message') }}</textarea>
                             </label>
                             <div class="sms-cost-grid" data-sms-cost data-recipient-count="{{ $voterCount ?? 0 }}" data-token-rate="{{ $tokenRates->get('bulk-sms')?->token_amount ?? 0 }}" data-token-balance="{{ $tokenWallet?->balance ?? 0 }}">
+                                <div><span>Recipients</span><strong data-sms-recipients>{{ number_format($voterCount ?? 0) }}</strong></div>
                                 <div><span>Characters</span><strong data-sms-characters>0</strong></div>
                                 <div><span>Encoding</span><strong data-sms-encoding>GSM-7</strong></div>
                                 <div><span>Segments</span><strong data-sms-segments>0</strong></div>
@@ -429,14 +446,41 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                                 <div><span>Required Tokens</span><strong data-sms-tokens>0</strong></div>
                                 <div><span>After Send</span><strong data-sms-projected>{{ number_format($tokenWallet?->balance ?? 0) }}</strong></div>
                             </div>
-                            @error('message')
-                                <div class="tool-alert">{{ $message }}</div>
-                            @enderror
+                            @error('message')<div class="tool-alert">{{ $message }}</div>@enderror
+                            @error('recipient_source')<div class="tool-alert">{{ $message }}</div>@enderror
+                            @error('support_group_type_id')<div class="tool-alert">{{ $message }}</div>@enderror
+                            @error('privacy_acknowledged')<div class="tool-alert">{{ $message }}</div>@enderror
+                            <label style="display:flex;grid-template-columns:auto 1fr;align-items:flex-start;gap:10px;text-transform:none;letter-spacing:0;">
+                                <input type="checkbox" name="privacy_acknowledged" value="1" required style="width:auto;margin-top:3px;" @checked(old('privacy_acknowledged'))>
+                                <span>I confirm that I have a lawful basis to contact these recipients and accept responsibility for complying with Kenya's Data Protection Act, 2019.</span>
+                            </label>
                             <div class="tool-actions">
                                 <button type="submit" class="tool-btn primary" data-loading-button data-loading-text="Queueing..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-paper-plane" data-loading-icon></i> <span data-loading-label>Queue SMS</span></button><a href="{{ route('aspirant.tokens.index') }}" class="tool-btn"><i class="fas fa-coins"></i> Buy Tokens</a>
                             </div>
                         </form>
 
+                        <div class="poll-card" style="margin-top:18px;">
+                            <div class="poll-card-top"><h3>Upload your own contacts</h3><span class="poll-status draft">Background import</span></div>
+                            <p class="tool-note">Upload CSV, TXT, or XLSX with columns for name and phone. Email is optional. Every contact is assigned to the classification selected below; a file's optional <strong>group</strong> column may provide a different active classification per row.</p>
+                            <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.contacts.import') }}" enctype="multipart/form-data" data-loading-form>
+                                @csrf
+                                <label>Default classification
+                                    <select name="support_group_type_id" required>
+                                        <option value="">Choose a classification</option>
+                                        @foreach($supportGroupTypes as $type)<option value="{{ $type->id }}" @selected((int) old('support_group_type_id') === (int) $type->id)>{{ $type->name }}</option>@endforeach
+                                    </select>
+                                </label>
+                                <label>Contact file
+                                    <input type="file" name="contacts_file" accept=".xlsx,.csv,.txt" required>
+                                </label>
+                                @error('contacts_file')<div class="tool-alert">{{ $message }}</div>@enderror
+                                <label style="display:flex;grid-template-columns:auto 1fr;align-items:flex-start;gap:10px;text-transform:none;letter-spacing:0;">
+                                    <input type="checkbox" name="privacy_acknowledged" value="1" required style="width:auto;margin-top:3px;">
+                                    <span>I confirm I am authorized to upload and process these contacts, and I accept liability for their lawful use.</span>
+                                </label>
+                                <button type="submit" class="tool-btn" data-loading-button data-loading-text="Queueing import..."><span class="tool-spinner" aria-hidden="true"></span><i class="fas fa-file-arrow-up" data-loading-icon></i> <span data-loading-label>Upload and Import</span></button>
+                            </form>
+                        </div>
                         <div class="poll-card" style="margin-top:18px;">
                             <div class="poll-card-top"><h3>SMS Provider Balance Support</h3><span class="poll-status draft">Admin follow-up</span></div>
                             <p class="tool-note">SMS provider balance is separate from tokens. Send this to admin when the SMS account needs top-up or support.</p>
@@ -768,8 +812,10 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
             setStatus(payload.message || 'Call log recorded.', 'success');
             row?.classList.add('call-row-logged');
             if (label) label.textContent = 'Logged';
-            form.querySelector('input[name="notes"]')?.value = '';
-            form.querySelector('input[name="callback_at"]')?.value = '';
+            const notesInput = form.querySelector('input[name="notes"]');
+            const callbackInput = form.querySelector('input[name="callback_at"]');
+            if (notesInput) notesInput.value = '';
+            if (callbackInput) callbackInput.value = '';
         } catch (error) {
             setStatus(`${error.message} You can retry.`, 'error');
         } finally {
@@ -782,13 +828,19 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
 });
 
 function smsDetails(message) {
-    const basic = "@£$•ËÈ˘ÏÚ«\nÿ¯\r≈Â?_FG?O??ST? !"#§%&'()*+,-./0123456789:;<=>?°ABCDEFGHIJKLMNOPQRSTUVWXYZƒ÷—‹`øabcdefghijklmnopqrstuvwxyz‰ˆÒ¸‡";
-    const extended = "^{}\\[~]|Ä";
+    const gsmExtended = new Set(['^', '{', '}', '\\', '[', ']', '~', '|', '\u20ac']);
+    const gsmNonAscii = new Set([
+        '\u00a3', '\u00a5', '\u00e8', '\u00e9', '\u00f9', '\u00ec', '\u00f2', '\u00c7',
+        '\u00d8', '\u00f8', '\u00c5', '\u00e5', '\u0394', '\u03a6', '\u0393', '\u039b',
+        '\u03a9', '\u03a0', '\u03a8', '\u03a3', '\u0398', '\u039e', '\u00c6', '\u00e6',
+        '\u00df', '\u00c9', '\u00a4', '\u00a1', '\u00c4', '\u00d6', '\u00d1', '\u00dc',
+        '\u00a7', '\u00bf', '\u00e4', '\u00f6', '\u00f1', '\u00fc', '\u00e0'
+    ]);
     let gsm = true;
     let length = 0;
     Array.from(message).forEach((character) => {
-        if (extended.includes(character)) length += 2;
-        else if (basic.includes(character)) length += 1;
+        if (gsmExtended.has(character)) length += 2;
+        else if (/^[\x20-\x7e\r\n]$/.test(character) || gsmNonAscii.has(character)) length += 1;
         else { gsm = false; length += 1; }
     });
     const encoding = gsm ? 'GSM-7' : 'Unicode';
@@ -796,18 +848,28 @@ function smsDetails(message) {
     const segments = count === 0 ? 0 : (gsm ? (count <= 160 ? 1 : Math.ceil(count / 153)) : (count <= 70 ? 1 : Math.ceil(count / 67)));
     return { count, encoding, segments };
 }
-
 document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
-    const textarea = document.querySelector('[data-sms-message]');
-    if (!textarea) return;
-    const recipients = Number(panel.dataset.recipientCount || 0);
+    const form = panel.closest('[data-sms-send-form]');
+    const textarea = form?.querySelector('[data-sms-message]');
+    const source = form?.querySelector('[data-sms-recipient-source]');
+    const classification = form?.querySelector('[data-sms-classification]');
+    const classificationWrap = form?.querySelector('[data-sms-classification-wrap]');
+    if (!textarea || !source) return;
     const unitTokens = Number(panel.dataset.tokenRate || 1);
     const balance = Number(panel.dataset.tokenBalance || 0);
     const set = (selector, value) => { const node = panel.querySelector(selector); if (node) node.textContent = value; };
+    const recipientCount = () => source.value === 'uploaded_contacts'
+        ? Number(classification?.selectedOptions[0]?.dataset.count || 0)
+        : Number(source.selectedOptions[0]?.dataset.count || 0);
     const render = () => {
+        const uploaded = source.value === 'uploaded_contacts';
+        if (classificationWrap) classificationWrap.hidden = !uploaded;
+        if (classification) classification.required = uploaded;
+        const recipients = recipientCount();
         const details = smsDetails(textarea.value || '');
         const units = recipients * details.segments;
         const tokens = units * unitTokens;
+        set('[data-sms-recipients]', recipients.toLocaleString());
         set('[data-sms-characters]', details.count.toLocaleString());
         set('[data-sms-encoding]', details.encoding);
         set('[data-sms-segments]', details.segments.toLocaleString());
@@ -816,6 +878,8 @@ document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
         set('[data-sms-projected]', Math.max(0, balance - tokens).toLocaleString());
     };
     textarea.addEventListener('input', render);
+    source.addEventListener('change', render);
+    classification?.addEventListener('change', render);
     render();
 });
 </script>

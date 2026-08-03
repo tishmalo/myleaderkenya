@@ -13,8 +13,12 @@ class MyAccountController extends Controller
 {
     public function __construct(private MyAccountService $accounts) {}
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if ($this->accounts->selectDirectAspirantCandidate($request->user())) {
+            return redirect()->route('aspirant.dashboard');
+        }
+
         return view('account.index', $this->accounts->dashboardData($request->user()));
     }
 

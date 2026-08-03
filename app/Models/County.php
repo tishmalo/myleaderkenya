@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class County extends Model
+class County extends Model implements AuditableContract
 {
+    use AuditsChanges;
     use HasFactory;
 
     protected $fillable = [
@@ -20,13 +24,16 @@ class County extends Model
         'image',
     ];
 
-    // Relationship: County belongs to one Bloc
     public function bloc()
     {
         return $this->belongsTo(Bloc::class);
     }
 
-    // Relationship: County has many Constituencies
+    public function blocs()
+    {
+        return $this->belongsToMany(Bloc::class, 'bloc_county')->withTimestamps();
+    }
+
     public function constituencies()
     {
         return $this->hasMany(Constituency::class);

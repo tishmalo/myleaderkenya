@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Constituency extends Model
+class Constituency extends Model implements AuditableContract
 {
+    use AuditsChanges;
     use HasFactory;
 
     protected $fillable = [
@@ -37,4 +41,3 @@ class Constituency extends Model
     return $this->hasMany(PollingStation::class, 'constituency', 'name');
 }
 }
-

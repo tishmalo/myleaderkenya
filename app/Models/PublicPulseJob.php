@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PublicPulseJob extends Model
+class PublicPulseJob extends Model implements AuditableContract
 {
+    use AuditsChanges;
     public const STATUS_SUBMITTING = 'submitting';
     public const STATUS_QUEUED_PENDING_CAPACITY = 'queued_pending_capacity';
     public const STATUS_QUEUED = 'queued';

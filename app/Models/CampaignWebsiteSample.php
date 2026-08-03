@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 
-class CampaignWebsiteSample extends Model
+class CampaignWebsiteSample extends Model implements AuditableContract
 {
+    use AuditsChanges;
     protected $fillable = [
         'title',
         'description',

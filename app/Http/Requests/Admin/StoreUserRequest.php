@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
@@ -16,7 +17,15 @@ class StoreUserRequest extends FormRequest
         return [
             'username'     => 'required|string|max:255|unique:users,username',
             'name'         => 'required|string|max:255',
-            'email'        => 'nullable|email|unique:users,email',
+            'email'        => [
+                'nullable',
+                'email',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value && User::emailExists((string) $value)) {
+                        $fail('The email has already been taken.');
+                    }
+                },
+            ],
             'phone'        => 'nullable|string|max:20',
             'gender'       => 'nullable|in:male,female,other',
             'year_of_birth'=> 'nullable|integer|min:1900|max:' . date('Y'),

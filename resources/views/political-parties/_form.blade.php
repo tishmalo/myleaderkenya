@@ -46,6 +46,30 @@
         <input type="url" name="website_url" value="{{ old('website_url', $party?->website_url) }}" placeholder="https://example.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
         @error('website_url')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
     </div>
+
+    <div>
+        <label class="block text-sm text-zinc-400 mb-2">Phone 1</label>
+        <input type="tel" name="phone_1" value="{{ old('phone_1', $party?->phone_1) }}" placeholder="+254 700 000 000" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+        @error('phone_1')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
+        <label class="block text-sm text-zinc-400 mb-2">Phone 2</label>
+        <input type="tel" name="phone_2" value="{{ old('phone_2', $party?->phone_2) }}" placeholder="+254 711 000 000" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+        @error('phone_2')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
+        <label class="block text-sm text-zinc-400 mb-2">Email 1</label>
+        <input type="email" name="email_1" value="{{ old('email_1', $party?->email_1) }}" placeholder="info@example.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+        @error('email_1')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
+        <label class="block text-sm text-zinc-400 mb-2">Email 2</label>
+        <input type="email" name="email_2" value="{{ old('email_2', $party?->email_2) }}" placeholder="support@example.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+        @error('email_2')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+    </div>
 </div>
 
 <div class="mt-6">

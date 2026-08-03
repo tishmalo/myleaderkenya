@@ -367,3 +367,4 @@ class AspirantController extends Controller
         return $path ? asset(Storage::url($path)) : null;
     }
 }
+

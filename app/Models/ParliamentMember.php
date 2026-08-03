@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ParliamentMember extends Model
+class ParliamentMember extends Model implements AuditableContract
 {
+    use AuditsChanges;
     protected $fillable = [
         'external_slug', 'source_name', 'normalized_name', 'source_url', 'photo_url', 'house', 'role', 'constituency',
         'party', 'position_type', 'biography', 'speeches_last_year', 'speeches_total', 'bills_total', 'bills_pages',

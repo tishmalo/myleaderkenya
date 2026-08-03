@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Contracts\Repositories\Api\UserRepositoryInterface;
+use App\Models\Candidate;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -22,13 +25,51 @@ class AuthService
      */
     public function register(array $data): User
     {
-        $user = $this->userRepository->create($data);
+        return DB::transaction(function () use ($data) {
+            $candidateData = collect($data)->only([
+                'name', 'nick_name', 'phone', 'email', 'position_id', 'political_party_id',
+                'about', 'country', 'county', 'constituency', 'ward',
+            ])->all();
 
-        event(new Registered($user));
+            $accountData = collect($data)->only([
+                'name', 'username', 'email', 'phone', 'password', 'is_aspirant',
+            ])->all();
+            $accountData['username'] = $accountData['username'] ?? $this->uniqueUsername((string) $accountData['name']);
 
-        Auth::login($user);
+            $user = $this->userRepository->create($accountData);
 
-        return $user;
+            if (! empty($candidateData['position_id'])) {
+                $candidateData['country'] = $candidateData['country'] ?? 'Kenya';
+                $candidateData['approval_status'] = 'pending';
+
+                if (! Schema::hasColumn('candidates', 'approval_status')) {
+                    unset($candidateData['approval_status']);
+                }
+
+                Candidate::create($candidateData);
+            }
+
+            event(new Registered($user));
+            Auth::login($user);
+
+            return $user;
+        });
+    }
+
+    /**
+     * Update user password.
+     */
+    private function uniqueUsername(string $name): string
+    {
+        $base = Str::limit(Str::slug($name, '_'), 40, '') ?: 'member';
+        $username = $base;
+        $suffix = 1;
+
+        while ($this->userRepository->findByUsername($username)) {
+            $username = Str::limit($base, 34, '').'_'.$suffix++;
+        }
+
+        return $username;
     }
 
     /**
@@ -44,7 +85,16 @@ class AuthService
      */
     public function sendPasswordResetLink(string $email): string
     {
-        return Password::sendResetLink(['email' => $email]);
+        $user = $this->userRepository->findByEmail($email);
+
+        if (! $user) {
+            return Password::INVALID_USER;
+        }
+
+        $token = Password::broker()->createToken($user);
+        $user->sendPasswordResetNotification($token);
+
+        return Password::RESET_LINK_SENT;
     }
 
     /**
@@ -52,19 +102,25 @@ class AuthService
      */
     public function resetPassword(array $credentials): string
     {
-        $status = Password::reset(
-            $credentials,
-            function (User $user) use ($credentials) {
-                $user->forceFill([
-                    'password' => Hash::make($credentials['password']),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        $user = $this->userRepository->findByEmail((string) ($credentials['email'] ?? ''));
 
-                event(new PasswordReset($user));
-            }
-        );
+        if (! $user) {
+            return Password::INVALID_USER;
+        }
 
-        return $status;
+        if (! Password::broker()->tokenExists($user, (string) ($credentials['token'] ?? ''))) {
+            return Password::INVALID_TOKEN;
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($credentials['password']),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        Password::broker()->deleteToken($user);
+        event(new PasswordReset($user));
+
+        return Password::PASSWORD_RESET;
     }
 
     /**
@@ -75,3 +131,4 @@ class AuthService
         Auth::guard('web')->logout();
     }
 }
+

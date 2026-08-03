@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Ward extends Model
+class Ward extends Model implements AuditableContract
 {
+    use AuditsChanges;
     use HasFactory;
 
     protected $fillable = [
@@ -32,4 +36,3 @@ class Ward extends Model
 //     return $this->hasMany(\App\Models\PollingStation::class);
 // }
 }
-

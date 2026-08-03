@@ -96,10 +96,10 @@ return [
                 'label' => 'System Settings',
                 'items' => [
                     ['label' => 'SMTP Settings', 'route' => 'admin.smtp', 'icon' => 'fas fa-envelope-circle-check', 'active' => ['admin.smtp'], 'permission' => 'settings.view'],
+                    ['label' => 'Audit Log', 'route' => 'audits.index', 'icon' => 'fas fa-clock-rotate-left', 'active' => ['audits.*'], 'permission' => 'audit.superadmin', 'superadmin_only' => true],
                     ['label' => 'Admins, Roles & Permissions', 'route' => 'user-access.index', 'icon' => 'fas fa-user-shield', 'active' => ['user-access.*'], 'permission' => 'user-access.view'],
                 ],
             ],
         ],
     ],
 ];
-

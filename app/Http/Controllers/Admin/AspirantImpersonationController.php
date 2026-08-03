@@ -8,12 +8,13 @@ use App\Http\Requests\Admin\StopAspirantImpersonationRequest;
 use App\Models\Candidate;
 use App\Models\User;
 use App\Services\Admin\AspirantImpersonationService;
+use App\Services\Audit\AuditService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class AspirantImpersonationController extends Controller
 {
-    public function __construct(private AspirantImpersonationService $impersonationService) {}
+    public function __construct(private AspirantImpersonationService $impersonationService, private AuditService $auditService) {}
 
     public function start(StartAspirantImpersonationRequest $request, Candidate $candidate, User $user): RedirectResponse
     {
@@ -29,6 +30,7 @@ class AspirantImpersonationController extends Controller
             'impersonated_candidate_id' => $candidate->id,
         ]);
 
+        $this->auditService->record('impersonation.started', 'Administrator started aspirant impersonation.', ['actor' => $admin, 'candidate_id' => $candidate->id, 'auditable' => $candidate, 'module' => 'security', 'metadata' => ['target_user_id' => $user->id]]);
         Auth::login($user);
         $request->session()->regenerate();
 
@@ -40,6 +42,7 @@ class AspirantImpersonationController extends Controller
     {
         $admin = User::find($request->session()->get('impersonator_admin_id'));
         $returnUrl = $request->session()->get('impersonator_return_url') ?: route('dashboard');
+        $candidateId = (int) $request->session()->get('impersonated_candidate_id');
 
         $request->session()->forget([
             'impersonator_admin_id',
@@ -48,6 +51,7 @@ class AspirantImpersonationController extends Controller
         ]);
 
         if ($admin) {
+            $this->auditService->record('impersonation.stopped', 'Administrator ended aspirant impersonation.', ['actor' => $admin, 'candidate_id' => $candidateId, 'module' => 'security']);
             Auth::login($admin);
             $request->session()->regenerate();
 

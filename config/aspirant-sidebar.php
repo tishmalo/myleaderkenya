@@ -82,6 +82,12 @@ return [
             'href' => '#poll-snapshot',
             'section' => 'poll-snapshot',
         ],        [
+            'label' => 'Audit History',
+            'icon' => 'fas fa-clock-rotate-left',
+            'route' => 'aspirant.audits.index',
+            'active' => ['aspirant.audits.*'],
+        ],
+        [
             'label' => 'Token Wallet',
             'icon' => 'fas fa-coins',
             'route' => 'aspirant.tokens.index',
@@ -89,4 +95,3 @@ return [
         ],
     ],
 ];
-

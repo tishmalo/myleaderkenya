@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -23,7 +22,11 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (User::emailExists((string) $value, $this->user()->id)) {
+                        $fail('The email has already been taken.');
+                    }
+                },
             ],
         ];
     }

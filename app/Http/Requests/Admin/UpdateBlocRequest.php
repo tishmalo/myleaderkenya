@@ -7,23 +7,22 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBlocRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'name' => 'required|string|max:255|unique:blocs,name,' . $this->route('bloc')->id,
+            'type' => 'required|string|in:economic,political,ethnic',
+            'description' => 'nullable|string',
+            'county_ids' => 'nullable|array',
+            'county_ids.*' => 'integer|exists:counties,id',
             'tribes' => 'nullable|string',
             'tribe_population' => 'nullable|integer|min:0',
             'voting_patterns' => 'nullable|json',

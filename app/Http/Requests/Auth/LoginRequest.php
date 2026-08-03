@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -44,10 +44,9 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $email = Str::lower(trim((string) $this->input('email')));
-        $user = User::where('email_hash', hash('sha256', $email))->first();
+        $user = app(UserRepositoryInterface::class)->findByEmail((string) $this->string('email'));
 
-        if (! $user || ! Hash::check((string) $this->input('password'), $user->password)) {
+        if (! $user || ! Hash::check((string) $this->string('password'), $user->password)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -56,7 +55,6 @@ class LoginRequest extends FormRequest
         }
 
         Auth::login($user, $this->boolean('remember'));
-
         RateLimiter::clear($this->throttleKey());
     }
 

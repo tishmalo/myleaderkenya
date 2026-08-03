@@ -52,13 +52,13 @@
                     @endforeach
                 </select>
             </div>
-            <div>
+                        <div>
                 <label class="block text-sm text-zinc-400 mb-2">Approval</label>
                 <select name="approval_status" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
                     <option value="">All Statuses</option>
-                    <option value="pending" {{ request('approval_status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="approved" {{ request('approval_status') === 'approved' ? 'selected' : '' }}>Approved</option>
-                    <option value="rejected" {{ request('approval_status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                    @foreach(['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $value => $label)
+                        <option value="{{ $value }}" {{ request('approval_status') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="flex items-end gap-3">
@@ -80,7 +80,7 @@
                     <th class="px-6 py-4 text-left">Position</th>
                     <th class="px-6 py-4 text-left">Political Party</th>
                     <th class="px-6 py-4 text-left">Jurisdiction</th>
-                    <th class="px-6 py-4 text-center">Approval</th>
+                    <th class="px-6 py-4 text-center">Status</th>
                     <th class="px-6 py-4 text-center">Featured</th>
                     <th class="px-6 py-4 text-center">Account Claim</th>
                     <th class="px-6 py-4 text-center">Actions</th>
@@ -124,11 +124,9 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <select data-approval-select data-url="{{ route('candidates.approval', $candidate) }}" class="rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white">
-                            <option value="pending" {{ ($candidate->approval_status ?? 'approved') === 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="approved" {{ ($candidate->approval_status ?? 'approved') === 'approved' ? 'selected' : '' }}>Approved</option>
-                            <option value="rejected" {{ ($candidate->approval_status ?? 'approved') === 'rejected' ? 'selected' : '' }}>Rejected</option>
-                        </select>
+                        <span class="px-3 py-1 rounded-xl text-xs font-semibold {{ $candidate->approval_status === 'approved' ? 'bg-emerald-500/10 text-emerald-400' : ($candidate->approval_status === 'rejected' ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-300') }}">
+                            {{ ucfirst($candidate->approval_status ?? 'approved') }}
+                        </span>
                     </td>
                     <td class="px-6 py-4 text-center">
                         <label class="inline-flex cursor-pointer items-center justify-center" title="Show in homepage aspirants carousel">
@@ -186,6 +184,20 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex gap-4 justify-center">
+                                                        @if(($candidate->approval_status ?? 'approved') !== 'approved')
+                                <form method="POST" action="{{ route('candidates.approval', $candidate) }}" class="inline">
+                                    @csrf @method('PATCH')
+                                    <input type="hidden" name="status" value="approved">
+                                    <button class="text-emerald-400 hover:text-emerald-500" title="Approve"><i class="fas fa-check"></i></button>
+                                </form>
+                            @endif
+                            @if(($candidate->approval_status ?? 'approved') !== 'rejected')
+                                <form method="POST" action="{{ route('candidates.approval', $candidate) }}" class="inline">
+                                    @csrf @method('PATCH')
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button class="text-amber-400 hover:text-amber-500" title="Reject"><i class="fas fa-ban"></i></button>
+                                </form>
+                            @endif
                             <a href="{{ route('candidates.edit', $candidate) }}"
                                class="text-blue-400 hover:text-blue-500 transition-colors">
                                 <i class="fas fa-edit"></i>

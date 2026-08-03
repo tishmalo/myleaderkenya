@@ -2,6 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
+use App\Models\Concerns\EncryptsPiiAttributes;
+
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,11 +15,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements AuditableContract
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use AuditsChanges;
+    use EncryptsPiiAttributes, HasApiTokens, HasFactory, Notifiable;
 
     public const USER_TYPES = ['PA', 'campaign_manager', 'aspirant', 'voter'];
 
@@ -32,6 +39,7 @@ class User extends Authenticatable
         'role_id',
         'username',
         'phone',
+        'id_number',
         'gender',
         'year_of_birth',
         'county',
@@ -54,6 +62,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'email_hash',
+        'phone_hash',
+        'id_number_hash',
     ];
 
     protected ?Role $resolvedRole = null;
@@ -219,23 +230,7 @@ class User extends Authenticatable
             return $this->relationship;
         }
 
-        if (empty($this->email) && empty($this->phone)) {
-            return 'user';
-        }
-
-        $hasCandidateProfile = Candidate::query()
-            ->where(function ($query) {
-                if (! empty($this->email)) {
-                    $query->orWhere('email', $this->email);
-                }
-
-                if (! empty($this->phone)) {
-                    $query->orWhere('phone', $this->phone);
-                }
-            })
-            ->exists();
-
-        return $hasCandidateProfile ? 'aspirant' : 'user';
+        return 'voter';
     }
 
     // Voter status relationship (optional)

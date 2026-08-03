@@ -465,6 +465,8 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/api/counties')
             .then(res => res.json())
             .then(counties => {
+                let selectedCountyId = '';
+
                 counties.forEach(county => {
                     const name = optionName(county);
                     if (!name) return;
@@ -474,13 +476,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 if (currentCounty && constituencySelect) {
-                    loadConstituencies(currentCounty);
+                    loadConstituencies(selectedCountyId || currentCounty);
                 }
             });
 
         if (countySelect) {
             countySelect.addEventListener('change', function() {
-                const county = this.value;
+                const county = this.selectedOptions[0]?.dataset.id || this.value;
+                currentConstituency = '';
+                currentWard = '';
                 if (constituencySelect) loadConstituencies(county);
                 if (wardSelect) wardSelect.innerHTML = '<option value="">Select Ward</option>';
             });
@@ -497,10 +501,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const constituencySelect = document.getElementById('constituencySelect');
         if (!constituencySelect) return;
 
-        fetch(`/api/constituencies/by-county?county=${encodeURIComponent(county)}`)
+        fetch(`/api/constituencies?county_id=${encodeURIComponent(county)}`)
             .then(res => res.json())
             .then(data => {
+                let selectedConstituencyId = '';
                 constituencySelect.innerHTML = '<option value="">Select Constituency</option>';
+
                 data.forEach(consti => {
                     const name = optionName(consti);
                     if (!name) return;
@@ -510,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 if (currentConstituency && document.getElementById('wardSelect')) {
-                    loadWards(currentConstituency);
+                    loadWards(selectedConstituencyId || currentConstituency);
                 }
             });
     }
@@ -519,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const wardSelect = document.getElementById('wardSelect');
         if (!wardSelect) return;
 
-        fetch(`/api/wards/by-constituency?constituency=${encodeURIComponent(constituency)}`)
+        fetch(`/api/wards?constituency_id=${encodeURIComponent(constituency)}`)
             .then(res => res.json())
             .then(data => {
                 wardSelect.innerHTML = '<option value="">Select Ward</option>';

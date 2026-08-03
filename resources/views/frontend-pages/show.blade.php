@@ -3,6 +3,12 @@
 @section('title', $pageData['content']['meta_title'] ?: ($pageData['content']['title'] . ' - Tuko Kadi'))
 @section('meta_description', $pageData['content']['meta_description'] ?: $pageData['content']['excerpt'])
 
+@if($pageData['key'] === 'live-stats')
+    @push('styles')
+        @vite('resources/css/views/landing.css')
+    @endpush
+@endif
+
 @section('content')
 <style>
 body { font-family:'Barlow',sans-serif; background:#0a0a0a; color:var(--kenya-white); }

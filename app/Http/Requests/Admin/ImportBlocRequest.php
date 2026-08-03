@@ -7,17 +7,12 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ImportBlocRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
@@ -25,6 +20,10 @@ class ImportBlocRequest extends FormRequest
         return [
             'blocs' => 'required|array',
             'blocs.*.name' => 'required|string|max:255',
+            'blocs.*.type' => 'nullable|string|in:economic,political,ethnic',
+            'blocs.*.description' => 'nullable|string',
+            'blocs.*.county_ids' => 'nullable|array',
+            'blocs.*.county_ids.*' => 'integer|exists:counties,id',
             'blocs.*.tribes' => 'nullable|array',
             'blocs.*.tribe_population' => 'nullable|integer',
             'blocs.*.voting_patterns' => 'nullable|array',

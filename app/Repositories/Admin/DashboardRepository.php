@@ -112,7 +112,7 @@ class DashboardRepository implements DashboardRepositoryInterface
 
     public function getCountiesByBloc($blocId)
     {
-        return County::where('bloc_id', $blocId)->orderBy('name')->pluck('name');
+        return County::whereHas('blocs', fn ($query) => $query->where('blocs.id', $blocId))->orderBy('name')->pluck('name');
     }
 
     public function getCountiesByName($name)

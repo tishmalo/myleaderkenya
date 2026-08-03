@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditsChanges;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 use Illuminate\Database\Eloquent\Model;
 
-class PoliticalPartyCandidateClaim extends Model
+class PoliticalPartyCandidateClaim extends Model implements AuditableContract
 {
+    use AuditsChanges;
     protected $guarded = [];
 
     protected $casts = ['reviewed_at' => 'datetime'];

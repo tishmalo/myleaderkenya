@@ -1,6 +1,6 @@
-@extends('layouts.landing')
+@extends('layouts.aspirant')
 
-@section('title', 'Aspirant Dashboard - My Leader Kenya')
+@section('page_title', 'Aspirant Dashboard')
 
 @section('content')
 <style>

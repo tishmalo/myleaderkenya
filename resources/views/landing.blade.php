@@ -63,7 +63,7 @@
                             <label>Password</label>
                             <div class="auth-field-wrap">
                                 <input type="password" id="modal-login-pwd" name="password"
-                                       placeholder="ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢" required autocomplete="new-password" autocomplete="current-password">
+                                       placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" required autocomplete="current-password">
                                 <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                 <button type="button" class="auth-pwd-toggle"
                                         onclick="togglePwd('modal-login-pwd',this)" aria-label="Toggle password">
@@ -77,7 +77,7 @@
                         </button>
                     </form>
                     <div class="auth-bottom-link">
-                        Don't have an account? <button onclick="switchTab('register')">Register now ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢</button>
+                        Don't have an account? <button onclick="switchTab('register')">Register now &rarr;</button>
                     </div>
                 </div>
 
@@ -102,7 +102,7 @@
                                 <label>Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd" name="password"
-                                           placeholder="ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢" required autocomplete="new-password"
+                                           placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" required autocomplete="new-password"
                                            oninput="modalPwdStrength(this.value)">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
@@ -117,7 +117,7 @@
                                 <label>Confirm Password <span style="color:var(--kenya-red)">*</span></label>
                                 <div class="auth-field-wrap">
                                     <input type="password" id="modal-reg-pwd2" name="password_confirmation" oninput="checkModalPasswordMatch()"
-                                           placeholder="ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢" required autocomplete="new-password">
+                                           placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" required autocomplete="new-password">
                                     <span class="auth-field-icon"><i class="fas fa-lock"></i></span>
                                     <button type="button" class="auth-pwd-toggle"
                                             onclick="togglePwd('modal-reg-pwd2',this)" aria-label="Toggle password">
@@ -132,7 +132,7 @@
                         </button>
                     </form>
                     <div class="auth-bottom-link">
-                        Already have an account? <button onclick="switchTab('login')">Login here ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢</button>
+                        Already have an account? <button onclick="switchTab('login')">Login here &rarr;</button>
                     </div>
                 </div>
 
@@ -149,6 +149,10 @@
     <div class="flag-stripe"></div>
 
     @include('components.frontend-nav')
+
+    @if(session('warning'))
+        <div class="ct-flash"><div>{{ session('warning') }}</div></div>
+    @endif
 
     @if(session('success'))
     <div class="ct-flash">
@@ -225,7 +229,7 @@
                 </div>
             </div>
             <div class="hero-card-body">
-                <div class="hc-title">Latest Blogs</div>
+                <div class="hc-title">Latest News Updates</div>
                 @if(($latestBlogs ?? collect())->isNotEmpty())
                     <div class="latest-blog-list">
                         @foreach($latestBlogs as $blog)
@@ -248,10 +252,10 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="reason-desc">Latest blogs will appear here once published.</div>
+                    <div class="reason-desc">Latest news updates will appear here once published.</div>
                 @endif
                 <a href="{{ route('news.public') }}" class="latest-blog-more">
-                    Read more <i class="fas fa-arrow-right"></i>
+                    More News <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -515,12 +519,6 @@
     <div class="flag-stripe"></div>
 </div>
 
-<div id="landing-page-config"
-     data-county-labels="{{ e(json_encode($countyLabels ?? [])) }}"
-     data-county-data="{{ e(json_encode($countyData ?? [])) }}"
-     data-gender-data="{{ e(json_encode($genderData ?? [0, 0, 0])) }}"
-     data-auth-error-tab="{{ e($errors->any() ? old('_form_type', 'login') : '') }}"
-     hidden></div>
 
 @endsection
 
