@@ -22,6 +22,26 @@ class MyAccountService
         ];
     }
 
+    public function selectDirectAspirantCandidate(User $user): ?Candidate
+    {
+        $candidates = $this->relationships->accessibleCandidates($user);
+        $candidate = $candidates->first(
+            fn (Candidate $candidate): bool => (int) $candidate->user_id === (int) $user->id
+        );
+
+        if (! $candidate && $user->user_type === 'aspirant') {
+            $candidate = $candidates->first();
+        }
+
+        if (! $candidate) {
+            return null;
+        }
+
+        session(['active_candidate_id' => $candidate->id]);
+
+        return $candidate;
+    }
+
     public function selectCandidate(User $user, int $candidateId): Candidate
     {
         $candidate = $this->relationships->findAccessibleCandidate($user, $candidateId);
