@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\EncryptsPiiAttributes;
+
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
