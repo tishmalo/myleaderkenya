@@ -31,9 +31,12 @@ class AuthService
                 'about', 'country', 'county', 'constituency', 'ward',
             ])->all();
 
-            $user = $this->userRepository->create(collect($data)->only([
-                'name', 'email', 'phone', 'password', 'is_aspirant',
-            ])->all());
+            $accountData = collect($data)->only([
+                'name', 'username', 'email', 'phone', 'password', 'is_aspirant',
+            ])->all();
+            $accountData['username'] = $accountData['username'] ?? $this->uniqueUsername((string) $accountData['name']);
+
+            $user = $this->userRepository->create($accountData);
 
             if (! empty($candidateData['position_id'])) {
                 $candidateData['country'] = $candidateData['country'] ?? 'Kenya';
@@ -51,6 +54,22 @@ class AuthService
 
             return $user;
         });
+    }
+
+    /**
+     * Update user password.
+     */
+    private function uniqueUsername(string $name): string
+    {
+        $base = Str::limit(Str::slug($name, '_'), 40, '') ?: 'member';
+        $username = $base;
+        $suffix = 1;
+
+        while ($this->userRepository->findByUsername($username)) {
+            $username = Str::limit($base, 34, '').'_'.$suffix++;
+        }
+
+        return $username;
     }
 
     /**

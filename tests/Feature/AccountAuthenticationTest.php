@@ -23,6 +23,7 @@ class AccountAuthenticationTest extends TestCase
         $response->assertRedirect(route('my-account', absolute: false));
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
+            'username' => 'general_user',
             'email_hash' => hash('sha256', 'general@example.test'),
         ]);
     }
@@ -41,5 +42,19 @@ class AccountAuthenticationTest extends TestCase
 
         $response->assertRedirect();
         $this->assertAuthenticatedAs($user);
+    }
+    public function test_registration_generates_a_unique_username_when_names_match(): void
+    {
+        User::factory()->create(['name' => 'General User', 'username' => 'general_user']);
+
+        $this->post(route('register'), [
+            'name' => 'General User',
+            'phone' => '+254700000101',
+            'email' => 'another@example.test',
+            'password' => 'secure-password',
+            'password_confirmation' => 'secure-password',
+        ])->assertRedirect(route('my-account', absolute: false));
+
+        $this->assertDatabaseHas('users', ['username' => 'general_user_1']);
     }
 }
