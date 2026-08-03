@@ -41,8 +41,11 @@ window.handleBackdropClick = function handleBackdropClick(e) {
 window.switchTab = function switchTab(tab) {
     document.querySelectorAll('.auth-tab').forEach(function(t){ t.classList.remove('active'); });
     document.querySelectorAll('.auth-form-panel').forEach(function(p){ p.classList.remove('active'); });
-    document.getElementById('tab-'   + tab).classList.add('active');
-    document.getElementById('panel-' + tab).classList.add('active');
+
+    var tabButton = document.getElementById('tab-' + tab);
+    var panel = document.getElementById('panel-' + tab);
+    if (tabButton) tabButton.classList.add('active');
+    if (panel) panel.classList.add('active');
 };
 document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
 document.addEventListener('DOMContentLoaded', function(){
