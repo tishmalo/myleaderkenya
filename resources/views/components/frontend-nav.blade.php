@@ -535,7 +535,9 @@
                         </a>
                         <div class="frontend-nav-dropdown">
                             @foreach($children as $child)
-                                @php($grandchildren = $child['children'] ?? [])
+                                @php
+                                    $grandchildren = $child['children'] ?? [];
+                                @endphp
                                 @if($grandchildren)
                                     <div class="frontend-nav-dropdown-item">
                                         <a href="{{ $buildMenuUrl($child) }}" class="frontend-nav-dropdown-parent">
