@@ -567,7 +567,7 @@
                 <button class="btn-ghost" onclick="window.openFrontendAuth('login')">Login</button>
                 <a href="{{ $submitAspirantUrl }}" class="btn-primary" data-aspirant-register-popup>Submit Aspirant</a>
             @else
-                <a href="{{ $dashboardUrl }}" class="btn-primary">Dashboard</a>
+                <a href="{{ $dashboardUrl }}" class="btn-primary" target="_blank" rel="noopener noreferrer">Dashboard</a>
             @endguest
         </div>
 
@@ -621,7 +621,7 @@
             <button class="frontend-nav-mobile-link" type="button" onclick="window.openFrontendAuth('login')">Login</button>
             <a href="{{ $submitAspirantUrl }}" class="frontend-nav-mobile-link" data-aspirant-register-popup>Submit Aspirant</a>
         @else
-            <a href="{{ $dashboardUrl }}" class="frontend-nav-mobile-link">Dashboard</a>
+            <a href="{{ $dashboardUrl }}" class="frontend-nav-mobile-link" target="_blank" rel="noopener noreferrer">Dashboard</a>
         @endguest
     </div>
 </nav>
