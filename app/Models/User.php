@@ -226,23 +226,7 @@ class User extends Authenticatable
             return $this->relationship;
         }
 
-        if (empty($this->email) && empty($this->phone)) {
-            return null;
-        }
-
-        return Candidate::query()
-            ->where(function ($query) {
-                if (! empty($this->email)) {
-                    $query->orWhere('email', $this->email);
-                }
-
-                if (! empty($this->phone)) {
-                    $query->orWhere('phone', $this->phone);
-                }
-            })
-            ->with(['position', 'politicalParty'])
-            ->latest()
-            ->first();
+        return 'voter';
     }
 
     // Voter status relationship (optional)
