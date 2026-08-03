@@ -301,7 +301,7 @@ class CandidateRepository implements CandidateRepositoryInterface
                 ->orderBy('county');
         }
 
-        return $query->latest()->paginate($perPage)->withQueryString();
+        return $query;
     }
 
     private function positionFilterNames(string $position): array
@@ -339,6 +339,26 @@ class CandidateRepository implements CandidateRepositoryInterface
     }
 
     private function countiesForPublicFilters(array $filters): Collection
+    {
+        if (!empty($filters['county'])) {
+            return collect([$filters['county']]);
+        }
+
+        if (!empty($filters['bloc'])) {
+            return County::where('bloc_id', $filters['bloc'])
+                ->orderBy('name')
+                ->pluck('name');
+        }
+
+        return Candidate::whereNotNull('county')
+            ->where('county', '!=', '')
+            ->where('approval_status', 'approved')
+            ->distinct()
+            ->orderBy('county')
+            ->pluck('county');
+    }
+
+    private function filtersTargetPresidential(array $filters): bool
     {
         if (empty($filters['position'])) {
             return false;
