@@ -415,7 +415,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
                     @elseif($module['key'] === 'bulk-sms')
                         <div class="tool-alert" style="border-color:rgba(245,158,11,.42);background:rgba(245,158,11,.1);color:#fde68a;">
                             <strong><i class="fas fa-shield-halved"></i> Kenya data protection responsibility</strong>
-                            <p style="margin-top:6px;">Contact data must be collected, stored, and used lawfully under Kenya's Data Protection Act, 2019. You are responsible for having a valid lawful basis, respecting data-subject rights, keeping the data secure, and using it only for the stated purpose. You—not My Leader Kenya—may be held liable for unlawful uploads, disclosure, or messaging.</p>
+                            <p style="margin-top:6px;">Contact data must be collected, stored, and used lawfully under Kenya's Data Protection Act, 2019. You are responsible for having a valid lawful basis, respecting data-subject rights, keeping the data secure, and using it only for the stated purpose. You - not My Leader Kenya - may be held liable for unlawful uploads, disclosure, or messaging.</p>
                         </div>
 
                         <form class="tool-form" method="POST" action="{{ route('aspirant.tools.bulk-sms.send') }}" data-loading-form data-sms-send-form>
@@ -812,8 +812,10 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
             setStatus(payload.message || 'Call log recorded.', 'success');
             row?.classList.add('call-row-logged');
             if (label) label.textContent = 'Logged';
-            form.querySelector('input[name="notes"]')?.value = '';
-            form.querySelector('input[name="callback_at"]')?.value = '';
+            const notesInput = form.querySelector('input[name="notes"]');
+            const callbackInput = form.querySelector('input[name="callback_at"]');
+            if (notesInput) notesInput.value = '';
+            if (callbackInput) callbackInput.value = '';
         } catch (error) {
             setStatus(`${error.message} You can retry.`, 'error');
         } finally {
@@ -826,13 +828,19 @@ document.querySelectorAll('[data-call-log-form]').forEach((form) => {
 });
 
 function smsDetails(message) {
-    const basic = "@�$�������\n��\r��?_FG?O??ST? !"#�%&'()*+,-./0123456789:;<=>?�ABCDEFGHIJKLMNOPQRSTUVWXYZ����`�abcdefghijklmnopqrstuvwxyz�����";
-    const extended = "^{}\\[~]|�";
+    const gsmExtended = new Set(['^', '{', '}', '\\', '[', ']', '~', '|', '\u20ac']);
+    const gsmNonAscii = new Set([
+        '\u00a3', '\u00a5', '\u00e8', '\u00e9', '\u00f9', '\u00ec', '\u00f2', '\u00c7',
+        '\u00d8', '\u00f8', '\u00c5', '\u00e5', '\u0394', '\u03a6', '\u0393', '\u039b',
+        '\u03a9', '\u03a0', '\u03a8', '\u03a3', '\u0398', '\u039e', '\u00c6', '\u00e6',
+        '\u00df', '\u00c9', '\u00a4', '\u00a1', '\u00c4', '\u00d6', '\u00d1', '\u00dc',
+        '\u00a7', '\u00bf', '\u00e4', '\u00f6', '\u00f1', '\u00fc', '\u00e0'
+    ]);
     let gsm = true;
     let length = 0;
     Array.from(message).forEach((character) => {
-        if (extended.includes(character)) length += 2;
-        else if (basic.includes(character)) length += 1;
+        if (gsmExtended.has(character)) length += 2;
+        else if (/^[\x20-\x7e\r\n]$/.test(character) || gsmNonAscii.has(character)) length += 1;
         else { gsm = false; length += 1; }
     });
     const encoding = gsm ? 'GSM-7' : 'Unicode';
@@ -840,7 +848,6 @@ function smsDetails(message) {
     const segments = count === 0 ? 0 : (gsm ? (count <= 160 ? 1 : Math.ceil(count / 153)) : (count <= 70 ? 1 : Math.ceil(count / 67)));
     return { count, encoding, segments };
 }
-
 document.querySelectorAll('[data-sms-cost]').forEach((panel) => {
     const form = panel.closest('[data-sms-send-form]');
     const textarea = form?.querySelector('[data-sms-message]');
