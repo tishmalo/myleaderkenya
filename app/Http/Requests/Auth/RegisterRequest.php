@@ -25,13 +25,6 @@ class RegisterRequest extends FormRequest
                 }
             }],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'position_id' => ['required', 'exists:positions,id'],
-            'political_party_id' => ['nullable', 'exists:political_parties,id'],
-            'about' => ['nullable', 'string'],
-            'country' => ['nullable', 'string', 'max:100'],
-            'county' => ['nullable', 'string', 'max:100'],
-            'constituency' => ['nullable', 'string', 'max:100'],
-            'ward' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

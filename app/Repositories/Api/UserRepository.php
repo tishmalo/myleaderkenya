@@ -32,7 +32,9 @@ class UserRepository implements UserRepositoryInterface
 
     public function findByEmail(string $email): ?User
     {
-        return User::findByEmailValue($email);
+        return User::query()
+            ->where('email_hash', hash('sha256', strtolower(trim($email))))
+            ->first();
     }
 
     public function existsByEmailHash(string $email): bool

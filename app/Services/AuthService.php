@@ -66,7 +66,7 @@ class AuthService
      */
     public function sendPasswordResetLink(string $email): string
     {
-        $user = User::findByEmailValue($email);
+        $user = $this->userRepository->findByEmail($email);
 
         if (! $user) {
             return Password::INVALID_USER;
@@ -83,7 +83,7 @@ class AuthService
      */
     public function resetPassword(array $credentials): string
     {
-        $user = User::findByEmailValue((string) ($credentials['email'] ?? ''));
+        $user = $this->userRepository->findByEmail((string) ($credentials['email'] ?? ''));
 
         if (! $user) {
             return Password::INVALID_USER;
