@@ -5,7 +5,7 @@ namespace App\Http\Requests\Web;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class SendBulkSmsRequest extends FormRequest
+class ImportBulkSmsContactsRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,13 +15,11 @@ class SendBulkSmsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'message' => ['required', 'string', 'min:3', 'max:918'],
-            'recipient_source' => ['required', Rule::in(['registered_voters', 'uploaded_contacts'])],
             'support_group_type_id' => [
-                Rule::requiredIf($this->input('recipient_source') === 'uploaded_contacts'),
-                'nullable',
+                'required',
                 Rule::exists('support_group_types', 'id')->where(fn ($query) => $query->where('is_active', true)),
             ],
+            'contacts_file' => ['required', 'file', 'max:5120', 'mimes:xlsx,csv,txt'],
             'privacy_acknowledged' => ['accepted'],
         ];
     }
@@ -29,7 +27,7 @@ class SendBulkSmsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'privacy_acknowledged.accepted' => 'You must accept responsibility for the lawful use of these contacts before sending.',
+            'privacy_acknowledged.accepted' => 'You must confirm that you have a lawful basis to process and message these contacts.',
         ];
     }
 }

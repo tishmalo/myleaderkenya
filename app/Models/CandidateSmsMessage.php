@@ -11,6 +11,9 @@ class CandidateSmsMessage extends Model
         'candidate_id',
         'user_id',
         'message',
+        'recipient_source',
+        'support_group_type_id',
+        'privacy_acknowledged_at',
         'scope_type',
         'scope_column',
         'scope_value',
@@ -29,6 +32,7 @@ class CandidateSmsMessage extends Model
     protected $casts = [
         'provider_response' => 'array',
         'sent_at' => 'datetime',
+        'privacy_acknowledged_at' => 'datetime',
     ];
 
     public function candidate(): BelongsTo

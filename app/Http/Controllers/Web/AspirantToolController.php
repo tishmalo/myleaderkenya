@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Jobs\ImportCandidateSupportContacts;
 use App\Jobs\SendCandidateBulkSms;
+use App\Http\Requests\Web\ImportBulkSmsContactsRequest;
 use App\Http\Requests\Web\SendBulkSmsRequest;
 use App\Models\AspirantPoll;
 use App\Models\CandidateCallLog;
@@ -21,6 +22,7 @@ use App\Models\GroupMessage;
 use App\Services\Sms\InfobipSmsService;
 use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
+use App\Services\Web\CandidateBulkSmsContactService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +38,8 @@ class AspirantToolController extends Controller
         private AspirantWorkspaceService $workspaceService,
         private CandidateSmsMessageRepositoryInterface $smsMessageRepository,
         private AspirantTokenService $tokenService,
-        private InfobipSmsService $smsService
+        private InfobipSmsService $smsService,
+        private CandidateBulkSmsContactService $bulkSmsContacts
     ) {}
 
     public function show(Request $request, string $key): View|RedirectResponse
@@ -73,10 +76,10 @@ class AspirantToolController extends Controller
             'tool' => $tool,
         ]);
         $scope = $this->workspaceService->scopeForCandidate($candidate);
-        $isBlocked = $module['voter_facing'] && $scope['missing'];
+        $isBlocked = $module['voter_facing'] && $scope['missing'] && $key !== 'bulk-sms';
         $voterQuery = $this->workspaceService->registeredVotersQuery($scope);
-        $voterCount = $module['voter_facing'] && ! $isBlocked ? (clone $voterQuery)->count() : null;
-        $recentVoters = $module['voter_facing'] && ! $isBlocked
+        $voterCount = $module['voter_facing'] && ! $scope['missing'] ? (clone $voterQuery)->count() : 0;
+        $recentVoters = $module['voter_facing'] && ! $scope['missing']
             ? (clone $voterQuery)
                 ->select('name', 'username', 'phone', 'county', 'constituency', 'ward', 'polling_station', 'created_at')
                 ->latest()
@@ -116,8 +119,14 @@ class AspirantToolController extends Controller
         $smsBalanceRequest = $key === 'bulk-sms'
             ? CandidateSmsBalanceRequest::where('candidate_id', $candidate->id)->latest()->first()
             : null;
-        $supportGroupTypes = $key === 'support-groups'
-            ? SupportGroupType::active()->ordered()->get()
+        $supportGroupTypes = in_array($key, ['support-groups', 'bulk-sms'], true)
+            ? $this->bulkSmsContacts->classifications()
+            : collect();
+        $uploadedContactCount = $key === 'bulk-sms'
+            ? $this->bulkSmsContacts->recipientCount($candidate)
+            : 0;
+        $uploadedContactCounts = $key === 'bulk-sms'
+            ? $this->bulkSmsContacts->countsByClassification($candidate)
             : collect();
         $supportContacts = $key === 'support-groups'
             ? CandidateSupportContact::with('groupType')->where('candidate_id', $candidate->id)->latest()->get()
@@ -156,10 +165,31 @@ class AspirantToolController extends Controller
             'smsProviderBalance' => $smsProviderBalance,
             'supportGroupTypes' => $supportGroupTypes,
             'supportContacts' => $supportContacts,
+            'uploadedContactCount' => $uploadedContactCount,
+            'uploadedContactCounts' => $uploadedContactCounts,
         ]);
     }
 
 
+    public function importBulkSmsContacts(ImportBulkSmsContactsRequest $request): RedirectResponse
+    {
+        $candidate = $this->workspaceService->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return redirect('/aspirant/dashboard')->with('warning', 'No aspirant profile is linked to this account yet.');
+        }
+
+        $validated = $request->validated();
+        $this->bulkSmsContacts->queueImport(
+            $candidate,
+            $request->user(),
+            $request->file('contacts_file'),
+            (int) $validated['support_group_type_id']
+        );
+
+        return redirect()->route('aspirant.tools.show', 'bulk-sms')
+            ->with('success', 'Contact import queued. The file will be processed securely in the background.');
+    }
     public function sendBulkSms(SendBulkSmsRequest $request): RedirectResponse
     {
         $candidate = $this->workspaceService->candidateForUser($request->user());
@@ -178,22 +208,30 @@ class AspirantToolController extends Controller
 
         $scope = $this->workspaceService->scopeForCandidate($candidate);
 
-        if ($scope['missing']) {
+        $validated = $request->validated();
+        $recipientSource = $validated['recipient_source'];
+        $classificationId = isset($validated['support_group_type_id'])
+            ? (int) $validated['support_group_type_id']
+            : null;
+
+        if ($recipientSource === 'registered_voters' && $scope['missing']) {
             return redirect()->route('aspirant.tools.show', 'bulk-sms')
+                ->withInput()
                 ->with('warning', $scope['message']);
         }
 
-        $validated = $request->validated();
-        $recipientCount = $this->workspaceService->registeredVotersQuery($scope)
-            ->whereNotNull('phone')
-            ->count();
+        $recipientCount = $recipientSource === 'uploaded_contacts'
+            ? $this->bulkSmsContacts->recipientCount($candidate, $classificationId)
+            : $this->workspaceService->registeredVotersQuery($scope)->whereNotNull('phone')->count();
 
         $quote = $this->tokenService->quoteBulkSms($validated['message'], $recipientCount);
 
         if ($quote['sms_units'] <= 0) {
             return redirect()->route('aspirant.tools.show', 'bulk-sms')
                 ->withInput()
-                ->with('warning', 'No valid phone numbers were found for your scoped voters.');
+                ->with('warning', $recipientSource === 'uploaded_contacts'
+                    ? 'No uploaded contacts with valid phone numbers were found in that classification.'
+                    : 'No valid phone numbers were found for your scoped voters.');
         }
 
         try {
@@ -209,9 +247,12 @@ class AspirantToolController extends Controller
                 'candidate_id' => $candidate->id,
                 'user_id' => $request->user()->id,
                 'message' => $validated['message'],
-                'scope_type' => $scope['type'],
-                'scope_column' => $scope['column'],
-                'scope_value' => $scope['value'],
+                'recipient_source' => $recipientSource,
+                'support_group_type_id' => $classificationId,
+                'privacy_acknowledged_at' => now(),
+                'scope_type' => $recipientSource === 'registered_voters' ? $scope['type'] : 'uploaded_contacts',
+                'scope_column' => $recipientSource === 'registered_voters' ? $scope['column'] : null,
+                'scope_value' => $recipientSource === 'registered_voters' ? $scope['value'] : null,
                 'recipient_count' => $recipientCount,
                 'status' => 'queued',
                 'token_transaction_id' => $reservation->id,
@@ -242,7 +283,7 @@ class AspirantToolController extends Controller
         ]);
 
         return redirect()->route('aspirant.tools.show', 'bulk-sms')
-            ->with('success', 'Bulk SMS queued for ' . number_format($recipientCount) . ' voters. ' . number_format($quote['tokens_required']) . ' tokens reserved for ' . number_format($quote['sms_units']) . ' SMS units.');
+            ->with('success', 'Bulk SMS queued for ' . number_format($recipientCount) . ' recipients. ' . number_format($quote['tokens_required']) . ' tokens reserved for ' . number_format($quote['sms_units']) . ' SMS units.');
     }
     public function storePoll(Request $request): RedirectResponse
     {
