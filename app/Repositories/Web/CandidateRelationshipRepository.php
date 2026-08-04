@@ -91,6 +91,24 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
             ->exists();
     }
 
+    public function directCandidateForUser(User $user): ?Candidate
+    {
+        $owned = Candidate::query()
+            ->where('user_id', $user->id)
+            ->latest('created_at')
+            ->first();
+
+        if ($owned || $user->user_type !== 'aspirant') {
+            return $owned;
+        }
+
+        return $user->relatedCandidates()
+            ->whereIn('candidate_user_relationships.relationship', ['aspirant', 'PA', 'campaign_manager'])
+            ->where('candidate_user_relationships.dashboard_access_enabled', true)
+            ->latest('candidates.created_at')
+            ->first();
+    }
+
     public function accessibleCandidates(User $user): Collection
     {
         $owned = Candidate::query()

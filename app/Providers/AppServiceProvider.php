@@ -212,9 +212,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Role::class, UserAccessPolicy::class);
         Candidate::observe(CandidateObserver::class);
-        Event::listen(Login::class, fn (Login $event) => app(\App\Services\Audit\AuditService::class)->record('auth.login', 'User signed in.', ['actor' => $event->user, 'module' => 'authentication']));
-        Event::listen(Logout::class, fn (Logout $event) => app(\App\Services\Audit\AuditService::class)->record('auth.logout', 'User signed out.', ['actor' => $event->user, 'module' => 'authentication']));
-        Event::listen(Failed::class, fn (Failed $event) => app(\App\Services\Audit\AuditService::class)->record('auth.login_failed', 'Sign-in attempt failed.', ['actor' => $event->user, 'module' => 'authentication', 'status' => 'failure', 'metadata' => ['email' => $event->credentials['email'] ?? null]]));
+        Event::listen(Login::class, fn (Login $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.login', 'User signed in.', ['actor' => $event->user, 'module' => 'authentication']));
+        Event::listen(Logout::class, fn (Logout $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.logout', 'User signed out.', ['actor' => $event->user, 'module' => 'authentication']));
+        Event::listen(Failed::class, fn (Failed $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.login_failed', 'Sign-in attempt failed.', ['actor' => $event->user, 'module' => 'authentication', 'status' => 'failure', 'metadata' => ['email' => $event->credentials['email'] ?? null]]));
 
         $this->listenForDatabaseQueries();
 

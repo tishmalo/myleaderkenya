@@ -24,14 +24,7 @@ class MyAccountService
 
     public function selectDirectAspirantCandidate(User $user): ?Candidate
     {
-        $candidates = $this->relationships->accessibleCandidates($user);
-        $candidate = $candidates->first(
-            fn (Candidate $candidate): bool => (int) $candidate->user_id === (int) $user->id
-        );
-
-        if (! $candidate && $user->user_type === 'aspirant') {
-            $candidate = $candidates->first();
-        }
+        $candidate = $this->relationships->directCandidateForUser($user);
 
         if (! $candidate) {
             return null;

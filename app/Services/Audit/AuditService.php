@@ -14,7 +14,6 @@ class AuditService
 
     public function record(string $event, string $summary, array $context = []): void
     {
-        if (! \Schema::hasTable('audits')) return;
         $actor = $context['actor'] ?? auth()->user();
         $candidateId = $context['candidate_id'] ?? $this->candidateId($context['auditable'] ?? null);
         $auditable = $context['auditable'] ?? null;
@@ -42,6 +41,17 @@ class AuditService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    public function recordAfterResponse(string $event, string $summary, array $context = []): void
+    {
+        if (app()->runningInConsole()) {
+            $this->record($event, $summary, $context);
+
+            return;
+        }
+
+        app()->terminating(fn () => $this->record($event, $summary, $context));
     }
 
     public function candidateId(?Model $model): ?int
