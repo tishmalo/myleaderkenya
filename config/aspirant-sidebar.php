@@ -20,6 +20,18 @@ return [
             'section' => 'campaign-tools',
         ],
         [
+            'label' => 'Submit News',
+            'icon' => 'fas fa-pen-to-square',
+            'route' => 'aspirant.news.create',
+            'active' => ['aspirant.news.create'],
+        ],
+        [
+            'label' => 'My News',
+            'icon' => 'fas fa-newspaper',
+            'route' => 'aspirant.news.index',
+            'active' => ['aspirant.news.index'],
+        ],
+        [
             'label' => 'Bulk SMS',
             'icon' => 'fas fa-comment-sms',
             'route' => 'aspirant.tools.show',
@@ -64,7 +76,8 @@ return [
             'icon' => 'fas fa-bullseye',
             'href' => '#campaign-priorities',
             'section' => 'campaign-priorities',
-        ],        [
+        ],
+        [
             'label' => 'Profile',
             'icon' => 'fas fa-id-badge',
             'href' => '#profile',
@@ -81,7 +94,8 @@ return [
             'icon' => 'fas fa-chart-simple',
             'href' => '#poll-snapshot',
             'section' => 'poll-snapshot',
-        ],        [
+        ],
+        [
             'label' => 'Audit History',
             'icon' => 'fas fa-clock-rotate-left',
             'route' => 'aspirant.audits.index',

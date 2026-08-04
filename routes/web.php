@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WardController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Web\AspirantAuditController;
+use App\Http\Controllers\Web\AspirantNewsArticleController;
 use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
@@ -154,6 +155,10 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('aspirant')->group(function () {
         Route::get('/aspirant/dashboard', AspirantDashboardController::class)->name('aspirant.dashboard');
+        Route::get('/aspirant/news', [AspirantNewsArticleController::class, 'index'])->name('aspirant.news.index');
+        Route::get('/aspirant/news/submit', [AspirantNewsArticleController::class, 'create'])->name('aspirant.news.create');
+        Route::get('/aspirant/news/candidates/search', [AspirantNewsArticleController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('aspirant.news.candidates.search');
+        Route::post('/aspirant/news', [AspirantNewsArticleController::class, 'store'])->middleware('throttle:3,10')->name('aspirant.news.store');
         Route::post('/aspirant/cover-photo', [AspirantDashboardController::class, 'updateCoverPhoto'])->middleware('throttle:6,10')->name('aspirant.cover-photo.update');
         Route::patch('/aspirant/social-links', [AspirantDashboardController::class, 'updateSocialLinks'])->middleware('throttle:20,1')->name('aspirant.social-links.update');
         Route::patch('/aspirant/media', [AspirantDashboardController::class, 'updateMedia'])->middleware('throttle:10,10')->name('aspirant.media.update');

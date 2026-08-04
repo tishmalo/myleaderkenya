@@ -20,6 +20,15 @@ class UserNewsArticleRepository implements UserNewsArticleRepositoryInterface
             ->paginate($perPage);
     }
 
+    public function paginateForCandidate(int $candidateId, int $perPage = 12): LengthAwarePaginator
+    {
+        return NewsArticle::query()
+            ->with(['author:id,name', 'tags:id,name,slug'])
+            ->whereHas('candidates', fn ($query) => $query->whereKey($candidateId))
+            ->latest()
+            ->paginate($perPage);
+    }
+
     public function create(array $data): NewsArticle
     {
         return NewsArticle::create($data);

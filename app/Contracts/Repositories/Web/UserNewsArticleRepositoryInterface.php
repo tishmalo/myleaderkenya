@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 interface UserNewsArticleRepositoryInterface
 {
     public function paginateForAuthor(int $authorId, int $perPage = 12): LengthAwarePaginator;
+    public function paginateForCandidate(int $candidateId, int $perPage = 12): LengthAwarePaginator;
     public function create(array $data): NewsArticle;
     public function slugExists(string $slug): bool;
     public function allTags(): Collection;

@@ -20,6 +20,11 @@ class UserNewsArticleService
         return $this->articles->paginateForAuthor($user->getKey(), $perPage);
     }
 
+    public function listForCandidate(Candidate $candidate, int $perPage = 12): LengthAwarePaginator
+    {
+        return $this->articles->paginateForCandidate($candidate->getKey(), $perPage);
+    }
+
     public function formData(array $selectedCandidateIds = []): array
     {
         $candidateIds = array_values(array_unique(array_map('intval', $selectedCandidateIds)));
@@ -63,6 +68,16 @@ class UserNewsArticleService
         $this->articles->syncCandidates($article, $candidateIds);
 
         return $article;
+    }
+
+    public function submitForCandidate(User $user, Candidate $candidate, array $data, ?UploadedFile $image = null): NewsArticle
+    {
+        $data['candidates'] = array_values(array_unique([
+            $candidate->getKey(),
+            ...array_map('intval', $data['candidates'] ?? []),
+        ]));
+
+        return $this->submit($user, $data, $image);
     }
 
     private function candidateLabel(Candidate $candidate): string
