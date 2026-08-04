@@ -436,11 +436,69 @@
     border-color: rgba(0,168,107,0.45);
     color: var(--green-bright, #00A86B);
 }
+.aspirant-register-body {
+    position: relative;
+    height: calc(100% - 54px);
+    background: #0a0a0a;
+}
 .aspirant-register-frame {
     width: 100%;
-    height: calc(100% - 54px);
+    height: 100%;
     border: 0;
     background: #0a0a0a;
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+.aspirant-register-body.is-loaded .aspirant-register-frame { opacity: 1; }
+.aspirant-register-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    background: #0a0a0a;
+    color: #f5f5f0;
+    text-align: center;
+}
+.aspirant-register-body.is-loaded .aspirant-register-loader { display: none; }
+.aspirant-register-loader-flag {
+    width: 92px;
+    height: 58px;
+    border-top: 18px solid #050505;
+    border-bottom: 18px solid #087830;
+    border-radius: 5px;
+    background: #bb0000;
+    box-shadow: 0 -3px 0 #fff, 0 3px 0 #fff, 0 12px 30px rgba(0,0,0,.45);
+    animation: aspirant-register-pulse 1.1s ease-in-out infinite;
+}
+.aspirant-register-loader-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: .03em;
+}
+.aspirant-register-loader-copy {
+    margin: -8px 0 0;
+    color: #aaa;
+    font-size: 14px;
+}
+.aspirant-register-loader-link {
+    display: none;
+    color: #10b981;
+    font-weight: 700;
+    text-decoration: underline;
+}
+.aspirant-register-loader.is-delayed .aspirant-register-loader-link { display: inline; }
+@keyframes aspirant-register-pulse {
+    0%, 100% { transform: scale(.96); opacity: .72; }
+    50% { transform: scale(1.04); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .aspirant-register-loader-flag { animation: none; }
 }
 
 @media (max-width: 1100px) {
@@ -634,7 +692,15 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <iframe class="aspirant-register-frame" data-aspirant-register-frame title="Aspirant registration"></iframe>
+        <div class="aspirant-register-body" data-aspirant-register-body>
+            <div class="aspirant-register-loader" data-aspirant-register-loader role="status" aria-live="polite">
+                <span class="aspirant-register-loader-flag" aria-hidden="true"></span>
+                <p class="aspirant-register-loader-title">Loading aspirant form...</p>
+                <p class="aspirant-register-loader-copy">Please wait while we prepare the form.</p>
+                <a class="aspirant-register-loader-link" data-aspirant-register-direct href="#">Taking too long? Open the form directly</a>
+            </div>
+            <iframe class="aspirant-register-frame" data-aspirant-register-frame title="Aspirant registration"></iframe>
+        </div>
     </div>
 </div>
 
@@ -650,6 +716,10 @@ window.openFrontendAuth = window.openFrontendAuth || function (tab) {
 document.addEventListener('DOMContentLoaded', function () {
     var registerModal = document.querySelector('[data-aspirant-register-modal]');
     var registerFrame = document.querySelector('[data-aspirant-register-frame]');
+    var registerBody = document.querySelector('[data-aspirant-register-body]');
+    var registerLoader = document.querySelector('[data-aspirant-register-loader]');
+    var registerDirectLink = document.querySelector('[data-aspirant-register-direct]');
+    var registerLoadTimer = null;
     var registerCloseButton = document.querySelector('[data-aspirant-register-close]');
     var registerTitle = document.querySelector('[data-aspirant-register-title]');
     var activeRegisterLink = null;
@@ -665,8 +735,15 @@ document.addEventListener('DOMContentLoaded', function () {
         var modalUrl = new URL(registerLink.href, window.location.origin);
         var modalTitle = registerLink.dataset.aspirantRegisterTitle || 'Submit Aspirant';
         modalUrl.searchParams.set('modal', '1');
-        registerFrame.src = modalUrl.toString();
+        if (registerLoadTimer) window.clearTimeout(registerLoadTimer);
+        if (registerBody) registerBody.classList.remove('is-loaded');
+        if (registerLoader) registerLoader.classList.remove('is-delayed');
+        if (registerDirectLink) registerDirectLink.href = modalUrl.toString();
         registerFrame.title = modalTitle;
+        registerFrame.src = modalUrl.toString();
+        registerLoadTimer = window.setTimeout(function () {
+            if (registerLoader) registerLoader.classList.add('is-delayed');
+        }, 8000);
         if (registerTitle) registerTitle.textContent = modalTitle;
 
         registerModal.classList.add('is-open');
@@ -681,10 +758,18 @@ document.addEventListener('DOMContentLoaded', function () {
         registerModal.classList.remove('is-open');
         registerModal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        if (registerLoadTimer) window.clearTimeout(registerLoadTimer);
         if (activeRegisterLink) activeRegisterLink.focus();
     }
 
-    document.querySelectorAll('[data-aspirant-register-popup]').forEach(function (registerLink) {
+    if (registerFrame) {
+        registerFrame.addEventListener('load', function () {
+            if (registerLoadTimer) window.clearTimeout(registerLoadTimer);
+            if (registerBody) registerBody.classList.add('is-loaded');
+        });
+    }
+
+        document.querySelectorAll('[data-aspirant-register-popup]').forEach(function (registerLink) {
         registerLink.addEventListener('click', openAspirantRegisterModal);
     });
 

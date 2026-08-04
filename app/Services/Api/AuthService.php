@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class AuthService
 {
@@ -16,9 +17,14 @@ class AuthService
 
     public function register(array $data): array
     {
-        $user = $this->userRepository->create($data);
+        [$user, $token] = DB::transaction(function () use ($data): array {
+            $user = $this->userRepository->create($data);
+            $token = $user->createToken('voter-app-token')->plainTextToken;
+
+            return [$user, $token];
+        });
+
         $verification = $this->sendEmailVerificationCode($user);
-        $token = $user->createToken('voter-app-token')->plainTextToken;
 
         return [
             'message' => 'User registered successfully',

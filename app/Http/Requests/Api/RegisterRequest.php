@@ -9,6 +9,22 @@ use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $userType = $this->input(
+            'user_type',
+            $this->input('usertype', $this->input('relationship'))
+        );
+
+        $this->merge([
+            'user_type' => $userType,
+            'relationship' => $this->input('relationship', $userType),
+            'id_number' => $this->filled('id_number')
+                ? trim((string) $this->input('id_number'))
+                : null,
+        ]);
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */

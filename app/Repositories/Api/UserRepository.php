@@ -110,7 +110,7 @@ class UserRepository implements UserRepositoryInterface
 
     private function syncCandidateRelationships(User $user, ?array $candidateIds, ?string $relationship): void
     {
-        if ($candidateIds === null) {
+        if (empty($candidateIds)) {
             return;
         }
 
