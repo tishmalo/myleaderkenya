@@ -212,7 +212,7 @@ class CandidateController extends Controller
 
     public function publicIndex(Request $request)
     {
-        if (! $request->filled('position')) {
+        if (! $request->filled('position') && ! $request->boolean('latest')) {
             $request->merge(['position' => 'president']);
         }
 
