@@ -12,6 +12,8 @@ interface CandidateRepositoryInterface
 
     public function find(int $id): ?Candidate;
 
+    public function findPotentialDuplicate(array $data): ?Candidate;
+
     public function create(array $data): Candidate;
 
     public function update(Candidate $candidate, array $data): bool;

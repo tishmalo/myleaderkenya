@@ -12,6 +12,7 @@ use App\Models\County;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -47,31 +48,50 @@ class CandidateService
         $supportContacts = $this->extractSupportContacts($data);
         $data = $this->normalizeCandidateData($data);
 
-        if ($picture) {
-            $data['profile_picture'] = $this->storeCandidateImage($picture, 'candidates');
+        $identity = implode('|', [
+            Str::lower(trim((string) ($data['name'] ?? ''))),
+            (string) ($data['position_id'] ?? ''),
+            (string) ($data['political_party_id'] ?? ''),
+        ]);
+        $lock = Cache::lock('candidate-create:'.hash('sha256', $identity), 15);
+
+        if (! $lock->get()) {
+            throw ValidationException::withMessages([
+                'name' => 'This aspirant profile is already being submitted. Please wait and search for the existing profile.',
+            ]);
         }
 
-        if ($coverPhoto) {
-            $data['cover_photo'] = $this->storeCandidateImage($coverPhoto, 'candidates/covers');
+        try {
+            if ($this->candidateRepository->findPotentialDuplicate($data)) {
+                throw ValidationException::withMessages([
+                    'name' => 'A matching aspirant profile already exists. Search for and claim the existing profile instead of submitting it again.',
+                ]);
+            }
+
+            if ($picture) {
+                $data['profile_picture'] = $this->storeCandidateImage($picture, 'candidates');
+            }
+            if ($coverPhoto) {
+                $data['cover_photo'] = $this->storeCandidateImage($coverPhoto, 'candidates/covers');
+            }
+            if ($campaignPoster) {
+                $data['campaign_poster'] = $this->storeCandidateImage($campaignPoster, 'candidates/posters');
+            }
+            if ($campaignVideo) {
+                $data['campaign_video'] = $this->storeCandidateImage($campaignVideo, 'candidates/videos');
+            }
+            if ($campaignSkizaAudio) {
+                $data['campaign_skiza_audio'] = $this->storeCandidateImage($campaignSkizaAudio, 'candidates/audio');
+            }
+
+            $candidate = $this->candidateRepository->create($data);
+            $this->saveSmsSettings($candidate, $smsSettings);
+            $this->syncSupportContacts($candidate, $supportContacts);
+
+            return $candidate;
+        } finally {
+            $lock->release();
         }
-
-        if ($campaignPoster) {
-            $data['campaign_poster'] = $this->storeCandidateImage($campaignPoster, 'candidates/posters');
-        }
-
-        if ($campaignVideo) {
-            $data['campaign_video'] = $this->storeCandidateImage($campaignVideo, 'candidates/videos');
-        }
-
-        if ($campaignSkizaAudio) {
-            $data['campaign_skiza_audio'] = $this->storeCandidateImage($campaignSkizaAudio, 'candidates/audio');
-        }
-
-        $candidate = $this->candidateRepository->create($data);
-        $this->saveSmsSettings($candidate, $smsSettings);
-        $this->syncSupportContacts($candidate, $supportContacts);
-
-        return $candidate;
     }
 
     public function updateCandidate(Candidate $candidate, array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): bool

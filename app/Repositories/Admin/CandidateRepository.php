@@ -56,6 +56,46 @@ class CandidateRepository implements CandidateRepositoryInterface
         return Candidate::query()->find($id);
     }
 
+    public function findPotentialDuplicate(array $data): ?Candidate
+    {
+        if (! empty($data['user_id'])) {
+            $owned = Candidate::where('user_id', $data['user_id'])->first();
+            if ($owned) {
+                return $owned;
+            }
+        }
+
+        $name = preg_replace('/\s+/', ' ', strtolower(trim((string) ($data['name'] ?? ''))));
+        if ($name === '' || empty($data['position_id'])) {
+            return null;
+        }
+
+        $query = Candidate::query()
+            ->whereRaw('LOWER(TRIM(name)) = ?', [$name])
+            ->where('position_id', $data['position_id']);
+
+        if (array_key_exists('political_party_id', $data)) {
+            empty($data['political_party_id'])
+                ? $query->whereNull('political_party_id')
+                : $query->where('political_party_id', $data['political_party_id']);
+        }
+
+        $locationField = collect(['ward', 'constituency', 'county'])
+            ->first(fn (string $field): bool => filled($data[$field] ?? null));
+
+        if ($locationField) {
+            $location = strtolower(trim((string) $data[$locationField]));
+            $query->where(function ($locationQuery) use ($locationField, $location): void {
+                $locationQuery->whereRaw('LOWER(TRIM('.$locationField.')) = ?', [$location])
+                    ->orWhere(function ($incompleteQuery): void {
+                        $incompleteQuery->whereNull('county')->whereNull('constituency')->whereNull('ward');
+                    });
+            });
+        }
+
+        return $query->oldest('id')->first();
+    }
+
     public function create(array $data): Candidate
     {
         return Candidate::create($data);

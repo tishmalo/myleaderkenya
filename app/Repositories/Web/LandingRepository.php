@@ -114,9 +114,20 @@ class LandingRepository implements LandingRepositoryInterface
             ->with(['position', 'politicalParty'])
             ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
             ->latest('created_at')
+            ->take(30)
+            ->get()
+            ->unique(fn (Candidate $candidate): string => implode('|', [
+                strtolower(trim(preg_replace('/\s+/', ' ', $candidate->name))),
+                (string) $candidate->position_id,
+                (string) $candidate->political_party_id,
+                strtolower(trim((string) $candidate->county)),
+                strtolower(trim((string) $candidate->constituency)),
+                strtolower(trim((string) $candidate->ward)),
+            ]))
             ->take(6)
-            ->get();
+            ->values();
     }
+
     private function confirmedVotersCount(): int
     {
         if (Schema::hasColumn('users', 'is_voter')) {
