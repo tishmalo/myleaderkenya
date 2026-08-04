@@ -35,7 +35,7 @@
 
     @include('components.admin-sidebar')
 
-    <div class="min-w-0 flex-1 flex flex-col overflow-hidden">
+    <div class="min-w-0 flex-1 flex flex-col overflow-hidden md:ml-72">
         <header class="bg-zinc-900 border-b border-zinc-800 px-4 py-4 md:px-8 md:py-5 flex items-center justify-between gap-4">
             <div class="flex min-w-0 items-center gap-3 md:gap-4">
                 <button type="button" class="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-800 text-zinc-300 hover:bg-zinc-800" data-sidebar-open aria-label="Open admin menu">
