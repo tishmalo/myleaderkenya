@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Maintenance | My Leader Kenya</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --background: #080808;
+            --panel: #141414;
+            --border: #2b2b2b;
+            --text: #f5f5f5;
+            --muted: #a1a1aa;
+            --green: #00a86b;
+            --red: #d40000;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 10% 15%, rgba(0, 168, 107, .14), transparent 28%),
+                radial-gradient(circle at 90% 85%, rgba(212, 0, 0, .12), transparent 28%),
+                var(--background);
+            color: var(--text);
+            font-family: Inter, Arial, sans-serif;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0 0 auto;
+            height: 5px;
+            background: linear-gradient(90deg, #08752f 0 33.33%, #111 33.33% 66.66%, var(--red) 66.66%);
+        }
+
+        .card {
+            width: min(100%, 620px);
+            padding: clamp(30px, 6vw, 56px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: rgba(20, 20, 20, .96);
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+        }
+
+        .icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 24px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(0, 168, 107, .3);
+            border-radius: 20px;
+            background: rgba(0, 168, 107, .1);
+            color: #34d399;
+            font-size: 32px;
+        }
+
+        .eyebrow {
+            margin: 0 0 12px;
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(32px, 7vw, 52px);
+            line-height: 1.05;
+        }
+
+        .message {
+            max-width: 470px;
+            margin: 20px auto 0;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .status {
+            margin-top: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: #d4d4d8;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 0 5px rgba(0, 168, 107, .12);
+        }
+
+        footer {
+            margin-top: 32px;
+            color: #5f5f66;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <div class="icon" aria-hidden="true">&#9881;</div>
+        <p class="eyebrow">My Leader Kenya</p>
+        <h1>We&rsquo;ll be back shortly.</h1>
+        <p class="message">
+            We&rsquo;re carrying out scheduled maintenance to improve your experience.
+            Thank you for your patience while we finish the work.
+        </p>
+        <div class="status"><span class="dot"></span> Maintenance in progress</div>
+        <footer>&copy; 2026 My Leader Kenya. All rights reserved.</footer>
+    </main>
+</body>
+</html>
