@@ -3,10 +3,12 @@
 namespace App\Services\Web;
 
 use App\Contracts\Repositories\Web\UserNewsArticleRepositoryInterface;
+use App\Models\Candidate;
 use App\Models\NewsArticle;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class UserNewsArticleService
@@ -18,19 +20,37 @@ class UserNewsArticleService
         return $this->articles->paginateForAuthor($user->getKey(), $perPage);
     }
 
-    public function formData(): array
+    public function formData(array $selectedCandidateIds = []): array
     {
-        return ['tags' => $this->articles->allTags()];
+        $candidateIds = array_values(array_unique(array_map('intval', $selectedCandidateIds)));
+
+        return [
+            'tags' => $this->articles->allTags(),
+            'selectedCandidates' => $this->articles->findCandidatesByIds($candidateIds)
+                ->map(fn (Candidate $candidate): array => [
+                    'value' => $candidate->id,
+                    'label' => $this->candidateLabel($candidate),
+                ]),
+        ];
+    }
+
+    public function searchCandidates(string $term): Collection
+    {
+        return $this->articles->searchCandidates($term)
+            ->map(fn (Candidate $candidate): array => [
+                'id' => $candidate->id,
+                'text' => $this->candidateLabel($candidate),
+            ]);
     }
 
     public function submit(User $user, array $data, ?UploadedFile $image = null): NewsArticle
     {
         $tagIds = array_values(array_unique(array_map('intval', $data['tags'] ?? [])));
-        unset($data['tags'], $data['featured_image']);
+        $candidateIds = array_values(array_unique(array_map('intval', $data['candidates'] ?? [])));
+        unset($data['tags'], $data['candidates'], $data['featured_image']);
 
         $data['author_id'] = $user->getKey();
         $data['status'] = 'draft';
-        $data['sentiment'] = 'neutral';
         $data['published_at'] = null;
         $data['slug'] = $this->uniqueSlug($data['title']);
 
@@ -40,8 +60,14 @@ class UserNewsArticleService
 
         $article = $this->articles->create($data);
         $this->articles->syncTags($article, $tagIds);
+        $this->articles->syncCandidates($article, $candidateIds);
 
         return $article;
+    }
+
+    private function candidateLabel(Candidate $candidate): string
+    {
+        return trim($candidate->name.($candidate->nick_name ? ' ('.$candidate->nick_name.')' : ''));
     }
 
     private function uniqueSlug(string $title): string

@@ -146,6 +146,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/my-account/aspirants/select', [MyAccountController::class, 'select'])->middleware('throttle:20,1')->name('my-account.aspirants.select');
     Route::get('/my-account/news', [UserNewsArticleController::class, 'index'])->name('account.news.index');
     Route::get('/my-account/news/submit', [UserNewsArticleController::class, 'create'])->name('account.news.create');
+    Route::get('/my-account/news/candidates/search', [UserNewsArticleController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('account.news.candidates.search');
     Route::post('/my-account/news', [UserNewsArticleController::class, 'store'])->middleware('throttle:3,10')->name('account.news.store');
     Route::middleware(['aspirant','aspirant.owner'])->group(function () {
         Route::get('/aspirant/audits', [AspirantAuditController::class, 'index'])->name('aspirant.audits.index');

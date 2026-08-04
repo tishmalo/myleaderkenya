@@ -19,8 +19,11 @@ class StoreUserNewsArticleRequest extends FormRequest
             'content' => ['required', 'string', 'max:50000'],
             'featured_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
             'video_url' => ['nullable', 'url', 'max:2048'],
+            'sentiment' => ['required', 'in:neutral,positive,negative'],
             'tags' => ['nullable', 'array', 'max:10'],
             'tags.*' => ['integer', 'distinct', 'exists:tags,id'],
+            'candidates' => ['nullable', 'array', 'max:20'],
+            'candidates.*' => ['integer', 'distinct', 'exists:candidates,id'],
         ];
     }
 
@@ -29,6 +32,7 @@ class StoreUserNewsArticleRequest extends FormRequest
         return [
             'featured_image.max' => 'The featured image may not be larger than 5 MB.',
             'tags.max' => 'You may select up to 10 tags.',
+            'candidates.max' => 'You may tag up to 20 aspirants.',
         ];
     }
 }

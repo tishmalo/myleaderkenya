@@ -12,5 +12,8 @@ interface UserNewsArticleRepositoryInterface
     public function create(array $data): NewsArticle;
     public function slugExists(string $slug): bool;
     public function allTags(): Collection;
+    public function searchCandidates(string $term, int $limit = 20): Collection;
+    public function findCandidatesByIds(array $candidateIds): Collection;
     public function syncTags(NewsArticle $article, array $tagIds): void;
+    public function syncCandidates(NewsArticle $article, array $candidateIds): void;
 }
