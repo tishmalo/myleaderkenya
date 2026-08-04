@@ -69,6 +69,7 @@ class LandingRepository implements LandingRepositoryInterface
                 ->take(3)
                 ->get(),
             'homepageAspirantGroups' => $this->homepageAspirantGroups($hasFeatured),
+            'latestHomepageAspirants' => $this->latestHomepageAspirants(),
         ];
     }
 
@@ -106,6 +107,15 @@ class LandingRepository implements LandingRepositoryInterface
 
             return $group;
         })->all();
+    }
+    private function latestHomepageAspirants()
+    {
+        return Candidate::query()
+            ->with(['position', 'politicalParty'])
+            ->when(Schema::hasColumn('candidates', 'approval_status'), fn ($query) => $query->where('approval_status', 'approved'))
+            ->latest('created_at')
+            ->take(6)
+            ->get();
     }
     private function confirmedVotersCount(): int
     {

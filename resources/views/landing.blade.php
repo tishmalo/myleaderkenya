@@ -323,6 +323,44 @@
                             @endif
                         </div>
                     @endforeach
+
+                    @php($latestAspirants = collect($latestHomepageAspirants ?? []))
+                    @if($latestAspirants->isNotEmpty())
+                        <div class="aspirants-position-block">
+                            <div class="aspirants-position-head">
+                                <div class="aspirants-position-title">Latest Aspirants</div>
+                                <a href="{{ route('aspirants.public', ['latest' => 1]) }}" class="aspirants-view-more">
+                                    View more <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                            <div class="aspirants-card-grid">
+                                @foreach($latestAspirants as $candidate)
+                                    @php
+                                        $party = $candidate->politicalParty->abbreviation ?? $candidate->politicalParty->name ?? 'Independent';
+                                        $area = $candidate->display_area ?? 'Kenya';
+                                        $position = $candidate->position->name ?? 'Aspirant';
+                                    @endphp
+                                    <a href="{{ route('aspirants.show', $candidate) }}" class="aspirant-mini-card">
+                                        <span class="aspirant-mini-photo" aria-hidden="true">
+                                            @if($candidate->profile_picture)
+                                                <img src="{{ Storage::url($candidate->profile_picture) }}" alt="" loading="lazy" decoding="async">
+                                            @else
+                                                <span>{{ strtoupper(substr($candidate->name, 0, 1)) }}</span>
+                                            @endif
+                                        </span>
+                                        <span class="aspirant-mini-body">
+                                            <span class="aspirant-mini-name">{{ $candidate->name }}</span>
+                                            <span class="aspirant-mini-meta">{{ $position }}, {{ $area }}</span>
+                                            <span class="aspirant-mini-footer">
+                                                <span class="aspirant-mini-party">{{ $party }}</span>
+                                                @if($candidate->featured)<span class="aspirant-mini-badge">Featured</span>@endif
+                                            </span>
+                                        </span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @else
                 <div class="aspirants-empty">No aspirants are available yet.</div>
