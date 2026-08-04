@@ -71,6 +71,11 @@
                                 </button>
                             </div>
                         </div>
+                        @if (Route::has('password.request'))
+                            <div class="auth-forgot-link">
+                                <a href="{{ route('password.request') }}">Forgot your password?</a>
+                            </div>
+                        @endif
 
                         <button type="submit" class="auth-submit">
                             <i class="fas fa-sign-in-alt"></i> Login to My Account

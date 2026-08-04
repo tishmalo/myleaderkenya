@@ -236,6 +236,10 @@
     }
 
     /* Submit */
+    .auth-forgot-link { margin:-4px 0 16px; text-align:right; }
+    .auth-forgot-link a { color:var(--green-bright); font-size:13px; font-weight:700; text-decoration:none; }
+    .auth-forgot-link a:hover { color:white; text-decoration:underline; }
+
     .auth-submit {
         width: 100%; padding: 15px;
         font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 700;
