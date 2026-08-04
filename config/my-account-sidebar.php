@@ -14,12 +14,23 @@ return [
             'route' => 'my-account',
             'active' => ['my-account'],
         ],
-
         [
             'label' => 'Submit or Claim',
             'icon' => 'fas fa-user-plus',
             'route' => 'aspirants.register',
             'style' => 'primary',
+        ],
+        [
+            'label' => 'Submit News',
+            'icon' => 'fas fa-pen-to-square',
+            'route' => 'account.news.create',
+            'active' => ['account.news.create'],
+        ],
+        [
+            'label' => 'My News',
+            'icon' => 'fas fa-newspaper',
+            'route' => 'account.news.index',
+            'active' => ['account.news.index'],
         ],
         [
             'label' => 'Browse Aspirants',

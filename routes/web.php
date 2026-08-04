@@ -55,6 +55,7 @@ use App\Http\Controllers\Web\CandidateClaimRequestController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\MyAccountController;
+use App\Http\Controllers\Web\UserNewsArticleController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
 use App\Models\Constituency;
@@ -143,6 +144,9 @@ Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::
 Route::middleware('auth')->group(function () {
     Route::get('/my-account', [MyAccountController::class, 'index'])->name('my-account');
     Route::post('/my-account/aspirants/select', [MyAccountController::class, 'select'])->middleware('throttle:20,1')->name('my-account.aspirants.select');
+    Route::get('/my-account/news', [UserNewsArticleController::class, 'index'])->name('account.news.index');
+    Route::get('/my-account/news/submit', [UserNewsArticleController::class, 'create'])->name('account.news.create');
+    Route::post('/my-account/news', [UserNewsArticleController::class, 'store'])->middleware('throttle:3,10')->name('account.news.store');
     Route::middleware(['aspirant','aspirant.owner'])->group(function () {
         Route::get('/aspirant/audits', [AspirantAuditController::class, 'index'])->name('aspirant.audits.index');
         Route::get('/aspirant/audits/{audit}', [AspirantAuditController::class, 'show'])->name('aspirant.audits.show');
