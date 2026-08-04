@@ -1,7 +1,8 @@
 <x-guest-layout>
-<div class="mb-7 text-center"><span class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-2xl text-emerald-400">&#9993;</span><h1 class="text-2xl font-extrabold text-white">Reset your password</h1><p class="mt-2 text-sm leading-6 text-zinc-400">Enter the email address linked to your account. We will send you a secure reset link.</p></div>
-@if (session('status'))<div class="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">{{ session('status') }}</div>@endif
-<form method="POST" action="{{ route('password.email') }}" class="space-y-6">@csrf
-<div><label for="email" class="mb-2 block text-sm font-semibold text-zinc-300">Email address</label><input id="email" class="w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3.5 text-white placeholder-zinc-600 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" type="email" name="email" value="{{ old('email', request('email')) }}" placeholder="you@example.com" required autofocus autocomplete="email">@error('email')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror</div>
-<button type="submit" class="w-full rounded-2xl bg-emerald-600 px-5 py-3.5 text-sm font-bold uppercase tracking-wider text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">Send password reset link</button>
-<p class="text-center text-sm text-zinc-500">Remembered your password? <a href="{{ route('landing') }}" class="font-semibold text-emerald-400 hover:text-emerald-300">Return to login</a></p></form></x-guest-layout>
+<div class="auth-heading"><span class="auth-icon">&#9993;</span><h1>Reset your password</h1><p>Enter the email address linked to your account. We will send you a secure reset link.</p></div>
+@if(session('status'))<div class="auth-alert">{{ session('status') }}</div>@endif
+<form method="POST" action="{{ route('password.email') }}" class="auth-form">@csrf
+<div class="auth-field"><label for="email">Email address</label><input id="email" type="email" name="email" value="{{ old('email', request('email')) }}" placeholder="you@example.com" required autofocus autocomplete="email">@error('email')<p class="auth-error">{{ $message }}</p>@enderror</div>
+<button type="submit" class="auth-submit">Send password reset link</button>
+<div class="auth-secondary">Remembered your password? <a href="{{ route('landing') }}">Return to login</a></div>
+</form></x-guest-layout>

@@ -1,8 +1,12 @@
 <x-guest-layout>
-<div class="mb-7 text-center"><h1 class="text-2xl font-extrabold text-white">Choose a new password</h1><p class="mt-2 text-sm leading-6 text-zinc-400">Use a strong password you have not used elsewhere.</p></div>
-<form method="POST" action="{{ route('password.store') }}" class="space-y-5">@csrf<input type="hidden" name="token" value="{{ $request->route('token') }}">
-<div><label for="email" class="mb-2 block text-sm font-semibold text-zinc-300">Email address</label><input id="email" class="w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3.5 text-white outline-none focus:border-emerald-500" type="email" name="email" value="{{ old('email', $request->email) }}" required autofocus autocomplete="username">@error('email')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror</div>
-@foreach ([['password', 'New password'], ['password_confirmation', 'Confirm new password']] as [$field, $label])
-<div><label for="{{ $field }}" class="mb-2 block text-sm font-semibold text-zinc-300">{{ $label }}</label><input id="{{ $field }}" class="w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3.5 text-white outline-none focus:border-emerald-500" type="password" name="{{ $field }}" required autocomplete="new-password">@error($field)<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror</div>
-@endforeach
-<button type="submit" class="w-full rounded-2xl bg-emerald-600 px-5 py-3.5 text-sm font-bold uppercase tracking-wider text-white transition hover:bg-emerald-500">Reset password</button></form></x-guest-layout>
+<div class="auth-heading"><span class="auth-icon">&#128274;</span><h1>Choose a new password</h1><p>Use a strong password you have not used elsewhere.</p></div>
+<form method="POST" action="{{ route('password.store') }}" class="auth-form" data-reset-form>@csrf
+<input type="hidden" name="token" value="{{ $request->route('token') }}">
+<div class="auth-field"><label for="email">Email address</label><input id="email" type="email" name="email" value="{{ old('email', $request->email) }}" required autofocus autocomplete="username">@error('email')<p class="auth-error">{{ $message }}</p>@enderror</div>
+<div class="auth-field"><label for="password">New password</label><div class="auth-input-wrap"><input id="password" class="has-toggle" type="password" name="password" required autocomplete="new-password"><button class="auth-toggle" type="button" data-toggle="password">SHOW</button></div>@error('password')<p class="auth-error">{{ $message }}</p>@enderror</div>
+<div class="auth-field"><label for="password_confirmation">Confirm new password</label><div class="auth-input-wrap"><input id="password_confirmation" class="has-toggle" type="password" name="password_confirmation" required autocomplete="new-password"><button class="auth-toggle" type="button" data-toggle="password_confirmation">SHOW</button></div><p class="auth-match" data-match hidden></p>@error('password_confirmation')<p class="auth-error">{{ $message }}</p>@enderror</div>
+<button type="submit" class="auth-submit">Reset password</button>
+</form>
+<script>
+(function(){const f=document.querySelector('[data-reset-form]');if(!f)return;const p=f.querySelector('#password'),c=f.querySelector('#password_confirmation'),m=f.querySelector('[data-match]'),s=f.querySelector('[type="submit"]');f.querySelectorAll('[data-toggle]').forEach(function(b){b.addEventListener('click',function(){const i=f.querySelector('#'+b.dataset.toggle),show=i.type==='password';i.type=show?'text':'password';b.textContent=show?'HIDE':'SHOW'})});function check(){if(!c.value){m.hidden=true;s.disabled=false;return}const ok=p.value===c.value;m.hidden=false;m.className='auth-match'+(ok?' ok':'');m.textContent=ok?'Passwords match.':'Passwords do not match yet.';s.disabled=!ok}p.addEventListener('input',check);c.addEventListener('input',check)})();
+</script></x-guest-layout>
