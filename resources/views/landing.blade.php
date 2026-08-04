@@ -324,7 +324,9 @@
                         </div>
                     @endforeach
 
-                    @php($latestAspirants = collect($latestHomepageAspirants ?? []))
+                    @php
+                        $latestAspirants = collect($latestHomepageAspirants ?? []);
+                    @endphp
                     @if($latestAspirants->isNotEmpty())
                         <div class="aspirants-position-block">
                             <div class="aspirants-position-head">
