@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use App\Models\Concerns\AuditsChanges;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
@@ -22,6 +23,11 @@ class User extends Authenticatable implements AuditableContract
 {
     use AuditsChanges;
     use EncryptsPiiAttributes, HasApiTokens, HasFactory, Notifiable;
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
 
     public const USER_TYPES = ['PA', 'campaign_manager', 'aspirant', 'voter'];
 
