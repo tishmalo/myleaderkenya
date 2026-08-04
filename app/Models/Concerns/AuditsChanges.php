@@ -22,7 +22,6 @@ trait AuditsChanges
         $data['module'] = class_basename($this);
         $data['status'] = 'success';
         $data['summary'] = class_basename($this).' '.($data['event'] ?? 'changed');
-        $data['metadata'] = [];
 
         return $data;
     }
