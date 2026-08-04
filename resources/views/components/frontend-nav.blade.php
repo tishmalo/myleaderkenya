@@ -74,6 +74,12 @@
 
                         return $child;
                     })
+                    ->push([
+                        'label' => 'Latest Aspirants',
+                        'route' => 'aspirants.public',
+                        'query' => ['latest' => 1],
+                        'active' => ['aspirants.public', 'aspirants.show'],
+                    ])
                     ->all();
             }
 

@@ -6,7 +6,12 @@
         <h2 id="{{ $modalId }}-title">Request Feature</h2>
         <p>Tell us what you need for <strong>{{ $tool->title }}</strong>.</p>
 
-        <form method="POST" action="{{ route('campaign-tools.requests.store', $tool) }}" class="ct-request-form">
+        @php
+            $featureRequestAction = \Illuminate\Support\Facades\Route::has('campaign-tools.requests.store')
+                ? route('campaign-tools.requests.store', $tool)
+                : url('/campaign-tools/' . $tool->getRouteKey() . '/requests');
+        @endphp
+        <form method="POST" action="{{ $featureRequestAction }}" class="ct-request-form">
             @csrf
             <input type="hidden" name="feature_request_tool_id" value="{{ $tool->id }}">
             <label>Name
