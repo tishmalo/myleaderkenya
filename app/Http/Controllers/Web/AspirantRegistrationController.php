@@ -48,7 +48,7 @@ class AspirantRegistrationController extends Controller
             'positions' => Position::ordered()->get(),
             'politicalParties' => PoliticalParty::published()->ordered()->get(),
             'selectedCandidate' => $selectedCandidate,
-            'adoptableTools' => $this->campaignTools->publishedForNav(),
+            'adoptableTools' => $this->campaignTools->publishedForSponsorship(),
         ]);
     }
 
@@ -139,6 +139,10 @@ class AspirantRegistrationController extends Controller
                 ? 'Your aspirant adoption and selected sponsorship tools have been submitted for admin verification.'
                 : 'Your access request has been submitted for admin verification.';
 
+            if ($isAdoption) {
+                return $this->adoptionRedirect($request, $message, $authenticatedUser !== null);
+            }
+
             return $this->registrationRedirect($request, $message);
         }
 
@@ -207,8 +211,25 @@ class AspirantRegistrationController extends Controller
                 ? 'The aspirant profile and your access request have been submitted for admin verification.'
                 : 'Your aspirant registration has been submitted. Sign in while an admin reviews your profile.');
 
+        if ($isAdoption) {
+            return $this->adoptionRedirect($request, $message, $authenticatedUser !== null);
+        }
+
         return $this->registrationRedirect($request, $message, ! $authenticatedUser && ! $needsClaim);
     }
+
+    private function adoptionRedirect(Request $request, string $message, bool $authenticated): RedirectResponse
+    {
+        if ($authenticated) {
+            return redirect()->route('account.toolbox.index')->with('success', $message.' Fund it from your Toolbox below.');
+        }
+
+        $request->session()->put('url.intended', route('account.toolbox.index'));
+
+        return redirect($request->boolean('modal') ? route('login', ['modal' => 1]) : route('login'))
+            ->with('status', $message.' Sign in to fund it from your Toolbox.');
+    }
+
     private function registrationRedirect(Request $request, string $message, bool $toLogin = false): RedirectResponse
     {
         if ($toLogin) {

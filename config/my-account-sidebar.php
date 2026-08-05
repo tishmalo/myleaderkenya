@@ -21,6 +21,12 @@ return [
             'style' => 'primary',
         ],
         [
+            'label' => 'My Toolbox',
+            'icon' => 'fas fa-toolbox',
+            'route' => 'account.toolbox.index',
+            'active' => ['account.toolbox.*'],
+        ],
+        [
             'label' => 'Submit News',
             'icon' => 'fas fa-pen-to-square',
             'route' => 'account.news.create',

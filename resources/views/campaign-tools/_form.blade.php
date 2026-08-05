@@ -38,6 +38,13 @@
                class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
         @error('sort_order')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
     </div>
+    <div>
+        <label class="block text-sm text-zinc-400 mb-2">Adoption Sponsorship Cost <span class="text-red-500">*</span></label>
+        <input type="number" name="sponsorship_token_cost" min="1" value="{{ old('sponsorship_token_cost', $tool?->sponsorship_token_cost ?? 1) }}" required
+               class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+        <p class="text-xs text-zinc-500 mt-1">Tokens a donor spends when selecting this tool.</p>
+        @error('sponsorship_token_cost')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
+    </div>
 </div>
 
 <div class="mt-6">

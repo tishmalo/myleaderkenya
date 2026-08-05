@@ -7,13 +7,16 @@
     @if(session('success'))
         <div class="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-emerald-300">{{ session('success') }}</div>
     @endif
+    @if(session('warning'))
+        <div class="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-amber-200">{{ session('warning') }}</div>
+    @endif
 
     <div class="flex items-center justify-between mb-8">
         <h1 class="text-3xl font-semibold text-white flex items-center gap-3"><i class="fas fa-lightbulb text-emerald-500"></i> Campaign Tool Requests</h1>
         <a href="{{ route('campaign-tools.index') }}" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-2xl text-sm font-medium"><i class="fas fa-bullhorn mr-2"></i> Campaign Tools</a>
     </div>
 
-    <form method="GET" action="{{ route('campaign-tool-requests.index') }}" class="mb-6 grid md:grid-cols-[180px_190px_240px_1fr_auto] gap-3">
+    <form method="GET" action="{{ route('campaign-tool-requests.index') }}" class="mb-6 grid md:grid-cols-[170px_180px_180px_220px_1fr_auto] gap-3">
         <select name="status" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
             <option value="">All Statuses</option>
             @foreach(\App\Models\CampaignToolRequest::STATUSES as $status)
@@ -25,6 +28,12 @@
             <option value="feature" {{ request('request_type') === 'feature' ? 'selected' : '' }}>Feature Requests</option>
             <option value="activation" {{ request('request_type') === 'activation' ? 'selected' : '' }}>Activation Requests</option>
             <option value="adoption" {{ request('request_type') === 'adoption' ? 'selected' : '' }}>Adoption Sponsorships</option>
+        </select>
+        <select name="payment_status" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
+            <option value="">All Payments</option>
+            @foreach(['awaiting_payment', 'paid', 'refunded', 'not_required'] as $paymentStatus)
+                <option value="{{ $paymentStatus }}" {{ request('payment_status') === $paymentStatus ? 'selected' : '' }}>{{ str_replace('_', ' ', ucfirst($paymentStatus)) }}</option>
+            @endforeach
         </select>
         <select name="campaign_tool_id" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
             <option value="">All Tools</option>
@@ -69,6 +78,10 @@
                             @if($isActivation)
                                 <div><span class="text-zinc-500">Position:</span> {{ $requestItem->candidate->position->name ?? '-' }}</div>
                                 <div><span class="text-zinc-500">Tool key:</span> {{ $requestItem->tool_key ?: '-' }}</div>
+                            @endif                            @if($isAdoption)
+                                <div><span class="text-zinc-500">Tokens:</span> {{ number_format($requestItem->tokens_required) }}</div>
+                                <div><span class="text-zinc-500">Payment:</span> <strong class="{{ $requestItem->payment_status === 'paid' ? 'text-emerald-300' : ($requestItem->payment_status === 'refunded' ? 'text-blue-300' : 'text-amber-300') }}">{{ str_replace('_', ' ', ucfirst($requestItem->payment_status)) }}</strong></div>
+                                <div class="md:col-span-2"><span class="text-zinc-500">Wallet transaction:</span> {{ $requestItem->user_token_transaction_id ?: '-' }}</div>
                             @endif
                         </div>
                         @if(! $isActivation && $requestItem->selectedTools->isNotEmpty())
@@ -76,7 +89,7 @@
                                 <div class="mb-2 text-sm text-zinc-500">{{ $isAdoption ? 'Sponsored campaign tools:' : 'Other services requested:' }}</div>
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($requestItem->selectedTools as $selectedTool)
-                                        <span class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">{{ $selectedTool->title }}</span>
+                                        <span class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">{{ $selectedTool->title }}@if($isAdoption) · {{ number_format($selectedTool->sponsorship_token_cost) }} tokens @endif</span>
                                     @endforeach
                                 </div>
                             </div>

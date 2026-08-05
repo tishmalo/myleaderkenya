@@ -37,6 +37,7 @@ use App\Contracts\Repositories\Api\TagRepositoryInterface;
 use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
 use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
+use App\Contracts\Repositories\Web\UserTokenRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateBulkSmsContactRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateClaimRequestRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
@@ -95,6 +96,7 @@ use App\Repositories\Api\TagRepository;
 use App\Repositories\Api\UserRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
 use App\Repositories\Web\CampaignToolRequestRepository;
+use App\Repositories\Web\UserTokenRepository;
 use App\Repositories\Web\CandidateBulkSmsContactRepository;
 use App\Repositories\Web\CandidateClaimRequestRepository;
 use App\Repositories\Web\CandidateRelationshipRepository;
@@ -197,6 +199,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CandidateRelationshipRepositoryInterface::class, CandidateRelationshipRepository::class);
         $this->app->bind(CandidateTokenWalletRepositoryInterface::class, CandidateTokenWalletRepository::class);
         $this->app->bind(CampaignToolRequestRepositoryInterface::class, CampaignToolRequestRepository::class);
+        $this->app->bind(UserTokenRepositoryInterface::class, UserTokenRepository::class);
         $this->app->bind(PoliticalPartyManagementRepositoryInterface::class, PoliticalPartyManagementRepository::class);
         $this->app->bind(PoliticalPartyTokenRepositoryInterface::class, PoliticalPartyTokenRepository::class);
 

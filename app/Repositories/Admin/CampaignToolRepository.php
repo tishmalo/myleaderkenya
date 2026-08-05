@@ -37,6 +37,11 @@ class CampaignToolRepository implements CampaignToolRepositoryInterface
         return CampaignTool::published()->ordered()->get();
     }
 
+    public function publishedForSponsorship(): Collection
+    {
+        return CampaignTool::published()->where('sponsorship_token_cost', '>', 0)->ordered()->get();
+    }
+
     public function findPublishedBySlug(string $slug): CampaignTool
     {
         return CampaignTool::published()->where('slug', $slug)->firstOrFail();

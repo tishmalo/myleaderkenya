@@ -21,6 +21,7 @@ class CandidateClaimRequestService
         private CandidateClaimRequestRepositoryInterface $claimRequests,
         private CandidateRelationshipRepositoryInterface $relationships,
         private CampaignToolRequestRepositoryInterface $toolRequests,
+        private DonorToolboxService $toolbox,
         private UserRepositoryInterface $users,
         private CandidateRepositoryInterface $candidates
     ) {}
@@ -115,6 +116,8 @@ class CandidateClaimRequestService
             $user = $this->userForClaimRequest($claimRequest);
             $candidate = $claimRequest->candidate;
 
+            $this->toolbox->assertClaimPaid($claimRequest, $user);
+
             if ($claimRequest->relationship !== 'adopter') {
                 $this->relationships->attach($user, $candidate, $claimRequest->relationship);
             }
@@ -143,13 +146,16 @@ class CandidateClaimRequestService
 
     public function reject(CandidateClaimRequest $claimRequest, User $reviewer, ?string $note = null): CandidateClaimRequest
     {
-        $rejected = $this->claimRequests->markRejected($claimRequest, $reviewer->id, $note);
+        return DB::transaction(function () use ($claimRequest, $reviewer, $note): CandidateClaimRequest {
+            $rejected = $this->claimRequests->markRejected($claimRequest, $reviewer->id, $note);
 
-        if ($claimRequest->relationship === 'adopter' && $claimRequest->user_id) {
-            $this->toolRequests->updateAdoptionStatus($claimRequest->user_id, $claimRequest->candidate_id, 'cancelled');
-        }
+            if ($claimRequest->relationship === 'adopter' && $claimRequest->user_id) {
+                $this->toolbox->refundClaim($claimRequest, 'Adoption request rejected by an administrator.');
+                $this->toolRequests->updateAdoptionStatus($claimRequest->user_id, $claimRequest->candidate_id, 'cancelled');
+            }
 
-        return $rejected;
+            return $rejected;
+        });
     }
 
     public function updateDashboardAccess(CandidateClaimRequest $claimRequest, bool $enabled): void

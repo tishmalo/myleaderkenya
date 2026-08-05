@@ -14,6 +14,8 @@ interface CampaignToolRepositoryInterface
 
     public function publishedForNav(): Collection;
 
+    public function publishedForSponsorship(): Collection;
+
     public function findPublishedBySlug(string $slug): CampaignTool;
 
     public function publishedByIds(array $ids): Collection;
