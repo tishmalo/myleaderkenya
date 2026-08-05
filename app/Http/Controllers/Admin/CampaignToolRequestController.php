@@ -18,7 +18,12 @@ class CampaignToolRequestController extends Controller
         $requests = CampaignToolRequest::with(['campaignTool', 'selectedTools:id,title', 'candidate.position', 'user'])
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['request_type'] ?? null, fn ($query, $type) => $query->where('request_type', $type))
-            ->when($filters['campaign_tool_id'] ?? null, fn ($query, $toolId) => $query->where('campaign_tool_id', $toolId))
+            ->when($filters['campaign_tool_id'] ?? null, function ($query, $toolId): void {
+                $query->where(function ($toolQuery) use ($toolId): void {
+                    $toolQuery->where('campaign_tool_id', $toolId)
+                        ->orWhereHas('selectedTools', fn ($selected) => $selected->where('campaign_tools.id', $toolId));
+                });
+            })
             ->when($filters['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('requester_name', 'like', "%{$search}%")

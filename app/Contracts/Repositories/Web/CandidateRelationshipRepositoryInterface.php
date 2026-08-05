@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface CandidateRelationshipRepositoryInterface
 {
-    public function attach(User $user, Candidate $candidate, string $relationship): void;
+    public function attach(User $user, Candidate $candidate, string $relationship, bool $dashboardAccess = true): void;
 
     public function updateDashboardAccess(User $user, Candidate $candidate, bool $enabled): void;
 

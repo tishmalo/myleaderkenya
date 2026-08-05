@@ -26,26 +26,34 @@ class AspirantRegisterRequest extends FormRequest
         $authenticated = $this->user() !== null;
         $existingCandidate = $this->filled('candidate_id');
         $representative = $this->input('submission_mode') === 'representative';
+        $adoption = $this->input('submission_mode') === 'adoption';
+        $accountHolder = $representative || $adoption;
 
         return [
             'candidate_id' => ['nullable', 'integer', 'exists:candidates,id'],
-            'submission_mode' => ['required', Rule::in(['self', 'representative'])],
+            'submission_mode' => ['required', Rule::in(['self', 'representative', 'adoption'])],
             'relationship' => [Rule::requiredIf($representative), 'nullable', Rule::in(['PA', 'campaign_manager'])],
+            'adoption_tool_ids' => [Rule::requiredIf($adoption), 'nullable', 'array', 'min:1'],
+            'adoption_tool_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('campaign_tools', 'id')->where('status', 'published'),
+            ],
 
             'aspirant_name' => [Rule::requiredIf(! $existingCandidate), 'nullable', 'string', 'max:255'],
             'nick_name' => ['nullable', 'string', 'max:100'],
             'aspirant_email' => [
-                Rule::requiredIf(! $authenticated && ! $existingCandidate && ! $representative),
+                Rule::requiredIf(! $authenticated && ! $existingCandidate && ! $accountHolder),
                 'nullable', 'string', 'lowercase', 'email', 'max:255',
-                $this->uniqueAccountEmailRule(! $authenticated && ! $existingCandidate && ! $representative),
+                $this->uniqueAccountEmailRule(! $authenticated && ! $existingCandidate && ! $accountHolder),
             ],
             'aspirant_phone' => ['nullable', 'string', 'max:20'],
 
-            'account_name' => [Rule::requiredIf(! $authenticated && $representative), 'nullable', 'string', 'max:255'],
+            'account_name' => [Rule::requiredIf(! $authenticated && $accountHolder), 'nullable', 'string', 'max:255'],
             'account_email' => [
-                Rule::requiredIf(! $authenticated && ($existingCandidate || $representative)),
+                Rule::requiredIf(! $authenticated && ($existingCandidate || $accountHolder)),
                 'nullable', 'string', 'lowercase', 'email', 'max:255',
-                $this->uniqueAccountEmailRule(! $authenticated && ($existingCandidate || $representative)),
+                $this->uniqueAccountEmailRule(! $authenticated && ($existingCandidate || $accountHolder)),
             ],
             'account_phone' => ['nullable', 'string', 'max:20'],
             'password' => [Rule::requiredIf(! $authenticated), 'nullable', 'confirmed', Rules\Password::defaults()],

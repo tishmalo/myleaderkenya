@@ -16,6 +16,8 @@ interface CampaignToolRepositoryInterface
 
     public function findPublishedBySlug(string $slug): CampaignTool;
 
+    public function publishedByIds(array $ids): Collection;
+
     public function create(array $data): CampaignTool;
 
     public function update(CampaignTool $campaignTool, array $data): bool;

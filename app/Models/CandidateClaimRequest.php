@@ -21,7 +21,7 @@ class CandidateClaimRequest extends Model implements AuditableContract
     public const STATUS_APPROVED = 'approved';
     public const STATUS_REJECTED = 'rejected';
 
-    public const RELATIONSHIPS = ['aspirant', 'PA', 'campaign_manager'];
+    public const RELATIONSHIPS = ['aspirant', 'PA', 'campaign_manager', 'adopter'];
 
     protected $fillable = [
         'candidate_id',

@@ -29,7 +29,7 @@ class User extends Authenticatable implements AuditableContract
         $this->notify(new ResetPasswordNotification($token));
     }
 
-    public const USER_TYPES = ['PA', 'campaign_manager', 'aspirant', 'voter'];
+    public const USER_TYPES = ['PA', 'campaign_manager', 'aspirant', 'voter', 'agent', 'adopter'];
 
     /**
      * The attributes that are mass assignable.
