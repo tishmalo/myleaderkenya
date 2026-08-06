@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Admin\UserService;
 use App\Services\Admin\CountyService;
 use Illuminate\Http\Request;
+use App\Http\Requests\Admin\UserIndexRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 
@@ -20,9 +21,9 @@ class UserController extends Controller
     /**
      * Display a listing of users (excluding admin)
      */
-    public function index()
+    public function index(UserIndexRequest $request)
     {
-        $data = $this->userService->getUsersList(request()->only(['search', 'county', 'status']));
+        $data = $this->userService->getUsersList($request->validated());
 
         $users = $data['users'];
         $counties = $data['counties'];

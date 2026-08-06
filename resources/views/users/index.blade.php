@@ -16,8 +16,58 @@
         </a>
     </div>
 
-    <!-- Search & Filter Bar (optional - keep if you want) -->
-    <!-- You can add your search/filter here later -->
+    <form method="GET" action="{{ route('users.index') }}" class="mb-6 rounded-3xl border border-zinc-800 bg-zinc-900 p-5">
+        <div class="grid gap-4 lg:grid-cols-[minmax(280px,1fr)_220px_190px_auto] lg:items-end">
+            <label class="block">
+                <span class="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">Search voter</span>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input
+                        type="search"
+                        name="search"
+                        value="{{ request('search') }}"
+                        maxlength="100"
+                        placeholder="Name, username, email, phone or ID"
+                        class="w-full rounded-2xl border border-zinc-700 bg-zinc-950 py-3 pl-11 pr-4 text-white outline-none transition focus:border-emerald-500"
+                    >
+                </div>
+            </label>
+
+            <label class="block">
+                <span class="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">County</span>
+                <select name="county" class="w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-emerald-500">
+                    <option value="">All counties</option>
+                    @foreach($counties as $county)
+                        <option value="{{ $county }}" @selected(request('county') === $county)>{{ $county }}</option>
+                    @endforeach
+                </select>
+            </label>
+
+            <label class="block">
+                <span class="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">Voter status</span>
+                <select name="status" class="w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-emerald-500">
+                    <option value="">All statuses</option>
+                    <option value="registered" @selected(request('status') === 'registered')>Registered</option>
+                    <option value="unregistered" @selected(request('status') === 'unregistered')>Not registered</option>
+                </select>
+            </label>
+
+            <div class="flex gap-2">
+                <button type="submit" class="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 font-semibold text-white hover:bg-emerald-700">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                @if(request()->hasAny(['search', 'county', 'status']))
+                    <a href="{{ route('users.index') }}" class="inline-flex min-h-12 items-center justify-center rounded-2xl border border-zinc-700 px-4 text-zinc-300 hover:bg-zinc-800" aria-label="Clear voter filters" title="Clear filters">
+                        <i class="fas fa-times"></i>
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        @error('search')
+            <p class="mt-3 text-sm text-red-400">{{ $message }}</p>
+        @enderror
+    </form>
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
         <div class="w-full max-w-full overflow-x-auto">
@@ -45,15 +95,22 @@
                             <tr class="hover:bg-zinc-800/70 transition-colors">
                                 <td class="px-6 py-4 font-medium text-white">{{ $user->username }}</td>
                                 <td class="px-6 py-4">{{ $user->name }}</td>
-                                <td class="px-6 py-4">{{ $user->phone ?? '—' }}</td>
-                                <td class="px-6 py-4">{{ $user->email ?? '—' }}</td>
-                                <td class="px-6 py-4">{{ ucfirst($user->gender ?? '—') }}</td>
-                                <td class="px-6 py-4 text-center">{{ $user->year_of_birth ?? '—' }}</td>
-                                <td class="px-6 py-4">{{ $user->county ?? '—' }}</td>
-                                <td class="px-6 py-4">{{ $user->constituency ?? '—' }}</td>
-                                <td class="px-6 py-4">{{ $user->ward ?? '—' }}</td>
-                                <td class="px-6 py-4">{{ $user->polling_station ?? '—' }}</td>
+                                <td class="px-6 py-4">{{ $user->phone ?? 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-6 py-4">{{ $user->email ?? 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-6 py-4">{{ ucfirst($user->gender ?? 'Ã¢â‚¬â€') }}</td>
+                                <td class="px-6 py-4 text-center">{{ $user->year_of_birth ?? 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-6 py-4">{{ $user->county ?? 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-6 py-4">{{ $user->constituency ?? 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-6 py-4">{{ $user->ward ?? 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-6 py-4">{{ $user->polling_station ?? 'Ã¢â‚¬â€' }}</td>
                                 <td class="px-6 py-4">{{ $user->country_of_residence ?? 'Kenya' }}</td>
+                                <td class="px-6 py-4 text-center">
+                                    @if($user->is_voter || $user->is_registered)
+                                        <span class="inline-flex rounded-full bg-emerald-950 px-3 py-1 text-xs font-semibold text-emerald-300">Registered</span>
+                                    @else
+                                        <span class="inline-flex rounded-full bg-amber-950 px-3 py-1 text-xs font-semibold text-amber-300">Not registered</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex gap-3 justify-center">
                                         <a href="{{ route('users.edit', $user) }}" 

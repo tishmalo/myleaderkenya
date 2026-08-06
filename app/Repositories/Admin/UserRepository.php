@@ -14,11 +14,24 @@ class UserRepository implements UserRepositoryInterface
     {
         $query = User::with('role')->where('username', '!=', 'admin');
 
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function($q) use ($search) {
+        if (! empty($filters['search'])) {
+            $search = trim((string) $filters['search']);
+            $normalized = strtolower($search);
+            $hashes = array_values(array_unique([
+                hash('sha256', $normalized),
+                User::piiHash($normalized),
+            ]));
+
+            $query->where(function ($q) use ($search, $hashes) {
                 $q->where('username', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%");
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhereIn('email_hash', $hashes)
+                    ->orWhereIn('phone_hash', $hashes)
+                    ->orWhereIn('id_number_hash', $hashes);
+
+                if (ctype_digit($search)) {
+                    $q->orWhereKey((int) $search);
+                }
             });
         }
 
