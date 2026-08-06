@@ -16,6 +16,14 @@ class AuditMutatingRequests
     public function handle(Request $request, Closure $next): Response
     {
         $actor = $request->user();
+        $submittedFields = array_values(array_diff(
+            array_unique(array_merge(
+                array_keys($request->request->all()),
+                array_keys($request->files->all())
+            )),
+            ['password', 'password_confirmation', '_token', '_method']
+        ));
+
         $response = $next($request);
 
         $routeName = $request->route()?->getName();
@@ -43,7 +51,7 @@ class AuditMutatingRequests
             'metadata' => [
                 'method' => $request->method(),
                 'status_code' => $response->getStatusCode(),
-                'submitted_fields' => array_values(array_diff(array_keys($request->except(['password', 'password_confirmation', '_token'])), ['_method'])),
+                'submitted_fields' => $submittedFields,
             ],
         ]);
 
