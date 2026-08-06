@@ -34,6 +34,8 @@ interface CandidateRepositoryInterface
 
     public function filterPublic(array $filters, int $perPage = 30): LengthAwarePaginator;
 
+    public function publicPositionGroups(array $filters, int $perPage = 20): Collection;
+
     public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator;
     public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;
 

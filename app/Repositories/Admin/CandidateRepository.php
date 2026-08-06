@@ -172,6 +172,34 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 
+    public function publicPositionGroups(array $filters, int $perPage = 20): Collection
+    {
+        $positionIds = $this->publicQuery($filters)
+            ->whereNotNull('position_id')
+            ->distinct()
+            ->pluck('position_id');
+
+        return Position::query()
+            ->whereIn('id', $positionIds)
+            ->ordered()
+            ->get()
+            ->map(function (Position $position) use ($filters, $perPage): array {
+                $positionFilters = array_merge($filters, ['position' => $position->id]);
+                $pageName = 'position_'.$position->id.'_page';
+                $candidates = $this->publicQuery($positionFilters)
+                    ->latest('created_at')
+                    ->latest('id')
+                    ->paginate($perPage, ['*'], $pageName)
+                    ->withQueryString();
+
+                return [
+                    'position' => $position,
+                    'label' => $position->name,
+                    'total' => $candidates->total(),
+                    'candidates' => $candidates,
+                ];
+            });
+    }
     public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
     {
         $counties = $includeEmpty ? $this->allCountyNamesForPublicFilters($filters) : $this->countiesForPublicFilters($filters);

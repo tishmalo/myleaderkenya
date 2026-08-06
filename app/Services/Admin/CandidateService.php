@@ -390,6 +390,14 @@ class CandidateService
 
     public function getPublicIndex(array $filters, int $perPage = 30): array
     {
+        $showPositionGroups = empty($filters['position']);
+        $positionGroups = $showPositionGroups
+            ? $this->candidateRepository->publicPositionGroups($filters, 20)
+                ->filter(fn (array $group): bool => $this->publicPositionOrder($group['position']->name) < 999)
+                ->sortBy(fn (array $group): int => $this->publicPositionOrder($group['position']->name))
+                ->values()
+            : collect();
+
         $showCountyGroups = empty($filters['county'])
             && $this->usesCountyLanding($filters['position'] ?? null);
 
@@ -438,9 +446,11 @@ class CandidateService
         }
 
         return [
-            'candidates' => $showLocationGroups || $showAspirantGroups
+            'candidates' => $showPositionGroups || $showLocationGroups || $showAspirantGroups
                 ? new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, $perPage)
                 : $this->candidateRepository->filterPublic($filters, $perPage),
+            'positionGroups' => $positionGroups,
+            'showPositionGroups' => $showPositionGroups,
             'countyGroups' => $showCountyGroups ? $locationGroups : collect(),
             'locationGroups' => $locationGroups,
             'locationGroupLabel' => $locationGroupLabel,
@@ -464,6 +474,21 @@ class CandidateService
         ];
     }
 
+    private function publicPositionOrder(string $position): int
+    {
+        $key = strtolower(str_replace(['_', '-'], ' ', trim($position)));
+        $key = preg_replace('/\s+/', ' ', $key);
+
+        return match ($key) {
+            'president', 'presidential' => 10,
+            'governor' => 20,
+            'senator' => 30,
+            'women rep', 'woman rep', 'women representative', 'woman representative' => 40,
+            'mp', 'member of parliament' => 50,
+            'mca', 'member of county assembly' => 60,
+            default => 999,
+        };
+    }
     private function usesCountyLanding($position): bool
     {
         return filled($position) && ! $this->isPresidentialPosition($position);

@@ -70,7 +70,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         transition: color 0.2s;
     }
     .pp-back:hover { color: var(--green-bright); }
-/* ── PAGE HERO ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ PAGE HERO Ã¢â€â‚¬Ã¢â€â‚¬ */
 .asp-hero {
     position: relative;
     padding: 80px 32px 60px;
@@ -219,7 +219,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     background: #0a0a0a;
 }
 
-/* ── GRID ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ GRID Ã¢â€â‚¬Ã¢â€â‚¬ */
 .asp-grid {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
@@ -288,7 +288,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     font-size: 72px;
     font-weight: 800;
 }
-/* ── CANDIDATE CARD ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ CANDIDATE CARD Ã¢â€â‚¬Ã¢â€â‚¬ */
 .county-aspirant-groups {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
@@ -342,6 +342,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 .county-aspirant-grid .asp-card-body { padding: 16px; }
 .county-aspirant-grid .asp-card-name { font-size: 20px; }
 .county-aspirant-grid .asp-card-action { padding: 10px 12px; }
+.county-aspirant-section > .asp-pagination { padding: 0 28px 28px; }
 .asp-card {
     background: #141414;
     border: 1px solid rgba(255,255,255,0.07);
@@ -475,7 +476,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     transform: translateX(2px);
 }
 
-/* ── EMPTY STATE ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ EMPTY STATE Ã¢â€â‚¬Ã¢â€â‚¬ */
 .asp-empty {
     grid-column: 1 / -1;
     text-align: center; padding: 80px 20px;
@@ -490,7 +491,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 }
 .asp-empty p { font-size: 15px; color: rgba(245,245,240,0.2); }
 
-/* ── PAGINATION ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ PAGINATION Ã¢â€â‚¬Ã¢â€â‚¬ */
 .asp-pagination {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
@@ -519,7 +520,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     color: var(--green-bright);
 }
 
-/* ── RESPONSIVE ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ RESPONSIVE Ã¢â€â‚¬Ã¢â€â‚¬ */
 @media (max-width: 768px) {
     .asp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px 60px; }
     .location-card-grid { padding: 0 16px 60px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -551,7 +552,10 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 <!-- RESULTS META -->
 <div class="results-meta">
     <div class="results-count">
-        @if($showLocationGroups ?? false)
+        @if($showPositionGroups ?? false)
+            Showing <strong>{{ number_format($positionGroups->sum('total')) }}</strong> aspirants across
+            <strong>{{ $positionGroups->count() }}</strong> position{{ $positionGroups->count() !== 1 ? 's' : '' }}
+        @elseif($showLocationGroups ?? false)
             Showing <strong>{{ count($locationGroups) }}</strong> {{ $locationGroupLabel }}
             @if(request('bloc'))
                 in selected region
@@ -589,7 +593,39 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 </div>
 
 <!-- GRID -->
-@if($showLocationGroups ?? false)
+@if($showPositionGroups ?? false)
+    <div class="county-aspirant-groups">
+        @forelse($positionGroups as $group)
+            <section class="county-aspirant-section" aria-labelledby="position-{{ $group['position']->id }}">
+                <div class="county-aspirant-head">
+                    <div>
+                        <div class="county-aspirant-title" id="position-{{ $group['position']->id }}">{{ $group['label'] }}</div>
+                        <div class="county-aspirant-meta">
+                            {{ number_format($group['total']) }} aspirant{{ $group['total'] !== 1 ? 's' : '' }}
+                            Â· showing {{ $group['candidates']->firstItem() ?? 0 }}â€“{{ $group['candidates']->lastItem() ?? 0 }}
+                        </div>
+                    </div>
+                </div>
+                <div class="county-aspirant-grid">
+                    @foreach($group['candidates'] as $candidate)
+                        @include('aspirants.public._card', ['candidate' => $candidate])
+                    @endforeach
+                </div>
+                @if($group['candidates']->hasPages())
+                    <div class="asp-pagination">
+                        {{ $group['candidates']->links() }}
+                    </div>
+                @endif
+            </section>
+        @empty
+            <div class="asp-empty">
+                <div class="asp-empty-icon"></div>
+                <h3>No aspirants found</h3>
+                <p>Approved aspirants will appear here grouped by position.</p>
+            </div>
+        @endforelse
+    </div>
+@elseif($showLocationGroups ?? false)
     <div class="location-card-grid">
         @forelse($locationGroups as $group)
             <a href="{{ route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="location-card">
