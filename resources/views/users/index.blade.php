@@ -95,14 +95,14 @@
                             <tr class="hover:bg-zinc-800/70 transition-colors">
                                 <td class="px-6 py-4 font-medium text-white">{{ $user->username }}</td>
                                 <td class="px-6 py-4">{{ $user->name }}</td>
-                                <td class="px-6 py-4">{{ $user->phone ?? 'Ã¢â‚¬â€' }}</td>
-                                <td class="px-6 py-4">{{ $user->email ?? 'Ã¢â‚¬â€' }}</td>
-                                <td class="px-6 py-4">{{ ucfirst($user->gender ?? 'Ã¢â‚¬â€') }}</td>
-                                <td class="px-6 py-4 text-center">{{ $user->year_of_birth ?? 'Ã¢â‚¬â€' }}</td>
-                                <td class="px-6 py-4">{{ $user->county ?? 'Ã¢â‚¬â€' }}</td>
-                                <td class="px-6 py-4">{{ $user->constituency ?? 'Ã¢â‚¬â€' }}</td>
-                                <td class="px-6 py-4">{{ $user->ward ?? 'Ã¢â‚¬â€' }}</td>
-                                <td class="px-6 py-4">{{ $user->polling_station ?? 'Ã¢â‚¬â€' }}</td>
+                                <td class="px-6 py-4">{{ $user->phone ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $user->email ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ ucfirst($user->gender ?? '-') }}</td>
+                                <td class="px-6 py-4 text-center">{{ $user->year_of_birth ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $user->county ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $user->constituency ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $user->ward ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $user->polling_station ?? '-' }}</td>
                                 <td class="px-6 py-4">{{ $user->country_of_residence ?? 'Kenya' }}</td>
                                 <td class="px-6 py-4 text-center">
                                     @if($user->is_voter || $user->is_registered)
