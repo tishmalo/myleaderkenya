@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\UserRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateClaimRequestRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
+use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
 use App\Models\Candidate;
 use App\Models\CandidateClaimRequest;
 use App\Models\User;
@@ -19,6 +20,8 @@ class CandidateClaimRequestService
     public function __construct(
         private CandidateClaimRequestRepositoryInterface $claimRequests,
         private CandidateRelationshipRepositoryInterface $relationships,
+        private CampaignToolRequestRepositoryInterface $toolRequests,
+        private DonorToolboxService $toolbox,
         private UserRepositoryInterface $users,
         private CandidateRepositoryInterface $candidates
     ) {}
@@ -67,7 +70,13 @@ class CandidateClaimRequestService
     public function createAuthenticatedRequest(Candidate $candidate, User $user, string $relationship): CandidateClaimRequest
     {
         return DB::transaction(function () use ($candidate, $user, $relationship): CandidateClaimRequest {
-            if ($this->claimRequests->activeDuplicateForUser($candidate, $user, $relationship)) {
+            $duplicate = $this->claimRequests->activeDuplicateForUser($candidate, $user, $relationship);
+
+            if ($duplicate) {
+                if ($relationship === 'adopter') {
+                    return $duplicate;
+                }
+
                 throw ValidationException::withMessages([
                     'relationship' => 'You already have a pending or approved claim for this aspirant in that role.',
                 ]);
@@ -107,7 +116,11 @@ class CandidateClaimRequestService
             $user = $this->userForClaimRequest($claimRequest);
             $candidate = $claimRequest->candidate;
 
-            $this->relationships->attach($user, $candidate, $claimRequest->relationship);
+            $this->toolbox->assertClaimPaid($claimRequest, $user);
+
+            if ($claimRequest->relationship !== 'adopter') {
+                $this->relationships->attach($user, $candidate, $claimRequest->relationship);
+            }
 
             if ($claimRequest->relationship === 'aspirant' && ! $candidate->user_id) {
                 $this->candidates->update($candidate, [
@@ -121,20 +134,37 @@ class CandidateClaimRequestService
 
             $claimRequest->forceFill(['user_id' => $user->id])->save();
 
-            return $this->claimRequests->markApproved($claimRequest, $reviewer->id, $note);
+            $approved = $this->claimRequests->markApproved($claimRequest, $reviewer->id, $note);
+
+            if ($claimRequest->relationship === 'adopter' && $user->id) {
+                $this->toolRequests->updateAdoptionStatus($user->id, $candidate->id, 'in_progress');
+            }
+
+            return $approved;
         });
     }
 
     public function reject(CandidateClaimRequest $claimRequest, User $reviewer, ?string $note = null): CandidateClaimRequest
     {
-        return $this->claimRequests->markRejected($claimRequest, $reviewer->id, $note);
+        return DB::transaction(function () use ($claimRequest, $reviewer, $note): CandidateClaimRequest {
+            $rejected = $this->claimRequests->markRejected($claimRequest, $reviewer->id, $note);
+
+            if ($claimRequest->relationship === 'adopter' && $claimRequest->user_id) {
+                $this->toolbox->refundClaim($claimRequest, 'Adoption request rejected by an administrator.');
+                $this->toolRequests->updateAdoptionStatus($claimRequest->user_id, $claimRequest->candidate_id, 'cancelled');
+            }
+
+            return $rejected;
+        });
     }
 
     public function updateDashboardAccess(CandidateClaimRequest $claimRequest, bool $enabled): void
     {
         $claimRequest->load(['candidate', 'user']);
 
-        if (! $claimRequest->user || $claimRequest->status !== CandidateClaimRequest::STATUS_APPROVED) {
+        if (! $claimRequest->user
+            || $claimRequest->status !== CandidateClaimRequest::STATUS_APPROVED
+            || $claimRequest->relationship === 'adopter') {
             return;
         }
 
@@ -152,7 +182,9 @@ class CandidateClaimRequestService
 
         // Approval activates the relationship but never resets existing credentials or PII.
         $this->users->updateUser($user, [
-            'relationship' => $claimRequest->relationship,
+            'relationship' => $claimRequest->relationship === 'adopter'
+                ? $user->relationship
+                : $claimRequest->relationship,
             'is_aspirant' => $claimRequest->relationship === 'aspirant' || $user->is_aspirant,
             'email_verified_at' => $user->email_verified_at ?: now(),
         ]);

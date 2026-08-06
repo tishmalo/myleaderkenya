@@ -37,9 +37,22 @@ class CampaignToolRepository implements CampaignToolRepositoryInterface
         return CampaignTool::published()->ordered()->get();
     }
 
+    public function publishedForSponsorship(): Collection
+    {
+        return CampaignTool::published()->ordered()->get();
+    }
+
     public function findPublishedBySlug(string $slug): CampaignTool
     {
         return CampaignTool::published()->where('slug', $slug)->firstOrFail();
+    }
+
+    public function publishedByIds(array $ids): Collection
+    {
+        return CampaignTool::published()
+            ->whereIn('id', $ids)
+            ->ordered()
+            ->get();
     }
 
     public function create(array $data): CampaignTool

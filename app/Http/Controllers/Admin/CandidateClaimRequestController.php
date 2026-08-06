@@ -20,7 +20,9 @@ class CandidateClaimRequestController extends Controller
         if ($validated['status'] === CandidateClaimRequest::STATUS_APPROVED) {
             $this->claimRequestService->approve($claimRequest, $request->user(), $validated['review_note'] ?? null);
 
-            return back()->with('success', 'Claim request approved and linked to the aspirant.');
+            return back()->with('success', $claimRequest->relationship === 'adopter'
+                ? 'Adoption sponsorship approved without dashboard access.'
+                : 'Claim request approved and linked to the aspirant.');
         }
 
         $this->claimRequestService->reject($claimRequest, $request->user(), $validated['review_note'] ?? null);
