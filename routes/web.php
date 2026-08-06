@@ -97,7 +97,7 @@ Route::get('/api/wards', function (Request $request) {
 // ====================== PUBLIC ROUTES (Throttled) ======================
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing');
-    Route::get('/featured-aspirants', [LandingController::class, 'featuredAspirants'])->name('landing.featured-aspirants');
+    Route::get('/featured-aspirants', [LandingController::class, 'featuredAspirants'])->middleware('throttle:public-data')->name('landing.featured-aspirants');
     Route::get('/about-us', [PublicFrontendPageController::class, 'about'])->name('about.public');
     Route::get('/live-stats', [PublicFrontendPageController::class, 'liveStats'])->name('live-stats.public');
     Route::get('/download-app', [PublicFrontendPageController::class, 'downloadApp'])->name('download-app.public');
@@ -113,7 +113,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/campaign-tools/{slug}', [CampaignToolController::class, 'publicShow'])->name('campaign-tools.show');
 
     Route::get('/parties', [PoliticalPartyController::class, 'publicIndex'])->name('parties.public');
-    Route::get('/parties/{slug}', [PoliticalPartyController::class, 'publicShow'])->name('parties.show');
+    Route::get('/parties/{slug}', [PoliticalPartyController::class, 'publicShow'])->middleware('throttle:public-data')->name('parties.show');
     Route::get('/parties/{politicalParty}/request-access', [PoliticalPartyAccountRequestController::class, 'create'])->name('parties.access.create');
     Route::post('/parties/{politicalParty}/request-access', [PoliticalPartyAccountRequestController::class, 'store'])->middleware('throttle:3,10')->name('parties.access.store');
     Route::get('/coalitions', [CoalitionController::class, 'publicIndex'])->name('coalitions.public');
@@ -135,8 +135,8 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'show'])->middleware('cache.headers:no_store;private')->name('aspirants.claim.show');
     Route::post('/aspirants/claim/{candidate}/{token}', [CandidateClaimController::class, 'store'])->middleware(['throttle:6,1', 'cache.headers:no_store;private'])->name('aspirants.claim.store');
     Route::post('/aspirants/{candidate}/claim-requests', [CandidateClaimRequestController::class, 'store'])->middleware(['throttle:3,10', 'cache.headers:no_store;private'])->name('aspirants.claim-requests.store');
-    Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->name('aspirants.public');
-    Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->name('aspirants.show');
+    Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->middleware('throttle:public-data')->name('aspirants.public');
+    Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->middleware('throttle:public-data')->name('aspirants.show');
 });
 
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');

@@ -273,6 +273,16 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->ip());
         });
 
+        RateLimiter::for('public-data', function (Request $request) {
+            $key = $request->user()
+                ? 'user:'.$request->user()->getAuthIdentifier()
+                : 'ip:'.$request->ip();
+
+            return [
+                Limit::perMinute(20)->by($key),
+                Limit::perDay(500)->by($key),
+            ];
+        });
         // Stricter limit for data-intensive operations
         RateLimiter::for('api-heavy', function (Request $request) {
             return $request->user()

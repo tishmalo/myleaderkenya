@@ -103,7 +103,7 @@
  
 @unless(request()->boolean('modal'))
 <style>
-  /* ===== TELVOIP BUTTON â€” RIGHT SIDE ===== */
+  /* ===== TELVOIP BUTTON - RIGHT SIDE ===== */
   .floating-button {
     position: fixed !important;
     bottom: 30px !important;
@@ -171,7 +171,7 @@
     justify-content: center !important;
   }
  
-  /* ===== WHATSAPP BUTTON â€” LEFT SIDE ===== */
+  /* ===== WHATSAPP BUTTON - LEFT SIDE ===== */
   .whatsapp-button {
     position: fixed !important;
     bottom: 30px !important;
@@ -198,7 +198,7 @@
   }
 </style>
  
-<!-- TELVOIP BUTTON â€” RIGHT -->
+<!-- TELVOIP BUTTON - RIGHT -->
 <button class="floating-button" aria-label="Open chat support" onclick="toggleChat()">
 <span class="badge-telvoip"></span>
 <span class="material-icons-telvoip">forum</span>
@@ -214,10 +214,10 @@
     width="100%"
     height="100%">
 </iframe>
-<button class="close-button" onclick="toggleChat()">âœ–</button>
+<button class="close-button" onclick="toggleChat()">&times;</button>
 </div>
  
-<!-- WHATSAPP BUTTON â€” LEFT -->
+<!-- WHATSAPP BUTTON - LEFT -->
 <a class="whatsapp-button" 
    href="https://wa.me/254141102334" 
    target="_blank" 
@@ -302,6 +302,51 @@
   }, true);
 
   window.setFrontendSubmitLoading = setFrontendSubmitLoading;
+})();
+</script>
+<style>
+.asp-card,
+.aspirant-mini-card,
+.profile-page {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.asp-card img,
+.aspirant-mini-card img,
+.profile-page img {
+  -webkit-user-drag: none;
+}
+</style>
+<script>
+(function () {
+  const protectedSelector = '.asp-card, .aspirant-mini-card, .profile-page';
+
+  function isEditable(element) {
+    return element && element.closest && element.closest('input, textarea, select, [contenteditable="true"]');
+  }
+
+  function protectedElementFor(event) {
+    if (event.target && event.target.closest) {
+      const direct = event.target.closest(protectedSelector);
+      if (direct) return direct;
+    }
+
+    const selection = window.getSelection && window.getSelection();
+    const node = selection && selection.anchorNode;
+    const element = node && (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
+
+    return element && element.closest ? element.closest(protectedSelector) : null;
+  }
+
+  ['copy', 'cut', 'contextmenu', 'dragstart'].forEach(function (eventName) {
+    document.addEventListener(eventName, function (event) {
+      if (isEditable(event.target)) return;
+      if (!protectedElementFor(event)) return;
+
+      event.preventDefault();
+    });
+  });
 })();
 </script>
 @stack('scripts')
