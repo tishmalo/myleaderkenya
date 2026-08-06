@@ -19,6 +19,13 @@ return [
             'route' => 'aspirants.public',
             'active' => ['aspirants.public', 'aspirants.show'],
             'dynamic' => 'positions',
+            'prepend_children' => [
+                [
+                    'label' => 'All Aspirants',
+                    'route' => 'aspirants.public',
+                    'active' => ['aspirants.public', 'aspirants.show'],
+                ],
+            ],
         ],
         [
             'label' => 'News',

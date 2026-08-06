@@ -25,6 +25,7 @@
                     ->all();
             }
             if ($dynamicType === 'positions' && class_exists(\App\Models\Position::class) && Route::has('aspirants.public')) {
+                $leadingChildren = $menuItem['prepend_children'] ?? [];
                 $regionalBlocNames = config('regional-blocs.names', []);
                 $regionalBlocs = class_exists(\App\Models\Bloc::class)
                     ? \App\Models\Bloc::query()
@@ -51,7 +52,7 @@
                         || str_contains($key, 'county assembly');
                 };
 
-                $menuItem['children'] = \App\Models\Position::ordered()
+                $positionChildren = \App\Models\Position::ordered()
                     ->get()
                     ->map(function ($position) use ($regionalBlocs, $isCountyScopedPosition) {
                         $child = [
@@ -75,6 +76,8 @@
                         return $child;
                     })
                     ->all();
+
+                $menuItem['children'] = array_merge($leadingChildren, $positionChildren);
             }
 
 
