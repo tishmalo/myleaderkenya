@@ -176,6 +176,7 @@ class CandidateRepository implements CandidateRepositoryInterface
     {
         $positionIds = $this->publicQuery($filters)
             ->whereNotNull('position_id')
+            ->reorder()
             ->distinct()
             ->pluck('position_id');
 
