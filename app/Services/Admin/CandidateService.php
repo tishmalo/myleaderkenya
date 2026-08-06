@@ -665,7 +665,7 @@ class CandidateService
     private function seoPositionLabel($position): string
     {
         if (blank($position)) {
-            return 'Presidential';
+            return 'All';
         }
 
         $positionName = trim((string) $position);

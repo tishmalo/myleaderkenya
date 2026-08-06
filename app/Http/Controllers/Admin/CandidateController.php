@@ -212,10 +212,6 @@ class CandidateController extends Controller
 
     public function publicIndex(Request $request)
     {
-        if (! $request->filled('position') && ! $request->boolean('latest')) {
-            $request->merge(['position' => 'president']);
-        }
-
         $data = $this->candidateService->getPublicIndex($request->only(['candidate', 'search', 'position', 'political_party', 'country', 'county', 'constituency', 'ward', 'bloc']), 30);
         return view('aspirants.public.index', $data);
     }

@@ -649,7 +649,9 @@
                         <i class="fas fa-chevron-down" aria-hidden="true"></i>
                     </summary>
                     <div class="frontend-nav-mobile-children">
-                        <a href="{{ $buildMenuUrl($item) }}">All {{ $item['label'] }}</a>
+                        @unless(collect($children)->contains(fn ($child) => strcasecmp($child['label'] ?? '', 'All ' . $item['label']) === 0))
+                            <a href="{{ $buildMenuUrl($item) }}">All {{ $item['label'] }}</a>
+                        @endunless
                         @foreach($children as $child)
                             @php
                                 $grandChildren = $child['children'] ?? [];
