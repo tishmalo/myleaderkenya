@@ -46,8 +46,9 @@ return [
         [
             'label' => 'Download App',
             'icon' => 'fas fa-mobile-screen-button',
-            'route' => 'download-app.public',
-            'active' => ['download-app.public'],
+            'href' => 'https://play.google.com/store/apps/details?id=com.mlk.tukokadi',
+            'target' => '_blank',
+            'rel' => 'noopener noreferrer',
         ],
         [
             'label' => 'Back to Website',

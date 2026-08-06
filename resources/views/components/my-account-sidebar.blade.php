@@ -30,7 +30,7 @@
 
     <nav class="account-sidebar-nav">
         @foreach($items as $item)
-            <a href="{{ $itemUrl($item) }}" class="account-sidebar-link {{ $itemActive($item) ? 'is-active' : '' }} {{ ($item['style'] ?? '') === 'primary' ? 'is-primary' : '' }}">
+            <a href="{{ $itemUrl($item) }}" @if(! empty($item['target'])) target="{{ $item['target'] }}" @endif @if(! empty($item['rel'])) rel="{{ $item['rel'] }}" @endif class="account-sidebar-link {{ $itemActive($item) ? 'is-active' : '' }} {{ ($item['style'] ?? '') === 'primary' ? 'is-primary' : '' }}">
                 <i class="{{ $item['icon'] ?? 'fas fa-circle' }}"></i>
                 <span>{{ $item['label'] }}</span>
             </a>
