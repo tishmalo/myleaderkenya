@@ -55,18 +55,17 @@
             </div>
             <div class="aspirant-adoption-tools" data-adoption-tools hidden>
                 <h3 class="font-['Oswald'] text-xl font-semibold">What would you like to sponsor?</h3>
-                <p class="mt-1 text-sm text-zinc-400">Select one or more campaign tools to sponsor for this aspirant. Payment is made from your personal Toolbox before admin approval.</p>
+                <p class="mt-1 text-sm text-zinc-400">Select one or more campaign tools to sponsor for this aspirant. Choose the tools now. You will decide the sponsorship amount later in your personal Toolbox.</p>
                 <div class="aspirant-adoption-grid">
                     @forelse($adoptableTools as $tool)
                         <label class="aspirant-adoption-option">
-                            <input type="checkbox" name="adoption_tool_ids[]" value="{{ $tool->id }}" data-token-cost="{{ $tool->sponsorship_token_cost }}" {{ in_array($tool->id, array_map('intval', old('adoption_tool_ids', [])), true) ? 'checked' : '' }}>
-                            <span><i class="fas fa-circle-check"></i><strong>{{ $tool->title }}<small class="block text-xs font-normal text-zinc-400">{{ number_format($tool->sponsorship_token_cost) }} tokens</small></strong></span>
+                            <input type="checkbox" name="adoption_tool_ids[]" value="{{ $tool->id }}" {{ in_array($tool->id, array_map('intval', old('adoption_tool_ids', [])), true) ? 'checked' : '' }}>
+                            <span><i class="fas fa-circle-check"></i><strong>{{ $tool->title }}</strong></span>
                         </label>
                     @empty
                         <p class="text-sm text-amber-300">No sponsorship tools are currently available. Please check again later.</p>
                     @endforelse
                 </div>
-                <div class="mt-4 flex items-center justify-between rounded-xl border border-emerald-500/20 bg-zinc-950/50 px-4 py-3"><span class="text-sm text-zinc-400">Sponsorship total</span><strong class="text-emerald-300" data-adoption-total>0 tokens</strong></div>
             </div>
 
             <div class="aspirant-privacy-note"><i class="fas fa-shield-halved"></i><span>{{ auth()->check() ? 'This request will use your current signed-in account. Existing aspirant contact data is never displayed or prefilled.' : 'Your password always belongs to you - the person submitting this form. Existing aspirant email and phone data are never displayed or prefilled.' }}</span></div>
@@ -153,12 +152,6 @@ const relationshipWrap = document.querySelector('[data-relationship-wrap]');
 const adoptionTools = document.querySelector('[data-adoption-tools]');
 const candidateValue = document.querySelector('[data-aspirant-search-value]');
 const modeInputs = document.querySelectorAll('input[name="submission_mode"]');
-const adoptionTotal = document.querySelector('[data-adoption-total]');
-function syncAdoptionTotal() {
-    const total = Array.from(document.querySelectorAll('[data-token-cost]:checked')).reduce(function (sum, field) { return sum + Number(field.dataset.tokenCost || 0); }, 0);
-    if (adoptionTotal) adoptionTotal.textContent = new Intl.NumberFormat().format(total) + ' tokens';
-}
-document.querySelectorAll('[data-token-cost]').forEach(function (field) { field.addEventListener('change', syncAdoptionTotal); });
 
 function syncRegistrationMode() {
     const mode = document.querySelector('input[name="submission_mode"]:checked')?.value || 'self';
@@ -189,7 +182,6 @@ modeInputs.forEach(function (input) { input.addEventListener('change', syncRegis
 document.addEventListener('aspirant:selected', syncRegistrationMode);
 document.addEventListener('aspirant:cleared', syncRegistrationMode);
 syncRegistrationMode();
-syncAdoptionTotal();
 
 const emailAvailabilityUrl = @json(route('aspirants.email-availability'));
 const emailCheckTimers = new WeakMap();

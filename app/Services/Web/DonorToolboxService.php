@@ -14,7 +14,6 @@ use App\Services\Api\IpayService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use RuntimeException;
 
 class DonorToolboxService
 {
@@ -74,20 +73,19 @@ class DonorToolboxService
         });
     }
 
-    public function payAdoption(User $user, int $requestId): UserTokenTransaction
+    public function payAdoption(User $user, int $requestId, int $amount): UserTokenTransaction
     {
-        return DB::transaction(function () use ($user, $requestId): UserTokenTransaction {
+        return DB::transaction(function () use ($user, $requestId, $amount): UserTokenTransaction {
             $request = $this->tokens->lockedPayableAdoption($user, $requestId);
             if ($request->status === 'cancelled') throw ValidationException::withMessages(['payment'=>'This sponsorship request was cancelled.']);
             if ($request->payment_status === 'paid') throw ValidationException::withMessages(['payment'=>'This sponsorship is already paid.']);
             if ($request->payment_status === 'refunded') throw ValidationException::withMessages(['payment'=>'This sponsorship was refunded and cannot be paid again.']);
-            $amount = (int)$request->tokens_required;
-            if ($amount < 1) throw new RuntimeException('This sponsorship has no valid token price.');
+            if ($amount < 1) throw ValidationException::withMessages(['token_amount'=>'Enter at least one token to sponsor.']);
             $wallet = $this->tokens->lockedWallet($user->id);
             if ($wallet->balance < $amount) throw ValidationException::withMessages(['payment'=>'Insufficient Toolbox tokens. Required: '.number_format($amount).', available: '.number_format($wallet->balance).'.']);
             $before=$wallet->balance; $wallet->update(['balance'=>$before-$amount]);
             $transaction=$this->tokens->createTransaction(['user_token_wallet_id'=>$wallet->id,'user_id'=>$user->id,'candidate_id'=>$request->candidate_id,'tokenable_type'=>$request::class,'tokenable_id'=>$request->id,'type'=>'sponsorship','status'=>'completed','action_key'=>'aspirant-adoption','action_label'=>'Sponsor campaign tools for '.($request->candidate?->name ?? 'aspirant'),'amount'=>-$amount,'balance_before'=>$before,'balance_after'=>$wallet->balance,'metadata'=>['campaign_tool_request_id'=>$request->id],'finalized_at'=>now()]);
-            $this->tokens->updateAdoption($request,['payment_status'=>'paid','user_token_transaction_id'=>$transaction->id,'paid_at'=>now()]);
+            $this->tokens->updateAdoption($request,['tokens_required'=>$amount,'payment_status'=>'paid','user_token_transaction_id'=>$transaction->id,'paid_at'=>now()]);
             return $transaction;
         });
     }

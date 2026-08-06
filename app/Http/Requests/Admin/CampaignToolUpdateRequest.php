@@ -27,7 +27,6 @@ class CampaignToolUpdateRequest extends FormRequest
             'meta_description' => ['nullable', 'string', 'max:300'],
             'status' => ['required', 'in:draft,published'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'sponsorship_token_cost' => ['required', 'integer', 'min:1'],
         ];
     }
 }

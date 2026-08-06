@@ -55,9 +55,6 @@ return new class extends Migration
             $table->index(['user_id', 'created_at']);
         });
 
-        Schema::table('campaign_tools', function (Blueprint $table): void {
-            $table->unsignedInteger('sponsorship_token_cost')->default(0)->after('sort_order');
-        });
 
         Schema::table('campaign_tool_requests', function (Blueprint $table): void {
             $table->unsignedBigInteger('tokens_required')->default(0)->after('status');
@@ -74,7 +71,7 @@ return new class extends Migration
             $table->dropConstrainedForeignId('user_token_transaction_id');
             $table->dropColumn(['tokens_required', 'payment_status', 'paid_at', 'refunded_at']);
         });
-        Schema::table('campaign_tools', fn (Blueprint $table) => $table->dropColumn('sponsorship_token_cost'));
+
         Schema::dropIfExists('user_token_transactions');
         Schema::dropIfExists('user_token_purchases');
         Schema::dropIfExists('user_token_wallets');

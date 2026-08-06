@@ -22,7 +22,7 @@ class AspirantAdoptionService
         $toolIds = collect($toolIds)->map(fn ($id) => (int) $id)->unique()->values()->all();
         $tools = $this->campaignTools->publishedByIds($toolIds);
 
-        if ($tools->count() !== count($toolIds) || $tools->contains(fn ($tool) => (int) $tool->sponsorship_token_cost < 1)) {
+        if ($tools->count() !== count($toolIds)) {
             throw ValidationException::withMessages([
                 'adoption_tool_ids' => 'One or more selected campaign tools are no longer available.',
             ]);
@@ -39,7 +39,6 @@ class AspirantAdoptionService
 
         return DB::transaction(function () use ($candidate, $adopter, $toolIds, $tools): CampaignToolRequest {
             $primaryTool = $tools->first();
-            $tokensRequired = (int) $tools->sum('sponsorship_token_cost');
             $request = $this->toolRequests->create([
                 'campaign_tool_id' => $primaryTool->id,
                 'user_id' => $adopter->id,
@@ -52,7 +51,7 @@ class AspirantAdoptionService
                 'requested_feature' => 'Sponsor selected campaign tools',
                 'use_case' => 'Adoption sponsorship for '.$candidate->name.'.',
                 'status' => 'new',
-                'tokens_required' => $tokensRequired,
+                'tokens_required' => 0,
                 'payment_status' => 'awaiting_payment',
             ]);
 

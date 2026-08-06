@@ -27,12 +27,10 @@ class CampaignTool extends Model implements AuditableContract
         'meta_description',
         'status',
         'sort_order',
-        'sponsorship_token_cost',
     ];
 
     protected $casts = [
         'sort_order' => 'integer',
-        'sponsorship_token_cost' => 'integer',
     ];
 
     protected static function booted(): void

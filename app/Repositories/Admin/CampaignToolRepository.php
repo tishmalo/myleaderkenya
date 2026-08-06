@@ -39,7 +39,7 @@ class CampaignToolRepository implements CampaignToolRepositoryInterface
 
     public function publishedForSponsorship(): Collection
     {
-        return $this->withSponsorshipCosts(CampaignTool::published()->ordered()->get());
+        return CampaignTool::published()->ordered()->get();
     }
 
     public function findPublishedBySlug(string $slug): CampaignTool
@@ -49,23 +49,10 @@ class CampaignToolRepository implements CampaignToolRepositoryInterface
 
     public function publishedByIds(array $ids): Collection
     {
-        return $this->withSponsorshipCosts(
-            CampaignTool::published()
-                ->whereIn('id', $ids)
-                ->ordered()
-                ->get()
-        );
-    }
-
-    private function withSponsorshipCosts(Collection $tools): Collection
-    {
-        $defaultCost = max(1, (int) config('toolbox.default_sponsorship_token_cost', 10));
-
-        return $tools->each(function (CampaignTool $tool) use ($defaultCost): void {
-            if ((int) $tool->sponsorship_token_cost < 1) {
-                $tool->setAttribute('sponsorship_token_cost', $defaultCost);
-            }
-        });
+        return CampaignTool::published()
+            ->whereIn('id', $ids)
+            ->ordered()
+            ->get();
     }
 
     public function create(array $data): CampaignTool

@@ -11,6 +11,7 @@ use App\Services\Web\DonorToolboxService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class DonorToolboxController extends Controller
@@ -31,8 +32,14 @@ class DonorToolboxController extends Controller
 
     public function pay(PayAdoptionSponsorshipRequest $request, CampaignToolRequest $campaignToolRequest): RedirectResponse
     {
-        try { $this->toolbox->payAdoption($request->user(),$campaignToolRequest->id); return back()->with('success','Sponsorship paid successfully from your Toolbox.'); }
-        catch (Throwable $e) { return back()->withErrors(['payment'=>$e->getMessage()]); }
+        try {
+            $this->toolbox->payAdoption($request->user(), $campaignToolRequest->id, (int) $request->validated('token_amount'));
+            return back()->with('success', 'Sponsorship paid successfully from your Toolbox.');
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (Throwable $e) {
+            return back()->withErrors(['payment' => $e->getMessage()])->withInput();
+        }
     }
 
     public function callback(Request $request): RedirectResponse

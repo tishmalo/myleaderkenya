@@ -78,8 +78,9 @@
                             @if($isActivation)
                                 <div><span class="text-zinc-500">Position:</span> {{ $requestItem->candidate->position->name ?? '-' }}</div>
                                 <div><span class="text-zinc-500">Tool key:</span> {{ $requestItem->tool_key ?: '-' }}</div>
-                            @endif                            @if($isAdoption)
-                                <div><span class="text-zinc-500">Tokens:</span> {{ number_format($requestItem->tokens_required) }}</div>
+                            @endif
+                            @if($isAdoption)
+                                <div><span class="text-zinc-500">Sponsorship:</span> {{ $requestItem->payment_status === 'awaiting_payment' ? 'Donor will choose amount' : number_format($requestItem->tokens_required).' tokens' }}</div>
                                 <div><span class="text-zinc-500">Payment:</span> <strong class="{{ $requestItem->payment_status === 'paid' ? 'text-emerald-300' : ($requestItem->payment_status === 'refunded' ? 'text-blue-300' : 'text-amber-300') }}">{{ str_replace('_', ' ', ucfirst($requestItem->payment_status)) }}</strong></div>
                                 <div class="md:col-span-2"><span class="text-zinc-500">Wallet transaction:</span> {{ $requestItem->user_token_transaction_id ?: '-' }}</div>
                             @endif
@@ -89,7 +90,7 @@
                                 <div class="mb-2 text-sm text-zinc-500">{{ $isAdoption ? 'Sponsored campaign tools:' : 'Other services requested:' }}</div>
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($requestItem->selectedTools as $selectedTool)
-                                        <span class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">{{ $selectedTool->title }}@if($isAdoption) · {{ number_format($selectedTool->sponsorship_token_cost) }} tokens @endif</span>
+                                        <span class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">{{ $selectedTool->title }}</span>
                                     @endforeach
                                 </div>
                             </div>

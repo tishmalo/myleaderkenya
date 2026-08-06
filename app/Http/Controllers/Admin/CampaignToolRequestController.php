@@ -18,7 +18,7 @@ class CampaignToolRequestController extends Controller
     {
         $filters = request()->only(['status', 'request_type', 'payment_status', 'campaign_tool_id', 'search']);
 
-        $requests = CampaignToolRequest::with(['campaignTool', 'selectedTools:id,title,sponsorship_token_cost', 'candidate.position', 'user'])
+        $requests = CampaignToolRequest::with(['campaignTool', 'selectedTools:id,title', 'candidate.position', 'user'])
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['request_type'] ?? null, fn ($query, $type) => $query->where('request_type', $type))
             ->when($filters['payment_status'] ?? null, fn ($query, $status) => $query->where('payment_status', $status))
