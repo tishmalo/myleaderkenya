@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 
 class CandidateRelationshipRepository implements CandidateRelationshipRepositoryInterface
 {
-    public function attach(User $user, Candidate $candidate, string $relationship): void
+    public function attach(User $user, Candidate $candidate, string $relationship, bool $dashboardAccess = true): void
     {
         if (! Schema::hasTable('candidate_user_relationships')) {
             return;
@@ -19,7 +19,9 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
         $user->relatedCandidates()->syncWithoutDetaching([
             $candidate->id => array_filter([
                 'relationship' => $relationship,
-                'dashboard_access_enabled' => Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled') ? true : null,
+                'dashboard_access_enabled' => Schema::hasColumn('candidate_user_relationships', 'dashboard_access_enabled')
+                    ? ($relationship === 'adopter' ? false : $dashboardAccess)
+                    : null,
             ], fn ($value) => $value !== null),
         ]);
     }
@@ -30,8 +32,12 @@ class CandidateRelationshipRepository implements CandidateRelationshipRepository
             return;
         }
 
+        $relationship = $user->relatedCandidates()
+            ->where('candidates.id', $candidate->id)
+            ->first()?->pivot?->relationship;
+
         $user->relatedCandidates()->updateExistingPivot($candidate->id, [
-            'dashboard_access_enabled' => $enabled,
+            'dashboard_access_enabled' => $relationship === 'adopter' ? false : $enabled,
         ]);
     }
 

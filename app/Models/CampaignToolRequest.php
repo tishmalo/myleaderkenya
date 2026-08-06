@@ -29,7 +29,17 @@ class CampaignToolRequest extends Model implements AuditableContract
         'disabled_reason',
         'status',
         'admin_notes',
+        'tokens_required',
+        'payment_status',
+        'user_token_transaction_id',
+        'paid_at',
+        'refunded_at',
     ];
+
+    protected function casts(): array
+    {
+        return ['tokens_required'=>'integer','paid_at'=>'datetime','refunded_at'=>'datetime'];
+    }
 
     public function campaignTool(): BelongsTo
     {
@@ -51,5 +61,9 @@ class CampaignToolRequest extends Model implements AuditableContract
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);
+    }
+    public function userTokenTransaction(): BelongsTo
+    {
+        return $this->belongsTo(UserTokenTransaction::class);
     }
 }

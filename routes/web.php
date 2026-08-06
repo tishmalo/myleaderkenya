@@ -56,6 +56,7 @@ use App\Http\Controllers\Web\CandidateClaimRequestController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\MyAccountController;
+use App\Http\Controllers\Web\DonorToolboxController;
 use App\Http\Controllers\Web\UserNewsArticleController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
@@ -140,11 +141,15 @@ Route::middleware('throttle:web')->group(function () {
 
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
 Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::class, 'callback'])->name('party.payments.ipay.callback');
+Route::get('/toolbox/payments/ipay/callback', [DonorToolboxController::class, 'callback'])->name('toolbox.payments.ipay.callback');
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
     Route::get('/my-account', [MyAccountController::class, 'index'])->name('my-account');
     Route::post('/my-account/aspirants/select', [MyAccountController::class, 'select'])->middleware('throttle:20,1')->name('my-account.aspirants.select');
+    Route::get('/my-account/toolbox', [DonorToolboxController::class, 'index'])->name('account.toolbox.index');
+    Route::post('/my-account/toolbox/purchase', [DonorToolboxController::class, 'purchase'])->middleware('throttle:6,10')->name('account.toolbox.purchase');
+    Route::post('/my-account/toolbox/adoptions/{campaignToolRequest}/pay', [DonorToolboxController::class, 'pay'])->middleware('throttle:10,1')->name('account.toolbox.adoptions.pay');
     Route::get('/my-account/news', [UserNewsArticleController::class, 'index'])->name('account.news.index');
     Route::get('/my-account/news/submit', [UserNewsArticleController::class, 'create'])->name('account.news.create');
     Route::get('/my-account/news/candidates/search', [UserNewsArticleController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('account.news.candidates.search');

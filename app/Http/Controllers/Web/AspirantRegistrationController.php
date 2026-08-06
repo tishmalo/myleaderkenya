@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Contracts\Repositories\Api\UserRepositoryInterface as AccountRepositoryInterface;
+use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
 use App\Http\Requests\Web\AspirantEmailAvailabilityRequest;
 use App\Http\Requests\Web\AspirantRegisterRequest;
 use App\Models\Candidate;
@@ -12,6 +13,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\Admin\CandidateService;
 use App\Services\Web\CandidateClaimRequestService;
+use App\Services\Web\AspirantAdoptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +28,8 @@ class AspirantRegistrationController extends Controller
     public function __construct(
         private CandidateService $candidateService,
         private CandidateClaimRequestService $claimRequestService,
+        private AspirantAdoptionService $adoptionService,
+        private CampaignToolRepositoryInterface $campaignTools,
         private AccountRepositoryInterface $accounts
     ) {}
 
@@ -44,6 +48,7 @@ class AspirantRegistrationController extends Controller
             'positions' => Position::ordered()->get(),
             'politicalParties' => PoliticalParty::published()->ordered()->get(),
             'selectedCandidate' => $selectedCandidate,
+            'adoptableTools' => $this->campaignTools->publishedForSponsorship(),
         ]);
     }
 
@@ -94,7 +99,11 @@ class AspirantRegistrationController extends Controller
         $validated = $request->validated();
         $authenticatedUser = $request->user();
         $isRepresentative = $validated['submission_mode'] === 'representative';
-        $relationship = $isRepresentative ? $validated['relationship'] : 'aspirant';
+        $isAdoption = $validated['submission_mode'] === 'adoption';
+        $needsClaim = $isRepresentative || $isAdoption;
+        $relationship = $isAdoption
+            ? 'adopter'
+            : ($isRepresentative ? $validated['relationship'] : 'aspirant');
 
         if (! empty($validated['candidate_id'])) {
             $candidate = Candidate::query()
@@ -105,23 +114,39 @@ class AspirantRegistrationController extends Controller
                 )
                 ->findOrFail($validated['candidate_id']);
 
-            if ($authenticatedUser) {
-                $this->claimRequestService->createAuthenticatedRequest($candidate, $authenticatedUser, $relationship);
-            } else {
-                $this->claimRequestService->createPublicRequest($candidate, [
-                    'relationship' => $relationship,
-                    'name' => $isRepresentative ? $validated['account_name'] : $candidate->name,
-                    'email' => $validated['account_email'],
-                    'phone' => $validated['account_phone'] ?? null,
-                    'password' => $validated['password'],
-                    '_email_field' => 'account_email',
-                ]);
+            DB::transaction(function () use ($candidate, $authenticatedUser, $validated, $relationship, $isRepresentative, $isAdoption): void {
+                $claim = $authenticatedUser
+                    ? $this->claimRequestService->createAuthenticatedRequest($candidate, $authenticatedUser, $relationship)
+                    : $this->claimRequestService->createPublicRequest($candidate, [
+                        'relationship' => $relationship,
+                        'name' => $validated['account_name'] ?? $candidate->name,
+                        'email' => $validated['account_email'],
+                        'phone' => $validated['account_phone'] ?? null,
+                        'password' => $validated['password'],
+                        '_email_field' => 'account_email',
+                    ]);
+
+                if ($isAdoption) {
+                    $this->adoptionService->create(
+                        $candidate,
+                        $authenticatedUser ?: $claim->user()->firstOrFail(),
+                        $validated['adoption_tool_ids']
+                    );
+                }
+            });
+
+            $message = $isAdoption
+                ? 'Your aspirant adoption and selected sponsorship tools have been submitted for admin verification.'
+                : 'Your access request has been submitted for admin verification.';
+
+            if ($isAdoption) {
+                return $this->adoptionRedirect($request, $message, $authenticatedUser !== null);
             }
 
-            return $this->registrationRedirect($request, 'Your access request has been submitted for admin verification.');
+            return $this->registrationRedirect($request, $message);
         }
 
-        DB::transaction(function () use ($request, $validated, $authenticatedUser, $isRepresentative, $relationship): void {
+        DB::transaction(function () use ($request, $validated, $authenticatedUser, $needsClaim, $relationship, $isAdoption): void {
             $candidateData = [
                 'name' => $validated['aspirant_name'],
                 'nick_name' => $validated['nick_name'] ?? null,
@@ -136,7 +161,7 @@ class AspirantRegistrationController extends Controller
                 'approval_status' => 'pending',
             ];
 
-            if (! $isRepresentative && ! $authenticatedUser) {
+            if (! $needsClaim && ! $authenticatedUser) {
                 $user = User::create([
                     'name' => $validated['aspirant_name'],
                     'username' => $this->uniqueUsername($validated['aspirant_name']),
@@ -148,7 +173,7 @@ class AspirantRegistrationController extends Controller
                     'is_aspirant' => true,
                 ]);
                 $candidateData['user_id'] = $user->id;
-            } elseif (! $isRepresentative) {
+            } elseif (! $needsClaim) {
                 $candidateData['user_id'] = $authenticatedUser->id;
             }
 
@@ -158,25 +183,51 @@ class AspirantRegistrationController extends Controller
                 $request->file('cover_photo')
             );
 
-            if ($isRepresentative && $authenticatedUser) {
-                $this->claimRequestService->createAuthenticatedRequest($candidate, $authenticatedUser, $relationship);
-            } elseif ($isRepresentative) {
-                $this->claimRequestService->createPublicRequest($candidate, [
-                    'relationship' => $relationship,
-                    'name' => $validated['account_name'],
-                    'email' => $validated['account_email'],
-                    'phone' => $validated['account_phone'] ?? null,
-                    'password' => $validated['password'],
-                    '_email_field' => 'account_email',
-                ]);
+            if ($needsClaim) {
+                $claim = $authenticatedUser
+                    ? $this->claimRequestService->createAuthenticatedRequest($candidate, $authenticatedUser, $relationship)
+                    : $this->claimRequestService->createPublicRequest($candidate, [
+                        'relationship' => $relationship,
+                        'name' => $validated['account_name'],
+                        'email' => $validated['account_email'],
+                        'phone' => $validated['account_phone'] ?? null,
+                        'password' => $validated['password'],
+                        '_email_field' => 'account_email',
+                    ]);
+
+                if ($isAdoption) {
+                    $this->adoptionService->create(
+                        $candidate,
+                        $authenticatedUser ?: $claim->user()->firstOrFail(),
+                        $validated['adoption_tool_ids']
+                    );
+                }
             }
         });
 
-        $message = $isRepresentative
-            ? 'The aspirant profile and your access request have been submitted for admin verification.'
-            : 'Your aspirant registration has been submitted. Sign in while an admin reviews your profile.';
+        $message = $isAdoption
+            ? 'The aspirant profile, adoption request, and selected sponsorship tools have been submitted for admin verification.'
+            : ($isRepresentative
+                ? 'The aspirant profile and your access request have been submitted for admin verification.'
+                : 'Your aspirant registration has been submitted. Sign in while an admin reviews your profile.');
 
-        return $this->registrationRedirect($request, $message, ! $authenticatedUser && ! $isRepresentative);
+        if ($isAdoption) {
+            return $this->adoptionRedirect($request, $message, $authenticatedUser !== null);
+        }
+
+        return $this->registrationRedirect($request, $message, ! $authenticatedUser && ! $needsClaim);
+    }
+
+    private function adoptionRedirect(Request $request, string $message, bool $authenticated): RedirectResponse
+    {
+        if ($authenticated) {
+            return redirect()->route('account.toolbox.index')->with('success', $message.' Fund it from your Toolbox below.');
+        }
+
+        $request->session()->put('url.intended', route('account.toolbox.index'));
+
+        return redirect($request->boolean('modal') ? route('login', ['modal' => 1]) : route('login'))
+            ->with('status', $message.' Sign in to fund it from your Toolbox.');
     }
 
     private function registrationRedirect(Request $request, string $message, bool $toLogin = false): RedirectResponse
