@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\User;
+use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProfileUpdateRequest extends FormRequest
@@ -23,7 +23,7 @@ class ProfileUpdateRequest extends FormRequest
                 'email',
                 'max:255',
                 function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (User::emailExists((string) $value, $this->user()->id)) {
+                    if (app(UserRepositoryInterface::class)->existsByEmailHash((string) $value, $this->user()->id)) {
                         $fail('The email has already been taken.');
                     }
                 },

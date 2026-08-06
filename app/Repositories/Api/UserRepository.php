@@ -37,10 +37,11 @@ class UserRepository implements UserRepositoryInterface
             ->first();
     }
 
-    public function existsByEmailHash(string $email): bool
+    public function existsByEmailHash(string $email, ?int $ignoreUserId = null): bool
     {
         return User::query()
             ->where('email_hash', hash('sha256', strtolower(trim($email))))
+            ->when($ignoreUserId, fn ($query) => $query->where('id', '!=', $ignoreUserId))
             ->exists();
     }
     public function update(User $user, array $data): bool

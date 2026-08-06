@@ -13,7 +13,7 @@ interface UserRepositoryInterface
 
     public function findByEmail(string $email): ?User;
 
-    public function existsByEmailHash(string $email): bool;
+    public function existsByEmailHash(string $email, ?int $ignoreUserId = null): bool;
 
     public function update(User $user, array $data): bool;
 

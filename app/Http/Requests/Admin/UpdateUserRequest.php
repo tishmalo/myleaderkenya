@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\User;
+use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateUserRequest extends FormRequest
@@ -23,7 +23,7 @@ class UpdateUserRequest extends FormRequest
                 'nullable',
                 'email',
                 function (string $attribute, mixed $value, \Closure $fail) use ($userId): void {
-                    if ($value && User::emailExists((string) $value, $userId)) {
+                    if ($value && app(UserRepositoryInterface::class)->existsByEmailHash((string) $value, $userId)) {
                         $fail('The email has already been taken.');
                     }
                 },
