@@ -382,9 +382,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const positionSelect = document.getElementById('positionSelect');
     const fieldsContainer = document.getElementById('jurisdictionFields');
 
-    let currentCounty = "{{ $candidate->county ?? '' }}";
-    let currentConstituency = "{{ $candidate->constituency ?? '' }}";
-    let currentWard = "{{ $candidate->ward ?? '' }}";
+    let currentCounty = @json(old('county', $candidate->county));
+    let currentConstituency = @json(old('constituency', $candidate->constituency));
+    let currentWard = @json(old('ward', $candidate->ward));
 
     function loadJurisdictionFields(positionName) {
         let html = '';
@@ -454,6 +454,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return typeof item === 'object' && item !== null ? (item.id || '') : '';
     }
 
+    function sameLocationName(left, right) {
+        return String(left || '').trim().toLocaleLowerCase() === String(right || '').trim().toLocaleLowerCase();
+    }
+
     function initCascadingDropdowns() {
         const countySelect = document.getElementById('countySelect');
         const constituencySelect = document.getElementById('constituencySelect');
@@ -469,14 +473,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 counties.forEach(county => {
                     const name = optionName(county);
+                    const id = optionId(county);
                     if (!name) return;
                     const opt = new Option(name, name);
-                    if (name === currentCounty) opt.selected = true;
+                    opt.dataset.id = id;
+                    if (sameLocationName(name, currentCounty)) {
+                        opt.selected = true;
+                        selectedCountyId = id;
+                    }
                     countySelect.add(opt);
                 });
 
-                if (currentCounty && constituencySelect) {
-                    loadConstituencies(selectedCountyId || currentCounty);
+                if (selectedCountyId && constituencySelect) {
+                    loadConstituencies(selectedCountyId);
                 }
             });
 
@@ -492,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (constituencySelect) {
             constituencySelect.addEventListener('change', function() {
-                loadWards(this.value);
+                loadWards(this.selectedOptions[0]?.dataset.id || '');
             });
         }
     }
@@ -509,14 +518,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 data.forEach(consti => {
                     const name = optionName(consti);
+                    const id = optionId(consti);
                     if (!name) return;
                     const opt = new Option(name, name);
-                    if (name === currentConstituency) opt.selected = true;
+                    opt.dataset.id = id;
+                    if (sameLocationName(name, currentConstituency)) {
+                        opt.selected = true;
+                        selectedConstituencyId = id;
+                    }
                     constituencySelect.add(opt);
                 });
 
-                if (currentConstituency && document.getElementById('wardSelect')) {
-                    loadWards(selectedConstituencyId || currentConstituency);
+                if (selectedConstituencyId && document.getElementById('wardSelect')) {
+                    loadWards(selectedConstituencyId);
                 }
             });
     }
@@ -533,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const name = optionName(ward);
                     if (!name) return;
                     const opt = new Option(name, name);
-                    if (name === currentWard) opt.selected = true;
+                    if (sameLocationName(name, currentWard)) opt.selected = true;
                     wardSelect.add(opt);
                 });
             });
