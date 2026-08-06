@@ -1,5 +1,8 @@
 @extends('layouts.landing')
 
+@section('title', 'Kenya Aspirants and Candidates for 2027 General Election')
+@section('meta_description', 'Find the Kenya 2027 Aspirants and Candidates for General Elections, Campaign Tools, Databases, Political Parties and Voters in all Counties')
+
 @section('content')
 @push('styles')
     @vite('resources/css/views/landing.css')
