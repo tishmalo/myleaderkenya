@@ -44,6 +44,12 @@ return [
             'route' => 'aspirants.public',
         ],
         [
+            'label' => 'Download App',
+            'icon' => 'fas fa-mobile-screen-button',
+            'route' => 'download-app.public',
+            'active' => ['download-app.public'],
+        ],
+        [
             'label' => 'Back to Website',
             'icon' => 'fas fa-arrow-left',
             'route' => 'landing',
