@@ -9,16 +9,12 @@ class UserProfileService
 {
     public const REQUIRED_FIELDS = [
         'name',
-        'username',
         'email',
-        'phone',
-        'id_number',
         'gender',
         'year_of_birth',
         'county',
         'constituency',
         'ward',
-        'polling_station',
         'country_of_residence',
     ];
 

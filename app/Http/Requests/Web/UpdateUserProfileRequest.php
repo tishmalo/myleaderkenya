@@ -17,9 +17,12 @@ class UpdateUserProfileRequest extends FormRequest
             'name' => trim((string) $this->input('name')),
             'username' => trim((string) $this->input('username')),
             'email' => strtolower(trim((string) $this->input('email'))),
-            'phone' => trim((string) $this->input('phone')),
-            'id_number' => trim((string) $this->input('id_number')),
+            'phone' => $this->filled('phone') ? trim((string) $this->input('phone')) : null,
+            'id_number' => $this->filled('id_number') ? trim((string) $this->input('id_number')) : null,
             'country_of_residence' => trim((string) $this->input('country_of_residence')),
+            'polling_station' => $this->filled('polling_station')
+                ? trim((string) $this->input('polling_station'))
+                : null,
             'is_voter' => $this->boolean('is_voter'),
         ]);
     }
@@ -56,9 +59,9 @@ class UpdateUserProfileRequest extends FormRequest
                     }
                 },
             ],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9\s-]{7,20}$/'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^\+?[0-9\s-]{7,20}$/'],
             'id_number' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 function (string $attribute, mixed $value, Closure $fail) use ($userId): void {
@@ -72,9 +75,9 @@ class UpdateUserProfileRequest extends FormRequest
             'county' => ['required', 'string', 'max:100', 'exists:counties,name'],
             'constituency' => ['required', 'string', 'max:100', 'exists:constituencies,name'],
             'ward' => ['required', 'string', 'max:100', 'exists:wards,name'],
-            'polling_station' => ['required', 'string', 'max:255', 'exists:polling_stations,office'],
+            'polling_station' => ['nullable', 'string', 'max:255', 'exists:polling_stations,office'],
             'country_of_residence' => ['required', 'string', 'max:100'],
-            'is_voter' => ['required', 'boolean'],
+            'is_voter' => ['nullable', 'boolean'],
         ];
     }
 
@@ -96,7 +99,7 @@ class UpdateUserProfileRequest extends FormRequest
                     $validator->errors()->add('ward', 'Select a ward within the selected constituency.');
                 }
 
-                if (! $profiles->pollingStations((string) $this->string('ward'))->contains((string) $this->string('polling_station'))) {
+                if ($this->filled('polling_station') && ! $profiles->pollingStations((string) $this->string('ward'))->contains((string) $this->string('polling_station'))) {
                     $validator->errors()->add('polling_station', 'Select a polling station within the selected ward.');
                 }
             },

@@ -13,7 +13,7 @@
 <main class="profile-main">
 <div class="profile-kicker">Account verification</div>
 <h1 class="profile-title">{{ $profileComplete ? 'My Profile' : 'Complete Your Profile' }}</h1>
-<p class="profile-copy">Confirm all your identity and voter location details before using the dashboard toolkit.</p>
+<p class="profile-copy">Provide the required account and location details. Phone, identification number, polling station and voter status are optional.</p>
 @if(!$profileComplete || session('warning'))<div class="profile-alert">{{ session('warning', 'Complete every required field before accessing dashboard tools.') }}</div>@endif
 @if(session('success'))<div class="profile-alert profile-success">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="profile-alert">Please correct the highlighted details.</div>@endif
@@ -22,18 +22,21 @@
 <section class="profile-section"><h2>Account details</h2><div class="profile-grid">
 @php
 $fields = [
-    ['name','Full Name','text'],
-    ['username','Username','text'],
-    ['email','Email Address','email'],
-    ['phone','Phone Number','tel'],
-    ['id_number','National ID / Identification Number','text'],
-    ['country_of_residence','Country of Residence','text'],
-    ['year_of_birth','Year of Birth','number'],
+    ['name','Full Name','text',true],
+    ['email','Email Address','email',true],
+    ['phone','Phone Number','tel',false],
+    ['id_number','National ID / Identification Number','text',false],
+    ['country_of_residence','Country of Residence','text',true],
+    ['year_of_birth','Year of Birth','number',true],
 ];
 @endphp
-@foreach($fields as [$field,$label,$type])
-<div class="profile-field"><label for="profile-{{ $field }}">{{ $label }} *</label>
-<input id="profile-{{ $field }}" type="{{ $type }}" name="{{ $field }}" value="{{ old($field, auth()->user()->{$field} ?: ($field === 'country_of_residence' ? 'Kenya' : '')) }}" required @if($field==='year_of_birth') min="1900" max="{{ date('Y') }}" @endif>
+<div class="profile-field"><label for="profile-username">Username</label>
+<input id="profile-username" value="{{ auth()->user()->username }}" readonly>
+<input type="hidden" name="username" value="{{ auth()->user()->username }}">
+</div>
+@foreach($fields as [$field,$label,$type,$required])
+<div class="profile-field"><label for="profile-{{ $field }}">{{ $label }} @if($required)*@else <small>(optional)</small>@endif</label>
+<input id="profile-{{ $field }}" type="{{ $type }}" name="{{ $field }}" value="{{ old($field, auth()->user()->{$field} ?: ($field === 'country_of_residence' ? 'Kenya' : '')) }}" @if($required) required @endif @if($field==='year_of_birth') min="1900" max="{{ date('Y') }}" @endif>
 @error($field)<div class="profile-error">{{ $message }}</div>@enderror</div>
 @endforeach
 <div class="profile-field"><label for="profile-gender">Gender *</label><select id="profile-gender" name="gender" required><option value="">Select Gender</option>
@@ -48,7 +51,7 @@ $fields = [
  ['ward','Ward',$wards],
  ['polling_station','Polling Station',$pollingStations],
 ] as [$field,$label,$options])
-<div class="profile-field"><label for="profile-{{ $field }}">{{ $label }} *</label><select id="profile-{{ $field }}" name="{{ $field }}" required><option value="">Select {{ $label }}</option>
+<div class="profile-field"><label for="profile-{{ $field }}">{{ $label }} @if($field === 'polling_station') <small>(optional)</small>@else *@endif</label><select id="profile-{{ $field }}" name="{{ $field }}" @if($field !== 'polling_station') required @endif><option value="">Select {{ $label }}</option>
 @foreach($options as $option)<option value="{{ $option }}" @selected(old($field,auth()->user()->{$field})===$option)>{{ $option }}</option>@endforeach
 </select>@error($field)<div class="profile-error">{{ $message }}</div>@enderror</div>
 @endforeach
