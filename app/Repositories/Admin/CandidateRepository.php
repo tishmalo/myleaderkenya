@@ -5,7 +5,6 @@ namespace App\Repositories\Admin;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Models\PoliticalParty;
 use App\Models\Candidate;
-use App\Models\Bloc;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\NewsArticle;
@@ -311,14 +310,12 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         if (!empty($filters['bloc'])) {
-            $blocCountyNames = Schema::hasTable('bloc_county')
-                ? (Bloc::whereKey($filters['bloc'])->first()?->counties()->pluck('counties.name')->all() ?? [])
-                : County::where('bloc_id', $filters['bloc'])->pluck('name')->all();
+            $blocCountyNames = $this->countyNamesForBloc($filters['bloc']);
 
-            if (empty($blocCountyNames)) {
+            if ($blocCountyNames->isEmpty()) {
                 $query->whereRaw('1 = 0');
             } else {
-                $query->whereIn('county', $blocCountyNames);
+                $query->whereIn('county', $blocCountyNames->all());
             }
         }
 
@@ -401,8 +398,11 @@ class CandidateRepository implements CandidateRepositoryInterface
             return collect([$filters['county']]);
         }
 
+        if (! empty($filters['bloc'])) {
+            return $this->countyNamesForBloc($filters['bloc']);
+        }
+
         return County::query()
-            ->when(! empty($filters['bloc']), fn ($query) => $query->where('bloc_id', $filters['bloc']))
             ->orderBy('name')
             ->pluck('name');
     }
@@ -414,9 +414,7 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         if (!empty($filters['bloc'])) {
-            return County::where('bloc_id', $filters['bloc'])
-                ->orderBy('name')
-                ->pluck('name');
+            return $this->countyNamesForBloc($filters['bloc']);
         }
 
         return Candidate::whereNotNull('county')
@@ -425,6 +423,25 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->distinct()
             ->orderBy('county')
             ->pluck('county');
+    }
+
+    /**
+     * Resolve counties assigned through either supported bloc relationship.
+     */
+    private function countyNamesForBloc(int|string $blocId): Collection
+    {
+        return County::query()
+            ->where(function ($query) use ($blocId) {
+                $query->where('bloc_id', $blocId);
+
+                if (Schema::hasTable('bloc_county')) {
+                    $query->orWhereHas('blocs', fn ($blocQuery) => $blocQuery->whereKey($blocId));
+                }
+            })
+            ->orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
     }
 
     private function filtersTargetPresidential(array $filters): bool
