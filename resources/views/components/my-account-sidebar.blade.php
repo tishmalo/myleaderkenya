@@ -22,12 +22,19 @@
     };
 @endphp
 
+<style>.account-sidebar-top{margin-top:14px}.account-sidebar-top .account-sidebar-logout{justify-content:flex-start}</style>
 <aside class="account-sidebar" aria-label="My Account navigation">
     <a href="{{ route('my-account') }}" class="account-sidebar-brand">
         <span class="account-sidebar-logo"><i class="{{ $sidebar['brand']['icon'] ?? 'fas fa-user-circle' }}"></i></span>
         <span><small>{{ $sidebar['brand']['label'] ?? 'My Leader Kenya' }}</small><strong>{{ $sidebar['brand']['title'] ?? 'My Account' }}</strong></span>
     </a>
 
+    @if($footer && Route::has($footer['route'] ?? ''))
+        <form method="POST" action="{{ route($footer['route']) }}" class="account-sidebar-top">
+            @csrf
+            <button type="submit" class="account-sidebar-logout"><i class="{{ $footer['icon'] ?? 'fas fa-sign-out-alt' }}"></i><span>{{ $footer['label'] ?? 'Logout' }}</span></button>
+        </form>
+    @endif
     <nav class="account-sidebar-nav">
         @foreach($items as $item)
             <a href="{{ $itemUrl($item) }}" @if(! empty($item['target'])) target="{{ $item['target'] }}" @endif @if(! empty($item['rel'])) rel="{{ $item['rel'] }}" @endif class="account-sidebar-link {{ $itemActive($item) ? 'is-active' : '' }} {{ ($item['style'] ?? '') === 'primary' ? 'is-primary' : '' }}">
@@ -37,10 +44,4 @@
         @endforeach
     </nav>
 
-    @if($footer && Route::has($footer['route'] ?? ''))
-        <form method="POST" action="{{ route($footer['route']) }}" class="account-sidebar-footer">
-            @csrf
-            <button type="submit" class="account-sidebar-logout"><i class="{{ $footer['icon'] ?? 'fas fa-sign-out-alt' }}"></i><span>{{ $footer['label'] ?? 'Logout' }}</span></button>
-        </form>
-    @endif
 </aside>
