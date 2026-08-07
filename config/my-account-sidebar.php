@@ -15,6 +15,12 @@ return [
             'active' => ['my-account'],
         ],
         [
+            'label' => 'My Profile',
+            'icon' => 'fas fa-id-card',
+            'route' => 'account.profile.edit',
+            'active' => ['account.profile.*'],
+        ],
+        [
             'label' => 'Submit or Claim',
             'icon' => 'fas fa-user-plus',
             'route' => 'aspirants.register',

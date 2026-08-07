@@ -10,12 +10,17 @@ class DashboardDestinationService
     public function __construct(
         private PoliticalPartyManagementRepositoryInterface $parties,
         private MyAccountService $accounts,
+        private UserProfileService $profiles,
     ) {}
 
     public function urlFor(User $user, bool $absolute = true): string
     {
         if ($user->isAdmin()) {
             return route('dashboard', absolute: $absolute);
+        }
+
+        if (! $this->profiles->isComplete($user)) {
+            return route('account.profile.edit', absolute: $absolute);
         }
 
         if ($this->accounts->selectDirectAspirantCandidate($user)) {

@@ -58,6 +58,7 @@ use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\MyAccountController;
 use App\Http\Controllers\Web\DonorToolboxController;
 use App\Http\Controllers\Web\UserNewsArticleController;
+use App\Http\Controllers\Web\UserProfileController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
 use App\Models\Constituency;
@@ -145,6 +146,10 @@ Route::get('/toolbox/payments/ipay/callback', [DonorToolboxController::class, 'c
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
+    Route::get('/my-account/profile', [UserProfileController::class, 'edit'])->name('account.profile.edit');
+    Route::put('/my-account/profile', [UserProfileController::class, 'update'])->middleware('throttle:10,1')->name('account.profile.update');
+
+    Route::middleware('profile.complete')->group(function () {
     Route::get('/my-account', [MyAccountController::class, 'index'])->name('my-account');
     Route::post('/my-account/aspirants/select', [MyAccountController::class, 'select'])->middleware('throttle:20,1')->name('my-account.aspirants.select');
     Route::get('/my-account/toolbox', [DonorToolboxController::class, 'index'])->name('account.toolbox.index');
@@ -339,6 +344,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop');
+    Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop')->withoutMiddleware('profile.complete');
+    });
 });
 require __DIR__.'/auth.php';

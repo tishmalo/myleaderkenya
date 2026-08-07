@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsAspirant;
 use App\Http\Middleware\EnsureUserIsPartyOfficial;
+use App\Http\Middleware\EnsureUserProfileIsComplete;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
 use App\Http\Middleware\EnsureUserOwnsActiveCandidate;
 use App\Http\Middleware\FixApiTokenHeader;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'aspirant' => EnsureUserIsAspirant::class,
             'aspirant.owner' => EnsureUserOwnsActiveCandidate::class,
             'party' => EnsureUserIsPartyOfficial::class,
+            'profile.complete' => EnsureUserProfileIsComplete::class,
         ]);
         $middleware->prepend(FixApiTokenHeader::class);
         $middleware->appendToGroup('web', [PreventStaleCsrfPages::class, AuditMutatingRequests::class]);

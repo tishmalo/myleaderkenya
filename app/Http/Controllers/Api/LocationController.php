@@ -40,6 +40,18 @@ class LocationController extends Controller
     /**
      * GET /api/get_locations (Public)
      */
+    public function getPollingStationsByWard(Request $request): JsonResponse
+    {
+        $stations = $this->locationService->getPollingStationsByWardName(
+            $request->query('ward')
+        );
+
+        return response()->json($stations);
+    }
+
+    /**
+     * GET /api/get_locations (Public)
+     */
     public function getLocations(): JsonResponse
     {
         $locations = $this->locationService->getAllLocations();
