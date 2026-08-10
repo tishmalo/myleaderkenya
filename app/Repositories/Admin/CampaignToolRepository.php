@@ -39,11 +39,7 @@ class CampaignToolRepository implements CampaignToolRepositoryInterface
 
     public function publishedForSponsorship(): Collection
     {
-        return CampaignTool::published()->with(['packages' => fn ($query) => $query->active()])->ordered()->get()
-            ->filter(function (CampaignTool $tool): bool {
-                $isSms = str_contains(strtolower($tool->slug.' '.$tool->title), 'bulk-sms') || str_contains(strtolower($tool->title), 'bulk sms');
-                return $isSms || $tool->packages->isNotEmpty();
-            })->values();
+        return CampaignTool::published()->ordered()->get();
     }
 
     public function findPublishedBySlug(string $slug): CampaignTool
