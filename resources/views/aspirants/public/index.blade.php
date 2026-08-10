@@ -70,7 +70,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         transition: color 0.2s;
     }
     .pp-back:hover { color: var(--green-bright); }
-/* Ã¢â€â‚¬Ã¢â€â‚¬ PAGE HERO Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* PAGE HERO */
 .asp-hero {
     position: relative;
     padding: 80px 32px 60px;
@@ -299,7 +299,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     background: #0a0a0a;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ GRID Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* GRID */
 .asp-grid {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
@@ -368,7 +368,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     font-size: 72px;
     font-weight: 800;
 }
-/* Ã¢â€â‚¬Ã¢â€â‚¬ CANDIDATE CARD Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* CANDIDATE CARD */
 .county-aspirant-groups {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
@@ -556,7 +556,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     transform: translateX(2px);
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ EMPTY STATE Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* EMPTY STATE */
 .asp-empty {
     grid-column: 1 / -1;
     text-align: center; padding: 80px 20px;
@@ -571,7 +571,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 }
 .asp-empty p { font-size: 15px; color: rgba(245,245,240,0.2); }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ PAGINATION Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* PAGINATION */
 .asp-pagination {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
@@ -600,7 +600,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     color: var(--green-bright);
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ RESPONSIVE Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* RESPONSIVE */
 @media (max-width: 768px) {
     .asp-filters { padding: 0 16px; }
     .asp-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -770,7 +770,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
                         <div class="county-aspirant-title" id="position-{{ $group['position']->id }}">{{ $group['label'] }}</div>
                         <div class="county-aspirant-meta">
                             {{ number_format($group['total']) }} aspirant{{ $group['total'] !== 1 ? 's' : '' }}
-                            Â· showing {{ $group['candidates']->firstItem() ?? 0 }}â€“{{ $group['candidates']->lastItem() ?? 0 }}
+                            &middot; showing {{ $group['candidates']->firstItem() ?? 0 }}&ndash;{{ $group['candidates']->lastItem() ?? 0 }}
                         </div>
                     </div>
                 </div>
