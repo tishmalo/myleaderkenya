@@ -23,6 +23,7 @@ use App\Services\Sms\InfobipSmsService;
 use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
 use App\Services\Web\CandidateBulkSmsContactService;
+use App\Services\Web\CampaignToolCommerceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +40,8 @@ class AspirantToolController extends Controller
         private CandidateSmsMessageRepositoryInterface $smsMessageRepository,
         private AspirantTokenService $tokenService,
         private InfobipSmsService $smsService,
-        private CandidateBulkSmsContactService $bulkSmsContacts
+        private CandidateBulkSmsContactService $bulkSmsContacts,
+        private CampaignToolCommerceService $commerce
     ) {}
 
     public function show(Request $request, string $key): View|RedirectResponse
@@ -52,7 +54,7 @@ class AspirantToolController extends Controller
 
         $tool = $this->workspaceService->publishedToolForKey($key);
 
-        if (! $tool && ! in_array($key, ['campaign-website', 'support-groups'], true)) {
+        if (! $tool) {
             return redirect('/aspirant/dashboard')
                 ->with('warning', 'That campaign tool is not enabled yet. Ask an admin to publish it first.');
         }
@@ -63,7 +65,6 @@ class AspirantToolController extends Controller
             return redirect('/aspirant/dashboard')
                 ->with('warning', 'No aspirant profile is linked to this account yet.');
         }
-
         $availability = $this->workspaceService->canUseTool($key, $candidate);
 
         if (! $availability['available']) {
@@ -298,6 +299,8 @@ class AspirantToolController extends Controller
             return redirect('/aspirant/dashboard')
                 ->with('warning', 'No aspirant profile is linked to this account yet.');
         }
+        $availability = $this->workspaceService->canUseTool('opinion-polls', $candidate);
+        if (! $availability['available']) return redirect('/aspirant/dashboard')->with('warning', $availability['reason']);
 
         $scope = $this->workspaceService->scopeForCandidate($candidate);
 
@@ -325,12 +328,7 @@ class AspirantToolController extends Controller
                 ->with('warning', 'Add at least two poll options.');
         }
 
-        $pollQuote = $status === 'published'
-            ? $this->tokenService->quoteFixed('poll-publish', $this->workspaceService->registeredVotersQuery($scope)->count())
-            : $this->tokenService->quoteFixed('poll-draft');
-
-        try {
-            DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status, $pollQuote): void {
+        DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status): void {
             $group = null;
 
             if ($status === 'published') {
@@ -367,8 +365,6 @@ class AspirantToolController extends Controller
                 'published_at' => $status === 'published' ? now() : null,
             ]);
 
-            $this->tokenService->debitAction($candidate, $request->user(), $pollQuote, $poll);
-
             if ($group) {
                 GroupMessage::create([
                     'group_id' => $group->id,
@@ -380,16 +376,12 @@ class AspirantToolController extends Controller
                     'longitude' => null,
                 ]);
             }
-            });
-        } catch (RuntimeException $exception) {
-            return redirect()->route('aspirant.tools.show', 'opinion-polls')
-                ->withInput()
-                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
-        }
+        });
 
         $message = $status === 'published'
             ? 'Poll published to the ' . $scope['label'] . ' chat group.'
             : 'Poll draft saved. Publish it when you are ready to send it to voters.';
+        $this->commerce->consumeEntitlement($candidate->id, 'opinion-polls');
 
         return redirect()->route('aspirant.tools.show', 'opinion-polls')
             ->with('success', $message);
@@ -398,7 +390,7 @@ class AspirantToolController extends Controller
 
     public function saveCallScript(Request $request): RedirectResponse
     {
-        if (! $this->workspaceService->publishedToolForKey('call-center')) {
+        if (! $this->workspaceService->canUseTool('call-center', $this->workspaceService->candidateForUser($request->user()))['available']) {
             return redirect('/aspirant/dashboard')
                 ->with('warning', 'Call Center is not enabled yet. Ask an admin to publish the tool first.');
         }
@@ -422,10 +414,7 @@ class AspirantToolController extends Controller
             'callback_priority' => ['required', 'in:undecided,supporters,volunteers'],
         ]);
 
-        $callScriptQuote = $this->tokenService->quoteFixed('call-script-save');
-
-        try {
-            $callScript = CandidateCallScript::updateOrCreate(
+        CandidateCallScript::updateOrCreate(
                 ['candidate_id' => $candidate->id],
             [
                 'user_id' => $request->user()->id,
@@ -436,12 +425,7 @@ class AspirantToolController extends Controller
                 'scope_value' => $scope['value'],
                 ]
             );
-            $this->tokenService->debitAction($candidate, $request->user(), $callScriptQuote, $callScript);
-        } catch (RuntimeException $exception) {
-            return redirect()->route('aspirant.tools.show', 'call-center')
-                ->withInput()
-                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
-        }
+        $this->commerce->consumeEntitlement($candidate->id, 'call-center');
 
         return redirect()->route('aspirant.tools.show', 'call-center')
             ->with('success', 'Call script saved. You can now start the scoped call list.');
@@ -449,15 +433,13 @@ class AspirantToolController extends Controller
 
     public function storeCallLog(Request $request): RedirectResponse|JsonResponse
     {
-        if (! $this->workspaceService->publishedToolForKey('call-center')) {
-            return $this->callLogFailure($request, 'Call Center is not enabled yet. Ask an admin to publish the tool first.', 403);
-        }
-
         $candidate = $this->workspaceService->candidateForUser($request->user());
 
         if (! $candidate) {
             return $this->callLogFailure($request, 'No aspirant profile is linked to this account yet.', 403);
         }
+        $availability = $this->workspaceService->canUseTool('call-center', $candidate);
+        if (! $availability['available']) return $this->callLogFailure($request, $availability['reason'], 403);
 
         $scope = $this->workspaceService->scopeForCandidate($candidate);
 
@@ -481,10 +463,7 @@ class AspirantToolController extends Controller
             return $this->callLogFailure($request, 'That voter is not available in your scoped call list.', 404);
         }
 
-        $callLogQuote = $this->tokenService->quoteFixed('call-log');
-
-        try {
-            $callLog = DB::transaction(function () use ($candidate, $request, $voter, $validated, $scope, $callLogQuote): CandidateCallLog {
+        $callLog = DB::transaction(function () use ($candidate, $request, $voter, $validated, $scope): CandidateCallLog {
                 $callLog = CandidateCallLog::create([
                     'candidate_id' => $candidate->id,
                     'user_id' => $request->user()->id,
@@ -500,13 +479,9 @@ class AspirantToolController extends Controller
                     'called_at' => now(),
                 ]);
 
-                $this->tokenService->debitAction($candidate, $request->user(), $callLogQuote, $callLog);
-
                 return $callLog;
             });
-        } catch (RuntimeException $exception) {
-            return $this->callLogFailure($request, $exception->getMessage() . ' Buy more tokens to continue.', 402);
-        }
+        $this->commerce->consumeEntitlement($candidate->id, 'call-center');
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Call log recorded.',
@@ -542,6 +517,8 @@ class AspirantToolController extends Controller
             return redirect('/aspirant/dashboard')
                 ->with('warning', 'No aspirant profile is linked to this account yet.');
         }
+        $availability = $this->workspaceService->canUseTool('campaign-website', $candidate);
+        if (! $availability['available']) return redirect('/aspirant/dashboard')->with('warning', $availability['reason']);
 
         $validated = $request->validate([
             'candidate_name' => ['required', 'string', 'max:255'],
@@ -553,22 +530,14 @@ class AspirantToolController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $websiteQuote = $this->tokenService->quoteFixed('campaign-website-request');
-
-        try {
-            $websiteRequest = CampaignWebsiteRequest::updateOrCreate(
+        CampaignWebsiteRequest::updateOrCreate(
                 ['candidate_id' => $candidate->id],
                 array_merge($validated, [
                     'user_id' => $request->user()->id,
                     'status' => 'new',
                 ])
             );
-            $this->tokenService->debitAction($candidate, $request->user(), $websiteQuote, $websiteRequest);
-        } catch (RuntimeException $exception) {
-            return redirect()->route('aspirant.tools.show', 'campaign-website')
-                ->withInput()
-                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
-        }
+        $this->commerce->consumeEntitlement($candidate->id, 'campaign-website');
 
         return redirect()->route('aspirant.tools.show', 'campaign-website')
             ->with('success', 'Campaign website request submitted. An admin will review it and follow up.');
@@ -581,12 +550,15 @@ class AspirantToolController extends Controller
         if (! $candidate) {
             return redirect('/aspirant/dashboard')->with('warning', 'No aspirant profile is linked to this account yet.');
         }
+        $availability = $this->workspaceService->canUseTool('support-groups', $candidate);
+        if (! $availability['available']) return redirect('/aspirant/dashboard')->with('warning', $availability['reason']);
 
         $validated = $this->validateSupportContact($request);
         $candidate->supportContacts()->create($validated + [
             'created_by' => $request->user()->id,
             'updated_by' => $request->user()->id,
         ]);
+        $this->commerce->consumeEntitlement($candidate->id, 'support-groups');
 
         return redirect()->route('aspirant.tools.show', 'support-groups')->with('success', 'Support contact added.');
     }

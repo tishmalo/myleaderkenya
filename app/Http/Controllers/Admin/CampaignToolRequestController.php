@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CampaignToolRequestUpdateRequest;
 use App\Services\Web\DonorToolboxService;
+use App\Services\Web\CampaignToolCommerceService;
 use App\Models\CampaignTool;
 use App\Models\CampaignToolRequest;
 use Illuminate\Http\RedirectResponse;
@@ -12,13 +13,13 @@ use Illuminate\View\View;
 
 class CampaignToolRequestController extends Controller
 {
-    public function __construct(private DonorToolboxService $toolbox) {}
+    public function __construct(private DonorToolboxService $toolbox, private CampaignToolCommerceService $commerce) {}
 
     public function index(): View
     {
         $filters = request()->only(['status', 'request_type', 'payment_status', 'campaign_tool_id', 'search']);
 
-        $requests = CampaignToolRequest::with(['campaignTool', 'selectedTools:id,title', 'candidate.position', 'user'])
+        $requests = CampaignToolRequest::with(['campaignTool', 'package', 'payment', 'selectedTools:id,title', 'candidate.position', 'user'])
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['request_type'] ?? null, fn ($query, $type) => $query->where('request_type', $type))
             ->when($filters['payment_status'] ?? null, fn ($query, $status) => $query->where('payment_status', $status))
@@ -54,13 +55,17 @@ class CampaignToolRequestController extends Controller
     {
         $validated = $request->validated();
 
-        if ($campaignToolRequest->request_type === 'adoption'
-            && $validated['status'] === 'cancelled'
+        if ($campaignToolRequest->fulfilment_type === 'paid_package') {
+            $this->commerce->transition($campaignToolRequest, $request->user(), $validated['action'], $validated['admin_notes'] ?? null);
+        } elseif ($campaignToolRequest->request_type === 'adoption'
+            && $validated['action'] === 'reject'
             && $campaignToolRequest->payment_status === 'paid') {
             $this->toolbox->refundAdoption($campaignToolRequest, 'Sponsorship cancelled by an administrator.');
+            $campaignToolRequest->update(['status'=>'cancelled','admin_notes'=>$validated['admin_notes'] ?? null]);
+        } else {
+            $status = $validated['action'] === 'activate' ? 'completed' : ($validated['action'] === 'start_fulfilment' ? 'in_progress' : 'cancelled');
+            $campaignToolRequest->update(['status'=>$status,'admin_notes'=>$validated['admin_notes'] ?? null]);
         }
-
-        $campaignToolRequest->update($validated);
 
         return redirect()->route('campaign-tool-requests.index')
             ->with('success', 'Campaign tool request updated.');

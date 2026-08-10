@@ -8,6 +8,8 @@ use App\Models\UserTokenPurchase;
 use App\Models\UserTokenTransaction;
 use App\Models\UserTokenWallet;
 use Illuminate\Support\Collection;
+use App\Models\CandidateTokenWallet;
+use App\Models\CandidateTokenTransaction;
 
 interface UserTokenRepositoryInterface
 {
@@ -25,4 +27,6 @@ interface UserTokenRepositoryInterface
     public function lockedAdoption(int $requestId): CampaignToolRequest;
     public function paidAdoptionsForClaim(int $userId, int $candidateId): Collection;
     public function updateAdoption(CampaignToolRequest $request, array $data): bool;
+    public function lockedCandidateWallet(int $candidateId): CandidateTokenWallet;
+    public function createCandidateTransaction(array $data): CandidateTokenTransaction;
 }

@@ -77,6 +77,7 @@ class DonorToolboxService
     {
         return DB::transaction(function () use ($user, $requestId, $amount): UserTokenTransaction {
             $request = $this->tokens->lockedPayableAdoption($user, $requestId);
+            if ($request->fulfilment_type !== 'sms_sponsorship') throw ValidationException::withMessages(['payment'=>'Only Bulk SMS sponsorships use Toolbox tokens.']);
             if ($request->status === 'cancelled') throw ValidationException::withMessages(['payment'=>'This sponsorship request was cancelled.']);
             if ($request->payment_status === 'paid') throw ValidationException::withMessages(['payment'=>'This sponsorship is already paid.']);
             if ($request->payment_status === 'refunded') throw ValidationException::withMessages(['payment'=>'This sponsorship was refunded and cannot be paid again.']);
@@ -84,7 +85,14 @@ class DonorToolboxService
             $wallet = $this->tokens->lockedWallet($user->id);
             if ($wallet->balance < $amount) throw ValidationException::withMessages(['payment'=>'Insufficient Toolbox tokens. Required: '.number_format($amount).', available: '.number_format($wallet->balance).'.']);
             $before=$wallet->balance; $wallet->update(['balance'=>$before-$amount]);
-            $transaction=$this->tokens->createTransaction(['user_token_wallet_id'=>$wallet->id,'user_id'=>$user->id,'candidate_id'=>$request->candidate_id,'tokenable_type'=>$request::class,'tokenable_id'=>$request->id,'type'=>'sponsorship','status'=>'completed','action_key'=>'aspirant-adoption','action_label'=>'Sponsor campaign tools for '.($request->candidate?->name ?? 'aspirant'),'amount'=>-$amount,'balance_before'=>$before,'balance_after'=>$wallet->balance,'metadata'=>['campaign_tool_request_id'=>$request->id],'finalized_at'=>now()]);
+            $correlation=(string)Str::uuid();
+            $transaction=$this->tokens->createTransaction(['user_token_wallet_id'=>$wallet->id,'user_id'=>$user->id,'candidate_id'=>$request->candidate_id,'tokenable_type'=>$request::class,'tokenable_id'=>$request->id,'type'=>'sponsorship','status'=>'completed','action_key'=>'bulk-sms-sponsorship','action_label'=>'Sponsor Bulk SMS for '.($request->candidate?->name ?? 'aspirant'),'amount'=>-$amount,'balance_before'=>$before,'balance_after'=>$wallet->balance,'metadata'=>['campaign_tool_request_id'=>$request->id,'correlation_id'=>$correlation],'finalized_at'=>now()]);
+            $candidateWallet=$this->tokens->lockedCandidateWallet($request->candidate_id); $candidateBefore=$candidateWallet->balance;
+            $candidateWallet->update(['balance'=>$candidateBefore+$amount]);
+            $this->tokens->createCandidateTransaction(['candidate_id'=>$request->candidate_id,'candidate_token_wallet_id'=>$candidateWallet->id,'user_id'=>$user->id,
+                'tokenable_type'=>$request::class,'tokenable_id'=>$request->id,'type'=>'credit','status'=>'completed','action_key'=>'bulk-sms-sponsorship',
+                'action_label'=>'Bulk SMS tokens sponsored by adopter','calculation_type'=>'fixed','quantity'=>1,'unit_tokens'=>$amount,'amount'=>$amount,
+                'balance_before'=>$candidateBefore,'balance_after'=>$candidateWallet->balance,'metadata'=>['correlation_id'=>$correlation,'donor_transaction_id'=>$transaction->id],'finalized_at'=>now()]);
             $this->tokens->updateAdoption($request,['tokens_required'=>$amount,'payment_status'=>'paid','user_token_transaction_id'=>$transaction->id,'paid_at'=>now()]);
             return $transaction;
         });
@@ -92,9 +100,8 @@ class DonorToolboxService
 
     public function assertClaimPaid(CandidateClaimRequest $claim, User $user): void
     {
-        if ($claim->relationship !== 'adopter') return;
-        $requests=$this->tokens->adoptionRequests($user)->where('candidate_id',$claim->candidate_id)->where('status','!=','cancelled');
-        if ($requests->isEmpty() || $requests->contains(fn($request)=>$request->payment_status!=='paid')) throw ValidationException::withMessages(['status'=>'The donor must pay all selected sponsorship tools before this adoption can be approved.']);
+        // Adoption approval is independent from funding and fulfilment.
+        return;
     }
 
     public function refundClaim(CandidateClaimRequest $claim, string $reason): void
@@ -119,9 +126,17 @@ class DonorToolboxService
     private function refundPaidAdoption(CampaignToolRequest $request, string $reason): void
     {
         if ($request->payment_status !== 'paid' || ! $request->user_id) return;
-        $wallet=$this->tokens->lockedWallet($request->user_id); $amount=(int)$request->tokens_required; $before=$wallet->balance; $wallet->update(['balance'=>$before+$amount]);
+        $candidateWallet=$this->tokens->lockedCandidateWallet($request->candidate_id);
+        $amount=min((int)$request->tokens_required,(int)$candidateWallet->balance);
+        if ($amount < 1) { $this->tokens->updateAdoption($request,['payment_status'=>'partially_refunded','refunded_at'=>now()]); return; }
+        $candidateBefore=$candidateWallet->balance; $candidateWallet->update(['balance'=>$candidateBefore-$amount]);
+        $wallet=$this->tokens->lockedWallet($request->user_id); $before=$wallet->balance; $wallet->update(['balance'=>$before+$amount]);
         $this->tokens->createTransaction(['user_token_wallet_id'=>$wallet->id,'user_id'=>$request->user_id,'candidate_id'=>$request->candidate_id,'tokenable_type'=>$request::class,'tokenable_id'=>$request->id,'type'=>'refund','status'=>'completed','action_key'=>'aspirant-adoption-refund','action_label'=>'Refund aspirant sponsorship','amount'=>$amount,'balance_before'=>$before,'balance_after'=>$wallet->balance,'metadata'=>['reason'=>$reason,'original_transaction_id'=>$request->user_token_transaction_id],'finalized_at'=>now()]);
-        $this->tokens->updateAdoption($request,['payment_status'=>'refunded','refunded_at'=>now()]);
+        $this->tokens->createCandidateTransaction(['candidate_id'=>$request->candidate_id,'candidate_token_wallet_id'=>$candidateWallet->id,'user_id'=>$request->user_id,
+            'tokenable_type'=>$request::class,'tokenable_id'=>$request->id,'type'=>'refund','status'=>'completed','action_key'=>'bulk-sms-sponsorship-refund',
+            'action_label'=>'Return unspent sponsored Bulk SMS tokens','calculation_type'=>'fixed','quantity'=>1,'unit_tokens'=>$amount,'amount'=>-$amount,
+            'balance_before'=>$candidateBefore,'balance_after'=>$candidateWallet->balance,'metadata'=>['reason'=>$reason],'finalized_at'=>now()]);
+        $this->tokens->updateAdoption($request,['payment_status'=>$amount===(int)$request->tokens_required?'refunded':'partially_refunded','refunded_at'=>now()]);
     }
 
     private function uniqueReference(): string

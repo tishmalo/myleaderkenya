@@ -39,6 +39,8 @@ class AspirantRegisterRequest extends FormRequest
                 'distinct',
                 Rule::exists('campaign_tools', 'id')->where('status', 'published'),
             ],
+            'adoption_package_ids' => ['nullable','array'],
+            'adoption_package_ids.*' => ['nullable','integer','exists:campaign_tool_packages,id'],
 
             'aspirant_name' => [Rule::requiredIf(! $existingCandidate), 'nullable', 'string', 'max:255'],
             'nick_name' => ['nullable', 'string', 'max:100'],
@@ -72,6 +74,18 @@ class AspirantRegisterRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
+            if ($this->input('submission_mode') === 'adoption') {
+                $packages = (array) $this->input('adoption_package_ids', []);
+                $tools = \App\Models\CampaignTool::query()->whereIn('id', (array) $this->input('adoption_tool_ids', []))->get();
+                foreach ($tools as $tool) {
+                    $isSms = str_contains(strtolower($tool->slug.' '.$tool->title), 'bulk-sms') || str_contains(strtolower($tool->title), 'bulk sms');
+                    if ($isSms) continue;
+                    $packageId = (int) ($packages[$tool->id] ?? 0);
+                    if (! $packageId || ! \App\Models\CampaignToolPackage::active()->where('campaign_tool_id',$tool->id)->whereKey($packageId)->exists()) {
+                        $validator->errors()->add("adoption_package_ids.{$tool->id}", "Select an available package for {$tool->title}.");
+                    }
+                }
+            }
             if ($this->filled('candidate_id')) {
                 return;
             }

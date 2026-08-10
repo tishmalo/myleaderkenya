@@ -17,7 +17,7 @@ class AspirantAdoptionService
         private CampaignToolRequestRepositoryInterface $toolRequests
     ) {}
 
-    public function create(Candidate $candidate, User $adopter, array $toolIds): CampaignToolRequest
+    public function create(Candidate $candidate, User $adopter, array $toolIds, array $packageIds = []): CampaignToolRequest
     {
         $toolIds = collect($toolIds)->map(fn ($id) => (int) $id)->unique()->values()->all();
         $tools = $this->campaignTools->publishedByIds($toolIds);
@@ -37,27 +37,22 @@ class AspirantAdoptionService
             ]);
         }
 
-        return DB::transaction(function () use ($candidate, $adopter, $toolIds, $tools): CampaignToolRequest {
-            $primaryTool = $tools->first();
-            $request = $this->toolRequests->create([
-                'campaign_tool_id' => $primaryTool->id,
-                'user_id' => $adopter->id,
-                'candidate_id' => $candidate->id,
-                'request_type' => 'adoption',
-                'tool_title' => $primaryTool->title,
-                'requester_name' => $adopter->name,
-                'email' => $adopter->email,
-                'phone' => $adopter->phone,
-                'requested_feature' => 'Sponsor selected campaign tools',
-                'use_case' => 'Adoption sponsorship for '.$candidate->name.'.',
-                'status' => 'new',
-                'tokens_required' => 0,
-                'payment_status' => 'awaiting_payment',
-            ]);
-
-            $this->toolRequests->syncSelectedTools($request, $toolIds);
-
-            return $request;
+        return DB::transaction(function () use ($candidate, $adopter, $tools, $packageIds): CampaignToolRequest {
+            $requests = $tools->map(function ($tool) use ($candidate, $adopter, $packageIds) {
+                $isSms = str_contains(strtolower($tool->slug.' '.$tool->title), 'bulk-sms') || str_contains(strtolower($tool->title), 'bulk sms');
+                return $this->toolRequests->create([
+                    'campaign_tool_id'=>$tool->id,
+                    'campaign_tool_package_id'=>$isSms ? null : (int) ($packageIds[$tool->id] ?? 0),
+                    'user_id'=>$adopter->id, 'candidate_id'=>$candidate->id, 'request_type'=>'adoption',
+                    'fulfilment_type'=>$isSms ? 'sms_sponsorship' : 'paid_package',
+                    'tool_key'=>$tool->slug, 'tool_title'=>$tool->title, 'requester_name'=>$adopter->name,
+                    'email'=>$adopter->email, 'phone'=>$adopter->phone,
+                    'requested_feature'=>$isSms ? 'Sponsor Bulk SMS tokens' : 'Fund and activate '.$tool->title,
+                    'use_case'=>'Adoption sponsorship for '.$candidate->name.'.', 'status'=>'new',
+                    'tokens_required'=>0, 'payment_status'=>$isSms ? 'awaiting_payment' : 'not_required',
+                ]);
+            });
+            return $requests->first();
         });
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BlocController;
 use App\Http\Controllers\Admin\CampaignPriorityCategoryController;
 use App\Http\Controllers\Admin\CampaignToolController;
 use App\Http\Controllers\Admin\CampaignToolRequestController;
+use App\Http\Controllers\Admin\CampaignToolPackageController;
 use App\Http\Controllers\Admin\CampaignWebsiteRequestController;
 use App\Http\Controllers\Admin\CampaignWebsiteSampleController;
 use App\Http\Controllers\Admin\CandidateCampaignPriorityReviewController;
@@ -57,6 +58,7 @@ use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageControl
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\MyAccountController;
 use App\Http\Controllers\Web\DonorToolboxController;
+use App\Http\Controllers\Web\CampaignToolPaymentController;
 use App\Http\Controllers\Web\UserNewsArticleController;
 use App\Http\Controllers\Web\UserProfileController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
@@ -143,6 +145,7 @@ Route::middleware('throttle:web')->group(function () {
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
 Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::class, 'callback'])->name('party.payments.ipay.callback');
 Route::get('/toolbox/payments/ipay/callback', [DonorToolboxController::class, 'callback'])->name('toolbox.payments.ipay.callback');
+Route::get('/campaign-tool-payments/ipay/callback', [CampaignToolPaymentController::class, 'callback'])->name('campaign-tool-payments.ipay.callback');
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
@@ -155,6 +158,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-account/toolbox', [DonorToolboxController::class, 'index'])->name('account.toolbox.index');
     Route::post('/my-account/toolbox/purchase', [DonorToolboxController::class, 'purchase'])->middleware('throttle:6,10')->name('account.toolbox.purchase');
     Route::post('/my-account/toolbox/adoptions/{campaignToolRequest}/pay', [DonorToolboxController::class, 'pay'])->middleware('throttle:10,1')->name('account.toolbox.adoptions.pay');
+    Route::post('/my-account/toolbox/tools/{campaignToolRequest}/checkout', [CampaignToolPaymentController::class, 'checkout'])->middleware('throttle:6,10')->name('account.toolbox.tools.checkout');
     Route::get('/my-account/news', [UserNewsArticleController::class, 'index'])->name('account.news.index');
     Route::get('/my-account/news/submit', [UserNewsArticleController::class, 'create'])->name('account.news.create');
     Route::get('/my-account/news/candidates/search', [UserNewsArticleController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('account.news.candidates.search');
@@ -279,6 +283,9 @@ Route::middleware('auth')->group(function () {
             ->parameters(['campaign-tools' => 'campaignTool'])
             ->names('campaign-tools')
             ->except(['show'])->middleware('permission:aspirants.view');
+        Route::post('/admin/campaign-tools/{campaignTool}/packages', [CampaignToolPackageController::class, 'store'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tools.packages.store');
+        Route::put('/admin/campaign-tools/{campaignTool}/packages/{package}', [CampaignToolPackageController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tools.packages.update');
+        Route::delete('/admin/campaign-tools/{campaignTool}/packages/{package}', [CampaignToolPackageController::class, 'destroy'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tools.packages.destroy');
         Route::get('/admin/campaign-tool-requests', [CampaignToolRequestController::class, 'index'])->middleware('permission:campaign-tool-requests.view')->name('campaign-tool-requests.index');
         Route::patch('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.update');
         Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');

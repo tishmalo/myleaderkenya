@@ -19,6 +19,7 @@ use App\Models\GroupMessage;
 use App\Models\SupportGroupType;
 use App\Services\Web\AspirantTokenService;
 use App\Services\Web\AspirantWorkspaceService;
+use App\Services\Web\CampaignToolCommerceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,8 @@ class CampaignToolController extends Controller
     public function __construct(
         private AspirantWorkspaceService $workspaceService,
         private AspirantTokenService $tokenService,
-        private CandidateSmsMessageRepositoryInterface $smsMessageRepository
+        private CandidateSmsMessageRepositoryInterface $smsMessageRepository,
+        private CampaignToolCommerceService $commerce
     ) {}
 
     public function list(Request $request): JsonResponse
@@ -206,12 +208,7 @@ class CampaignToolController extends Controller
         }
 
         $status = $validated['status'] ?? 'draft';
-        $quote = $status === 'published'
-            ? $this->tokenService->quoteFixed('poll-publish', $this->workspaceService->registeredVotersQuery($scope)->count())
-            : $this->tokenService->quoteFixed('poll-draft');
-
-        try {
-            $poll = DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status, $quote): AspirantPoll {
+        $poll = DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status): AspirantPoll {
                 $group = null;
 
                 if ($status === 'published') {
@@ -238,8 +235,6 @@ class CampaignToolController extends Controller
                     'published_at' => $status === 'published' ? now() : null,
                 ]);
 
-                $this->tokenService->debitAction($candidate, $request->user(), $quote, $poll);
-
                 if ($group) {
                     GroupMessage::create([
                         'group_id' => $group->id,
@@ -253,15 +248,12 @@ class CampaignToolController extends Controller
                 }
 
                 return $poll;
-            });
-        } catch (RuntimeException $exception) {
-            return response()->json(['message' => $exception->getMessage() . ' Buy more tokens to continue.'], 402);
-        }
+        });
 
+        $this->commerce->consumeEntitlement($candidate->id, 'opinion-polls');
         return response()->json([
             'message' => $status === 'published' ? 'Poll published.' : 'Poll draft saved.',
             'data' => $poll->load('group'),
-            'quote' => $quote,
         ], 201);
     }
 
@@ -276,10 +268,7 @@ class CampaignToolController extends Controller
             'callback_priority' => ['required', 'in:undecided,supporters,volunteers'],
         ]);
 
-        $quote = $this->tokenService->quoteFixed('call-script-save');
-
-        try {
-            $script = CandidateCallScript::updateOrCreate(
+        $script = CandidateCallScript::updateOrCreate(
                 ['candidate_id' => $candidate->id],
                 $validated + [
                     'user_id' => $request->user()->id,
@@ -288,12 +277,9 @@ class CampaignToolController extends Controller
                     'scope_value' => $scope['value'],
                 ]
             );
-            $this->tokenService->debitAction($candidate, $request->user(), $quote, $script);
-        } catch (RuntimeException $exception) {
-            return response()->json(['message' => $exception->getMessage() . ' Buy more tokens to continue.'], 402);
-        }
 
-        return response()->json(['message' => 'Call script saved.', 'data' => $script, 'quote' => $quote]);
+        $this->commerce->consumeEntitlement($candidate->id, 'call-center');
+        return response()->json(['message' => 'Call script saved.', 'data' => $script]);
     }
 
     public function storeCallLog(Request $request): JsonResponse
@@ -318,10 +304,7 @@ class CampaignToolController extends Controller
             return response()->json(['message' => 'That voter is not available in your scoped call list.'], 404);
         }
 
-        $quote = $this->tokenService->quoteFixed('call-log');
-
-        try {
-            $callLog = DB::transaction(function () use ($candidate, $request, $voter, $validated, $scope, $quote): CandidateCallLog {
+        $callLog = DB::transaction(function () use ($candidate, $request, $voter, $validated, $scope): CandidateCallLog {
                 $callLog = CandidateCallLog::create([
                     'candidate_id' => $candidate->id,
                     'user_id' => $request->user()->id,
@@ -337,20 +320,17 @@ class CampaignToolController extends Controller
                     'called_at' => now(),
                 ]);
 
-                $this->tokenService->debitAction($candidate, $request->user(), $quote, $callLog);
-
                 return $callLog;
             });
-        } catch (RuntimeException $exception) {
-            return response()->json(['message' => $exception->getMessage() . ' Buy more tokens to continue.'], 402);
-        }
 
-        return response()->json(['message' => 'Call log recorded.', 'data' => $callLog, 'quote' => $quote], 201);
+        $this->commerce->consumeEntitlement($candidate->id, 'call-center');
+        return response()->json(['message' => 'Call log recorded.', 'data' => $callLog], 201);
     }
 
     public function storeWebsiteRequest(Request $request): JsonResponse
     {
         $candidate = $this->candidateOrFail($request);
+        $this->assertToolAvailable('campaign-website', $candidate);
 
         $validated = $request->validate([
             'candidate_name' => ['required', 'string', 'max:255'],
@@ -362,19 +342,13 @@ class CampaignToolController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $quote = $this->tokenService->quoteFixed('campaign-website-request');
-
-        try {
-            $websiteRequest = CampaignWebsiteRequest::updateOrCreate(
+        $websiteRequest = CampaignWebsiteRequest::updateOrCreate(
                 ['candidate_id' => $candidate->id],
                 $validated + ['user_id' => $request->user()->id, 'status' => 'new']
             );
-            $this->tokenService->debitAction($candidate, $request->user(), $quote, $websiteRequest);
-        } catch (RuntimeException $exception) {
-            return response()->json(['message' => $exception->getMessage() . ' Buy more tokens to continue.'], 402);
-        }
 
-        return response()->json(['message' => 'Campaign website request submitted.', 'data' => $websiteRequest, 'quote' => $quote], 201);
+        $this->commerce->consumeEntitlement($candidate->id, 'campaign-website');
+        return response()->json(['message' => 'Campaign website request submitted.', 'data' => $websiteRequest], 201);
     }
 
     public function supportGroupTypes(): JsonResponse
@@ -392,6 +366,7 @@ class CampaignToolController extends Controller
     public function storeSupportContact(Request $request): JsonResponse
     {
         $candidate = $this->candidateOrFail($request);
+        $this->assertToolAvailable('support-groups', $candidate);
         $validated = $this->validateSupportContact($request);
 
         $contact = $candidate->supportContacts()->create($validated + [
@@ -399,6 +374,7 @@ class CampaignToolController extends Controller
             'updated_by' => $request->user()->id,
         ]);
 
+        $this->commerce->consumeEntitlement($candidate->id, 'support-groups');
         return response()->json(['message' => 'Support contact added.', 'data' => $this->formatSupportContact($contact->load('groupType'))], 201);
     }
 

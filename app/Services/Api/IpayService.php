@@ -6,6 +6,8 @@ use App\Models\CandidateTokenPackage;
 use App\Models\CandidateTokenPurchase;
 use App\Models\PoliticalPartyTokenPurchase;
 use App\Models\UserTokenPurchase;
+use App\Models\CampaignToolPayment;
+use App\Models\CampaignToolPackage;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -55,6 +57,16 @@ class IpayService
             'crl' => '0',
         ];
         $fields['hsh'] = $this->checkoutHash($fields);
+        return rtrim($this->checkoutEndpoint(), '?').'?'.http_build_query($fields);
+    }
+    public function campaignToolCheckoutUrl(CampaignToolPayment $payment, User $user, CampaignToolPackage $package, array $contact): string
+    {
+        $fields = ['live'=>$this->live(),'oid'=>$payment->checkout_reference,'inv'=>$payment->checkout_reference,
+            'ttl'=>$this->amount($payment->gross_amount),'tel'=>$this->phone($contact['phone'] ?? $user->phone ?? ''),
+            'eml'=>$contact['email'] ?? $user->email,'vid'=>$this->vendorId(),'curr'=>$payment->currency,
+            'p1'=>(string)$payment->candidate_id,'p2'=>(string)$package->id,'p3'=>'campaign_tool_package',
+            'p4'=>(string)$payment->campaign_tool_request_id,'cbk'=>route('campaign-tool-payments.ipay.callback'),'cst'=>'1','crl'=>'0'];
+        $fields['hsh']=$this->checkoutHash($fields);
         return rtrim($this->checkoutEndpoint(), '?').'?'.http_build_query($fields);
     }
     private function partyCheckoutFields(PoliticalPartyTokenPurchase $purchase, User $user, CandidateTokenPackage $package, array $contact): array
@@ -129,6 +141,7 @@ class IpayService
             'status' => $this->normalizeStatus($payload),
             'transaction_code' => $payload['data']['transaction_code'] ?? $payload['txncd'] ?? null,
             'amount' => $payload['data']['transaction_amount'] ?? $payload['mc'] ?? null,
+            'currency' => $payload['data']['currency'] ?? $payload['currency'] ?? $payload['curr'] ?? null,
             'reference' => $payload['data']['oid'] ?? $payload['id'] ?? $reference,
         ];
     }

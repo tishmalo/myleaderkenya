@@ -11,12 +11,14 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use App\Contracts\Repositories\Web\CampaignToolCommerceRepositoryInterface;
 
 class AspirantWorkspaceService
 {
     public function __construct(
         private CandidateRelationshipRepositoryInterface $relationships,
-        private CampaignToolRequestRepositoryInterface $toolRequests
+        private CampaignToolRequestRepositoryInterface $toolRequests,
+        private CampaignToolCommerceRepositoryInterface $commerce
     ) {}
 
     public function candidateForUser(User $user): ?Candidate
@@ -237,10 +239,6 @@ class AspirantWorkspaceService
     private function toolAvailability(string $key, ?CampaignTool $tool, ?Candidate $candidate): array
     {
         if (! $tool) {
-            if (in_array($key, ['campaign-website', 'support-groups'], true)) {
-                return ['available' => true, 'reason' => null];
-            }
-
             return ['available' => false, 'reason' => 'Ask an admin to publish this campaign tool.'];
         }
 
@@ -257,6 +255,13 @@ class AspirantWorkspaceService
 
             if (! $setting || ! $setting->isReady()) {
                 return ['available' => false, 'reason' => 'Ask an admin to enable Bulk SMS and add Infobip credentials for this candidate.'];
+            }
+        }
+
+        if ($key !== 'bulk-sms') {
+            if (! $candidate) return ['available'=>false,'reason'=>'Link an aspirant profile before requesting this tool.'];
+            if (! $this->commerce->hasActiveEntitlement($candidate->id, $tool->id, $key)) {
+                return ['available'=>false,'reason'=>'Choose a package and wait for admin activation.'];
             }
         }
 

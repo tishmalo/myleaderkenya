@@ -49,6 +49,7 @@ class CampaignToolController extends Controller
 
     public function edit(CampaignTool $campaignTool)
     {
+        $campaignTool->load('packages');
         return view('campaign-tools.edit', compact('campaignTool'));
     }
 

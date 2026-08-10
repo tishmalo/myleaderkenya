@@ -16,9 +16,11 @@ class CampaignToolRequest extends Model implements AuditableContract
 
     protected $fillable = [
         'campaign_tool_id',
+        'campaign_tool_package_id',
         'user_id',
         'candidate_id',
         'request_type',
+        'fulfilment_type',
         'tool_key',
         'tool_title',
         'requester_name',
@@ -45,6 +47,8 @@ class CampaignToolRequest extends Model implements AuditableContract
     {
         return $this->belongsTo(CampaignTool::class);
     }
+    public function package(): BelongsTo { return $this->belongsTo(CampaignToolPackage::class, 'campaign_tool_package_id'); }
+    public function payment() { return $this->hasOne(CampaignToolPayment::class); }
 
     public function selectedTools(): BelongsToMany
     {

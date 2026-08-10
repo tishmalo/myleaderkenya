@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\CampaignToolRequest;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CampaignToolRequestUpdateRequest extends FormRequest
@@ -15,7 +14,7 @@ class CampaignToolRequestUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'in:'.implode(',', CampaignToolRequest::STATUSES)],
+            'action' => ['required', 'in:start_fulfilment,activate,reject,refund'],
             'admin_notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

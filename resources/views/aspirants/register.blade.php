@@ -55,13 +55,23 @@
             </div>
             <div class="aspirant-adoption-tools" data-adoption-tools hidden>
                 <h3 class="font-['Oswald'] text-xl font-semibold">What would you like to sponsor?</h3>
-                <p class="mt-1 text-sm text-zinc-400">Select one or more campaign tools to sponsor for this aspirant. Choose the tools now. You will decide the sponsorship amount later in your personal Toolbox.</p>
+                <p class="mt-1 text-sm text-zinc-400">Bulk SMS uses tokens. For every other tool, choose a real-money package configured by admin; each package is paid separately through iPay.</p>
                 <div class="aspirant-adoption-grid">
                     @forelse($adoptableTools as $tool)
-                        <label class="aspirant-adoption-option">
+                        @php($isBulkSms = str_contains(strtolower($tool->slug.' '.$tool->title), 'bulk-sms') || str_contains(strtolower($tool->title), 'bulk sms'))
+                        <div class="aspirant-adoption-option">
+                        <label>
                             <input type="checkbox" name="adoption_tool_ids[]" value="{{ $tool->id }}" {{ in_array($tool->id, array_map('intval', old('adoption_tool_ids', [])), true) ? 'checked' : '' }}>
-                            <span><i class="fas fa-circle-check"></i><strong>{{ $tool->title }}</strong></span>
+                            <span><i class="fas fa-circle-check"></i><strong>{{ $tool->title }}</strong><small class="ml-auto text-zinc-400">{{ $isBulkSms ? 'Tokens' : 'Direct payment' }}</small></span>
                         </label>
+                        @unless($isBulkSms)
+                            <select class="aspirant-select mt-2" name="adoption_package_ids[{{ $tool->id }}]">
+                                <option value="">Select package</option>
+                                @foreach($tool->packages as $package)<option value="{{ $package->id }}" @selected((string) old("adoption_package_ids.{$tool->id}") === (string) $package->id)>{{ $package->name }} — {{ $package->currency }} {{ number_format($package->price,2) }}</option>@endforeach
+                            </select>
+                            @error("adoption_package_ids.{$tool->id}")<p class="mt-1 text-xs text-red-400">{{ $message }}</p>@enderror
+                        @endunless
+                        </div>
                     @empty
                         <p class="text-sm text-amber-300">No sponsorship tools are currently available. Please check again later.</p>
                     @endforelse

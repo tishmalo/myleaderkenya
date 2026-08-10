@@ -61,6 +61,10 @@ class CampaignTool extends Model implements AuditableContract
     {
         return $this->hasMany(CampaignToolRequest::class);
     }
+    public function packages(): HasMany
+    {
+        return $this->hasMany(CampaignToolPackage::class)->ordered();
+    }
     public function getNavTitleAttribute(): string
     {
         return $this->nav_label ?: $this->title;

@@ -9,6 +9,8 @@ use App\Models\UserTokenPurchase;
 use App\Models\UserTokenTransaction;
 use App\Models\UserTokenWallet;
 use Illuminate\Support\Collection;
+use App\Models\CandidateTokenWallet;
+use App\Models\CandidateTokenTransaction;
 
 class UserTokenRepository implements UserTokenRepositoryInterface
 {
@@ -32,7 +34,7 @@ class UserTokenRepository implements UserTokenRepositoryInterface
     public function purchases(User $user, int $limit = 10): Collection { return UserTokenPurchase::where('user_id', $user->id)->latest()->limit($limit)->get(); }
     public function adoptionRequests(User $user): Collection
     {
-        return CampaignToolRequest::with(['candidate:id,name','selectedTools:id,title'])
+        return CampaignToolRequest::with(['candidate:id,name','campaignTool:id,title,slug','package','payment'])
             ->where('request_type', 'adoption')->where('user_id', $user->id)->latest()->get();
     }
     public function lockedPayableAdoption(User $user, int $requestId): CampaignToolRequest
@@ -48,4 +50,10 @@ class UserTokenRepository implements UserTokenRepositoryInterface
         return CampaignToolRequest::where('request_type','adoption')->where('user_id',$userId)->where('candidate_id',$candidateId)->where('payment_status','paid')->lockForUpdate()->get();
     }
     public function updateAdoption(CampaignToolRequest $request, array $data): bool { return $request->update($data); }
+    public function lockedCandidateWallet(int $candidateId): CandidateTokenWallet
+    {
+        CandidateTokenWallet::firstOrCreate(['candidate_id'=>$candidateId],['balance'=>0]);
+        return CandidateTokenWallet::where('candidate_id',$candidateId)->lockForUpdate()->firstOrFail();
+    }
+    public function createCandidateTransaction(array $data): CandidateTokenTransaction { return CandidateTokenTransaction::create($data); }
 }

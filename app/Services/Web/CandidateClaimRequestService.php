@@ -116,8 +116,6 @@ class CandidateClaimRequestService
             $user = $this->userForClaimRequest($claimRequest);
             $candidate = $claimRequest->candidate;
 
-            $this->toolbox->assertClaimPaid($claimRequest, $user);
-
             if ($claimRequest->relationship !== 'adopter') {
                 $this->relationships->attach($user, $candidate, $claimRequest->relationship);
             }
@@ -148,11 +146,6 @@ class CandidateClaimRequestService
     {
         return DB::transaction(function () use ($claimRequest, $reviewer, $note): CandidateClaimRequest {
             $rejected = $this->claimRequests->markRejected($claimRequest, $reviewer->id, $note);
-
-            if ($claimRequest->relationship === 'adopter' && $claimRequest->user_id) {
-                $this->toolbox->refundClaim($claimRequest, 'Adoption request rejected by an administrator.');
-                $this->toolRequests->updateAdoptionStatus($claimRequest->user_id, $claimRequest->candidate_id, 'cancelled');
-            }
 
             return $rejected;
         });

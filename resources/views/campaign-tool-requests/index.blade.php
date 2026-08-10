@@ -84,6 +84,14 @@
                                 <div><span class="text-zinc-500">Payment:</span> <strong class="{{ $requestItem->payment_status === 'paid' ? 'text-emerald-300' : ($requestItem->payment_status === 'refunded' ? 'text-blue-300' : 'text-amber-300') }}">{{ str_replace('_', ' ', ucfirst($requestItem->payment_status)) }}</strong></div>
                                 <div class="md:col-span-2"><span class="text-zinc-500">Wallet transaction:</span> {{ $requestItem->user_token_transaction_id ?: '-' }}</div>
                             @endif
+                            @if($requestItem->fulfilment_type === 'paid_package')
+                                <div><span class="text-zinc-500">Package:</span> {{ $requestItem->package->name ?? '-' }}</div>
+                                <div><span class="text-zinc-500">Entitlement:</span> {{ str_replace('_',' ',ucfirst($requestItem->package->entitlement_type ?? '-')) }}</div>
+                                <div><span class="text-zinc-500">Gross:</span> {{ $requestItem->payment ? $requestItem->payment->currency.' '.number_format($requestItem->payment->gross_amount,2) : 'Awaiting payment' }}</div>
+                                <div><span class="text-zinc-500">Platform (20%):</span> {{ $requestItem->payment ? number_format($requestItem->payment->platform_revenue,2) : '-' }}</div>
+                                <div><span class="text-zinc-500">Fulfilment payable (80%):</span> {{ $requestItem->payment ? number_format($requestItem->payment->fulfilment_payable,2) : '-' }}</div>
+                                <div><span class="text-zinc-500">Payment reference:</span> {{ $requestItem->payment->payment_reference ?? '-' }}</div>
+                            @endif
                         </div>
                         @if(! $isActivation && $requestItem->selectedTools->isNotEmpty())
                             <div class="mt-4">
@@ -117,13 +125,14 @@
                             <form method="POST" action="{{ route('campaign-tool-requests.update', $requestItem) }}" class="grid gap-3">
                                 @csrf
                                 @method('PATCH')
-                                <select name="status" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                                    @foreach(\App\Models\CampaignToolRequest::STATUSES as $status)
-                                        <option value="{{ $status }}" {{ $requestItem->status === $status ? 'selected' : '' }}>{{ str_replace('_', ' ', ucfirst($status)) }}</option>
-                                    @endforeach
+                                <select name="action" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                                    <option value="start_fulfilment">Start fulfilment</option>
+                                    <option value="activate">Activate tool</option>
+                                    <option value="reject">Reject / cancel</option>
+                                    @if($requestItem->fulfilment_type === 'paid_package')<option value="refund">Refund before fulfilment</option>@endif
                                 </select>
                                 <textarea name="admin_notes" rows="4" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white" placeholder="Admin notes">{{ $requestItem->admin_notes }}</textarea>
-                                <button class="bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl text-sm font-medium">Update Request</button>
+                                <button class="bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl text-sm font-medium">Apply Action</button>
                             </form>
                         @elseif($requestItem->admin_notes)
                             <div class="rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-sm text-zinc-300">{{ $requestItem->admin_notes }}</div>
