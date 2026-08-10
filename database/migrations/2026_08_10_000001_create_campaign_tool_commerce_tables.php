@@ -13,8 +13,7 @@ return new class extends Migration
             $table->foreignId('campaign_tool_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('price', 12, 2);
-            $table->string('currency', 3)->default('KES');
+            $table->unsignedBigInteger('token_cost');
             $table->string('entitlement_type'); // time, quantity, one_time, permanent
             $table->unsignedInteger('entitlement_quantity')->nullable();
             $table->unsignedInteger('duration_days')->nullable();
@@ -31,7 +30,7 @@ return new class extends Migration
             $table->foreignId('campaign_tool_package_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('candidate_id')->constrained()->cascadeOnDelete();
-            $table->string('provider')->default('ipay');
+            $table->string('provider')->default('toolbox');
             $table->string('checkout_reference', 40)->unique();
             $table->string('package_name');
             $table->string('entitlement_type');
@@ -42,7 +41,7 @@ return new class extends Migration
             $table->decimal('platform_revenue', 12, 2);
             $table->decimal('fulfilment_payable', 12, 2);
             $table->decimal('refunded_amount', 12, 2)->default(0);
-            $table->string('currency', 3)->default('KES');
+            $table->string('currency', 3)->default('TOK');
             $table->string('status')->default('pending');
             $table->string('payment_reference')->nullable();
             $table->string('gateway_transaction_code')->nullable();

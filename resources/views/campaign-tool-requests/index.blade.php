@@ -87,10 +87,10 @@
                             @if($requestItem->fulfilment_type === 'paid_package')
                                 <div><span class="text-zinc-500">Package:</span> {{ $requestItem->package->name ?? '-' }}</div>
                                 <div><span class="text-zinc-500">Entitlement:</span> {{ str_replace('_',' ',ucfirst($requestItem->package->entitlement_type ?? '-')) }}</div>
-                                <div><span class="text-zinc-500">Gross:</span> {{ $requestItem->payment ? $requestItem->payment->currency.' '.number_format($requestItem->payment->gross_amount,2) : 'Awaiting payment' }}</div>
-                                <div><span class="text-zinc-500">Platform (20%):</span> {{ $requestItem->payment ? number_format($requestItem->payment->platform_revenue,2) : '-' }}</div>
-                                <div><span class="text-zinc-500">Fulfilment payable (80%):</span> {{ $requestItem->payment ? number_format($requestItem->payment->fulfilment_payable,2) : '-' }}</div>
-                                <div><span class="text-zinc-500">Payment reference:</span> {{ $requestItem->payment->payment_reference ?? '-' }}</div>
+                                <div><span class="text-zinc-500">Tokens spent:</span> {{ $requestItem->payment ? number_format($requestItem->payment->gross_amount) : 'Awaiting funding' }}</div>
+                                <div><span class="text-zinc-500">Platform share (20%):</span> {{ $requestItem->payment ? number_format($requestItem->payment->platform_revenue).' tokens' : '-' }}</div>
+                                <div><span class="text-zinc-500">Fulfilment share (80%):</span> {{ $requestItem->payment ? number_format($requestItem->payment->fulfilment_payable).' tokens' : '-' }}</div>
+                                <div><span class="text-zinc-500">Redemption reference:</span> {{ $requestItem->payment->payment_reference ?? '-' }}</div>
                             @endif
                         </div>
                         @if(! $isActivation && $requestItem->selectedTools->isNotEmpty())

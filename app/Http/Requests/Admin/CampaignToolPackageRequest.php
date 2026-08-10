@@ -13,7 +13,7 @@ class CampaignToolPackageRequest extends FormRequest
     {
         return [
             'name'=>['required','string','max:255'], 'description'=>['nullable','string','max:2000'],
-            'price'=>['required','numeric','min:1'], 'currency'=>['required','string','size:3'],
+            'token_cost'=>['required','integer','min:1'],
             'entitlement_type'=>['required',Rule::in(CampaignToolPackage::ENTITLEMENT_TYPES)],
             'entitlement_quantity'=>['nullable','integer','min:1','required_if:entitlement_type,quantity'],
             'duration_days'=>['nullable','integer','min:1','required_if:entitlement_type,time'],

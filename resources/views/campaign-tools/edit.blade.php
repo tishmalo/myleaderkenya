@@ -29,13 +29,12 @@
     @unless(str_contains(strtolower($campaignTool->slug.' '.$campaignTool->title), 'bulk-sms'))
     <section class="mt-8 bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
         <h2 class="text-2xl font-semibold text-white">Paid packages</h2>
-        <p class="mt-2 text-zinc-400">Adopters pay these prices directly. Bulk SMS packages are managed under token packages.</p>
+        <p class="mt-2 text-zinc-400">Set the Toolbox token cost and entitlement for each package. Bulk SMS continues to use direct token sponsorship instead.</p>
         <div class="mt-6 grid gap-4">
             @foreach($campaignTool->packages as $package)
             <form method="POST" action="{{ route('campaign-tools.packages.update', [$campaignTool, $package]) }}" class="grid md:grid-cols-4 gap-3 border border-zinc-800 rounded-2xl p-4">@csrf @method('PUT')
                 <input name="name" value="{{ $package->name }}" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Package name">
-                <input type="number" step="0.01" min="1" name="price" value="{{ $package->price }}" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Price">
-                <input name="currency" value="{{ $package->currency }}" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="KES">
+                <input type="number" min="1" name="token_cost" value="{{ $package->token_cost }}" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Token cost">
                 <select name="entitlement_type" class="bg-zinc-800 rounded-xl px-3 py-2 text-white">@foreach(\App\Models\CampaignToolPackage::ENTITLEMENT_TYPES as $type)<option value="{{ $type }}" @selected($package->entitlement_type===$type)>{{ ucfirst(str_replace('_',' ',$type)) }}</option>@endforeach</select>
                 <input type="number" min="1" name="entitlement_quantity" value="{{ $package->entitlement_quantity }}" class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Quantity">
                 <input type="number" min="1" name="duration_days" value="{{ $package->duration_days }}" class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Duration days">
@@ -48,8 +47,7 @@
             @endforeach
             <form method="POST" action="{{ route('campaign-tools.packages.store', $campaignTool) }}" class="grid md:grid-cols-4 gap-3 border border-emerald-500/30 rounded-2xl p-4">@csrf
                 <input name="name" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="New package name">
-                <input type="number" step="0.01" min="1" name="price" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Price">
-                <input name="currency" value="KES" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white">
+                <input type="number" min="1" name="token_cost" required class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Token cost">
                 <select name="entitlement_type" class="bg-zinc-800 rounded-xl px-3 py-2 text-white">@foreach(\App\Models\CampaignToolPackage::ENTITLEMENT_TYPES as $type)<option value="{{ $type }}">{{ ucfirst(str_replace('_',' ',$type)) }}</option>@endforeach</select>
                 <input type="number" min="1" name="entitlement_quantity" class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Quantity">
                 <input type="number" min="1" name="duration_days" class="bg-zinc-800 rounded-xl px-3 py-2 text-white" placeholder="Duration days">

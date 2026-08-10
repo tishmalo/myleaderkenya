@@ -145,7 +145,6 @@ Route::middleware('throttle:web')->group(function () {
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
 Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::class, 'callback'])->name('party.payments.ipay.callback');
 Route::get('/toolbox/payments/ipay/callback', [DonorToolboxController::class, 'callback'])->name('toolbox.payments.ipay.callback');
-Route::get('/campaign-tool-payments/ipay/callback', [CampaignToolPaymentController::class, 'callback'])->name('campaign-tool-payments.ipay.callback');
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
@@ -158,7 +157,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-account/toolbox', [DonorToolboxController::class, 'index'])->name('account.toolbox.index');
     Route::post('/my-account/toolbox/purchase', [DonorToolboxController::class, 'purchase'])->middleware('throttle:6,10')->name('account.toolbox.purchase');
     Route::post('/my-account/toolbox/adoptions/{campaignToolRequest}/pay', [DonorToolboxController::class, 'pay'])->middleware('throttle:10,1')->name('account.toolbox.adoptions.pay');
-    Route::post('/my-account/toolbox/tools/{campaignToolRequest}/checkout', [CampaignToolPaymentController::class, 'checkout'])->middleware('throttle:6,10')->name('account.toolbox.tools.checkout');
+    Route::post('/my-account/toolbox/tools/{campaignToolRequest}/redeem', [CampaignToolPaymentController::class, 'redeem'])->middleware('throttle:10,1')->name('account.toolbox.tools.redeem');
     Route::get('/my-account/news', [UserNewsArticleController::class, 'index'])->name('account.news.index');
     Route::get('/my-account/news/submit', [UserNewsArticleController::class, 'create'])->name('account.news.create');
     Route::get('/my-account/news/candidates/search', [UserNewsArticleController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('account.news.candidates.search');

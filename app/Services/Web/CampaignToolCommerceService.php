@@ -6,56 +6,44 @@ use App\Contracts\Repositories\Web\CampaignToolCommerceRepositoryInterface;
 use App\Models\CampaignToolPayment;
 use App\Models\CampaignToolRequest;
 use App\Models\User;
-use App\Services\Api\IpayService;
+use App\Contracts\Repositories\Web\UserTokenRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CampaignToolCommerceService
 {
-    public function __construct(private CampaignToolCommerceRepositoryInterface $commerce, private IpayService $ipay) {}
+    public function __construct(private CampaignToolCommerceRepositoryInterface $commerce, private UserTokenRepositoryInterface $tokens) {}
 
-    public function startCheckout(User $user, CampaignToolRequest $request, array $contact): string
+    public function redeemPackage(User $user, CampaignToolRequest $request): void
     {
         abort_unless($request->user_id === $user->id && $request->fulfilment_type === 'paid_package', 404);
         $request->loadMissing(['package','payment']);
         if (! $request->package || ! $request->package->is_active) throw ValidationException::withMessages(['package'=>'This package is no longer available.']);
         if ($request->payment && in_array($request->payment->status,['funded','fulfilled'],true)) throw ValidationException::withMessages(['payment'=>'This package is already paid.']);
-        $payment=$request->payment ?: DB::transaction(function () use ($request,$user) {
+        DB::transaction(function () use ($request,$user): void {
+            $lockedRequest=CampaignToolRequest::whereKey($request->id)->lockForUpdate()->firstOrFail();
+            if ($lockedRequest->payment()->whereIn('status',['funded','fulfilled'])->exists()) throw ValidationException::withMessages(['payment'=>'This package is already funded.']);
             $rate=max(0,min(100,(float)config('campaign_tools.platform_commission_percent',20)));
-            $gross=(float)$request->package->price; $platform=round($gross*$rate/100,2);
-            return $this->commerce->createPayment(['campaign_tool_request_id'=>$request->id,'campaign_tool_package_id'=>$request->package->id,
-                'user_id'=>$user->id,'candidate_id'=>$request->candidate_id,'provider'=>'ipay','checkout_reference'=>$this->reference(),
+            $gross=(int)$request->package->token_cost; $platform=(int)round($gross*$rate/100); $fulfilment=$gross-$platform;
+            $wallet=$this->tokens->lockedWallet($user->id);
+            if ($wallet->balance < $gross) throw ValidationException::withMessages(['payment'=>'Insufficient Toolbox tokens. Required: '.number_format($gross).', available: '.number_format($wallet->balance).'.']);
+            $before=$wallet->balance; $wallet->update(['balance'=>$before-$gross]);
+            $payment=$this->commerce->createPayment(['campaign_tool_request_id'=>$request->id,'campaign_tool_package_id'=>$request->package->id,
+                'user_id'=>$user->id,'candidate_id'=>$request->candidate_id,'provider'=>'toolbox','checkout_reference'=>$this->reference(),
                 'package_name'=>$request->package->name,'entitlement_type'=>$request->package->entitlement_type,
                 'entitlement_quantity'=>$request->package->entitlement_quantity,'duration_days'=>$request->package->duration_days,
-                'gross_amount'=>$gross,'commission_rate'=>$rate,'platform_revenue'=>$platform,'fulfilment_payable'=>$gross-$platform,
-                'currency'=>$request->package->currency,'status'=>'pending']);
-        });
-        $this->ipay->assertConfigured();
-        return $this->ipay->campaignToolCheckoutUrl($payment,$user,$request->package,$contact);
-    }
-
-    public function completeCallback(array $callback): array
-    {
-        $reference=$this->ipay->callbackReference($callback);
-        if (! $reference) return ['status'=>'failed','message'=>'Payment callback had no reference.'];
-        $verification=$this->ipay->verifyTransaction($reference);
-        return DB::transaction(function () use ($reference,$verification,$callback) {
-            $payment=$this->commerce->lockedPaymentByReference($reference);
-            if (! $payment) return ['status'=>'failed','message'=>'Campaign-tool payment was not found.'];
-            $gateway=['gateway_transaction_code'=>$verification['transaction_code'],'gateway_status'=>$verification['status'],
-                'gateway_response'=>['callback'=>$callback,'verification'=>$verification['raw']],'callback_received_at'=>now()];
-            if (in_array($payment->status,['funded','fulfilled'],true)) { $payment->update($gateway); return ['status'=>'success','message'=>'This package was already funded.']; }
-            if ($verification['status'] !== 'success') { $payment->update($gateway+['status'=>$verification['status']==='pending'?'pending':'failed']); return ['status'=>$verification['status'],'message'=>'Payment was not confirmed.']; }
-            if (abs((float)$verification['amount']-(float)$payment->gross_amount)>=0.01) { $payment->update($gateway+['status'=>'failed']); return ['status'=>'failed','message'=>'Confirmed amount does not match the package price.']; }
-            if (! empty($verification['currency']) && strtoupper((string)$verification['currency']) !== strtoupper($payment->currency)) { $payment->update($gateway+['status'=>'failed']); return ['status'=>'failed','message'=>'Confirmed currency does not match the package currency.']; }
+                'gross_amount'=>$gross,'commission_rate'=>$rate,'platform_revenue'=>$platform,'fulfilment_payable'=>$fulfilment,
+                'currency'=>'TOK','status'=>'funded','payment_reference'=>'TOOLBOX-'.$this->reference(),'funded_at'=>now()]);
             $correlation=(string)Str::uuid();
-            $payment->update($gateway+['status'=>'funded','payment_reference'=>$verification['transaction_code'] ?: $reference,'funded_at'=>now()]);
-            $this->commerce->createLedgerEntry(['campaign_tool_payment_id'=>$payment->id,'entry_type'=>'payment','gross_amount'=>$payment->gross_amount,
-                'platform_amount'=>$payment->platform_revenue,'fulfilment_amount'=>$payment->fulfilment_payable,'currency'=>$payment->currency,
-                'correlation_id'=>$correlation,'metadata'=>['gateway_reference'=>$reference],'occurred_at'=>now()]);
-            $payment->request->update(['payment_status'=>'paid','status'=>'in_progress']);
-            return ['status'=>'success','message'=>'Package paid. Admin will activate it after setup.'];
+            $transaction=$this->tokens->createTransaction(['user_token_wallet_id'=>$wallet->id,'user_id'=>$user->id,'candidate_id'=>$request->candidate_id,
+                'tokenable_type'=>$payment::class,'tokenable_id'=>$payment->id,'type'=>'package_redemption','status'=>'completed','action_key'=>'campaign-tool-package',
+                'action_label'=>'Fund '.$request->package->name,'amount'=>-$gross,'balance_before'=>$before,'balance_after'=>$wallet->balance,
+                'metadata'=>['correlation_id'=>$correlation,'platform_tokens'=>$platform,'fulfilment_tokens'=>$fulfilment,'token_value_kes'=>config('campaign_tools.token_value_kes',1)],'finalized_at'=>now()]);
+            $this->commerce->createLedgerEntry(['campaign_tool_payment_id'=>$payment->id,'entry_type'=>'redemption','gross_amount'=>$gross,
+                'platform_amount'=>$platform,'fulfilment_amount'=>$fulfilment,'currency'=>'TOK','correlation_id'=>$correlation,
+                'metadata'=>['user_token_transaction_id'=>$transaction->id,'token_value_kes'=>config('campaign_tools.token_value_kes',1)],'occurred_at'=>now()]);
+            $lockedRequest->update(['payment_status'=>'paid','status'=>'in_progress']);
         });
     }
 
@@ -81,9 +69,18 @@ class CampaignToolCommerceService
                 $this->assertFunded($request); $payment=$this->commerce->lockedPaymentForRequest($request);
                 if ($payment->status!=='funded') throw ValidationException::withMessages(['action'=>'Only an unfulfilled funded package can be refunded.']);
                 $correlation=(string)Str::uuid();
+                $wallet=$this->tokens->lockedWallet($payment->user_id);
+                $before=$wallet->balance;
+                $refund=(int)$payment->gross_amount;
+                $wallet->update(['balance'=>$before+$refund]);
+                $transaction=$this->tokens->createTransaction(['user_token_wallet_id'=>$wallet->id,'user_id'=>$payment->user_id,
+                    'candidate_id'=>$payment->candidate_id,'tokenable_type'=>$payment::class,'tokenable_id'=>$payment->id,
+                    'type'=>'package_refund','status'=>'completed','action_key'=>'campaign-tool-package-refund',
+                    'action_label'=>'Refund '.$payment->package_name,'amount'=>$refund,'balance_before'=>$before,'balance_after'=>$wallet->balance,
+                    'metadata'=>['correlation_id'=>$correlation,'campaign_tool_request_id'=>$request->id],'finalized_at'=>now()]);
                 $this->commerce->createLedgerEntry(['campaign_tool_payment_id'=>$payment->id,'entry_type'=>'refund','gross_amount'=>-$payment->gross_amount,
                     'platform_amount'=>-$payment->platform_revenue,'fulfilment_amount'=>-$payment->fulfilment_payable,'currency'=>$payment->currency,
-                    'correlation_id'=>$correlation,'metadata'=>['admin_id'=>$admin->id,'note'=>$notes,'requires_gateway_refund'=>true],'occurred_at'=>now()]);
+                    'correlation_id'=>$correlation,'metadata'=>['admin_id'=>$admin->id,'note'=>$notes,'user_token_transaction_id'=>$transaction->id],'occurred_at'=>now()]);
                 $payment->update(['status'=>'refunded','refunded_amount'=>$payment->gross_amount,'refunded_at'=>now()]);
                 $request->update(['status'=>'cancelled','payment_status'=>'refunded','admin_notes'=>$notes]); return;
             }
