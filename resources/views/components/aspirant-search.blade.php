@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
             input.setCustomValidity('');
             root.querySelector('[data-aspirant-search-name]').textContent = item.name;
             root.querySelector('[data-aspirant-search-meta]').textContent =
-                [item.position, item.party, item.jurisdiction].filter(Boolean).join(' â€¢ ');
+                [item.position, item.party, item.jurisdiction].filter(Boolean).join(' \u2022 ');
 
             var avatar = root.querySelector('[data-aspirant-search-avatar]');
             avatar.replaceChildren();
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var title = document.createElement('strong');
                 title.textContent = item.name + (item.nickname ? ' (' + item.nickname + ')' : '');
                 var meta = document.createElement('small');
-                meta.textContent = [item.position, item.party, item.jurisdiction].filter(Boolean).join(' â€¢ ');
+                meta.textContent = [item.position, item.party, item.jurisdiction].filter(Boolean).join(' \u2022 ');
                 copy.append(title, meta);
                 option.append(avatar, copy);
                 option.addEventListener('click', function () { choose(item); });

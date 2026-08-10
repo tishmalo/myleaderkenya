@@ -393,7 +393,7 @@
                 <div class="stat-card green">
                     <div class="stat-num" id="live-confirmed-voters">{{ number_format($voterStats['confirmedVoters'] ?? 0) }}</div>
                     <div class="stat-label">Confirmed Voters</div>
-                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}</span></div>
+                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? '—' }}</span></div>
                     <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
                 </div>
                 <div class="stat-card white">
@@ -449,7 +449,7 @@
                                     <span class="approval-arrow">{!! $approvalCard['direction'] === 'up' ? '&uarr;' : '&darr;' !!}</span>
                                     <span class="approval-score">{{ $approvalCard['approval'] > 0 ? '+' : '' }}{{ number_format($approvalCard['approval'], 1) }}</span>
                                 </div>
-                                <div class="approval-confidence">Pulse Score Ã¯Â¿Â½ {{ ucfirst($approvalCard['confidence']) }} confidence</div>
+                                <div class="approval-confidence">Pulse Score &middot; {{ ucfirst($approvalCard['confidence']) }} confidence</div>
                             </div>
                         </article>
                     @endforeach
