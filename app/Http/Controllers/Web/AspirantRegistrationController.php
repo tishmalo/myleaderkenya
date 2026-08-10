@@ -94,7 +94,7 @@ class AspirantRegistrationController extends Controller
         ])->header('Cache-Control', 'no-store, private')
             ->header('Pragma', 'no-cache');
     }
-    public function store(AspirantRegisterRequest $request): RedirectResponse
+    public function store(AspirantRegisterRequest $request): RedirectResponse|View
     {
         $validated = $request->validated();
         $authenticatedUser = $request->user();
@@ -218,16 +218,19 @@ class AspirantRegistrationController extends Controller
         return $this->registrationRedirect($request, $message, ! $authenticatedUser && ! $needsClaim);
     }
 
-    private function adoptionRedirect(Request $request, string $message, bool $authenticated): RedirectResponse
+    private function adoptionRedirect(Request $request, string $message, bool $authenticated): RedirectResponse|View
     {
-        if ($authenticated) {
-            return redirect()->route('account.toolbox.index')->with('success', $message.' Fund it from your Toolbox below.');
+        $successMessage = $message.($authenticated
+            ? ' Open My Toolbox whenever you are ready to choose and fund packages.'
+            : ' Sign in later to choose and fund packages from My Toolbox.');
+
+        if ($request->boolean('modal')) {
+            $request->session()->flash('success', $successMessage);
+
+            return view('aspirants.modal-submitted', ['redirectUrl' => route('landing')]);
         }
 
-        $request->session()->put('url.intended', route('account.toolbox.index'));
-
-        return redirect($request->boolean('modal') ? route('login', ['modal' => 1]) : route('login'))
-            ->with('status', $message.' Sign in to fund it from your Toolbox.');
+        return redirect()->route('landing')->with('success', $successMessage);
     }
 
     private function registrationRedirect(Request $request, string $message, bool $toLogin = false): RedirectResponse
