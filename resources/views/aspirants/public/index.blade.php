@@ -121,6 +121,86 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     max-width: 460px; margin: 0 auto;
 }
 
+/* -- SEARCH FILTERS -- */
+.asp-filters {
+    max-width: 1280px;
+    margin: 28px auto;
+    padding: 0 32px;
+}
+.asp-filter-form {
+    padding: 22px;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px;
+    background: #121212;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+}
+.asp-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.6fr) repeat(3, minmax(160px, 1fr));
+    gap: 14px;
+}
+.asp-filter-field { min-width: 0; }
+.asp-filter-field label {
+    display: block;
+    margin: 0 0 7px;
+    color: rgba(245,245,240,0.5);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.asp-filter-control {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    outline: none;
+    background: #1b1b1d;
+    color: var(--kenya-white);
+    font: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.asp-filter-control:focus {
+    border-color: var(--green-bright);
+    box-shadow: 0 0 0 3px rgba(0,168,107,0.12);
+}
+.asp-filter-control option { background: #1b1b1d; color: var(--kenya-white); }
+.asp-filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+.asp-filter-button {
+    min-height: 44px;
+    padding: 0 20px;
+    border: 1px solid var(--green-bright);
+    border-radius: 10px;
+    background: var(--green-bright);
+    color: #07110d;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.asp-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: rgba(245,245,240,0.65);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.asp-filter-reset:hover { border-color: var(--kenya-red); color: white; }
+
 /* -- RESULTS META -- */
 .results-meta {
     max-width: 1280px; margin: 0 auto 28px;
@@ -522,6 +602,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬ RESPONSIVE Ã¢â€â‚¬Ã¢â€â‚¬ */
 @media (max-width: 768px) {
+    .asp-filters { padding: 0 16px; }
+    .asp-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .asp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px 60px; }
     .location-card-grid { padding: 0 16px 60px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .location-card { min-height: 190px; }
@@ -533,6 +615,10 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     .results-tri { order: 3; flex-basis: 100%; }
 }
 @media (max-width: 480px) {
+    .asp-filter-form { padding: 16px; }
+    .asp-filter-grid { grid-template-columns: 1fr; }
+    .asp-filter-actions { justify-content: stretch; }
+    .asp-filter-button, .asp-filter-reset { flex: 1; justify-content: center; }
     .asp-grid { grid-template-columns: 1fr; }
     .location-card-grid { grid-template-columns: 1fr; }
     .county-aspirant-grid { grid-template-columns: 1fr; }
@@ -547,6 +633,84 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     <div class="asp-hero-eyebrow"><span class="dot"></span> General Election 2027</div>
     <h1>{{ $aspirantSeo['heading'] }}</h1>
     <p>{{ $aspirantSeo['description'] }}</p>
+</div>
+
+<!-- SEARCH FILTERS -->
+<div class="asp-filters">
+    <form method="GET" action="{{ route('aspirants.public') }}" class="asp-filter-form">
+        @if(request('bloc'))
+            <input type="hidden" name="bloc" value="{{ request('bloc') }}">
+        @endif
+        <div class="asp-filter-grid">
+            <div class="asp-filter-field">
+                <label for="aspirant-search">Search aspirant</label>
+                <input id="aspirant-search" class="asp-filter-control" type="search" name="search"
+                       value="{{ request('search', request('candidate')) }}" placeholder="Name, nickname or keyword">
+            </div>
+            <div class="asp-filter-field">
+                <label for="aspirant-position">Position</label>
+                <select id="aspirant-position" class="asp-filter-control" name="position">
+                    <option value="">All positions</option>
+                    @foreach($positions as $position)
+                        <option value="{{ $position->id }}" @selected((string) request('position') === (string) $position->id)>
+                            {{ $position->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="asp-filter-field">
+                <label for="aspirant-party">Political party</label>
+                <select id="aspirant-party" class="asp-filter-control" name="political_party">
+                    <option value="">All parties</option>
+                    @foreach($politicalParties as $party)
+                        <option value="{{ $party->id }}" @selected((string) request('political_party') === (string) $party->id)>
+                            {{ $party->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="asp-filter-field">
+                <label for="aspirant-county">County</label>
+                <select id="aspirant-county" class="asp-filter-control" name="county">
+                    <option value="">All counties</option>
+                    @foreach($counties as $county)
+                        <option value="{{ $county }}" @selected(request('county') === $county)>{{ $county }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="asp-filter-field">
+                <label for="aspirant-constituency">Constituency</label>
+                <select id="aspirant-constituency" class="asp-filter-control" name="constituency">
+                    <option value="">All constituencies</option>
+                    @foreach($constituencies as $constituency)
+                        <option value="{{ $constituency }}" @selected(request('constituency') === $constituency)>{{ $constituency }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="asp-filter-field">
+                <label for="aspirant-ward">Ward</label>
+                <select id="aspirant-ward" class="asp-filter-control" name="ward">
+                    <option value="">All wards</option>
+                    @foreach($wards as $ward)
+                        <option value="{{ $ward }}" @selected(request('ward') === $ward)>{{ $ward }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="asp-filter-field">
+                <label for="aspirant-country">Country</label>
+                <select id="aspirant-country" class="asp-filter-control" name="country">
+                    <option value="">All countries</option>
+                    @foreach($countries as $country)
+                        <option value="{{ $country }}" @selected(request('country') === $country)>{{ $country }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="asp-filter-actions">
+            <a class="asp-filter-reset" href="{{ route('aspirants.public') }}">Clear filters</a>
+            <button class="asp-filter-button" type="submit"><i class="fas fa-search"></i> Find aspirants</button>
+        </div>
+    </form>
 </div>
 
 <!-- RESULTS META -->
@@ -570,6 +734,10 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         @endif
         @if(request('position'))
             for selected position
+        @endif
+        @if(request('political_party'))
+            @php($selectedParty = $politicalParties->firstWhere('id', (int) request('political_party')))
+            with <strong>{{ $selectedParty?->name ?? 'selected party' }}</strong>
         @endif
         @if(request('country'))
             in <strong>{{ request('country') }}</strong>
@@ -694,4 +862,3 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @endif
 
 @endsection
-

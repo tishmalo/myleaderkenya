@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CandidateStoreRequest;
 use App\Http\Requests\Admin\CandidateUpdateRequest;
 use App\Http\Requests\Admin\UpdateCandidateApprovalRequest;
+use App\Http\Requests\Web\PublicAspirantFilterRequest;
 use App\Models\Candidate;
 use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
@@ -210,9 +211,10 @@ class CandidateController extends Controller
             ->with('success', 'Aspirant deleted successfully.');
     }
 
-    public function publicIndex(Request $request)
+    public function publicIndex(PublicAspirantFilterRequest $request)
     {
-        $data = $this->candidateService->getPublicIndex($request->only(['candidate', 'search', 'position', 'political_party', 'country', 'county', 'constituency', 'ward', 'bloc']), 30);
+        $data = $this->candidateService->getPublicIndex($request->validated(), 30);
+
         return view('aspirants.public.index', $data);
     }
 
