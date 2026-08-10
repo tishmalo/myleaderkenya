@@ -60,8 +60,10 @@ use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
 use App\Contracts\Services\MentionLanguageDetectorInterface;
 use App\Contracts\Services\MentionToneClassifierInterface;
 use App\Models\Candidate;
+use App\Models\NewsArticle;
 use App\Models\Role;
 use App\Observers\CandidateObserver;
+use App\Observers\NewsArticleObserver;
 use App\Policies\UserAccessPolicy;
 use App\Repositories\Admin\BlocRepository;
 use App\Repositories\Audit\AuditRepository;
@@ -221,6 +223,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Role::class, UserAccessPolicy::class);
         Candidate::observe(CandidateObserver::class);
+        NewsArticle::observe(NewsArticleObserver::class);
         Event::listen(Login::class, fn (Login $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.login', 'User signed in.', ['actor' => $event->user, 'module' => 'authentication']));
         Event::listen(Logout::class, fn (Logout $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.logout', 'User signed out.', ['actor' => $event->user, 'module' => 'authentication']));
         Event::listen(Failed::class, fn (Failed $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.login_failed', 'Sign-in attempt failed.', ['actor' => $event->user, 'module' => 'authentication', 'status' => 'failure', 'metadata' => ['email' => $event->credentials['email'] ?? null]]));
