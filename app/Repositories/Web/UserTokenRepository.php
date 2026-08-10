@@ -34,7 +34,13 @@ class UserTokenRepository implements UserTokenRepositoryInterface
     public function purchases(User $user, int $limit = 10): Collection { return UserTokenPurchase::where('user_id', $user->id)->latest()->limit($limit)->get(); }
     public function adoptionRequests(User $user): Collection
     {
-        return CampaignToolRequest::with(['candidate:id,name','campaignTool:id,title,slug','package','payment'])
+        return CampaignToolRequest::with([
+            'candidate:id,name',
+            'campaignTool:id,title,slug',
+            'campaignTool.packages' => fn ($query) => $query->active(),
+            'package',
+            'payment',
+        ])
             ->where('request_type', 'adoption')->where('user_id', $user->id)->latest()->get();
     }
     public function lockedPayableAdoption(User $user, int $requestId): CampaignToolRequest

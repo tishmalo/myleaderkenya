@@ -130,8 +130,7 @@ class AspirantRegistrationController extends Controller
                     $this->adoptionService->create(
                         $candidate,
                         $authenticatedUser ?: $claim->user()->firstOrFail(),
-                        $validated['adoption_tool_ids'],
-                        $validated['adoption_package_ids'] ?? []
+                        $validated['adoption_tool_ids']
                     );
                 }
             });
@@ -200,8 +199,7 @@ class AspirantRegistrationController extends Controller
                     $this->adoptionService->create(
                         $candidate,
                         $authenticatedUser ?: $claim->user()->firstOrFail(),
-                        $validated['adoption_tool_ids'],
-                        $validated['adoption_package_ids'] ?? []
+                        $validated['adoption_tool_ids']
                     );
                 }
             }

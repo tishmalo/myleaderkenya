@@ -55,7 +55,7 @@
             </div>
             <div class="aspirant-adoption-tools" data-adoption-tools hidden>
                 <h3 class="font-['Oswald'] text-xl font-semibold">What would you like to sponsor?</h3>
-                <p class="mt-1 text-sm text-zinc-400">Bulk SMS sponsorship transfers tokens to the aspirant. For every other tool, choose a package and fund it from your personal Toolbox after submitting.</p>
+                <p class="mt-1 text-sm text-zinc-400">Choose as many tools as you want. Package and price selection happens later when you fund each tool from My Toolbox.</p>
                 <div class="aspirant-adoption-grid">
                     @forelse($adoptableTools as $tool)
                         @php($isBulkSms = str_contains(strtolower($tool->slug.' '.$tool->title), 'bulk-sms') || str_contains(strtolower($tool->title), 'bulk sms'))
@@ -64,13 +64,6 @@
                             <input type="checkbox" name="adoption_tool_ids[]" value="{{ $tool->id }}" {{ in_array($tool->id, array_map('intval', old('adoption_tool_ids', [])), true) ? 'checked' : '' }}>
                             <span><i class="fas fa-circle-check"></i><strong>{{ $tool->title }}</strong><small class="ml-auto text-zinc-400">{{ $isBulkSms ? 'SMS tokens' : 'Token package' }}</small></span>
                         </label>
-                        @unless($isBulkSms)
-                            <select class="aspirant-select mt-2" name="adoption_package_ids[{{ $tool->id }}]">
-                                <option value="">Select package</option>
-                                @foreach($tool->packages as $package)<option value="{{ $package->id }}" @selected((string) old("adoption_package_ids.{$tool->id}") === (string) $package->id)>{{ $package->name }} — {{ number_format($package->token_cost) }} tokens</option>@endforeach
-                            </select>
-                            @error("adoption_package_ids.{$tool->id}")<p class="mt-1 text-xs text-red-400">{{ $message }}</p>@enderror
-                        @endunless
                         </div>
                     @empty
                         <p class="text-sm text-amber-300">No sponsorship tools are currently available. Please check again later.</p>
