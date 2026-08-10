@@ -15,8 +15,8 @@ class CampaignToolPackage extends Model implements AuditableContract
 
     public const ENTITLEMENT_TYPES = ['time', 'quantity', 'one_time', 'permanent'];
 
-    protected $fillable = ['campaign_tool_id','name','description','token_cost','entitlement_type','entitlement_quantity','duration_days','fulfilment_instructions','is_active','sort_order'];
-    protected $casts = ['token_cost'=>'integer','is_active'=>'boolean','entitlement_quantity'=>'integer','duration_days'=>'integer','sort_order'=>'integer'];
+    protected $fillable = ['campaign_tool_id','name','description','token_cost','price','currency','entitlement_type','entitlement_quantity','duration_days','fulfilment_instructions','is_active','sort_order'];
+    protected $casts = ['token_cost'=>'integer','price'=>'decimal:2','is_active'=>'boolean','entitlement_quantity'=>'integer','duration_days'=>'integer','sort_order'=>'integer'];
 
     public function campaignTool(): BelongsTo { return $this->belongsTo(CampaignTool::class); }
     public function payments(): HasMany { return $this->hasMany(CampaignToolPayment::class); }
