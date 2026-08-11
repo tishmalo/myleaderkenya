@@ -3,6 +3,7 @@
 namespace App\Services\Web;
 
 use App\Contracts\Repositories\Admin\CandidateTokenPackageRepositoryInterface;
+use App\Contracts\Repositories\Admin\KittyTypeRepositoryInterface;
 use App\Contracts\Repositories\Web\UserTokenRepositoryInterface;
 use App\Models\CampaignToolRequest;
 use App\Models\CandidateClaimRequest;
@@ -20,6 +21,7 @@ class DonorToolboxService
     public function __construct(
         private UserTokenRepositoryInterface $tokens,
         private CandidateTokenPackageRepositoryInterface $packages,
+        private KittyTypeRepositoryInterface $kittyTypes,
         private IpayService $ipay
     ) {}
 
@@ -31,17 +33,20 @@ class DonorToolboxService
             'purchases' => $this->tokens->purchases($user),
             'transactions' => $this->tokens->transactions($user),
             'adoptions' => $this->tokens->adoptionRequests($user),
+            'kittyTypes' => $this->kittyTypes->active(),
         ];
     }
 
     public function startPurchase(User $user, CandidateTokenPackage $package, array $contact): string
     {
         $this->ipay->assertConfigured();
+        $kittyType = $this->kittyTypes->findActive((int) $contact['kitty_type_id']);
         $purchase = $this->tokens->createPurchase([
             'user_id' => $user->id,
             'purchaser_name' => $contact['name'],
             'objective' => 'my_kitty',
-            'kitty_type' => $contact['kitty_type'],
+            'kitty_type' => $kittyType->slug,
+            'kitty_type_id' => $kittyType->id,
             'candidate_token_package_id' => $package->id,
             'provider' => 'ipay',
             'checkout_reference' => $this->uniqueReference(),

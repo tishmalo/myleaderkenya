@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\DonorController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
 use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
+use App\Http\Controllers\Admin\KittyTypeController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\ParliamentMemberController;
@@ -308,6 +309,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/support-group-types', [SupportGroupTypeController::class, 'store'])->middleware('permission:support-groups.create')->name('support-group-types.store');
         Route::patch('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'update'])->middleware('permission:support-groups.update')->name('support-group-types.update');
         Route::delete('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'destroy'])->middleware('permission:support-groups.delete')->name('support-group-types.destroy');
+        Route::get('/admin/kitty-types', [KittyTypeController::class, 'index'])->middleware('permission:tokens.view')->name('kitty-types.index');
+        Route::post('/admin/kitty-types', [KittyTypeController::class, 'store'])->middleware('permission:tokens.create')->name('kitty-types.store');
+        Route::patch('/admin/kitty-types/{kittyType}', [KittyTypeController::class, 'update'])->middleware('permission:tokens.update')->name('kitty-types.update');
+        Route::delete('/admin/kitty-types/{kittyType}', [KittyTypeController::class, 'destroy'])->middleware('permission:tokens.delete')->name('kitty-types.destroy');
         Route::get('/admin/campaign-website-requests', [CampaignWebsiteRequestController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-website-requests.index');
         Route::patch('/admin/campaign-website-requests/{campaignWebsiteRequest}', [CampaignWebsiteRequestController::class, 'update'])->middleware('throttle:30,1')->name('campaign-website-requests.update');
         Route::get('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-website-samples.index');

@@ -17,7 +17,7 @@ class ToolboxPurchaseRequest extends FormRequest
             'phone' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'max:255'],
             'objective' => ['required', Rule::in(['my_kitty', 'support_aspirant'])],
-            'kitty_type' => ['nullable', Rule::requiredIf(fn () => $this->input('objective') === 'my_kitty'), Rule::in(['sacco_boost', 'saving', 'business_boost', 'self_help_group', 'chama_boost', 'other'])],
+            'kitty_type_id' => ['nullable', Rule::requiredIf(fn () => $this->input('objective') === 'my_kitty'), 'integer', 'exists:kitty_types,id'],
             'candidate_id' => ['nullable', Rule::requiredIf(fn () => $this->input('objective') === 'support_aspirant'), 'integer', 'exists:candidates,id'],
             'message' => ['nullable', Rule::requiredIf(fn () => $this->input('objective') === 'support_aspirant'), 'string', 'max:1000'],
         ];

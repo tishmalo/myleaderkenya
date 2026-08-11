@@ -1,0 +1,19 @@
+@extends('layouts.app')
+@section('page_title', 'Kitty Types')
+@section('content')
+<div class="mx-auto w-full max-w-6xl">
+    <div class="mb-8"><h1 class="flex items-center gap-3 text-3xl font-semibold text-white"><i class="fas fa-piggy-bank text-emerald-500"></i> Kitty Types</h1><p class="mt-2 text-zinc-400">Define the objectives available under My Kitty in the user Toolbox.</p></div>
+    @if(session('success'))<div class="mb-6 rounded-2xl border border-emerald-700/60 bg-emerald-950/50 px-5 py-4 text-emerald-100">{{ session('success') }}</div>@endif
+    @if($errors->any())<div class="mb-6 rounded-2xl border border-red-700/60 bg-red-950/50 px-5 py-4 text-red-100">{{ $errors->first() }}</div>@endif
+    @if(auth()->user()?->canAccess('tokens.create'))
+    <form method="POST" action="{{ route('kitty-types.store') }}" class="mb-8 rounded-3xl border border-zinc-800 bg-zinc-900 p-6">@csrf
+        <div class="grid gap-4 md:grid-cols-2"><div><label class="mb-2 block text-sm text-zinc-400">Name</label><input class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white" name="name" maxlength="100" required></div><div><label class="mb-2 block text-sm text-zinc-400">Description</label><input class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white" name="description" maxlength="500"></div><div><label class="mb-2 block text-sm text-zinc-400">Sort Order</label><input class="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-white" type="number" name="sort_order" value="0" min="0"></div><label class="flex items-center gap-3 text-zinc-300"><input type="hidden" name="is_active" value="0"><input type="checkbox" name="is_active" value="1" checked> Active</label></div>
+        <button class="mt-5 rounded-2xl bg-emerald-600 px-6 py-3 font-semibold text-white">Add Kitty Type</button>
+    </form>
+    @endif
+    <div class="overflow-x-auto rounded-3xl border border-zinc-800 bg-zinc-900"><table class="w-full min-w-[850px]"><thead class="bg-zinc-950"><tr><th class="px-5 py-4 text-left">Name</th><th class="px-5 py-4 text-left">Description</th><th class="px-5 py-4">Purchases</th><th class="px-5 py-4">Active</th><th class="px-5 py-4">Actions</th></tr></thead><tbody class="divide-y divide-zinc-800">
+    @forelse($kittyTypes as $type)<tr><td class="px-5 py-4"><form id="kitty-{{ $type->id }}" method="POST" action="{{ route('kitty-types.update', $type) }}" class="grid grid-cols-[1fr_80px] gap-2">@csrf @method('PATCH')<input class="rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-white" name="name" value="{{ $type->name }}" required><input class="rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-white" type="number" name="sort_order" value="{{ $type->sort_order }}" min="0"><input type="hidden" name="is_active" value="0"></form></td><td class="px-5 py-4"><input form="kitty-{{ $type->id }}" class="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-white" name="description" value="{{ $type->description }}"></td><td class="px-5 py-4 text-center">{{ number_format($type->purchases_count) }}</td><td class="px-5 py-4 text-center"><input form="kitty-{{ $type->id }}" type="checkbox" name="is_active" value="1" @checked($type->is_active)></td><td class="px-5 py-4"><div class="flex justify-center gap-2"><button form="kitty-{{ $type->id }}" class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Save</button><form method="POST" action="{{ route('kitty-types.destroy', $type) }}" onsubmit="return confirm('Delete this kitty type?')">@csrf @method('DELETE')<button class="rounded-xl border border-red-800 px-4 py-2 text-sm font-semibold text-red-300">Delete</button></form></div></td></tr>
+    @empty<tr><td colspan="5" class="px-6 py-12 text-center text-zinc-500">No kitty types defined.</td></tr>@endforelse
+    </tbody></table></div>
+</div>
+@endsection
