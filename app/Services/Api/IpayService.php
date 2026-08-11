@@ -6,6 +6,7 @@ use App\Models\CandidateTokenPackage;
 use App\Models\CandidateTokenPurchase;
 use App\Models\PoliticalPartyTokenPurchase;
 use App\Models\UserTokenPurchase;
+use App\Models\AspirantSupportPayment;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -51,6 +52,29 @@ class IpayService
             'p3' => 'user_toolbox_tokens',
             'p4' => (string) $package->token_amount,
             'cbk' => route('toolbox.payments.ipay.callback'),
+            'cst' => '1',
+            'crl' => '0',
+        ];
+        $fields['hsh'] = $this->checkoutHash($fields);
+        return rtrim($this->checkoutEndpoint(), '?').'?'.http_build_query($fields);
+    }
+
+    public function aspirantSupportCheckoutUrl(AspirantSupportPayment $support, User $user, array $contact): string
+    {
+        $fields = [
+            'live' => $this->live(),
+            'oid' => (string) $support->checkout_reference,
+            'inv' => (string) $support->checkout_reference,
+            'ttl' => $this->amount($support->gross_amount),
+            'tel' => $this->phone($contact['phone'] ?? ''),
+            'eml' => $contact['email'] ?? $user->email,
+            'vid' => $this->vendorId(),
+            'curr' => $support->currency,
+            'p1' => (string) $support->candidate_id,
+            'p2' => (string) $support->user_id,
+            'p3' => 'aspirant_support',
+            'p4' => $this->amount($support->aspirant_amount),
+            'cbk' => route('toolbox.supports.ipay.callback'),
             'cst' => '1',
             'crl' => '0',
         ];

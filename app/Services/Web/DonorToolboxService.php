@@ -39,6 +39,9 @@ class DonorToolboxService
         $this->ipay->assertConfigured();
         $purchase = $this->tokens->createPurchase([
             'user_id' => $user->id,
+            'purchaser_name' => $contact['name'],
+            'objective' => 'my_kitty',
+            'kitty_type' => $contact['kitty_type'],
             'candidate_token_package_id' => $package->id,
             'provider' => 'ipay',
             'checkout_reference' => $this->uniqueReference(),

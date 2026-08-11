@@ -107,5 +107,11 @@ return [
             'route' => 'aspirant.tokens.index',
             'active' => ['aspirant.tokens.*'],
         ],
+        [
+            'label' => 'Support Received',
+            'icon' => 'fas fa-hand-holding-heart',
+            'route' => 'aspirant.support.index',
+            'active' => ['aspirant.support.*'],
+        ],
     ],
 ];

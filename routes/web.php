@@ -49,6 +49,7 @@ use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
 use App\Http\Controllers\Web\AspirantSmsBalanceRequestController;
 use App\Http\Controllers\Web\AspirantTokenController;
+use App\Http\Controllers\Web\AspirantSupportController;
 use App\Http\Controllers\Web\AspirantToolActivationRequestController;
 use App\Http\Controllers\Web\AspirantToolController;
 use App\Http\Controllers\Web\CandidateCampaignPriorityController;
@@ -145,6 +146,7 @@ Route::middleware('throttle:web')->group(function () {
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
 Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::class, 'callback'])->name('party.payments.ipay.callback');
 Route::get('/toolbox/payments/ipay/callback', [DonorToolboxController::class, 'callback'])->name('toolbox.payments.ipay.callback');
+Route::get('/toolbox/supports/ipay/callback', [DonorToolboxController::class, 'supportCallback'])->name('toolbox.supports.ipay.callback');
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
@@ -180,6 +182,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/aspirant/tools/{key}', [AspirantToolController::class, 'show'])->name('aspirant.tools.show');
         Route::post('/aspirant/tool-activation-requests', [AspirantToolActivationRequestController::class, 'store'])->middleware('throttle:6,10')->name('aspirant.tool-activation-requests.store');
         Route::get('/aspirant/tokens', [AspirantTokenController::class, 'index'])->name('aspirant.tokens.index');
+        Route::get('/aspirant/support', [AspirantSupportController::class, 'index'])->name('aspirant.support.index');
+        Route::post('/aspirant/support/{aspirantSupportPayment}/reply', [AspirantSupportController::class, 'reply'])->middleware('throttle:10,1')->name('aspirant.support.reply');
         Route::post('/aspirant/tokens/purchase', [AspirantTokenController::class, 'purchase'])->name('aspirant.tokens.purchase');
         Route::post('/aspirant/sms-balance-requests', [AspirantSmsBalanceRequestController::class, 'store'])->middleware('throttle:6,10')->name('aspirant.sms-balance-requests.store');
         Route::get('/aspirant/campaign-website/samples', [AspirantToolController::class, 'websiteSamples'])->name('aspirant.campaign-website.samples');
