@@ -445,38 +445,6 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->values();
     }
 
-    public function publicCountyNavigation(array $filters, string $currentCounty): Collection
-    {
-        unset($filters['county'], $filters['constituency'], $filters['ward']);
-
-        $counts = $this->publicQuery($filters)
-            ->whereNotNull('county')
-            ->where('county', '!=', '')
-            ->where('county', '!=', $currentCounty)
-            ->reorder()
-            ->selectRaw('county, COUNT(*) as total')
-            ->groupBy('county')
-            ->orderBy('county')
-            ->get();
-
-        $countyModels = County::query()
-            ->whereIn('name', $counts->pluck('county'))
-            ->get(['name', 'image'])
-            ->keyBy('name');
-
-        return $counts->map(function ($count) use ($countyModels): array {
-            $county = $countyModels->get($count->county);
-
-            return [
-                'label' => $count->county,
-                'filter_key' => 'county',
-                'filter_value' => $count->county,
-                'image_url' => $county?->image ? Storage::url($county->image) : null,
-                'total' => (int) $count->total,
-            ];
-        })->values();
-    }
-
     private function filtersTargetPresidential(array $filters): bool
     {
         if (empty($filters['position'])) {
