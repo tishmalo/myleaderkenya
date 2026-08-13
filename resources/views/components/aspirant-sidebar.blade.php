@@ -32,7 +32,7 @@
     };
 @endphp
 
-<aside class="asp-sidebar" aria-label="Aspirant dashboard navigation">
+<aside class="asp-sidebar" aria-label="Aspirant dashboard navigation" data-aspirant-sidebar>
     <a href="{{ route('my-account') }}" class="asp-sidebar-link mb-3"><i class="fas fa-arrow-left"></i><span>Back to My Account</span></a>
     <div class="asp-sidebar-brand">
         <span>{{ $sidebar['brand']['label'] ?? 'Aspirant' }}</span>
@@ -48,7 +48,7 @@
             </button>
         </form>
     </div>
-    <nav class="asp-sidebar-nav">
+    <nav class="asp-sidebar-nav" data-aspirant-sidebar-nav>
         @foreach($items as $item)
             @php
                 $href = $itemHref($item);
@@ -66,3 +66,45 @@
     </nav>
 
 </aside>
+
+<script>
+(() => {
+    const sidebar = document.querySelector('[data-aspirant-sidebar]');
+    const navigation = sidebar?.querySelector('[data-aspirant-sidebar-nav]');
+
+    if (!sidebar || !navigation) return;
+
+    const storageKey = 'mlk.aspirant-sidebar-position.v1';
+    const readPosition = () => {
+        try {
+            const value = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+            return {
+                top: Number.isFinite(Number(value.top)) ? Math.max(0, Number(value.top)) : 0,
+                left: Number.isFinite(Number(value.left)) ? Math.max(0, Number(value.left)) : 0,
+            };
+        } catch (error) {
+            return { top: 0, left: 0 };
+        }
+    };
+    const savePosition = () => {
+        try {
+            sessionStorage.setItem(storageKey, JSON.stringify({
+                top: sidebar.scrollTop,
+                left: navigation.scrollLeft,
+            }));
+        } catch (error) {
+            // Navigation remains fully usable when browser storage is unavailable.
+        }
+    };
+
+    const position = readPosition();
+    sidebar.scrollTop = position.top;
+    navigation.scrollLeft = position.left;
+
+    sidebar.addEventListener('scroll', savePosition, { passive: true });
+    navigation.addEventListener('scroll', savePosition, { passive: true });
+    sidebar.addEventListener('click', event => {
+        if (event.target.closest('a, button')) savePosition();
+    });
+})();
+</script>

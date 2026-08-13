@@ -110,7 +110,8 @@ class AspirantToolController extends Controller
                 ->select('id', 'name', 'username', 'phone', 'county', 'constituency', 'ward', 'polling_station', 'created_at')
                 ->latest()
                 ->paginate(10, ['*'], 'call_page')
-                ->withQueryString()
+                ->appends(['call_list' => 1])
+                ->fragment('call-list')
             : collect();
         $tokenWallet = $this->tokenService->walletForCandidate($candidate);
         $tokenRates = $this->tokenService->activeRates()->keyBy('action_key');

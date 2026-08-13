@@ -63,6 +63,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .poll-preview ol { margin:0; padding-left:20px; color:rgba(245,245,240,.72); line-height:1.75; }
 .poll-list { display:grid; gap:12px; margin-top:22px; }
 .poll-card { border:1px solid rgba(255,255,255,.07); border-radius:8px; background:#0d0d0d; padding:15px; }
+.poll-card[id] { scroll-margin-top:24px; }
 .poll-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
 .poll-card h3 { margin:0; font-size:18px; color:#fff; line-height:1.3; }
 .poll-status { border-radius:999px; padding:4px 8px; color:#bbf7d0; background:rgba(34,197,94,.12); font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
@@ -539,7 +540,7 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 
                         @if($callListActive)
                             <div class="poll-list">
-                                <div class="poll-card">
+                                <div class="poll-card" id="call-list">
                                     <div class="poll-card-top">
                                         <h3>Call List</h3>
                                         <span class="poll-status">{{ number_format(method_exists($callListContacts, 'total') ? $callListContacts->total() : $callListContacts->count()) }} ready</span>
