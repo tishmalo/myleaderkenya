@@ -394,6 +394,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     font-size: 32px;
     font-weight: 800;
     line-height: 1;
+    scroll-margin-top: 7.5rem;
 }
 .county-aspirant-meta {
     margin-top: 8px;
