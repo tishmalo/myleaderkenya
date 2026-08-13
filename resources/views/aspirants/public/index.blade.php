@@ -368,6 +368,29 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     font-size: 72px;
     font-weight: 800;
 }
+.county-navigation {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+}
+.county-navigation-head {
+    padding-top: 32px;
+    margin-bottom: 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+.county-navigation-head h2 {
+    margin: 0;
+    color: var(--kenya-white);
+    font-size: 34px;
+}
+.county-navigation-head p {
+    margin: 8px 0 0;
+    color: rgba(245,245,240,0.5);
+}
+.county-navigation .location-card-grid {
+    max-width: none;
+    padding: 0;
+}
 /* CANDIDATE CARD */
 .county-aspirant-groups {
     max-width: 1280px; margin: 0 auto;
@@ -607,6 +630,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     .asp-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .asp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px 60px; }
     .location-card-grid { padding: 0 16px 60px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .county-navigation { padding: 0 16px 60px; }
     .location-card { min-height: 190px; }
     .location-card-label { font-size: 20px; padding: 12px 26px; }
     .county-aspirant-groups { padding: 0 16px 60px; }
@@ -872,5 +896,10 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         </div>
     @endif
 @endif
+
+@include('aspirants.public._county-navigation', [
+    'countyNavigation' => $countyNavigation,
+    'positions' => $positions,
+])
 
 @endsection

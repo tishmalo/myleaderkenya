@@ -39,6 +39,8 @@ interface CandidateRepositoryInterface
     public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator;
     public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;
 
+    public function publicAlternativeCountyGroups(array $filters, string $currentCounty): Collection;
+
     public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;
 
     public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;

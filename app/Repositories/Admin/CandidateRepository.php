@@ -228,6 +228,37 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->values();
     }
 
+    public function publicAlternativeCountyGroups(array $filters, string $currentCounty): Collection
+    {
+        unset($filters['county'], $filters['constituency'], $filters['ward'], $filters['bloc']);
+
+        $counts = $this->publicQuery($filters)
+            ->whereNotNull('county')
+            ->where('county', '!=', '')
+            ->where('county', '!=', $currentCounty)
+            ->reorder()
+            ->selectRaw('county, COUNT(*) as total')
+            ->groupBy('county')
+            ->orderBy('county')
+            ->get();
+
+        $countyModels = County::query()
+            ->whereIn('name', $counts->pluck('county'))
+            ->get(['name', 'image'])
+            ->keyBy('name');
+
+        return $counts->map(function ($count) use ($countyModels): array {
+            $county = $countyModels->get($count->county);
+
+            return [
+                'label' => $count->county,
+                'filter_value' => $count->county,
+                'image_url' => $county?->image ? Storage::url($county->image) : null,
+                'total' => (int) $count->total,
+            ];
+        })->values();
+    }
+
     public function publicConstituencyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
     {
         $constituencies = $this->constituenciesForPublicFilters($filters);
