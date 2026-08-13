@@ -368,6 +368,36 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     font-size: 72px;
     font-weight: 800;
 }
+.county-navigation {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+}
+.county-navigation-head {
+    margin-bottom: 24px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+.county-navigation-kicker {
+    color: var(--green-bright);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+.county-navigation-head h2 {
+    margin: 8px 0 0;
+    color: var(--kenya-white);
+    font-size: 34px;
+}
+.county-navigation-head p {
+    margin: 8px 0 0;
+    color: rgba(245,245,240,0.5);
+}
+.county-navigation .county-navigation-grid {
+    max-width: none;
+    padding: 0;
+}
 /* CANDIDATE CARD */
 .county-aspirant-groups {
     max-width: 1280px; margin: 0 auto;
@@ -607,6 +637,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     .asp-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .asp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px 60px; }
     .location-card-grid { padding: 0 16px 60px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .county-navigation { padding: 0 16px 60px; }
     .location-card { min-height: 190px; }
     .location-card-label { font-size: 20px; padding: 12px 26px; }
     .county-aspirant-groups { padding: 0 16px 60px; }
@@ -871,6 +902,35 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
             {{ $candidates->links() }}
         </div>
     @endif
+@endif
+
+@if($showCountyNavigation ?? false)
+    @php
+        $selectedPosition = $positions->firstWhere('id', (int) request('position'));
+        $countyNavigationQuery = request()->only(['position', 'political_party', 'country', 'bloc']);
+    @endphp
+    <section class="county-navigation" aria-labelledby="other-counties-title">
+        <div class="county-navigation-head">
+            <div>
+                <span class="county-navigation-kicker">Keep exploring</span>
+                <h2 id="other-counties-title">{{ $selectedPosition?->name ?? 'Aspirants' }} in other counties</h2>
+                <p>Choose another county without returning to the main menu.</p>
+            </div>
+        </div>
+        <div class="location-card-grid county-navigation-grid">
+            @foreach($countyNavigation as $group)
+                <a href="{{ route('aspirants.public', array_merge($countyNavigationQuery, ['county' => $group['filter_value']])) }}" class="location-card">
+                    @if(!empty($group['image_url']))
+                        <img src="{{ $group['image_url'] }}" alt="{{ $group['label'] }}">
+                    @else
+                        <div class="location-card-placeholder">{{ substr($group['label'], 0, 1) }}</div>
+                    @endif
+                    <span class="location-card-label">{{ $group['label'] }}</span>
+                    <span class="location-card-meta">{{ $group['total'] }} aspirant{{ $group['total'] !== 1 ? 's' : '' }}</span>
+                </a>
+            @endforeach
+        </div>
+    </section>
 @endif
 
 @endsection

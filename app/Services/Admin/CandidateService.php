@@ -445,6 +445,14 @@ class CandidateService
             $aspirantGroups = $this->candidateRepository->publicWardGroups($filters, 5);
         }
 
+        $showCountyNavigation = filled($filters['position'] ?? null)
+            && filled($filters['county'] ?? null)
+            && ! $showLocationGroups
+            && ! $showAspirantGroups;
+        $countyNavigation = $showCountyNavigation
+            ? $this->candidateRepository->publicCountyNavigation($filters, (string) $filters['county'])
+            : collect();
+
         return [
             'candidates' => $showPositionGroups || $showLocationGroups || $showAspirantGroups
                 ? new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, $perPage)
@@ -463,6 +471,8 @@ class CandidateService
             'showConstituencyAspirantGroups' => $showConstituencyAspirantGroups,
             'showWardAspirantGroups' => $showWardAspirantGroups,
             'showAspirantGroups' => $showAspirantGroups,
+            'countyNavigation' => $countyNavigation,
+            'showCountyNavigation' => $showCountyNavigation && $countyNavigation->isNotEmpty(),
             'positions'  => $this->candidateRepository->allPositions(),
             'politicalParties' => $this->candidateRepository->allPoliticalParties(),
             'supportGroupTypes' => SupportGroupType::active()->ordered()->get(),
@@ -717,4 +727,3 @@ class CandidateService
         return $this->candidateRepository->loadPublicShow($candidate);
     }
 }
-
