@@ -190,7 +190,7 @@ class CandidateRepository implements CandidateRepositoryInterface
                     ->latest('created_at')
                     ->latest('id')
                     ->paginate($perPage, ['*'], $pageName)
-                    ->withQueryString()
+                    ->appends($filters)
                     ->fragment('position-'.$position->id);
 
                 return [
