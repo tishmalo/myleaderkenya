@@ -635,7 +635,17 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     <p>{{ $aspirantSeo['description'] }}</p>
 </div>
 
-<!-- SEARCH FILTERS -->
+@php
+    $isScopedAspirantPage = request()->filled('position')
+        || request()->filled('bloc')
+        || request()->filled('county')
+        || request()->filled('constituency')
+        || request()->filled('ward');
+    $showAspirantFilters = ! $isScopedAspirantPage;
+@endphp
+
+<!-- SEARCH FILTERS: only the All Aspirants journey -->
+@if($showAspirantFilters)
 <div class="asp-filters">
     <form method="GET" action="{{ route('aspirants.public') }}" class="asp-filter-form">
         @if(request('bloc'))
@@ -712,6 +722,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         </div>
     </form>
 </div>
+@endif
 
 <!-- RESULTS META -->
 <div class="results-meta">
