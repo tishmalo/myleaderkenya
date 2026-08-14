@@ -11,8 +11,12 @@ class AuditController extends Controller {
     }
     public function index(AuditFilterRequest $request): View 
     {
+         $filters = $request->validated();
 
-         return view('admin.audits.index',['audits'=>$this->audits->paginate($request->validated())]);
+         return view('admin.audits.index',[
+             'audits' => $this->audits->paginate($filters),
+             'candidateCreatorSummary' => $this->audits->candidateCreatorSummary($filters),
+         ]);
 
      }
     public function show(Audit $audit): View 
