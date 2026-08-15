@@ -16,7 +16,7 @@
             @forelse($supports as $support)
                 <article class="support-card">
                     <div class="support-head"><div><h2>{{ $support->supporter_name }}</h2><p class="support-muted">{{ $support->paid_at?->format('d M Y, H:i') }}</p></div><span class="support-money">KES {{ number_format($support->aspirant_amount, 2) }}</span></div>
-                    <div class="support-breakdown">Gross: KES {{ number_format($support->gross_amount, 2) }} &middot; Platform fee ({{ number_format($support->platform_fee_rate, 0) }}%): KES {{ number_format($support->platform_fee_amount, 2) }}</div>
+                    <div class="support-breakdown">Net support received after applicable transaction and platform fees.</div>
                     <div class="support-note">{{ $support->message }}</div>
                     @if($support->replied_at)
                         <div class="support-reply"><strong>Your reply</strong><br>{{ $support->aspirant_reply }}</div>
