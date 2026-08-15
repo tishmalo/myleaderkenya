@@ -73,13 +73,14 @@
     </form>
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
         <div class="w-full max-w-full overflow-x-auto">
-        <table class="min-w-[1200px] w-full">
+        <table class="min-w-[1320px] w-full">
             <thead class="bg-zinc-950 sticky top-0">
                 <tr class="border-b border-zinc-800">
                     <th class="px-6 py-4 text-left">Candidate</th>
                     <th class="px-6 py-4 text-left">Position</th>
                     <th class="px-6 py-4 text-left">Political Party</th>
                     <th class="px-6 py-4 text-left">Jurisdiction</th>
+                    <th class="px-6 py-4 text-left">Added By</th>
                     <th class="px-6 py-4 text-center">Status</th>
                     <th class="px-6 py-4 text-center">Featured</th>
                     <th class="px-6 py-4 text-center">Account Claim</th>
@@ -121,6 +122,14 @@
                             @endif
                         @else
                             -
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 text-sm">
+                        @if($candidate->creatorAudit)
+                            <span class="font-medium text-white">{{ $candidate->creatorAudit->user?->name ?? 'System' }}</span>
+                            <div class="mt-1 text-xs text-zinc-500">{{ $candidate->creatorAudit->created_at?->timezone('Africa/Nairobi')->format('d M Y, H:i') }}</div>
+                        @else
+                            <span class="text-zinc-500">Not recorded</span>
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">
@@ -211,7 +220,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-6 py-16 text-center text-zinc-500">
+                    <td colspan="9" class="px-6 py-16 text-center text-zinc-500">
                         No candidates found.
                     </td>
                 </tr>

@@ -127,6 +127,14 @@ class Candidate extends Model implements AuditableContract
         return $this->maskPhone($this->phone);
     }
 
+    public function creatorAudit(): HasOne
+    {
+        return $this->hasOne(Audit::class, 'candidate_id')
+            ->where('auditable_type', $this->getMorphClass())
+            ->where('event', 'created')
+            ->oldestOfMany('id');
+    }
+
     public function getRouteKey()
     {
         return $this->slug ?: $this->getKey();
