@@ -297,7 +297,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
             </div>
 
             <div class="profile-actions">
-                @if($maskedPhone)<span class="profile-action primary"><i class="fas fa-heart"></i> Support</span>@endif
+                <a href="{{ route('aspirants.register', ['candidate_id' => $candidate->id, 'submission_mode' => 'adoption']) }}" class="profile-action primary" data-aspirant-register-popup data-aspirant-register-title="Support Aspirant"><i class="fas fa-heart"></i> Support</a>
                 <a href="{{ route('aspirants.register', ['candidate_id' => $candidate->id]) }}" class="profile-action" data-aspirant-register-popup data-aspirant-register-title="Claim Profile"><i class="fas fa-user-check"></i> Claim Profile</a>
                 <a class="profile-action" href="{{ route('aspirants.public') }}"><i class="fas fa-arrow-left"></i> Aspirants</a>
                 @if($maskedEmail)<span class="profile-action"><i class="fas fa-envelope"></i> Contact</span>@endif

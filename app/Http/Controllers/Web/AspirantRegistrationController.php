@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Contracts\Repositories\Api\UserRepositoryInterface as AccountRepositoryInterface;
 use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
 use App\Http\Requests\Web\AspirantEmailAvailabilityRequest;
+use App\Http\Requests\Web\AspirantRegistrationPageRequest;
 use App\Http\Requests\Web\AspirantRegisterRequest;
 use App\Models\Candidate;
 use App\Models\PoliticalParty;
@@ -33,9 +34,10 @@ class AspirantRegistrationController extends Controller
         private AccountRepositoryInterface $accounts
     ) {}
 
-    public function create(Request $request): View
+    public function create(AspirantRegistrationPageRequest $request): View
     {
-        $requestedCandidateId = old('candidate_id', $request->query('candidate_id'));
+        $validated = $request->validated();
+        $requestedCandidateId = old('candidate_id', $validated['candidate_id'] ?? null);
         $selectedCandidate = null;
 
         if ($requestedCandidateId !== null && $requestedCandidateId !== '') {
@@ -48,6 +50,7 @@ class AspirantRegistrationController extends Controller
             'positions' => Position::ordered()->get(),
             'politicalParties' => PoliticalParty::published()->ordered()->get(),
             'selectedCandidate' => $selectedCandidate,
+            'defaultSubmissionMode' => old('submission_mode', $validated['submission_mode'] ?? 'self'),
             'adoptableTools' => $this->campaignTools->publishedForSponsorship(),
         ]);
     }

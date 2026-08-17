@@ -1,6 +1,7 @@
 @extends('layouts.landing')
 
-@section('title', ($selectedCandidate ? 'Claim Profile' : 'Submit Aspirant') . ' - My Leader Kenya')
+@php($isSupportFlow = ($defaultSubmissionMode ?? 'self') === 'adoption')
+@section('title', ($isSupportFlow ? 'Support Aspirant' : ($selectedCandidate ? 'Claim Profile' : 'Submit Aspirant')) . ' - My Leader Kenya')
 
 @push('styles')
 <style>
@@ -17,9 +18,9 @@
 <main class="aspirant-form-shell min-h-screen px-5 {{ request()->boolean('modal') ? 'py-8' : 'py-14' }}">
 <div class="aspirant-form-wrap">
     <header class="aspirant-form-intro">
-        <div class="aspirant-kicker">{{ $selectedCandidate ? 'Profile Access Request' : 'Aspirant Registration' }}</div>
-        <h1>{{ $selectedCandidate ? 'Claim this aspirant profile' : 'Submit an aspirant profile' }}</h1>
-        <p>{{ $selectedCandidate ? 'Submit your account details for admin verification.' : 'Find an existing profile or submit a new one for admin verification.' }}</p>
+        <div class="aspirant-kicker">{{ $isSupportFlow ? 'Campaign Tool Sponsorship' : ($selectedCandidate ? 'Profile Access Request' : 'Aspirant Registration') }}</div>
+        <h1>{{ $isSupportFlow ? 'Support this aspirant' : ($selectedCandidate ? 'Claim this aspirant profile' : 'Submit an aspirant profile') }}</h1>
+        <p>{{ $isSupportFlow ? 'Select the campaign tools you would like to sponsor. Published tools are managed by the administrator.' : ($selectedCandidate ? 'Submit your account details for admin verification.' : 'Find an existing profile or submit a new one for admin verification.') }}</p>
     </header>
 
     @if(session('success'))<div class="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">{{ session('success') }}</div>@endif
@@ -42,9 +43,9 @@
         <section class="aspirant-panel">
             <div class="aspirant-panel-head"><span class="aspirant-panel-num">2</span><div><h2>Who is submitting?</h2><p>{{ auth()->check() ? 'This determines your relationship to the aspirant.' : 'This determines whose login account and password will be created.' }}</p></div></div>
             <div class="aspirant-role-switch">
-                <label><input type="radio" name="submission_mode" value="self" {{ old('submission_mode','self') === 'self' ? 'checked' : '' }}><span><i class="fas fa-user"></i> I am the aspirant</span></label>
-                <label><input type="radio" name="submission_mode" value="representative" {{ old('submission_mode') === 'representative' ? 'checked' : '' }}><span><i class="fas fa-people-group"></i> I'm submitting on behalf</span></label>
-                <label><input type="radio" name="submission_mode" value="adoption" {{ old('submission_mode') === 'adoption' ? 'checked' : '' }}><span><i class="fas fa-hand-holding-heart"></i> Adopt An Aspirant</span></label>
+                <label><input type="radio" name="submission_mode" value="self" {{ ($defaultSubmissionMode ?? 'self') === 'self' ? 'checked' : '' }}><span><i class="fas fa-user"></i> I am the aspirant</span></label>
+                <label><input type="radio" name="submission_mode" value="representative" {{ ($defaultSubmissionMode ?? 'self') === 'representative' ? 'checked' : '' }}><span><i class="fas fa-people-group"></i> I'm submitting on behalf</span></label>
+                <label><input type="radio" name="submission_mode" value="adoption" {{ ($defaultSubmissionMode ?? 'self') === 'adoption' ? 'checked' : '' }}><span><i class="fas fa-hand-holding-heart"></i> Adopt An Aspirant</span></label>
             </div>
             <div class="mt-4" data-relationship-wrap hidden>
                 <label class="aspirant-field-label" for="relationship">I am the aspirant's</label>
