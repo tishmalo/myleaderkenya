@@ -21,7 +21,8 @@ class CandidateTokenTransactionRepository implements CandidateTokenTransactionRe
                 });
             })
             ->latest()
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function create(array $data): CandidateTokenTransaction
