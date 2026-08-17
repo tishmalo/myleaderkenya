@@ -198,7 +198,7 @@ body { background:#080808; color:#f5f5f0; }
                         <span class="asp-status {{ $status }}"><i class="fas fa-circle"></i> {{ ucfirst($status) }}</span>
                     @endif
                     @if($candidate && $status === 'approved')
-                        <a href="{{ route('aspirants.show', $candidate) }}" class="asp-btn primary"><i class="fas fa-eye"></i> Public Profile</a>
+                        <a href="{{ route('aspirants.show', $candidate) }}" target="_blank" rel="noopener noreferrer" class="asp-btn primary"><i class="fas fa-eye"></i> Public Profile</a>
                     @endif
                     <a href="{{ route('aspirant.tokens.index') }}" class="asp-btn primary"><i class="fas fa-coins"></i> Buy Tokens</a>
                     @if($isPrimaryAspirant ?? false)
