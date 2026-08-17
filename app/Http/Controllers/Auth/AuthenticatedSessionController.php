@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
             absolute: false,
         );
 
-        return redirect()->intended($dashboardUrl);
+        return redirect($dashboardUrl);
     }
 
     /**

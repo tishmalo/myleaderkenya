@@ -9,7 +9,6 @@ class DashboardDestinationService
 {
     public function __construct(
         private PoliticalPartyManagementRepositoryInterface $parties,
-        private MyAccountService $accounts,
         private UserProfileService $profiles,
     ) {}
 
@@ -21,10 +20,6 @@ class DashboardDestinationService
 
         if (! $this->profiles->isComplete($user)) {
             return route('account.profile.edit', absolute: $absolute);
-        }
-
-        if ($this->accounts->selectDirectAspirantCandidate($user)) {
-            return route('aspirant.dashboard', absolute: $absolute);
         }
 
         if ($this->parties->activePartyForUser($user)) {

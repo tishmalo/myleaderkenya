@@ -22,28 +22,6 @@ class MyAccountService
         ];
     }
 
-    public function selectDirectAspirantCandidate(User $user): ?Candidate
-    {
-        $candidate = $this->relationships->directCandidateForUser($user);
-
-        if (! $candidate) {
-            return null;
-        }
-
-        session(['active_candidate_id' => $candidate->id]);
-
-        return $candidate;
-    }
-
-    public function shouldOpenDirectAspirantDashboard(User $user, bool $accountExplicitlyRequested): bool
-    {
-        if ($accountExplicitlyRequested) {
-            return false;
-        }
-
-        return $this->selectDirectAspirantCandidate($user) !== null;
-    }
-
     public function selectCandidate(User $user, int $candidateId): Candidate
     {
         $candidate = $this->relationships->findAccessibleCandidate($user, $candidateId);
