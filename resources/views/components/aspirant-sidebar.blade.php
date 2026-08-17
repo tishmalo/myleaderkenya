@@ -9,7 +9,13 @@
 
     $itemHref = function (array $item): string {
         if (! empty($item['route']) && Route::has($item['route'])) {
-            return route($item['route'], $item['params'] ?? []);
+            $url = route($item['route'], $item['params'] ?? []);
+
+            if (! empty($item['fragment'])) {
+                $url .= '#'.ltrim($item['fragment'], '#');
+            }
+
+            return $url;
         }
 
         return $item['href'] ?? '#analytics';

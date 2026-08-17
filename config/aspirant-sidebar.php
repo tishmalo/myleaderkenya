@@ -10,13 +10,15 @@ return [
         [
             'label' => 'Analytics',
             'icon' => 'fas fa-chart-line',
-            'href' => '#analytics',
+            'route' => 'aspirant.dashboard',
+            'fragment' => 'analytics',
             'section' => 'analytics',
         ],
         [
             'label' => 'Campaign Tools',
             'icon' => 'fas fa-toolbox',
-            'href' => '#campaign-tools',
+            'route' => 'aspirant.dashboard',
+            'fragment' => 'campaign-tools',
             'section' => 'campaign-tools',
         ],
         [
