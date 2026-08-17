@@ -49,7 +49,7 @@ body { background:#090909; color:#f5f5f0; }
     <div class="token-top">
         <div>
             <h1 class="token-title">Campaign Tokens</h1>
-            <p class="token-sub">{{ $candidate->name }} has {{ number_format($wallet->balance) }} tokens available.</p>
+            <p class="token-sub">{{ $candidate->name }} has {{ number_format($wallet->balance) }} tokens available. Buy more tokens to power your campaigns.</p>
         </div>
         <a href="{{ route('aspirant.dashboard') }}" class="token-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
     </div>
@@ -79,7 +79,7 @@ body { background:#090909; color:#f5f5f0; }
             </div>
         </section>
         <aside class="token-panel">
-            <h2>Current Rates</h2>
+            <h2>Token Rates</h2>
             <table class="token-table">
                 <tbody>
                     @foreach($rates as $rate)
