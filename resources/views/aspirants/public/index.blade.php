@@ -442,7 +442,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 18px;
 }
-.county-aspirant-grid .asp-card-photo { height: 210px; }
+.county-aspirant-grid .asp-card-photo { height: auto; }
 .county-aspirant-grid .asp-card-body { padding: 16px; }
 .county-aspirant-grid .asp-card-name { font-size: 20px; }
 .county-aspirant-grid .asp-card-action { padding: 10px 12px; }
@@ -464,7 +464,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* Photo area */
 .asp-card-photo {
-    position: relative; height: 180px; overflow: hidden;
+    position: relative; height: auto; aspect-ratio: 4 / 3; overflow: hidden;
 }
 .asp-card-photo img {
     width: 100%; height: 100%;
@@ -489,7 +489,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 /* Gradient overlay on photo */
 .asp-card-photo-overlay {
     position: absolute; inset: 0;
-    background: linear-gradient(to top, #141414 0%, rgba(20,20,20,0.3) 50%, transparent 100%);
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(20,20,20,.32) 0%, transparent 30%);
 }
 
 /* Position badge on photo */
@@ -528,6 +529,12 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     line-height: 1.1; margin-bottom: 4px;
     color: var(--kenya-white);
 }
+.asp-card-party {
+    display: flex; align-items: center; gap: 7px;
+    min-height: 20px; margin: 5px 0 7px;
+    color: var(--green-bright); font-size: 12px; font-weight: 700;
+}
+.asp-card-party i { font-size: 10px; opacity: .8; }
 .asp-card-nick {
     font-size: 13px; color: rgba(0,168,107,0.8);
     font-style: italic; margin-bottom: 10px;

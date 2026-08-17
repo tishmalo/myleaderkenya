@@ -2,7 +2,7 @@
     <div class="asp-card-photo">
         @if($candidate->profile_picture)
             <img src="{{ Storage::url($candidate->profile_picture) }}"
-                 alt="{{ $candidate->name }}" loading="lazy">
+                 alt="Portrait of {{ $candidate->name }}" loading="lazy" decoding="async">
         @else
             <div class="asp-card-photo-placeholder">
                 <span class="initials">
@@ -26,6 +26,11 @@
 
     <div class="asp-card-body">
         <div class="asp-card-name">{{ $candidate->name }}</div>
+
+        <div class="asp-card-party">
+            <i class="fas fa-landmark" aria-hidden="true"></i>
+            <span>{{ $candidate->politicalParty?->abbreviation ?: ($candidate->politicalParty?->name ?: 'Independent') }}</span>
+        </div>
 
         @if($candidate->nick_name)
             <div class="asp-card-nick">"{{ $candidate->nick_name }}"</div>
