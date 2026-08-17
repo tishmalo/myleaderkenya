@@ -37,6 +37,10 @@
                     <button type="button" data-candidate-tab-button="priorities" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
                         <i class="fas fa-bullseye mr-2"></i> Campaign Priorities
                     </button>
+                    <button type="button" data-candidate-tab-button="donations" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
+                        <i class="fas fa-hand-holding-heart mr-2"></i> Donations
+                        @if(($donationTotals['paid_count'] ?? 0) > 0)<span class="ml-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">{{ $donationTotals['paid_count'] }}</span>@endif
+                    </button>
                     @if($candidate->parliamentMember)
                     <button type="button" data-candidate-tab-button="parliament" class="candidate-tab-btn px-5 py-3 rounded-t-2xl text-sm font-semibold border border-b-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white">
                         <i class="fas fa-landmark-dome mr-2"></i> Parliamentary Data
@@ -181,6 +185,34 @@
                             <p class="rounded-2xl border border-dashed border-zinc-800 p-7 text-center text-zinc-500">This aspirant has not submitted campaign priorities.</p>
                         @endforelse
                     </div>
+                </div>
+            </section>
+            <section data-candidate-tab-panel="donations" class="hidden">
+                <div class="grid gap-4 md:grid-cols-4">
+                    <div class="rounded-2xl border border-zinc-800 bg-zinc-950 p-5"><span class="text-xs uppercase tracking-wide text-zinc-500">Paid donations</span><strong class="mt-2 block text-2xl text-white">{{ number_format($donationTotals['paid_count'] ?? 0) }}</strong></div>
+                    <div class="rounded-2xl border border-zinc-800 bg-zinc-950 p-5"><span class="text-xs uppercase tracking-wide text-zinc-500">Gross received</span><strong class="mt-2 block text-2xl text-white">KES {{ number_format($donationTotals['gross_total'] ?? 0, 2) }}</strong></div>
+                    <div class="rounded-2xl border border-zinc-800 bg-zinc-950 p-5"><span class="text-xs uppercase tracking-wide text-zinc-500">Platform fees</span><strong class="mt-2 block text-2xl text-amber-300">KES {{ number_format($donationTotals['platform_fee_total'] ?? 0, 2) }}</strong></div>
+                    <div class="rounded-2xl border border-zinc-800 bg-zinc-950 p-5"><span class="text-xs uppercase tracking-wide text-zinc-500">Aspirant amount</span><strong class="mt-2 block text-2xl text-emerald-300">KES {{ number_format($donationTotals['aspirant_total'] ?? 0, 2) }}</strong></div>
+                </div>
+                <div class="mt-6 overflow-x-auto rounded-2xl border border-zinc-800">
+                    <table class="min-w-[1050px] w-full text-left text-sm">
+                        <thead class="bg-zinc-950 text-xs uppercase tracking-wide text-zinc-500"><tr><th class="px-4 py-3">Supporter</th><th class="px-4 py-3">Paid</th><th class="px-4 py-3">Gross</th><th class="px-4 py-3">Platform fee</th><th class="px-4 py-3">Aspirant amount</th><th class="px-4 py-3">Reference</th><th class="px-4 py-3">Status</th></tr></thead>
+                        <tbody class="divide-y divide-zinc-800">
+                            @forelse($donations as $donation)
+                                <tr class="text-zinc-300">
+                                    <td class="px-4 py-4"><strong class="text-white">{{ $donation->supporter_name ?: $donation->user?->name ?: 'Unknown supporter' }}</strong><div class="mt-1 text-xs text-zinc-500">{{ $donation->supporter_email }}</div>@if($donation->message)<div class="mt-2 max-w-xs text-xs text-zinc-400">{{ $donation->message }}</div>@endif</td>
+                                    <td class="whitespace-nowrap px-4 py-4">{{ ($donation->paid_at ?: $donation->created_at)?->timezone('Africa/Nairobi')->format('d M Y, H:i') }}</td>
+                                    <td class="whitespace-nowrap px-4 py-4">{{ $donation->currency }} {{ number_format($donation->gross_amount, 2) }}</td>
+                                    <td class="whitespace-nowrap px-4 py-4">{{ $donation->currency }} {{ number_format($donation->platform_fee_amount, 2) }} <span class="text-xs text-zinc-500">({{ number_format($donation->platform_fee_rate, 2) }}%)</span></td>
+                                    <td class="whitespace-nowrap px-4 py-4 text-emerald-300">{{ $donation->currency }} {{ number_format($donation->aspirant_amount, 2) }}</td>
+                                    <td class="px-4 py-4 text-xs text-zinc-400">{{ $donation->payment_reference ?: $donation->checkout_reference }}</td>
+                                    <td class="px-4 py-4"><span class="rounded-full px-3 py-1 text-xs font-bold uppercase {{ $donation->status === 'paid' ? 'bg-emerald-500/10 text-emerald-300' : ($donation->status === 'failed' ? 'bg-red-500/10 text-red-300' : 'bg-amber-500/10 text-amber-300') }}">{{ $donation->status }}</span></td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="7" class="px-5 py-12 text-center text-zinc-500">No donation records have been received for this aspirant.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </section>
             @if($candidate->parliamentMember)

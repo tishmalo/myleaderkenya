@@ -85,7 +85,11 @@ class CandidateController extends Controller
     {
         $candidate->load(['campaignPriorities.category', 'parliamentMember']);
 
-        return view('candidates.edit', array_merge($this->candidateService->getFormData(), compact('candidate')));
+        return view('candidates.edit', array_merge(
+            $this->candidateService->getFormData(),
+            $this->candidateService->getAdminDonationData($candidate),
+            compact('candidate')
+        ));
     }
 
     public function update(CandidateUpdateRequest $request, Candidate $candidate)
@@ -108,6 +112,7 @@ class CandidateController extends Controller
             'profile-support',
             'tools',
             'priorities',
+            'donations',
             'parliament',
         ], true) ? $request->input('active_tab') : 'profile-basic';
 

@@ -135,6 +135,11 @@ class Candidate extends Model implements AuditableContract
             ->oldestOfMany('id');
     }
 
+    public function supportPayments(): HasMany
+    {
+        return $this->hasMany(AspirantSupportPayment::class);
+    }
+
     public function getRouteKey()
     {
         return $this->slug ?: $this->getKey();

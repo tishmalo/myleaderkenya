@@ -14,6 +14,8 @@ interface AspirantSupportRepositoryInterface
     public function update(AspirantSupportPayment $support, array $data): bool;
     public function forSupporter(User $user, int $limit = 30): Collection;
     public function forCandidate(int $candidateId, int $limit = 50): Collection;
+    public function forCandidateAdmin(int $candidateId, int $limit = 100): Collection;
+    public function adminTotalsForCandidate(int $candidateId): array;
     public function paidTotalForCandidate(int $candidateId): float;
     public function findForCandidate(int $supportId, int $candidateId): AspirantSupportPayment;
 }

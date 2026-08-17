@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
+use App\Contracts\Repositories\Web\AspirantSupportRepositoryInterface;
 use App\Models\Bloc;
 use App\Models\Candidate;
 use App\Models\SupportGroupType;
@@ -23,7 +24,8 @@ class CandidateService
     public function __construct(
         private CandidateRepositoryInterface $candidateRepository,
         private CandidateSmsSettingRepositoryInterface $smsSettingRepository,
-        private SettingService $settingService
+        private SettingService $settingService,
+        private AspirantSupportRepositoryInterface $aspirantSupports
     ) {}
 
     // -------------------------------------------------------------------------
@@ -40,6 +42,14 @@ class CandidateService
         $perPage = min(max($perPage, 1), 50);
 
         return $this->candidateRepository->paginateApprovedForApi($filters, $perPage);
+    }
+
+    public function getAdminDonationData(Candidate $candidate): array
+    {
+        return [
+            'donations' => $this->aspirantSupports->forCandidateAdmin((int) $candidate->id),
+            'donationTotals' => $this->aspirantSupports->adminTotalsForCandidate((int) $candidate->id),
+        ];
     }
 
     public function createCandidate(array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): Candidate

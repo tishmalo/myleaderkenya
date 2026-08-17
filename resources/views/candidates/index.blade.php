@@ -104,6 +104,9 @@
                             <div>
                                 <p class="font-medium text-white">{{ $candidate->name }}</p>
                                 <p class="text-sm text-zinc-500">{{ $candidate->nick_name ?? '-' }}</p>
+                                @if(($candidate->paid_support_count ?? 0) > 0)
+                                    <p class="mt-1 text-xs font-semibold text-emerald-400">Donations: KES {{ number_format((float) $candidate->paid_support_gross_sum, 2) }}</p>
+                                @endif
                             </div>
                         </div>
                     </td>
