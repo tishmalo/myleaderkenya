@@ -4,18 +4,21 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\SelectAspirantWorkspaceRequest;
+use App\Http\Requests\Web\ViewMyAccountRequest;
 use App\Services\Web\MyAccountService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MyAccountController extends Controller
 {
     public function __construct(private MyAccountService $accounts) {}
 
-    public function index(Request $request): View|RedirectResponse
+    public function index(ViewMyAccountRequest $request): View|RedirectResponse
     {
-        if ($this->accounts->selectDirectAspirantCandidate($request->user())) {
+        if ($this->accounts->shouldOpenDirectAspirantDashboard(
+            $request->user(),
+            $request->explicitlyRequestsAccount(),
+        )) {
             return redirect()->route('aspirant.dashboard');
         }
 
