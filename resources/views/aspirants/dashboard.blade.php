@@ -645,8 +645,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     links.forEach((link) => {
         link.addEventListener('click', (event) => {
-            event.preventDefault();
             const sectionName = link.dataset.dashboardSectionLink;
+            const target = sections.find((section) => section.dataset.dashboardSection === sectionName);
+
+            // If this markup is ever reused without the matching dashboard
+            // section, preserve ordinary link navigation instead of trapping
+            // the user on the current page.
+            if (!target) return;
+
+            event.preventDefault();
             history.replaceState(null, '', `#${sectionName}`);
             showSection(sectionName);
         });

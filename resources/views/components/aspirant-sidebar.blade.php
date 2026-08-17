@@ -6,8 +6,16 @@
 
     $sidebar = config('aspirant-sidebar', []);
     $items = $sidebar['items'] ?? [];
+    $isDashboard = request()->routeIs('aspirant.dashboard');
 
     $itemHref = function (array $item): string {
+        // Dashboard sections must always use an absolute dashboard URL. This
+        // deliberately does not depend on refreshed config cache, because a
+        // stale cached href such as "#analytics" would target the current page.
+        if (! empty($item['section']) && Route::has('aspirant.dashboard')) {
+            return route('aspirant.dashboard').'#'.ltrim($item['section'], '#');
+        }
+
         if (! empty($item['route']) && Route::has($item['route'])) {
             $url = route($item['route'], $item['params'] ?? []);
 
@@ -63,7 +71,7 @@
             <a
                 href="{{ $href }}"
                 class="asp-sidebar-link {{ $active ? 'active' : '' }}"
-                @if(! empty($item['section'])) data-dashboard-section-link="{{ $item['section'] }}" @endif
+                @if($isDashboard && ! empty($item['section'])) data-dashboard-section-link="{{ $item['section'] }}" @endif
             >
                 <i class="{{ $item['icon'] ?? 'fas fa-circle' }}"></i>
                 <span>{{ $item['label'] }}</span>
