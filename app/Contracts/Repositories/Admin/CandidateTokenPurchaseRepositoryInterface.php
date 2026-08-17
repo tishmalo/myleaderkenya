@@ -9,6 +9,10 @@ interface CandidateTokenPurchaseRepositoryInterface
 {
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
+    public function paginateKittyPurchases(array $filters = [], int $perPage = 15): LengthAwarePaginator;
+
+    public function paginateAspirantDonations(array $filters = [], int $perPage = 15): LengthAwarePaginator;
+
     public function create(array $data): CandidateTokenPurchase;
 
     public function findByCheckoutReference(string $reference): ?CandidateTokenPurchase;

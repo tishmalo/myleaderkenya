@@ -54,7 +54,7 @@ return [
                     ['label' => 'Token Packages', 'route' => 'candidate-token-packages.index', 'icon' => 'fas fa-box', 'active' => ['candidate-token-packages.*'], 'permission' => 'tokens.view'],
                     ['label' => 'Kitty Types', 'route' => 'kitty-types.index', 'icon' => 'fas fa-piggy-bank', 'active' => ['kitty-types.*'], 'permission' => 'tokens.view'],
                     ['label' => 'Token Rates', 'route' => 'candidate-token-rates.index', 'icon' => 'fas fa-sliders', 'active' => ['candidate-token-rates.*'], 'permission' => 'tokens.view'],
-                    ['label' => 'Token Purchases', 'route' => 'candidate-token-purchases.index', 'icon' => 'fas fa-receipt', 'active' => ['candidate-token-purchases.*'], 'permission' => 'tokens.view'],
+                    ['label' => 'Payment Transactions', 'route' => 'candidate-token-purchases.index', 'icon' => 'fas fa-receipt', 'active' => ['candidate-token-purchases.*'], 'permission' => 'tokens.view'],
                     ['label' => 'Token Ledger', 'route' => 'candidate-token-ledger.index', 'icon' => 'fas fa-list', 'active' => ['candidate-token-ledger.*'], 'permission' => 'tokens.view'],
                 ],
             ],
