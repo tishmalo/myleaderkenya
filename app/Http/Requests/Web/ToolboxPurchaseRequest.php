@@ -13,6 +13,7 @@ class ToolboxPurchaseRequest extends FormRequest
     {
         return [
             'candidate_token_package_id' => ['required', 'integer', 'exists:candidate_token_packages,id'],
+            'checkout_key' => ['required', 'uuid'],
             'name' => ['required', 'string', 'max:120'],
             'phone' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'max:255'],

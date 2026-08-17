@@ -41,7 +41,8 @@ class DonorToolboxService
     {
         $this->ipay->assertConfigured();
         $kittyType = $this->kittyTypes->findActive((int) $contact['kitty_type_id']);
-        $purchase = $this->tokens->createPurchase([
+        $reference = $this->idempotentReference($user, $contact['checkout_key'], $package->id, $kittyType->id);
+        $purchase = $this->tokens->firstOrCreatePurchase($reference, [
             'user_id' => $user->id,
             'purchaser_name' => $contact['name'],
             'objective' => 'my_kitty',
@@ -49,13 +50,19 @@ class DonorToolboxService
             'kitty_type_id' => $kittyType->id,
             'candidate_token_package_id' => $package->id,
             'provider' => 'ipay',
-            'checkout_reference' => $this->uniqueReference(),
+            'checkout_reference' => $reference,
             'package_name' => $package->name,
             'token_amount' => $package->token_amount,
             'price' => $package->price,
             'currency' => $package->currency,
             'status' => 'pending',
         ]);
+
+        if ($purchase->status !== 'pending') {
+            throw ValidationException::withMessages([
+                'payment' => 'This checkout has already been processed. Refresh the page to start another purchase.',
+            ]);
+        }
         return $this->ipay->userCheckoutUrl($purchase, $user, $package, $contact);
     }
 
@@ -151,5 +158,12 @@ class DonorToolboxService
     {
         do { $reference='BOX'.now()->format('ymdHis').Str::upper(Str::random(8)); } while ($this->tokens->findPurchaseByReference($reference));
         return substr($reference,0,30);
+    }
+
+    private function idempotentReference(User $user, string $checkoutKey, int $packageId, int $kittyTypeId): string
+    {
+        $fingerprint = implode('|', [$user->id, $checkoutKey, $packageId, $kittyTypeId, 'my_kitty']);
+
+        return 'BOX'.substr(hash('sha256', $fingerprint), 0, 27);
     }
 }

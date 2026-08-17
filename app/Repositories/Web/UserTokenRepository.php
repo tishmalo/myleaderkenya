@@ -26,12 +26,26 @@ class UserTokenRepository implements UserTokenRepositoryInterface
     }
 
     public function createPurchase(array $data): UserTokenPurchase { return UserTokenPurchase::create($data); }
+    public function firstOrCreatePurchase(string $reference, array $data): UserTokenPurchase
+    {
+        return UserTokenPurchase::firstOrCreate(['checkout_reference' => $reference], $data);
+    }
     public function findPurchaseByReference(string $reference): ?UserTokenPurchase { return UserTokenPurchase::where('checkout_reference', $reference)->first(); }
     public function lockedPurchaseByReference(string $reference): ?UserTokenPurchase { return UserTokenPurchase::where('checkout_reference', $reference)->lockForUpdate()->first(); }
     public function updatePurchase(UserTokenPurchase $purchase, array $data): bool { return $purchase->update($data); }
     public function createTransaction(array $data): UserTokenTransaction { return UserTokenTransaction::create($data); }
     public function transactions(User $user, int $limit = 30): Collection { return UserTokenTransaction::with('candidate:id,name')->where('user_id', $user->id)->latest()->limit($limit)->get(); }
-    public function purchases(User $user, int $limit = 10): Collection { return UserTokenPurchase::where('user_id', $user->id)->latest()->limit($limit)->get(); }
+    public function purchases(User $user, int $limit = 10): Collection
+    {
+        return UserTokenPurchase::where('user_id', $user->id)
+            ->where(function ($query): void {
+                $query->where('status', '!=', 'pending')
+                    ->orWhere('created_at', '>=', now()->subHour());
+            })
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
     public function adoptionRequests(User $user): Collection
     {
         return CampaignToolRequest::with([

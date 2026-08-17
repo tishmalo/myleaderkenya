@@ -16,6 +16,7 @@ interface UserTokenRepositoryInterface
     public function wallet(User $user): UserTokenWallet;
     public function lockedWallet(int $userId): UserTokenWallet;
     public function createPurchase(array $data): UserTokenPurchase;
+    public function firstOrCreatePurchase(string $reference, array $data): UserTokenPurchase;
     public function findPurchaseByReference(string $reference): ?UserTokenPurchase;
     public function lockedPurchaseByReference(string $reference): ?UserTokenPurchase;
     public function updatePurchase(UserTokenPurchase $purchase, array $data): bool;
