@@ -129,6 +129,9 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
 
+    // Legacy alias so the old /events/create admin URL keeps working.
+    Route::get('/events/create', fn () => redirect()->route('events.create'));
+
     Route::get('/events', [WebEventController::class, 'index'])->name('events.public');
     Route::get('/events/{slug}', [WebEventController::class, 'show'])->name('events.show');
     Route::post('/events/{slug}/register', [WebEventController::class, 'register'])->middleware('throttle:6,10')->name('events.register');
