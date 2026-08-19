@@ -9,13 +9,13 @@ use Illuminate\Mail\Mailables\Envelope;
 class TestNotificationMail extends Mailable
 {
     public function __construct(
-        public string $subject,
+        public string $emailSubject,
         public string $body
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->subject);
+        return new Envelope(subject: $this->emailSubject);
     }
 
     public function content(): Content
