@@ -56,6 +56,16 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 }
 .meta-item i { font-size: 16px; color: var(--green-bright); }
 
+.event-poster-large {
+    width: 100%; max-height: 460px; object-fit: cover;
+    border-radius: 20px; margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: #111;
+}
+.event-video {
+    width: 100%; aspect-ratio: 16 / 9; border-radius: 20px; margin-top: 32px;
+    border: none; background: #111; display: block;
+}
 .event-description-text {
     font-size: 16px; line-height: 1.75;
     color: rgba(245,245,240,0.6);
@@ -170,6 +180,9 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     <div class="details-grid">
         <!-- LEFT: EVENT DESCRIPTION -->
         <div class="event-info-panel">
+            @if($event->poster)
+                <img src="{{ asset('storage/' . $event->poster) }}" alt="{{ $event->title }}" class="event-poster-large">
+            @endif
             <h1>{{ $event->title }}</h1>
             
             <div class="event-meta-strip">
@@ -185,6 +198,13 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 
             <div class="event-description-text">
                 {!! nl2br(e($event->description)) !!}
+
+                @if($event->promo_video_embed_url)
+                    <iframe class="event-video" src="{{ $event->promo_video_embed_url }}"
+                            title="{{ $event->title }} promo video"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen></iframe>
+                @endif
             </div>
         </div>
 

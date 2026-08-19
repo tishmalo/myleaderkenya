@@ -99,6 +99,15 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     box-shadow: 0 24px 60px rgba(0,0,0,0.6);
 }
 
+.event-poster-link { display: block; }
+.event-poster {
+    display: block; width: 100%; height: 220px; object-fit: cover;
+    background: #111;
+}
+.past-event-thumb {
+    width: 100%; height: 140px; object-fit: cover;
+    border-radius: 12px; margin-bottom: 14px; background: #0d0d0d;
+}
 .event-card-header {
     padding: 24px 28px 12px;
     position: relative;
@@ -217,6 +226,11 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     <div class="events-grid">
         @forelse($upcomingEvents as $event)
             <div class="event-card">
+                @if($event->poster)
+                    <a href="{{ route('events.show', $event->slug) }}" class="event-poster-link" aria-label="{{ $event->title }}">
+                        <img src="{{ asset('storage/' . $event->poster) }}" alt="{{ $event->title }}" class="event-poster">
+                    </a>
+                @endif
                 <div class="event-card-header">
                     <span class="event-badge">Upcoming</span>
                     <div class="event-date">
@@ -262,6 +276,9 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <div class="past-events-list">
             @foreach($pastEvents as $event)
                 <div class="past-event-card">
+                    @if($event->poster)
+                        <img src="{{ asset('storage/' . $event->poster) }}" alt="{{ $event->title }}" class="past-event-thumb">
+                    @endif
                     <div class="flex justify-between items-start mb-2">
                         <span class="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Concluded</span>
                         <span class="text-xs text-zinc-400 font-mono">{{ $event->date->format('M d, Y') }}</span>
