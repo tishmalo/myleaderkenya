@@ -114,7 +114,7 @@
                             <form method="POST" action="{{ route('events.registrations.resend', ['event' => $event->id, 'registration' => $reg->id]) }}" class="mt-3">
                                 @csrf
                                 <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">
-                                    <i class="fas fa-paper-plane mr-1"></i> Send link
+                                    <i class="fas fa-paper-plane mr-1"></i> Resend Ticket Email
                                 </button>
                             </form>
                         @endif
