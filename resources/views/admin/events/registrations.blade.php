@@ -30,11 +30,12 @@
                     <th class="px-6 py-4 text-center">Reference Codes</th>
                     <th class="px-6 py-4 text-center">Amount</th>
                     <th class="px-6 py-4 text-center">Payment Status</th>
+                    <th class="px-6 py-4 text-center">Tickets / Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-800 text-zinc-300">
                 @forelse($registrations as $reg)
-                <tr class="hover:bg-zinc-800/70">
+                <tr class="hover:bg-zinc-800/70 align-top">
                     <td class="px-6 py-4">
                         <div>
                             <p class="font-medium text-white">{{ $reg->name }}</p>
@@ -63,6 +64,9 @@
                     </td>
                     <td class="px-6 py-4 text-center font-semibold text-white">
                         KES {{ number_format($reg->amount, 2) }}
+                        @if($reg->quantity > 1)
+                            <span class="block text-xs font-normal text-zinc-500">× {{ $reg->quantity }} seats</span>
+                        @endif
                     </td>
                     <td class="px-6 py-4 text-center">
                         @if($reg->payment_status === 'success')
@@ -73,9 +77,42 @@
                             <span class="px-3 py-1 text-xs font-medium rounded-full bg-orange-500/20 text-orange-400">Pending</span>
                         @endif
                     </td>
+                    <td class="px-6 py-4">
+                        @if($reg->tickets->isEmpty())
+                            <span class="text-xs text-zinc-500">No tickets issued yet.</span>
+                        @else
+                            <div class="space-y-2">
+                                @foreach($reg->tickets as $ticket)
+                                    <div class="flex items-center justify-between gap-2 text-xs">
+                                        <div>
+                                            <span class="text-zinc-200">{{ $ticket->attendee_name }}</span>
+                                            <span class="block font-mono text-zinc-500">{{ $ticket->code }}</span>
+                                        </div>
+                                        <form method="POST" action="{{ route('events.tickets.checkin', ['event' => $event->id, 'registration' => $reg->id, 'ticket' => $ticket->id]) }}">
+                                            @csrf
+                                            @if($ticket->isCheckedIn())
+                                                <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-semibold">✓ Checked in</button>
+                                            @else
+                                                <button type="submit" class="px-2 py-1 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs font-semibold hover:border-emerald-500">Check in</button>
+                                            @endif
+                                        </form>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @if($reg->payment_status === 'success')
+                            <form method="POST" action="{{ route('events.registrations.resend', ['event' => $event->id, 'registration' => $reg->id]) }}" class="mt-3">
+                                @csrf
+                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs font-semibold hover:border-emerald-500">
+                                    <i class="fas fa-envelope mr-1"></i> Resend email
+                                </button>
+                            </form>
+                        @endif
+                    </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="text-center py-16 text-zinc-500">No registrations found for this event.</td></tr>
+                <tr><td colspan="8" class="text-center py-16 text-zinc-500">No registrations found for this event.</td></tr>
                 @endforelse
             </tbody>
         </table>

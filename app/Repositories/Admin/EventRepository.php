@@ -33,6 +33,7 @@ class EventRepository implements EventRepositoryInterface
     public function paginateRegistrations(Event $event, int $perPage = 20): LengthAwarePaginator
     {
         return $event->registrations()
+            ->with('tickets')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }

@@ -270,12 +270,27 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
                             </select>
                         </div>
 
+                        <div class="form-group">
+                            <label for="quantity">Number of Seats</label>
+                            <select id="quantity" name="quantity" required class="form-input">
+                                @for($i = 1; $i <= 10; $i++)
+                                    <option value="{{ $i }}" {{ old('quantity') == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+
+                        <div id="attendee-names" class="form-group" style="display: none;">
+                            <label>Attendee Names (optional)</label>
+                            <div id="attendee-names-list" class="space-y-3"></div>
+                            <span class="form-helper">Leave blank to use "Guest 2, Guest 3...".</span>
+                        </div>
+
                         <button type="submit" class="submit-btn">
                             Proceed to Pay &amp; Register &nbsp;<i class="fas fa-external-link-alt text-xs opacity-80"></i>
                         </button>
 
                         <p class="payment-notice">
-                            You will be redirected to the secure iPay gateway to complete your payment of KES {{ number_format($event->price) }}.
+                            You will be redirected to the secure iPay gateway to complete your payment of <strong>KES <span id="total-amount">{{ number_format($event->price) }}</span></strong>.
                         </p>
                     </form>
                 </div>
@@ -284,4 +299,38 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     </div>
 </div>
 
+<script>
+    const eventPrice = {{ $event->price }};
+    const quantity = document.getElementById('quantity');
+    const total = document.getElementById('total-amount');
+    const namesWrap = document.getElementById('attendee-names');
+    const namesList = document.getElementById('attendee-names-list');
+
+    function renderTotal() {
+        const qty = parseInt(quantity.value, 10) || 1;
+        total.textContent = new Intl.NumberFormat('en-KE').format(eventPrice * qty);
+    }
+
+    function renderAttendees() {
+        const qty = parseInt(quantity.value, 10) || 1;
+        namesWrap.style.display = qty > 1 ? '' : 'none';
+        namesList.innerHTML = '';
+        for (let i = 2; i <= qty; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'attendee_names[]';
+            input.className = 'form-input';
+            input.placeholder = 'Attendee ' + i + ' name';
+            namesList.appendChild(input);
+        }
+    }
+
+    quantity.addEventListener('change', function () {
+        renderTotal();
+        renderAttendees();
+    });
+
+    renderTotal();
+    renderAttendees();
+</script>
 @endsection

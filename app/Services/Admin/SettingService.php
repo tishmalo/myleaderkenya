@@ -98,6 +98,11 @@ class SettingService
         ],
     ];
 
+    public const TICKET_EMAIL_DEFAULTS = [
+        'subject' => 'Your ticket for {event_title}',
+        'body' => "<p>Hi {attendee_name},</p>\n<p>Your registration for <strong>{event_title}</strong> is confirmed.</p>\n<p><strong>Date:</strong> {event_date}<br><strong>Location:</strong> {event_location}</p>\n<p>Find your ticket(s) below and present them at the entrance.</p>",
+    ];
+
     public function getDonateSettings(): array
     {
         $donateWhyText = $this->settingRepository->firstOrCreate(
@@ -125,6 +130,28 @@ class SettingService
         if (isset($data['donation_whatsapp_link'])) {
             $this->settingRepository->updateOrCreate('donation_whatsapp_link', $data['donation_whatsapp_link']);
         }
+    }
+
+    public function getEventTicketEmailTemplate(): array
+    {
+        $stored = $this->settingRepository->firstOrCreate(
+            'event_ticket_email',
+            json_encode(self::TICKET_EMAIL_DEFAULTS)
+        );
+
+        $data = json_decode($stored, true);
+
+        return array_merge(self::TICKET_EMAIL_DEFAULTS, is_array($data) ? $data : []);
+    }
+
+    public function updateEventTicketEmailTemplate(array $data): void
+    {
+        $payload = array_merge(
+            self::TICKET_EMAIL_DEFAULTS,
+            Arr::only($data, ['subject', 'body'])
+        );
+
+        $this->settingRepository->updateOrCreate('event_ticket_email', json_encode($payload));
     }
 
     public function getFrontendPageDefinitions(): array

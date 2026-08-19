@@ -6,11 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreEventRequest;
 use App\Http\Requests\Admin\UpdateEventRequest;
 use App\Models\Event;
+use App\Models\EventRegistration;
+use App\Models\EventTicket;
 use App\Services\Admin\EventService;
+use App\Services\Web\EventRegistrationService;
+use Illuminate\Http\RedirectResponse;
 
 class EventController extends Controller
 {
-    public function __construct(private EventService $events) {}
+    public function __construct(
+        private EventService $events,
+        private EventRegistrationService $registrations
+    ) {}
 
     public function index()
     {
@@ -61,5 +68,21 @@ class EventController extends Controller
             'event' => $event,
             'registrations' => $this->events->paginateRegistrations($event),
         ]);
+    }
+
+    public function resendTicketEmail(Event $event, EventRegistration $registration): RedirectResponse
+    {
+        $this->registrations->sendTicketEmail($registration);
+
+        return redirect()->back()
+            ->with('success', 'Ticket email re-sent to ' . $registration->email . '.');
+    }
+
+    public function checkInTicket(Event $event, EventRegistration $registration, EventTicket $ticket): RedirectResponse
+    {
+        $checkedIn = $this->registrations->toggleCheckIn($ticket);
+
+        return redirect()->back()
+            ->with('success', $checkedIn ? 'Ticket marked as attended.' : 'Check-in reverted.');
     }
 }

@@ -135,6 +135,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/events', [WebEventController::class, 'index'])->name('events.public');
     Route::get('/events/{slug}', [WebEventController::class, 'show'])->name('events.show');
     Route::post('/events/{slug}/register', [WebEventController::class, 'register'])->middleware('throttle:6,10')->name('events.register');
+    Route::get('/events/tickets/{code}', [WebEventController::class, 'ticket'])->name('events.ticket');
 
     Route::get('/aspirants/search', [AspirantRegistrationController::class, 'search'])
         ->middleware(['throttle:30,1', 'cache.headers:no_store;private'])
@@ -286,8 +287,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
         Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
 
+        Route::get('/admin/events/settings/email-template', [\App\Http\Controllers\Admin\SettingController::class, 'eventTicketEmail'])->middleware('permission:frontend.view')->name('events.email-template');
+        Route::post('/admin/events/settings/email-template', [\App\Http\Controllers\Admin\SettingController::class, 'updateEventTicketEmail'])->middleware('permission:frontend.update')->name('events.email-template.update');
         Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
         Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
+        Route::post('/admin/events/{event}/registrations/{registration}/resend', [AdminEventController::class, 'resendTicketEmail'])->middleware('permission:frontend.view')->name('events.registrations.resend');
+        Route::post('/admin/events/{event}/registrations/{registration}/tickets/{ticket}/check-in', [AdminEventController::class, 'checkInTicket'])->middleware('permission:frontend.view')->name('events.tickets.checkin');
 
         Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show'])->middleware('permission:tokens.view');
         Route::resource('candidate-token-rates', CandidateTokenRateController::class)->except(['show'])->middleware('permission:tokens.view');
