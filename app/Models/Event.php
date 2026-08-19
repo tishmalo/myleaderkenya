@@ -10,6 +10,8 @@ class Event extends Model
         'title',
         'slug',
         'description',
+        'poster',
+        'promo_video',
         'date',
         'location',
         'price',

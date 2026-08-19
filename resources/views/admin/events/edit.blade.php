@@ -22,7 +22,7 @@
     @endif
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-        <form method="POST" action="{{ route('events.update', $event) }}" class="space-y-6">
+        <form method="POST" action="{{ route('events.update', $event) }}" enctype="multipart/form-data" class="space-y-6">
             @csrf
             @method('PUT')
 
@@ -36,6 +36,29 @@
                 <label for="description" class="text-sm font-medium text-zinc-300">Description</label>
                 <textarea id="description" name="description" rows="5" required placeholder="Describe the event, agenda, and speakers..."
                           class="bg-zinc-855 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-emerald-500 bg-zinc-800">{{ old('description', $event->description) }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex flex-col gap-2">
+                    <label for="poster" class="text-sm font-medium text-zinc-300">Event Poster / Image</label>
+                    @if($event->poster)
+                        <img src="{{ asset('storage/' . $event->poster) }}" alt="Current event poster"
+                             class="w-full max-w-xs aspect-video object-cover rounded-2xl border border-zinc-700">
+                    @endif
+                    <input type="file" id="poster" name="poster" accept="image/*"
+                           class="block w-full text-sm text-zinc-400 file:mr-4 file:rounded-2xl file:border-0 file:bg-emerald-600 file:px-5 file:py-3 file:text-sm file:font-medium file:text-white hover:file:bg-emerald-700 bg-zinc-800 border border-zinc-700 rounded-2xl">
+                    <p class="text-xs text-zinc-500">Optional. JPG, PNG, WEBP or GIF (max 5MB).</p>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="promo_video" class="text-sm font-medium text-zinc-300">Event Promo Video</label>
+                    @if($event->promo_video)
+                        <p class="text-xs text-zinc-400">Current video: <span class="text-emerald-400">{{ basename($event->promo_video) }}</span></p>
+                    @endif
+                    <input type="file" id="promo_video" name="promo_video" accept="video/*"
+                           class="block w-full text-sm text-zinc-400 file:mr-4 file:rounded-2xl file:border-0 file:bg-emerald-600 file:px-5 file:py-3 file:text-sm file:font-medium file:text-white hover:file:bg-emerald-700 bg-zinc-800 border border-zinc-700 rounded-2xl">
+                    <p class="text-xs text-zinc-500">Optional. MP4, MOV, WEBM (max 200MB).</p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
