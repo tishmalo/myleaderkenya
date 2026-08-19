@@ -292,6 +292,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
         Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
         Route::post('/admin/events/{event}/registrations/{registration}/resend', [AdminEventController::class, 'resendTicketEmail'])->middleware('permission:frontend.view')->name('events.registrations.resend');
+        Route::post('/admin/events/{event}/registrations/{registration}/tickets/generate', [AdminEventController::class, 'generateTickets'])->middleware('permission:frontend.view')->name('events.registrations.tickets.generate');
         Route::post('/admin/events/{event}/registrations/{registration}/tickets/{ticket}/check-in', [AdminEventController::class, 'checkInTicket'])->middleware('permission:frontend.view')->name('events.tickets.checkin');
 
         Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show'])->middleware('permission:tokens.view');

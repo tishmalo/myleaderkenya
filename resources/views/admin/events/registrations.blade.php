@@ -79,7 +79,16 @@
                     </td>
                     <td class="px-6 py-4">
                         @if($reg->tickets->isEmpty())
-                            <span class="text-xs text-zinc-500">No tickets issued yet.</span>
+                            @if($reg->payment_status === 'success')
+                                <form method="POST" action="{{ route('events.registrations.tickets.generate', ['event' => $event->id, 'registration' => $reg->id]) }}">
+                                    @csrf
+                                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">
+                                        <i class="fas fa-ticket-alt mr-1"></i> Generate tickets
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-xs text-zinc-500">No tickets issued yet.</span>
+                            @endif
                         @else
                             <div class="space-y-2">
                                 @foreach($reg->tickets as $ticket)

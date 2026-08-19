@@ -77,8 +77,16 @@ class EventRegistrationService
         }
     }
 
+    public function ensureTickets(EventRegistration $registration): void
+    {
+        if ($registration->payment_status === 'success') {
+            $this->issueTickets($registration);
+        }
+    }
+
     public function sendTicketEmail(EventRegistration $registration): void
     {
+        $this->ensureTickets($registration);
         $registration->loadMissing('tickets', 'event');
 
         Mail::to($registration->email)

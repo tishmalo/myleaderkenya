@@ -78,6 +78,14 @@ class EventController extends Controller
             ->with('success', 'Ticket email re-sent to ' . $registration->email . '.');
     }
 
+    public function generateTickets(Event $event, EventRegistration $registration): RedirectResponse
+    {
+        $this->registrations->ensureTickets($registration);
+
+        return redirect()->back()
+            ->with('success', 'Tickets generated for ' . $registration->name . '.');
+    }
+
     public function checkInTicket(Event $event, EventRegistration $registration, EventTicket $ticket): RedirectResponse
     {
         $checkedIn = $this->registrations->toggleCheckIn($ticket);
