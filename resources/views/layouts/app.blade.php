@@ -169,5 +169,50 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 @stack('scripts')
+
+{{-- Flash Toast Notifications --}}
+<div id="toastContainer" class="fixed bottom-6 right-4 z-[99999] flex flex-col gap-3 w-full max-w-sm px-4 sm:px-0 pointer-events-none"></div>
+
+<script>
+(function () {
+    const toasts = [
+        @if(session('success'))
+            { type: 'success', message: @json(session('success')) },
+        @endif
+        @if(session('warning'))
+            { type: 'warning', message: @json(session('warning')) },
+        @endif
+        @if(session('error'))
+            { type: 'error', message: @json(session('error')) },
+        @endif
+    ];
+
+    const icons = {
+        success: '<i class="fas fa-check-circle text-emerald-400 text-lg shrink-0"></i>',
+        warning: '<i class="fas fa-exclamation-triangle text-amber-400 text-lg shrink-0"></i>',
+        error:   '<i class="fas fa-times-circle text-red-400 text-lg shrink-0"></i>',
+    };
+    const borders = {
+        success: 'border-emerald-500/40',
+        warning: 'border-amber-500/40',
+        error:   'border-red-500/40',
+    };
+
+    function showToast({ type, message }) {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'pointer-events-auto flex items-start gap-3 bg-zinc-900 border ' + (borders[type] ?? 'border-zinc-700') + ' rounded-2xl px-4 py-3 shadow-2xl text-sm text-zinc-200 opacity-0 translate-y-4 transition-all duration-300';
+        el.innerHTML = (icons[type] ?? '') + '<span class="flex-1 leading-snug">' + message + '</span><button class="ml-1 text-zinc-500 hover:text-zinc-300 shrink-0 transition" onclick="this.closest(\'div\').remove()"><i class="fas fa-times"></i></button>';
+        container.appendChild(el);
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('opacity-0', 'translate-y-4')));
+        setTimeout(() => {
+            el.classList.add('opacity-0', 'translate-y-4');
+            setTimeout(() => el.remove(), 300);
+        }, 5000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => toasts.forEach(showToast));
+})();
+</script>
 </body>
 </html>

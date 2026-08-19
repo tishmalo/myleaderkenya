@@ -72,10 +72,15 @@ class EventController extends Controller
 
     public function resendTicketEmail(Event $event, EventRegistration $registration): RedirectResponse
     {
-        $this->registrations->sendTicketEmail($registration);
+        try {
+            $this->registrations->sendTicketEmail($registration);
 
-        return redirect()->back()
-            ->with('success', 'Ticket email re-sent to ' . $registration->email . '.');
+            return redirect()->back()
+                ->with('success', 'Ticket email re-sent to ' . $registration->email . '.');
+        } catch (\Throwable $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to send email: ' . $e->getMessage());
+        }
     }
 
     public function generateTickets(Event $event, EventRegistration $registration): RedirectResponse
