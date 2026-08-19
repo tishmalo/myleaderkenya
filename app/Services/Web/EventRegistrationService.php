@@ -8,6 +8,7 @@ use App\Models\EventRegistration;
 use App\Models\EventTicket;
 use App\Services\Admin\SettingService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -95,8 +96,16 @@ class EventRegistrationService
         $this->ensureTickets($registration);
         $registration->loadMissing('tickets', 'event');
 
-        Mail::to($registration->email)
-            ->queue(new EventTicketMail($registration, $template));
+        try {
+            Mail::to($registration->email)
+                ->send(new EventTicketMail($registration, $template));
+        } catch (\Throwable $e) {
+            Log::error('EventTicketMail failed', [
+                'registration_id' => $registration->id,
+                'email' => $registration->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function toggleCheckIn(EventTicket $ticket): bool
