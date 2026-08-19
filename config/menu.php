@@ -3,7 +3,7 @@
 return [
     'frontend' => [
         [
-            'label' => 'About Us',
+            'label' => 'About',
             'route' => 'about.public',
             'active' => ['about.public'],
         ],
@@ -33,7 +33,12 @@ return [
             'active' => ['news.public', 'news.public.show'],
         ],
         [
-            'label' => 'Campaign tools',
+            'label' => 'Events',
+            'route' => 'events.public',
+            'active' => ['events.public', 'events.show'],
+        ],
+        [
+            'label' => 'Services',
             'route' => 'campaign-tools.public',
             'active' => ['campaign-tools.public', 'campaign-tools.show'],
             'dynamic' => 'campaign_tools',
@@ -49,7 +54,7 @@ return [
             ],
         ],
         [
-            'label' => 'Contact us',
+            'label' => 'Contacts',
             'route' => 'contact.public',
             'active' => ['contact.public'],
         ],

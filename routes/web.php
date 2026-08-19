@@ -65,6 +65,8 @@ use App\Http\Controllers\Web\UserNewsArticleController;
 use App\Http\Controllers\Web\UserProfileController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
+use App\Http\Controllers\Web\EventController as WebEventController;
+use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\Ward;
@@ -127,6 +129,10 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
 
+    Route::get('/events', [WebEventController::class, 'index'])->name('events.public');
+    Route::get('/events/{slug}', [WebEventController::class, 'show'])->name('events.show');
+    Route::post('/events/{slug}/register', [WebEventController::class, 'register'])->middleware('throttle:6,10')->name('events.register');
+
     Route::get('/aspirants/search', [AspirantRegistrationController::class, 'search'])
         ->middleware(['throttle:30,1', 'cache.headers:no_store;private'])
         ->name('aspirants.search');
@@ -148,6 +154,7 @@ Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCall
 Route::get('/party/payments/ipay/callback', [PoliticalPartyDashboardController::class, 'callback'])->name('party.payments.ipay.callback');
 Route::get('/toolbox/payments/ipay/callback', [DonorToolboxController::class, 'callback'])->name('toolbox.payments.ipay.callback');
 Route::get('/toolbox/supports/ipay/callback', [DonorToolboxController::class, 'supportCallback'])->name('toolbox.supports.ipay.callback');
+Route::get('/events/payment/callback', [WebEventController::class, 'callback'])->name('events.payment.callback');
 
 // ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
@@ -275,6 +282,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:frontend.view')->name('news.edit');
         Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
         Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
+
+        Route::resource('events', AdminEventController::class)->except(['show'])->middleware('permission:frontend.view');
+        Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
 
         Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show'])->middleware('permission:tokens.view');
         Route::resource('candidate-token-rates', CandidateTokenRateController::class)->except(['show'])->middleware('permission:tokens.view');

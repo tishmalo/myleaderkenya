@@ -78,6 +78,26 @@ class IpayService
             'cst' => '1',
             'crl' => '0',
         ];
+    }
+    public function eventCheckoutUrl(\App\Models\EventRegistration $registration, array $contact): string
+    {
+        $fields = [
+            'live' => $this->live(),
+            'oid' => (string) $registration->checkout_reference,
+            'inv' => (string) $registration->checkout_reference,
+            'ttl' => $this->amount($registration->amount),
+            'tel' => $this->phone($contact['phone'] ?? $registration->phone),
+            'eml' => $contact['email'] ?? $registration->email,
+            'vid' => $this->vendorId(),
+            'curr' => 'KES',
+            'p1' => (string) $registration->event_id,
+            'p2' => (string) $registration->id,
+            'p3' => 'event_registration',
+            'p4' => $registration->name,
+            'cbk' => route('events.payment.callback'),
+            'cst' => '1',
+            'crl' => '0',
+        ];
         $fields['hsh'] = $this->checkoutHash($fields);
         return rtrim($this->checkoutEndpoint(), '?').'?'.http_build_query($fields);
     }
