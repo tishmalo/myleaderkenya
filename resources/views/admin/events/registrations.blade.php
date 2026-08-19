@@ -20,7 +20,8 @@
     </div>
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <table class="w-full">
+        <div class="overflow-x-auto w-full">
+        <table class="min-w-full w-full">
             <thead class="bg-zinc-950">
                 <tr>
                     <th class="px-6 py-4 text-left">Registrant</th>
@@ -125,6 +126,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 
     <div class="mt-8 flex justify-center">
