@@ -31,9 +31,19 @@ class CampaignToolService
         return $this->campaignToolRepository->publishedForNav();
     }
 
+    public function getRequestToolOptions(): Collection
+    {
+        return $this->campaignToolRepository->publishedForRequestForm();
+    }
+
     public function getPublicShowData(string $slug): CampaignTool
     {
         return $this->campaignToolRepository->findPublishedBySlug($slug);
+    }
+
+    public function getToolForEdit(CampaignTool $campaignTool): CampaignTool
+    {
+        return $campaignTool->load('packages');
     }
 
     public function createTool(array $data, ?UploadedFile $featuredImage = null): CampaignTool

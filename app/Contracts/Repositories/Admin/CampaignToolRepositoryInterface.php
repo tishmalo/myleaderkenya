@@ -25,4 +25,6 @@ interface CampaignToolRepositoryInterface
     public function update(CampaignTool $campaignTool, array $data): bool;
 
     public function delete(CampaignTool $campaignTool): bool;
+
+    public function publishedForRequestForm(): Collection;
 }

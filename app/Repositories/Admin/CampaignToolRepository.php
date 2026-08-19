@@ -69,4 +69,9 @@ class CampaignToolRepository implements CampaignToolRepositoryInterface
     {
         return $campaignTool->delete();
     }
+
+    public function publishedForRequestForm(): Collection
+    {
+        return CampaignTool::published()->ordered()->get(['id', 'title']);
+    }
 }
