@@ -35,7 +35,7 @@
             </thead>
             <tbody class="divide-y divide-zinc-800 text-zinc-300">
                 @forelse($registrations as $reg)
-                <tr class="hover:bg-zinc-800/70 align-top">
+                <tr class="align-top hover:bg-zinc-800/70 {{ $reg->payment_status === 'success' ? 'bg-emerald-500/10' : '' }}">
                     <td class="px-6 py-4">
                         <div>
                             <p class="font-medium text-white">{{ $reg->name }}</p>
@@ -70,7 +70,7 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         @if($reg->payment_status === 'success')
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-400">Success</span>
+                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-400">Paid</span>
                         @elseif($reg->payment_status === 'failed')
                             <span class="px-3 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-400">Failed</span>
                         @else
@@ -86,7 +86,7 @@
                                     <div class="flex items-center justify-between gap-2 text-xs">
                                         <div>
                                             <span class="text-zinc-200">{{ $ticket->attendee_name }}</span>
-                                            <span class="block font-mono text-zinc-500">{{ $ticket->code }}</span>
+                                            <a href="{{ $ticket->verificationUrl() }}" target="_blank" class="block font-mono text-zinc-500 hover:text-emerald-400">{{ $ticket->code }}</a>
                                         </div>
                                         <form method="POST" action="{{ route('events.tickets.checkin', ['event' => $event->id, 'registration' => $reg->id, 'ticket' => $ticket->id]) }}">
                                             @csrf
@@ -104,8 +104,8 @@
                         @if($reg->payment_status === 'success')
                             <form method="POST" action="{{ route('events.registrations.resend', ['event' => $event->id, 'registration' => $reg->id]) }}" class="mt-3">
                                 @csrf
-                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs font-semibold hover:border-emerald-500">
-                                    <i class="fas fa-envelope mr-1"></i> Resend email
+                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">
+                                    <i class="fas fa-paper-plane mr-1"></i> Send link
                                 </button>
                             </form>
                         @endif
