@@ -60,7 +60,7 @@
                         <a href="{{ route('events.edit', $event) }}" class="text-blue-400 hover:text-blue-500 mx-2" aria-label="Edit {{ $event->title }}">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <button onclick="deleteEvent('{{ $event->slug }}', '{{ addslashes($event->title) }}')"
+                        <button onclick="deleteEvent('{{ route('events.destroy', $event) }}', '{{ addslashes($event->title) }}')"
                                 class="text-red-400 hover:text-red-500 mx-2" aria-label="Delete {{ $event->title }}">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -81,8 +81,8 @@
 
 @push('scripts')
 <script>
-function deleteEvent(slug, title) {
-    showDeleteModal(`/admin/events/${slug}`, `Delete event <strong>${title}</strong>? All registrations will be removed.`);
+function deleteEvent(url, title) {
+    showDeleteModal(url, `Delete event <strong>${title}</strong>? All registrations will be removed.`);
 }
 </script>
 @endpush

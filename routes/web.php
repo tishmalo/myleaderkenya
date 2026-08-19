@@ -283,7 +283,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
         Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
 
-        Route::resource('events', AdminEventController::class)->except(['show'])->middleware('permission:frontend.view');
+        Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
         Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
 
         Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show'])->middleware('permission:tokens.view');
