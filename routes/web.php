@@ -243,6 +243,11 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/smtp', [SmtpController::class, 'index'])->middleware('permission:settings.view')->name('admin.smtp');
         Route::post('/smtp', [SmtpController::class, 'update'])->middleware('permission:settings.update')->name('admin.smtp.update');
+        Route::get('/notifications/emails', [\App\Http\Controllers\Admin\NotificationEmailController::class, 'index'])->middleware('permission:settings.view')->name('notification-emails.index');
+        Route::get('/notifications/emails/{key}/edit', [\App\Http\Controllers\Admin\NotificationEmailController::class, 'edit'])->middleware('permission:settings.view')->name('notification-emails.edit');
+        Route::put('/notifications/emails/{key}', [\App\Http\Controllers\Admin\NotificationEmailController::class, 'update'])->middleware('permission:settings.update')->name('notification-emails.update');
+        Route::post('/notifications/emails/{key}/toggle', [\App\Http\Controllers\Admin\NotificationEmailController::class, 'toggle'])->middleware('permission:settings.update')->name('notification-emails.toggle');
+        Route::post('/notifications/emails/{key}/test', [\App\Http\Controllers\Admin\NotificationEmailController::class, 'sendTest'])->middleware('permission:settings.update')->name('notification-emails.test');
 
         // --- Content Management ---
         Route::resource('positions', PositionController::class)->except(['show'])->middleware('permission:aspirants.view');
@@ -287,8 +292,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
         Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
 
-        Route::get('/admin/events/settings/email-template', [\App\Http\Controllers\Admin\SettingController::class, 'eventTicketEmail'])->middleware('permission:frontend.view')->name('events.email-template');
-        Route::post('/admin/events/settings/email-template', [\App\Http\Controllers\Admin\SettingController::class, 'updateEventTicketEmail'])->middleware('permission:frontend.update')->name('events.email-template.update');
         Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
         Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
         Route::post('/admin/events/{event}/registrations/{registration}/resend', [AdminEventController::class, 'resendTicketEmail'])->middleware('permission:frontend.view')->name('events.registrations.resend');

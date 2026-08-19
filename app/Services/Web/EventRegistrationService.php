@@ -86,11 +86,17 @@ class EventRegistrationService
 
     public function sendTicketEmail(EventRegistration $registration): void
     {
+        $template = $this->settingService->notificationTemplate('event-ticket');
+
+        if (! $template) {
+            return;
+        }
+
         $this->ensureTickets($registration);
         $registration->loadMissing('tickets', 'event');
 
         Mail::to($registration->email)
-            ->queue(new EventTicketMail($registration, $this->settingService->getEventTicketEmailTemplate()));
+            ->queue(new EventTicketMail($registration, $template));
     }
 
     public function toggleCheckIn(EventTicket $ticket): bool

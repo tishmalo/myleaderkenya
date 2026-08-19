@@ -4,7 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateEventTicketEmailRequest extends FormRequest
+class UpdateNotificationEmailRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,6 +16,7 @@ class UpdateEventTicketEmailRequest extends FormRequest
         return [
             'subject' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'enabled' => ['sometimes', 'boolean'],
         ];
     }
 }

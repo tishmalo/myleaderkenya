@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\UsesEmailTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -10,7 +11,7 @@ use Illuminate\Support\Carbon;
 
 class CandidateClaimLinkNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, UsesEmailTemplate;
 
     public int $tries = 3;
 
@@ -22,18 +23,23 @@ class CandidateClaimLinkNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return $this->template('candidate-claim-link') ? ['mail'] : [];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
+        $template = $this->template('candidate-claim-link');
+
+        $map = [
+            '{candidate_name}' => $this->candidateName,
+            '{claim_url}' => $this->claimUrl,
+            '{expires_at}' => $this->expiresAt->format('M j, Y H:i'),
+        ];
+
         return (new MailMessage)
-            ->subject('Claim your Tuko Kadi aspirant account')
-            ->greeting('Hello ' . $this->candidateName . ',')
-            ->line('An admin has created an aspirant profile for you on Tuko Kadi.')
-            ->line('Use the secure link below to set your password and claim your account.')
-            ->action('Claim Aspirant Account', $this->claimUrl)
-            ->line('This link expires on ' . $this->expiresAt->format('M j, Y H:i') . '.')
-            ->line('If you did not expect this email, you can ignore it safely.');
+            ->subject($this->fill($template['subject'], $map))
+            ->view('emails.notification', [
+                'body' => $this->fill($template['body'], $map),
+            ]);
     }
 }
