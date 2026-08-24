@@ -63,6 +63,7 @@ use App\Http\Controllers\Web\MyAccountController;
 use App\Http\Controllers\Web\DonorToolboxController;
 use App\Http\Controllers\Web\CampaignToolPaymentController;
 use App\Http\Controllers\Web\UserNewsArticleController;
+use App\Http\Controllers\Web\UserEventController;
 use App\Http\Controllers\Web\UserProfileController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
@@ -177,6 +178,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-account/news/submit', [UserNewsArticleController::class, 'create'])->name('account.news.create');
     Route::get('/my-account/news/candidates/search', [UserNewsArticleController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('account.news.candidates.search');
     Route::post('/my-account/news', [UserNewsArticleController::class, 'store'])->middleware('throttle:3,10')->name('account.news.store');
+    Route::get('/my-account/events', [UserEventController::class, 'index'])->name('account.events.index');
+    Route::get('/my-account/events/submit', [UserEventController::class, 'create'])->name('account.events.create');
+    Route::post('/my-account/events', [UserEventController::class, 'store'])->middleware('throttle:3,10')->name('account.events.store');
     Route::middleware(['aspirant','aspirant.owner'])->group(function () {
         Route::get('/aspirant/audits', [AspirantAuditController::class, 'index'])->name('aspirant.audits.index');
         Route::get('/aspirant/audits/{audit}', [AspirantAuditController::class, 'show'])->name('aspirant.audits.show');

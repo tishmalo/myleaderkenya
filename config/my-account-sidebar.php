@@ -45,6 +45,18 @@ return [
             'active' => ['account.news.index'],
         ],
         [
+            'label' => 'Submit Event',
+            'icon' => 'fas fa-calendar-plus',
+            'route' => 'account.events.create',
+            'active' => ['account.events.create'],
+        ],
+        [
+            'label' => 'My Events',
+            'icon' => 'fas fa-calendar-days',
+            'route' => 'account.events.index',
+            'active' => ['account.events.*'],
+        ],
+        [
             'label' => 'Browse Aspirants',
             'icon' => 'fas fa-users',
             'route' => 'aspirants.public',
