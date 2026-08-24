@@ -27,6 +27,7 @@ class StoreAspirantEventRequest extends FormRequest
             'description' => 'required|string|max:5000',
             'date' => 'required|date|after:now',
             'location' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0|max:99999999',
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
             'promo_video' => ['nullable', 'url', 'max:255', function ($attribute, $value, $fail) {
                 $host = strtolower((string) parse_url($value, PHP_URL_HOST));

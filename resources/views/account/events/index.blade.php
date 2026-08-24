@@ -11,7 +11,7 @@
 @if(session('success'))<div class="news-alert">{{ session('success') }}</div>@endif
 <div class="news-list">
 @forelse($events as $event)
-<article class="news-row"><div><h2>{{ $event->title }}</h2><div class="news-meta"><i class="far fa-calendar-alt"></i> {{ $event->date->format('d M Y, h:i A') }} &middot; <i class="fas fa-map-marker-alt"></i> {{ $event->location }} &middot; {{ $event->registrations_count }} {{ Str::plural('registration', $event->registrations_count) }}</div></div>
+<article class="news-row"><div><h2>{{ $event->title }}</h2><div class="news-meta"><i class="far fa-calendar-alt"></i> {{ $event->date->format('d M Y, h:i A') }} &middot; <i class="fas fa-map-marker-alt"></i> {{ $event->location }} &middot; {{ (float) $event->price > 0 ? 'KES '.number_format($event->price, 2) : 'Free' }} &middot; {{ $event->registrations_count }} {{ Str::plural('registration', $event->registrations_count) }}</div></div>
 @if($event->approval_status === 'approved')<span class="news-status published">Approved</span>
 @elseif($event->approval_status === 'rejected')<span class="news-status pending" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#fca5a5">Rejected</span>
 @else<span class="news-status pending">Pending review</span>@endif</article>
