@@ -34,8 +34,14 @@ return [
             'active' => ['aspirant.news.index'],
         ],
         [
-            'label' => 'My Events',
+            'label' => 'Submit Event',
             'icon' => 'fas fa-calendar-plus',
+            'route' => 'aspirant.events.create',
+            'active' => ['aspirant.events.create'],
+        ],
+        [
+            'label' => 'My Events',
+            'icon' => 'fas fa-calendar-days',
             'route' => 'aspirant.events.index',
             'active' => ['aspirant.events.*'],
         ],
