@@ -23,11 +23,13 @@ class EventController extends Controller
     public function index(): View
     {
         $upcomingEvents = Event::active()
+            ->approved()
             ->where('date', '>=', now())
             ->orderBy('date', 'asc')
             ->get();
 
         $pastEvents = Event::active()
+            ->approved()
             ->where('date', '<', now())
             ->orderBy('date', 'desc')
             ->take(6)
@@ -38,7 +40,7 @@ class EventController extends Controller
 
     public function show(string $slug): View
     {
-        $event = Event::active()->where('slug', $slug)->firstOrFail();
+        $event = Event::active()->approved()->where('slug', $slug)->firstOrFail();
 
         return view('events.show', compact('event'));
     }
@@ -54,7 +56,7 @@ class EventController extends Controller
 
     public function register(Request $request, string $slug): RedirectResponse
     {
-        $event = Event::active()->where('slug', $slug)->firstOrFail();
+        $event = Event::active()->approved()->where('slug', $slug)->firstOrFail();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',

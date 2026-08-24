@@ -11,6 +11,8 @@ class EventRepository implements EventRepositoryInterface
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         return Event::withCount('registrations')
+            ->with('creator:id,name')
+            ->orderByRaw("CASE approval_status WHEN 'pending' THEN 0 ELSE 1 END")
             ->orderBy('date', 'desc')
             ->paginate($perPage);
     }

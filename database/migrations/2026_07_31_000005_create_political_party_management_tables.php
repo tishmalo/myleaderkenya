@@ -43,7 +43,7 @@ return new class extends Migration
             $table->text('review_notes')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
-            $table->index(['political_party_id', 'status'], 'pp_party_status_idx');
+            $table->index(['political_party_id', 'status'], 'ppcc_party_status_idx');
         });
         Schema::create('political_party_token_wallets', function (Blueprint $table): void {
             $table->id();

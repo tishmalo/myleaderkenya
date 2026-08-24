@@ -3,9 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends Model
 {
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_APPROVED = 'approved';
+
+    public const STATUS_REJECTED = 'rejected';
+
     protected $fillable = [
         'title',
         'slug',
@@ -16,12 +23,17 @@ class Event extends Model
         'location',
         'price',
         'is_active',
+        'approval_status',
+        'created_by',
+        'reviewed_by',
+        'reviewed_at',
     ];
 
     protected $casts = [
         'date' => 'datetime',
         'price' => 'decimal:2',
         'is_active' => 'boolean',
+        'reviewed_at' => 'datetime',
     ];
 
     public function registrations()
@@ -29,9 +41,29 @@ class Event extends Model
         return $this->hasMany(EventRegistration::class);
     }
 
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', self::STATUS_APPROVED);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('approval_status', self::STATUS_PENDING);
     }
 
     public function getPromoVideoEmbedUrlAttribute(): ?string

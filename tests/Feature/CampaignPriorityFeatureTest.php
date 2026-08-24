@@ -33,7 +33,15 @@ class CampaignPriorityFeatureTest extends TestCase
 
     public function test_linked_aspirant_can_submit_active_priorities_for_review(): void
     {
-        $user = User::factory()->create(['is_aspirant' => true]);
+        $user = User::factory()->create([
+            'is_aspirant' => true,
+            'gender' => 'male',
+            'year_of_birth' => 1995,
+            'county' => 'Nairobi',
+            'constituency' => 'Westlands',
+            'ward' => 'Kitisuru',
+            'country_of_residence' => 'Kenya',
+        ]);
         $position = Position::create(['name' => 'Senator']);
         $candidate = Candidate::create(['name' => 'Workspace Candidate', 'position_id' => $position->id, 'user_id' => $user->id, 'approval_status' => 'approved']);
         $active = CampaignPriorityCategory::create(['name' => 'Jobs', 'slug' => 'jobs', 'icon' => 'fas fa-briefcase', 'sort_order' => 10, 'is_active' => true]);

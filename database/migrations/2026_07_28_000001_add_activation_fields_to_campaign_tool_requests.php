@@ -13,7 +13,7 @@ return new class extends Migration
             return;
         }
 
-        if (Schema::hasColumn('campaign_tool_requests', 'campaign_tool_id')) {
+        if (DB::connection()->getDriverName() === 'mysql' && Schema::hasColumn('campaign_tool_requests', 'campaign_tool_id')) {
             DB::statement('ALTER TABLE campaign_tool_requests MODIFY campaign_tool_id BIGINT UNSIGNED NULL');
         }
 

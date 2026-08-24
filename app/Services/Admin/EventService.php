@@ -18,16 +18,27 @@ class EventService
         return $this->events->paginate($perPage);
     }
 
-    public function createEvent(array $data, ?UploadedFile $poster = null): Event
+    public function createEvent(array $data, ?UploadedFile $poster = null, ?int $createdBy = null): Event
     {
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['is_active'] = ! empty($data['is_active']);
+        $data['approval_status'] = $data['approval_status'] ?? Event::STATUS_APPROVED;
+        $data['created_by'] = $data['created_by'] ?? $createdBy;
 
         if ($poster) {
             $data['poster'] = $poster->store('events/posters', 'public');
         }
 
         return $this->events->create($data);
+    }
+
+    public function reviewEvent(Event $event, string $status, int $reviewedBy): bool
+    {
+        return $this->events->update($event, [
+            'approval_status' => $status,
+            'reviewed_by' => $reviewedBy,
+            'reviewed_at' => now(),
+        ]);
     }
 
     public function updateEvent(Event $event, array $data, ?UploadedFile $poster = null): bool

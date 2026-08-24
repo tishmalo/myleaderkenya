@@ -59,6 +59,7 @@ use App\Contracts\Repositories\Web\PublicPulseHomepageRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
 use App\Contracts\Services\PublicPulseEngineClientInterface;
 use App\Contracts\Repositories\Web\PublicPulseSourceAccountRepositoryInterface;
+use App\Contracts\Repositories\Web\AspirantEventRepositoryInterface;
 use App\Contracts\Repositories\Web\UserNewsArticleRepositoryInterface;
 use App\Contracts\Repositories\Web\UserProfileRepositoryInterface;
 use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
@@ -211,6 +212,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PublicPulseEngineClientInterface::class, PublicPulseEngineClient::class);
         $this->app->bind(PublicPulseSourceAccountRepositoryInterface::class, PublicPulseSourceAccountRepository::class);
         $this->app->bind(UserNewsArticleRepositoryInterface::class, UserNewsArticleRepository::class);
+        $this->app->bind(AspirantEventRepositoryInterface::class, \App\Repositories\Web\AspirantEventRepository::class);
         $this->app->bind(UserProfileRepositoryInterface::class, UserProfileRepository::class);
         $this->app->bind(MentionClassificationCacheRepositoryInterface::class, MentionClassificationCacheRepository::class);
         $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);

@@ -34,6 +34,12 @@ return [
             'active' => ['aspirant.news.index'],
         ],
         [
+            'label' => 'My Events',
+            'icon' => 'fas fa-calendar-plus',
+            'route' => 'aspirant.events.index',
+            'active' => ['aspirant.events.*'],
+        ],
+        [
             'label' => 'Bulk SMS',
             'icon' => 'fas fa-comment-sms',
             'route' => 'aspirant.tools.show',

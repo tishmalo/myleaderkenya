@@ -12,7 +12,9 @@ return new class extends Migration
     public function up()
 {
     Schema::table('polling_stations', function (Blueprint $table) {
-        $table->foreignId('bloc_id')->nullable()->constrained('blocs')->after('id');
+        if (! Schema::hasColumn('polling_stations', 'bloc_id')) {
+            $table->foreignId('bloc_id')->nullable()->constrained('blocs')->after('id');
+        }
     });
 }
 

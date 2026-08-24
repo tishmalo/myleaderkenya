@@ -45,6 +45,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WardController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Web\AspirantAuditController;
+use App\Http\Controllers\Web\AspirantEventController;
 use App\Http\Controllers\Web\AspirantNewsArticleController;
 use App\Http\Controllers\Web\AspirantDashboardController;
 use App\Http\Controllers\Web\AspirantRegistrationController;
@@ -186,6 +187,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/aspirant/news/submit', [AspirantNewsArticleController::class, 'create'])->name('aspirant.news.create');
         Route::get('/aspirant/news/candidates/search', [AspirantNewsArticleController::class, 'searchCandidates'])->middleware('throttle:30,1')->name('aspirant.news.candidates.search');
         Route::post('/aspirant/news', [AspirantNewsArticleController::class, 'store'])->middleware('throttle:3,10')->name('aspirant.news.store');
+        Route::get('/aspirant/events', [AspirantEventController::class, 'index'])->name('aspirant.events.index');
+        Route::get('/aspirant/events/create', [AspirantEventController::class, 'create'])->name('aspirant.events.create');
+        Route::post('/aspirant/events', [AspirantEventController::class, 'store'])->middleware('throttle:3,10')->name('aspirant.events.store');
         Route::post('/aspirant/cover-photo', [AspirantDashboardController::class, 'updateCoverPhoto'])->middleware('throttle:6,10')->name('aspirant.cover-photo.update');
         Route::patch('/aspirant/social-links', [AspirantDashboardController::class, 'updateSocialLinks'])->middleware('throttle:20,1')->name('aspirant.social-links.update');
         Route::patch('/aspirant/media', [AspirantDashboardController::class, 'updateMedia'])->middleware('throttle:10,10')->name('aspirant.media.update');
@@ -293,6 +297,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
 
         Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
+        Route::patch('/admin/events/{event}/approval', [AdminEventController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('events.approval');
         Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
         Route::post('/admin/events/{event}/registrations/{registration}/resend', [AdminEventController::class, 'resendTicketEmail'])->middleware('permission:frontend.view')->name('events.registrations.resend');
         Route::post('/admin/events/{event}/registrations/{registration}/tickets/generate', [AdminEventController::class, 'generateTickets'])->middleware('permission:frontend.view')->name('events.registrations.tickets.generate');

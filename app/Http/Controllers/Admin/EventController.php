@@ -11,6 +11,7 @@ use App\Models\EventTicket;
 use App\Services\Admin\EventService;
 use App\Services\Web\EventRegistrationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -33,10 +34,28 @@ class EventController extends Controller
 
     public function store(StoreEventRequest $request)
     {
-        $this->events->createEvent($request->validated(), $request->file('poster'));
+        $this->events->createEvent(
+            $request->validated(),
+            $request->file('poster'),
+            $request->user()->getKey()
+        );
 
         return redirect()->route('events.index')
             ->with('success', 'Event created successfully!');
+    }
+
+    public function updateApproval(Request $request, Event $event): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:approved,rejected',
+        ]);
+
+        $this->events->reviewEvent($event, $validated['status'], $request->user()->getKey());
+
+        return redirect()->back()
+            ->with('success', $validated['status'] === 'approved'
+                ? "Event \"{$event->title}\" approved and published."
+                : "Event \"{$event->title}\" rejected.");
     }
 
     public function edit(Event $event)
