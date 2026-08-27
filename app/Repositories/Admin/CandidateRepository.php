@@ -53,6 +53,16 @@ class CandidateRepository implements CandidateRepositoryInterface
             $query->where('approval_status', $filters['approval_status']);
         }
 
+        if (!empty($filters['account_claim'])) {
+            match ($filters['account_claim']) {
+                'claimed_pending' => $query->whereNotNull('claimed_at')->where('approval_status', 'pending'),
+                'claimed_approved' => $query->whereNotNull('claimed_at')->where('approval_status', 'approved'),
+                'claim_sent' => $query->whereNull('claimed_at')->whereNotNull('claim_sent_at'),
+                'unclaimed' => $query->whereNull('claimed_at'),
+                default => null,
+            };
+        }
+
         return $query->latest()->paginate($perPage)->withQueryString();
     }
 

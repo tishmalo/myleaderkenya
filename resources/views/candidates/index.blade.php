@@ -25,7 +25,7 @@
         @endif
     @endforeach
     <form method="GET" action="{{ route('candidates.index') }}" class="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Candidate</label>
                 <input type="text" name="candidate" value="{{ request('candidate') }}"
@@ -58,6 +58,20 @@
                     <option value="">All Statuses</option>
                     @foreach(['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $value => $label)
                         <option value="{{ $value }}" {{ request('approval_status') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-2">Account Claim</label>
+                <select name="account_claim" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="">All Accounts</option>
+                    @foreach([
+                        'claimed_pending' => 'Claimed - Pending Approval',
+                        'claimed_approved' => 'Claimed - Approved',
+                        'claim_sent' => 'Claim Link Sent (Unclaimed)',
+                        'unclaimed' => 'Unclaimed',
+                    ] as $value => $label)
+                        <option value="{{ $value }}" {{ request('account_claim') === $value ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>

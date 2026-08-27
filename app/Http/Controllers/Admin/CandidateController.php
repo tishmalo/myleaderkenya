@@ -25,7 +25,7 @@ class CandidateController extends Controller
 
     public function index()
     {
-        $filters = request()->only(['candidate', 'position', 'political_party', 'approval_status']);
+        $filters = request()->only(['candidate', 'position', 'political_party', 'approval_status', 'account_claim']);
         $candidates = $this->candidateService->getPaginatedCandidates(15, $filters);
         $formData = $this->candidateService->getFormData();
 
