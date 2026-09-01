@@ -15,7 +15,7 @@ class CampaignToolRequestController extends Controller
 
     public function index(): View
     {
-        $filters = request()->only(['status', 'request_type', 'payment_status', 'campaign_tool_id', 'search']);
+        $filters = request()->only(['status', 'request_type', 'payment_status', 'campaign_tool_id', 'search', 'is_spam']);
         $requests = $this->service->paginate($filters);
         $campaignTools = $this->service->getToolOptions();
 

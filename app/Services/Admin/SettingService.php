@@ -61,7 +61,7 @@ class SettingService
                 'title' => 'Contact Us',
                 'hero_title' => 'Contact Tuko Kadi',
                 'excerpt' => 'Reach the Tuko Kadi team for partnerships, voter mobilization, support, and campaign tools.',
-                'content' => "For partnerships, support, voter mobilization, or campaign tools enquiries, contact the Tuko Kadi team. Add phone numbers, email addresses, office locations, and response instructions here from the admin portal.",
+                'content' => 'For partnerships, support, voter mobilization, or campaign tools enquiries, contact the Tuko Kadi team. Add phone numbers, email addresses, office locations, and response instructions here from the admin portal.',
                 'meta_title' => 'Contact Us - Tuko Kadi',
                 'meta_description' => 'Contact Tuko Kadi for support, partnerships, voter mobilization, and campaign tools enquiries.',
                 'cta_label' => 'Email Us',
@@ -257,7 +257,36 @@ class SettingService
 
     private function notificationEmailKey(string $key): string
     {
-        return 'notification_email_' . $key;
+        return 'notification_email_'.$key;
+    }
+
+    public function getRecaptchaSettings(): array
+    {
+        return [
+            'recaptchaSiteKey' => $this->settingRepository->firstOrCreate('recaptcha_site_key', ''),
+            'recaptchaSecretKey' => $this->settingRepository->firstOrCreate('recaptcha_secret_key', ''),
+        ];
+    }
+
+    public function updateRecaptchaSettings(array $data): void
+    {
+        if (array_key_exists('recaptcha_site_key', $data)) {
+            $this->settingRepository->updateOrCreate('recaptcha_site_key', trim((string) $data['recaptcha_site_key']));
+        }
+
+        if (array_key_exists('recaptcha_secret_key', $data)) {
+            $this->settingRepository->updateOrCreate('recaptcha_secret_key', trim((string) $data['recaptcha_secret_key']));
+        }
+    }
+
+    public function recaptchaSiteKey(): string
+    {
+        return $this->settingRepository->firstOrCreate('recaptcha_site_key', '');
+    }
+
+    public function recaptchaSecretKey(): string
+    {
+        return $this->settingRepository->firstOrCreate('recaptcha_secret_key', '');
     }
 
     public function getFrontendPageDefinitions(): array
@@ -298,6 +327,6 @@ class SettingService
 
     private function frontendPageKey(string $page): string
     {
-        return 'frontend_page_' . $page;
+        return 'frontend_page_'.$page;
     }
 }

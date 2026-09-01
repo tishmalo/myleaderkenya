@@ -43,7 +43,7 @@ class CampaignToolController extends Controller
         );
 
         return redirect()->route('campaign-tools.index')
-                         ->with('success', 'Campaign tool created successfully!');
+            ->with('success', 'Campaign tool created successfully!');
     }
 
     public function edit(CampaignTool $campaignTool)
@@ -62,7 +62,7 @@ class CampaignToolController extends Controller
         );
 
         return redirect()->route('campaign-tools.index')
-                         ->with('success', 'Campaign tool updated successfully!');
+            ->with('success', 'Campaign tool updated successfully!');
     }
 
     public function destroy(CampaignTool $campaignTool)
@@ -80,16 +80,18 @@ class CampaignToolController extends Controller
         $campaignTools = $this->campaignToolService->getPublishedTools(12);
         $campaignToolsSeo = $this->settingService->getFrontendPage('campaign-tools');
         $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
+        $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
 
-        return view('campaign-tools.public.index', compact('campaignTools', 'campaignToolsSeo', 'requestCampaignTools'));
+        return view('campaign-tools.public.index', compact('campaignTools', 'campaignToolsSeo', 'requestCampaignTools', 'recaptchaSiteKey'));
     }
 
     public function publicShow(string $slug)
     {
         $campaignTool = $this->campaignToolService->getPublicShowData($slug);
         $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
+        $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
 
-        return view('campaign-tools.public.show', compact('campaignTool', 'requestCampaignTools'));
+        return view('campaign-tools.public.show', compact('campaignTool', 'requestCampaignTools', 'recaptchaSiteKey'));
     }
 
     public function storeFeatureRequest(StoreCampaignToolFeatureRequest $request, CampaignTool $campaignTool): RedirectResponse
@@ -102,6 +104,6 @@ class CampaignToolController extends Controller
         $this->featureRequestService->submit($campaignTool, $request->validated(), $user, $candidate);
 
         return redirect()->back()
-                         ->with('success', 'Feature request submitted. The admin team will review it.');
+            ->with('success', 'Feature request submitted. The admin team will review it.');
     }
 }

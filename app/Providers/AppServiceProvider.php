@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use App\Contracts\Repositories\Admin\BlocRepositoryInterface;
-use App\Contracts\Repositories\Audit\AuditRepositoryInterface;
-use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
 use App\Contracts\Repositories\Admin\CampaignPriorityCategoryRepositoryInterface;
+use App\Contracts\Repositories\Admin\CampaignToolRepositoryInterface;
+use App\Contracts\Repositories\Admin\CampaignToolRequestRepositoryInterface as AdminCampaignToolRequestRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsBalanceRequestRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
@@ -19,8 +19,8 @@ use App\Contracts\Repositories\Admin\CountyRepositoryInterface;
 use App\Contracts\Repositories\Admin\DashboardRepositoryInterface;
 use App\Contracts\Repositories\Admin\DonorRepositoryInterface;
 use App\Contracts\Repositories\Admin\EventRepositoryInterface;
-use App\Contracts\Repositories\Admin\LiveStatFigureRepositoryInterface;
 use App\Contracts\Repositories\Admin\KittyTypeRepositoryInterface;
+use App\Contracts\Repositories\Admin\LiveStatFigureRepositoryInterface;
 use App\Contracts\Repositories\Admin\NewsArticleRepositoryInterface;
 use App\Contracts\Repositories\Admin\PaymentMethodRepositoryInterface;
 use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
@@ -38,12 +38,12 @@ use App\Contracts\Repositories\Api\PollingStationRepositoryInterface;
 use App\Contracts\Repositories\Api\StatsRepositoryInterface;
 use App\Contracts\Repositories\Api\TagRepositoryInterface;
 use App\Contracts\Repositories\Api\UserRepositoryInterface;
+use App\Contracts\Repositories\Audit\AuditRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
-use App\Contracts\Repositories\Admin\CampaignToolRequestRepositoryInterface as AdminCampaignToolRequestRepositoryInterface;
-use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
-use App\Contracts\Repositories\Web\CampaignToolCommerceRepositoryInterface;
-use App\Contracts\Repositories\Web\UserTokenRepositoryInterface;
+use App\Contracts\Repositories\Web\AspirantEventRepositoryInterface;
 use App\Contracts\Repositories\Web\AspirantSupportRepositoryInterface;
+use App\Contracts\Repositories\Web\CampaignToolCommerceRepositoryInterface;
+use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateBulkSmsContactRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateClaimRequestRepositoryInterface;
 use App\Contracts\Repositories\Web\CandidateRelationshipRepositoryInterface;
@@ -54,17 +54,17 @@ use App\Contracts\Repositories\Web\MentionClassificationCacheRepositoryInterface
 use App\Contracts\Repositories\Web\PoliticalPartyManagementRepositoryInterface;
 use App\Contracts\Repositories\Web\PoliticalPartyTokenRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
-use App\Contracts\Repositories\Web\PublicPulseMentionRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseHomepageRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
-use App\Contracts\Services\PublicPulseEngineClientInterface;
+use App\Contracts\Repositories\Web\PublicPulseMentionRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseSourceAccountRepositoryInterface;
-use App\Contracts\Repositories\Web\AspirantEventRepositoryInterface;
+use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\UserNewsArticleRepositoryInterface;
 use App\Contracts\Repositories\Web\UserProfileRepositoryInterface;
-use App\Contracts\Repositories\Web\StoredPublicApprovalRepositoryInterface;
+use App\Contracts\Repositories\Web\UserTokenRepositoryInterface;
 use App\Contracts\Services\MentionLanguageDetectorInterface;
 use App\Contracts\Services\MentionToneClassifierInterface;
+use App\Contracts\Services\PublicPulseEngineClientInterface;
 use App\Models\Candidate;
 use App\Models\NewsArticle;
 use App\Models\Role;
@@ -72,9 +72,9 @@ use App\Observers\CandidateObserver;
 use App\Observers\NewsArticleObserver;
 use App\Policies\UserAccessPolicy;
 use App\Repositories\Admin\BlocRepository;
-use App\Repositories\Audit\AuditRepository;
-use App\Repositories\Admin\CampaignToolRepository;
 use App\Repositories\Admin\CampaignPriorityCategoryRepository;
+use App\Repositories\Admin\CampaignToolRepository;
+use App\Repositories\Admin\CampaignToolRequestRepository as AdminCampaignToolRequestRepository;
 use App\Repositories\Admin\CandidateRepository;
 use App\Repositories\Admin\CandidateSmsBalanceRequestRepository;
 use App\Repositories\Admin\CandidateSmsSettingRepository;
@@ -88,8 +88,8 @@ use App\Repositories\Admin\CountyRepository;
 use App\Repositories\Admin\DashboardRepository;
 use App\Repositories\Admin\DonorRepository;
 use App\Repositories\Admin\EventRepository;
-use App\Repositories\Admin\LiveStatFigureRepository;
 use App\Repositories\Admin\KittyTypeRepository;
+use App\Repositories\Admin\LiveStatFigureRepository;
 use App\Repositories\Admin\NewsArticleRepository;
 use App\Repositories\Admin\PaymentMethodRepository;
 use App\Repositories\Admin\PoliticalPartyRepository;
@@ -107,12 +107,12 @@ use App\Repositories\Api\PollingStationRepository;
 use App\Repositories\Api\StatsRepository;
 use App\Repositories\Api\TagRepository;
 use App\Repositories\Api\UserRepository;
+use App\Repositories\Audit\AuditRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
-use App\Repositories\Admin\CampaignToolRequestRepository as AdminCampaignToolRequestRepository;
-use App\Repositories\Web\CampaignToolRequestRepository;
-use App\Repositories\Web\CampaignToolCommerceRepository;
-use App\Repositories\Web\UserTokenRepository;
+use App\Repositories\Web\AspirantEventRepository;
 use App\Repositories\Web\AspirantSupportRepository;
+use App\Repositories\Web\CampaignToolCommerceRepository;
+use App\Repositories\Web\CampaignToolRequestRepository;
 use App\Repositories\Web\CandidateBulkSmsContactRepository;
 use App\Repositories\Web\CandidateClaimRequestRepository;
 use App\Repositories\Web\CandidateRelationshipRepository;
@@ -123,21 +123,23 @@ use App\Repositories\Web\MentionClassificationCacheRepository;
 use App\Repositories\Web\PoliticalPartyManagementRepository;
 use App\Repositories\Web\PoliticalPartyTokenRepository;
 use App\Repositories\Web\PublicApprovalRepository;
-use App\Repositories\Web\PublicPulseMentionRepository;
 use App\Repositories\Web\PublicPulseHomepageRepository;
 use App\Repositories\Web\PublicPulseJobRepository;
-use App\Services\PublicPulse\PublicPulseEngineClient;
+use App\Repositories\Web\PublicPulseMentionRepository;
 use App\Repositories\Web\PublicPulseSourceAccountRepository;
+use App\Repositories\Web\StoredPublicApprovalRepository;
 use App\Repositories\Web\UserNewsArticleRepository;
 use App\Repositories\Web\UserProfileRepository;
-use App\Repositories\Web\StoredPublicApprovalRepository;
+use App\Repositories\Web\UserTokenRepository;
+use App\Services\Audit\AuditService;
 use App\Services\PublicPulse\DeepSeekMentionToneClassifierService;
 use App\Services\PublicPulse\LocalMentionLanguageDetector;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Database\Events\QueryExecuted;
+use App\Services\PublicPulse\PublicPulseEngineClient;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -212,7 +214,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PublicPulseEngineClientInterface::class, PublicPulseEngineClient::class);
         $this->app->bind(PublicPulseSourceAccountRepositoryInterface::class, PublicPulseSourceAccountRepository::class);
         $this->app->bind(UserNewsArticleRepositoryInterface::class, UserNewsArticleRepository::class);
-        $this->app->bind(AspirantEventRepositoryInterface::class, \App\Repositories\Web\AspirantEventRepository::class);
+        $this->app->bind(AspirantEventRepositoryInterface::class, AspirantEventRepository::class);
         $this->app->bind(UserProfileRepositoryInterface::class, UserProfileRepository::class);
         $this->app->bind(MentionClassificationCacheRepositoryInterface::class, MentionClassificationCacheRepository::class);
         $this->app->bind(CandidateSmsMessageRepositoryInterface::class, CandidateSmsMessageRepository::class);
@@ -241,9 +243,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Role::class, UserAccessPolicy::class);
         Candidate::observe(CandidateObserver::class);
         NewsArticle::observe(NewsArticleObserver::class);
-        Event::listen(Login::class, fn (Login $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.login', 'User signed in.', ['actor' => $event->user, 'module' => 'authentication']));
-        Event::listen(Logout::class, fn (Logout $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.logout', 'User signed out.', ['actor' => $event->user, 'module' => 'authentication']));
-        Event::listen(Failed::class, fn (Failed $event) => app(\App\Services\Audit\AuditService::class)->recordAfterResponse('auth.login_failed', 'Sign-in attempt failed.', ['actor' => $event->user, 'module' => 'authentication', 'status' => 'failure', 'metadata' => ['email' => $event->credentials['email'] ?? null]]));
+        Event::listen(Login::class, fn (Login $event) => app(AuditService::class)->recordAfterResponse('auth.login', 'User signed in.', ['actor' => $event->user, 'module' => 'authentication']));
+        Event::listen(Logout::class, fn (Logout $event) => app(AuditService::class)->recordAfterResponse('auth.logout', 'User signed out.', ['actor' => $event->user, 'module' => 'authentication']));
+        Event::listen(Failed::class, fn (Failed $event) => app(AuditService::class)->recordAfterResponse('auth.login_failed', 'Sign-in attempt failed.', ['actor' => $event->user, 'module' => 'authentication', 'status' => 'failure', 'metadata' => ['email' => $event->credentials['email'] ?? null]]));
 
         $this->listenForDatabaseQueries();
 
@@ -314,6 +316,18 @@ class AppServiceProvider extends ServiceProvider
             return $request->user()
                 ? Limit::perMinute(30)->by($request->user()->id)
                 : Limit::perMinute(10)->by($request->ip());
+        });
+
+        // Campaign tool feature requests: strict for anonymous, generous for logged-in aspirants
+        RateLimiter::for('campaignToolRequests', function (Request $request) {
+            if ($request->user()) {
+                return Limit::perHour(10)->by($request->user()->getAuthIdentifier());
+            }
+
+            return [
+                Limit::perHour(3)->by($request->ip()),
+                Limit::perDay(12)->by($request->ip()),
+            ];
         });
     }
 }

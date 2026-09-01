@@ -3,15 +3,15 @@
 namespace App\Models;
 
 use App\Models\Concerns\AuditsChanges;
-use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 class CampaignToolRequest extends Model implements AuditableContract
 {
     use AuditsChanges;
+
     public const STATUSES = ['new', 'in_progress', 'completed', 'cancelled'];
 
     protected $fillable = [
@@ -30,6 +30,8 @@ class CampaignToolRequest extends Model implements AuditableContract
         'use_case',
         'disabled_reason',
         'status',
+        'is_spam',
+        'spam_reason',
         'admin_notes',
         'tokens_required',
         'payment_status',
@@ -40,15 +42,23 @@ class CampaignToolRequest extends Model implements AuditableContract
 
     protected function casts(): array
     {
-        return ['tokens_required'=>'integer','paid_at'=>'datetime','refunded_at'=>'datetime'];
+        return ['tokens_required' => 'integer', 'paid_at' => 'datetime', 'refunded_at' => 'datetime', 'is_spam' => 'boolean'];
     }
 
     public function campaignTool(): BelongsTo
     {
         return $this->belongsTo(CampaignTool::class);
     }
-    public function package(): BelongsTo { return $this->belongsTo(CampaignToolPackage::class, 'campaign_tool_package_id'); }
-    public function payment() { return $this->hasOne(CampaignToolPayment::class); }
+
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(CampaignToolPackage::class, 'campaign_tool_package_id');
+    }
+
+    public function payment()
+    {
+        return $this->hasOne(CampaignToolPayment::class);
+    }
 
     public function selectedTools(): BelongsToMany
     {
@@ -57,6 +67,7 @@ class CampaignToolRequest extends Model implements AuditableContract
             'campaign_tool_request_selected_tools'
         )->withTimestamps();
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -66,6 +77,7 @@ class CampaignToolRequest extends Model implements AuditableContract
     {
         return $this->belongsTo(Candidate::class);
     }
+
     public function userTokenTransaction(): BelongsTo
     {
         return $this->belongsTo(UserTokenTransaction::class);

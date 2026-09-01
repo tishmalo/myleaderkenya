@@ -3,6 +3,7 @@
 namespace App\Repositories\Web;
 
 use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
+use App\Models\CampaignTool;
 use App\Models\CampaignToolRequest;
 
 class CampaignToolRequestRepository implements CampaignToolRequestRepositoryInterface
@@ -15,6 +16,31 @@ class CampaignToolRequestRepository implements CampaignToolRequestRepositoryInte
     public function syncSelectedTools(CampaignToolRequest $request, array $toolIds): void
     {
         $request->selectedTools()->sync($toolIds);
+    }
+
+    public function hasPendingFeatureRequest(CampaignTool $campaignTool, array $data): bool
+    {
+        $email = $data['email'] ?? null;
+        $phone = $data['phone'] ?? null;
+
+        if (blank($email) && blank($phone)) {
+            return false;
+        }
+
+        return CampaignToolRequest::query()
+            ->where('request_type', 'feature')
+            ->where('campaign_tool_id', $campaignTool->id)
+            ->where('is_spam', false)
+            ->where('status', 'new')
+            ->where(function ($query) use ($email, $phone): void {
+                if (! blank($email)) {
+                    $query->orWhere('email', $email);
+                }
+                if (! blank($phone)) {
+                    $query->orWhere('phone', $phone);
+                }
+            })
+            ->exists();
     }
 
     public function activeAdoptedToolIds(int $userId, int $candidateId, array $toolIds): array

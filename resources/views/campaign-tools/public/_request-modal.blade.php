@@ -14,6 +14,12 @@
         <form method="POST" action="{{ $featureRequestAction }}" class="ct-request-form">
             @csrf
             <input type="hidden" name="feature_request_tool_id" value="{{ $tool->id }}">
+            <input type="hidden" name="g-recaptcha-response" id="{{ $modalId }}-recaptcha-token">
+            <input type="hidden" name="_load_time" value="">
+            <label class="ct-request-hp" aria-hidden="true">
+                Leave this field empty
+                <input type="text" name="company_website" value="" tabindex="-1" autocomplete="off">
+            </label>
             <label>Name
                 <input type="text" name="requester_name" value="{{ old('requester_name') }}" required maxlength="255" placeholder="Your name">
             </label>
@@ -70,3 +76,61 @@
         </form>
     </div>
 </div>
+
+<style>
+.ct-request-hp { position:absolute !important; left:-9999px !important; top:auto !important; width:1px !important; height:1px !important; overflow:hidden !important; clip:rect(0 0 0 0) !important; margin:0 !important; padding:0 !important; border:0 !important; white-space:nowrap !important; }
+</style>
+
+@php
+    $recaptchaSiteKey = $recaptchaSiteKey ?? '';
+    $recaptchaEnabled = $recaptchaSiteKey !== '';
+@endphp
+@if($recaptchaEnabled)
+<script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKey }}&onload={{ $modalId }}_onRecaptchaLoad" async defer></script>
+@endif
+<script>
+(function () {
+    const form = document.querySelector('#{{ $modalId }} .ct-request-form');
+    if (!form) return;
+
+    const loadTime = Date.now();
+    const loadTimeInput = form.querySelector('input[name="_load_time"]');
+    if (loadTimeInput) loadTimeInput.value = String(loadTime);
+
+    const siteKey = @json($recaptchaSiteKey);
+    const tokenInput = form.querySelector('input[name="g-recaptcha-response"]');
+
+    let recaptchaReady = !siteKey;
+    window['{{ $modalId }}_onRecaptchaLoad'] = function () { recaptchaReady = true; };
+
+    form.addEventListener('submit', function (event) {
+        if (!siteKey) return;
+        if (tokenInput && tokenInput.value) return;
+
+        event.preventDefault();
+
+        const execute = () => {
+            if (typeof grecaptcha === 'undefined' || !recaptchaReady) {
+                alert('Unable to load security check. Please refresh and try again.');
+                return;
+            }
+            grecaptcha.execute(siteKey, { action: 'campaign_tool_request' }).then(function (token) {
+                if (tokenInput) tokenInput.value = token;
+                form.submit();
+            });
+        };
+
+        if (typeof grecaptcha !== 'undefined' && recaptchaReady) {
+            execute();
+        } else {
+            const onReady = function () { recaptchaReady = true; execute(); };
+            if (window['{{ $modalId }}_onRecaptchaLoad']) {
+                const original = window['{{ $modalId }}_onRecaptchaLoad'];
+                window['{{ $modalId }}_onRecaptchaLoad'] = function () { original(); onReady(); };
+            } else {
+                window['{{ $modalId }}_onRecaptchaLoad'] = onReady;
+            }
+        }
+    });
+})();
+</script>

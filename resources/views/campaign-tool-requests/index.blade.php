@@ -16,7 +16,7 @@
         <a href="{{ route('campaign-tools.index') }}" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-2xl text-sm font-medium"><i class="fas fa-bullhorn mr-2"></i> Campaign Tools</a>
     </div>
 
-    <form method="GET" action="{{ route('campaign-tool-requests.index') }}" class="mb-6 grid md:grid-cols-[170px_180px_180px_220px_1fr_auto] gap-3">
+    <form method="GET" action="{{ route('campaign-tool-requests.index') }}" class="mb-6 grid md:grid-cols-[150px_150px_140px_170px_120px_1fr_auto] gap-3">
         <select name="status" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
             <option value="">All Statuses</option>
             @foreach(\App\Models\CampaignToolRequest::STATUSES as $status)
@@ -41,6 +41,10 @@
                 <option value="{{ $tool->id }}" {{ (string) request('campaign_tool_id') === (string) $tool->id ? 'selected' : '' }}>{{ $tool->title }}</option>
             @endforeach
         </select>
+        <select name="is_spam" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
+            <option value="">Clean only</option>
+            <option value="1" {{ request('is_spam') === '1' ? 'selected' : '' }}>Spam only</option>
+        </select>
         <input type="search" name="search" value="{{ request('search') }}" placeholder="Search requester, contact, tool, feature, or notes" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
         <button class="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium">Filter</button>
     </form>
@@ -63,6 +67,9 @@
                                         {{ $isAdoption ? 'Adoption Sponsorship' : ($isActivation ? 'Activation Request' : 'Feature Request') }}
                                     </span>
                                     <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300">{{ str_replace('_', ' ', ucfirst($requestItem->status)) }}</span>
+                                    @if($requestItem->is_spam)
+                                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-300">SPAM</span>
+                                    @endif
                                 </div>
                                 <h2 class="text-2xl font-semibold text-white">{{ ($isActivation || $isAdoption) ? $toolTitle : $requestItem->requested_feature }}</h2>
                                 <p class="text-zinc-400">{{ $requestItem->campaignTool->title ?? $toolTitle }}</p>
@@ -106,6 +113,11 @@
                         @if($requestItem->disabled_reason)
                             <div class="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-100">
                                 <span class="text-amber-300">Setup reason:</span> {{ $requestItem->disabled_reason }}
+                            </div>
+                        @endif
+                        @if($requestItem->is_spam)
+                            <div class="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-100">
+                                <span class="text-red-300">Flagged as spam:</span> {{ $requestItem->spam_reason ?: 'suspected spam' }}
                             </div>
                         @endif
                         @if($requestItem->use_case)

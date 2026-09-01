@@ -16,6 +16,8 @@ class CampaignToolRequestRepository implements CampaignToolRequestRepositoryInte
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['request_type'] ?? null, fn ($query, $type) => $query->where('request_type', $type))
             ->when($filters['payment_status'] ?? null, fn ($query, $status) => $query->where('payment_status', $status))
+            ->when(($filters['is_spam'] ?? null) === '1', fn ($query) => $query->where('is_spam', true))
+            ->when(($filters['is_spam'] ?? null) !== '1', fn ($query) => $query->where('is_spam', false))
             ->when($filters['campaign_tool_id'] ?? null, function ($query, $toolId): void {
                 $query->where(function ($toolQuery) use ($toolId): void {
                     $toolQuery->where('campaign_tool_id', $toolId)

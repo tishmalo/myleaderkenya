@@ -4,23 +4,26 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
+use App\Services\Admin\SettingService;
 use App\Services\Web\LandingService;
 use App\Support\HomepageCache;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class LandingController extends Controller
 {
     public function __construct(
-        protected LandingService $landingService
+        protected LandingService $landingService,
+        private SettingService $settingService
     ) {}
 
     public function index()
     {
         $landingData = $this->landingService->getLandingData();
+        $landingData['recaptchaSiteKey'] = $this->settingService->recaptchaSiteKey();
 
         return view('landing', $landingData);
     }
