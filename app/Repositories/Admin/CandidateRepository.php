@@ -55,10 +55,17 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         if (!empty($filters['account_claim'])) {
             match ($filters['account_claim']) {
-                'claimed_pending' => $query->whereNotNull('claimed_at')->where('approval_status', 'pending'),
-                'claimed_approved' => $query->whereNotNull('claimed_at')->where('approval_status', 'approved'),
-                'claim_sent' => $query->whereNull('claimed_at')->whereNotNull('claim_sent_at'),
-                'unclaimed' => $query->whereNull('claimed_at'),
+                'claimed_pending' => $query->whereHas('claimRequests', fn ($q) => $q->where('relationship', 'aspirant')->where('status', 'pending')),
+                'claimed_approved' => $query->where(function ($q) {
+                    $q->whereNotNull('claimed_at')
+                        ->orWhereHas('claimRequests', fn ($cq) => $cq->where('relationship', 'aspirant')->where('status', 'approved'));
+                }),
+                'claim_sent' => $query->whereNull('claimed_at')
+                    ->whereNotNull('claim_sent_at')
+                    ->whereDoesntHave('claimRequests', fn ($q) => $q->where('relationship', 'aspirant')->whereIn('status', ['pending', 'approved'])),
+                'unclaimed' => $query->whereNull('claimed_at')
+                    ->whereNull('claim_sent_at')
+                    ->whereDoesntHave('claimRequests', fn ($q) => $q->where('relationship', 'aspirant')),
                 default => null,
             };
         }
