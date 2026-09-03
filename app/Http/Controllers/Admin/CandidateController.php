@@ -7,15 +7,22 @@ use App\Http\Requests\Admin\CandidateStoreRequest;
 use App\Http\Requests\Admin\CandidateUpdateRequest;
 use App\Http\Requests\Admin\UpdateCandidateApprovalRequest;
 use App\Http\Requests\Web\PublicAspirantFilterRequest;
+use App\Jobs\ExportCandidates;
+use App\Jobs\ImportCandidates;
 use App\Models\Candidate;
+use App\Models\CandidateTransferRun;
 use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CandidateController extends Controller
 {
@@ -25,11 +32,12 @@ class CandidateController extends Controller
 
     public function index()
     {
-        $filters = request()->only(['candidate', 'position', 'political_party', 'approval_status', 'account_claim']);
+        $filters = request()->only(['candidate', 'position', 'political_party', 'approval_status', 'account_claim', 'import_filter']);
         $candidates = $this->candidateService->getPaginatedCandidates(15, $filters);
         $formData = $this->candidateService->getFormData();
+        $transferRuns = CandidateTransferRun::latest()->limit(10)->get();
 
-        return view('candidates.index', array_merge($formData, compact('candidates')));
+        return view('candidates.index', array_merge($formData, compact('candidates', 'transferRuns')));
     }
 
 
@@ -235,6 +243,111 @@ class CandidateController extends Controller
 
         $candidate = $this->candidateService->getPublicShow($candidate);
         return view('aspirants.public.show', compact('candidate'));
+    }
+
+    public function importTemplate(): StreamedResponse
+    {
+        $headers = [
+            'name', 'nick_name', 'phone', 'email', 'political_party',
+            'position', 'county', 'constituency', 'ward', 'about',
+        ];
+
+        return response()->streamDownload(function () use ($headers) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $headers);
+            fputcsv($out, [
+                'Jane Doe', 'JD', '0712345678', 'jane@example.com', 'UDA',
+                'Governor', 'Nairobi', '', '', 'About text',
+            ]);
+            fclose($out);
+        }, 'candidates_import_template.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:10240'],
+        ]);
+
+        $path = $request->file('file')->store('imports');
+
+        $run = CandidateTransferRun::create([
+            'type' => 'import',
+            'status' => 'pending',
+            'source_path' => $path,
+            'requested_by' => $request->user()->id,
+        ]);
+
+        ImportCandidates::dispatch($run->id);
+
+        return redirect()->route('candidates.index')
+            ->with('success', 'The aspirant CSV import has been queued. Results will appear in the Import / Export panel below.');
+    }
+
+    public function export(Request $request): RedirectResponse
+    {
+        $filters = $request->only(['candidate', 'position', 'political_party', 'approval_status', 'account_claim', 'import_filter']);
+
+        $run = CandidateTransferRun::create([
+            'type' => 'export',
+            'status' => 'pending',
+            'filters' => $filters,
+            'requested_by' => $request->user()->id,
+        ]);
+
+        ExportCandidates::dispatch($run->id);
+
+        return back()->with('success', 'The aspirant export has been queued. The download link will appear in the Import / Export panel below.');
+    }
+
+    public function exportDownload(CandidateTransferRun $run): BinaryFileResponse
+    {
+        abort_unless($run->type === 'export' && $run->status === 'complete' && $run->result_path, 404);
+
+        return Storage::disk('local')->download($run->result_path, $run->download_name ?? 'candidates.csv');
+    }
+
+    public function transferStatus(CandidateTransferRun $run): JsonResponse
+    {
+        return response()->json([
+            'id' => $run->id,
+            'type' => $run->type,
+            'status' => $run->status,
+            'imported_count' => $run->imported_count,
+            'linked_count' => $run->linked_count,
+            'skipped_count' => $run->skipped_count,
+            'exported_count' => $run->exported_count,
+            'error_message' => $run->error_message,
+            'errors' => $run->errors,
+            'download_url' => ($run->type === 'export' && $run->status === 'complete' && $run->result_path)
+                ? route('candidates.export.download', $run)
+                : null,
+        ]);
+    }
+
+    public function publishImport(Candidate $candidate): RedirectResponse
+    {
+        try {
+            $this->candidateService->publishImportedCandidate($candidate);
+        } catch (ValidationException $e) {
+            return back()->with('warning', collect($e->errors())->flatten()->first());
+        }
+
+        return back()->with('success', $candidate->name.' published.');
+    }
+
+    public function discardImport(Candidate $candidate): RedirectResponse
+    {
+        try {
+            $this->candidateService->discardImportedCandidate($candidate);
+        } catch (ValidationException $e) {
+            return back()->with('warning', collect($e->errors())->flatten()->first());
+        }
+
+        return back()->with('success', $candidate->name.' discarded.');
     }
 }
 

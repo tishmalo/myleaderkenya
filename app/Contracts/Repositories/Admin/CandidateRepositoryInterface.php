@@ -4,11 +4,14 @@ namespace App\Contracts\Repositories\Admin;
 
 use App\Models\Candidate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 interface CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator;
+
+    public function exportQuery(array $filters = []): Builder;
 
     public function find(int $id): ?Candidate;
 

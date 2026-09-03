@@ -29,6 +29,7 @@ class Candidate extends Model implements AuditableContract
         'phone_1', 'phone_2', 'email_1', 'email_2', 'featured', 'approval_status', 'about', 'country', 'county', 'constituency', 'ward',
         'facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url', 'whatsapp_group_url',
         'claim_token_hash', 'claim_token_expires_at', 'claim_sent_at', 'claimed_at',
+        'is_imported', 'import_status', 'linked_candidate_id',
     ];
 
     protected $casts = [
@@ -368,5 +369,23 @@ class Candidate extends Model implements AuditableContract
         return $this->belongsToMany(User::class, 'candidate_user_relationships')
             ->withPivot('relationship', 'dashboard_access_enabled')
             ->withTimestamps();
+    }
+
+    public function linkedCandidate(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'linked_candidate_id');
+    }
+
+    public function scopeNotDiscarded($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('import_status')
+                ->orWhere('import_status', '!=', 'discarded');
+        });
+    }
+
+    public function scopeImportedPending($query)
+    {
+        return $query->where('is_imported', true)->where('import_status', 'pending');
     }
 }

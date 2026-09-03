@@ -239,6 +239,29 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/audits/{audit}', [AuditController::class, 'show'])->name('audits.show');
         });
         Route::middleware('admin')->group(function () {
+            // --- Aspirant CSV Import ---
+            Route::get('candidates/import/template', [CandidateController::class, 'importTemplate'])
+                ->middleware('permission:aspirants.create')
+                ->name('candidates.import.template');
+            Route::post('candidates/import', [CandidateController::class, 'import'])
+                ->middleware('permission:aspirants.create')
+                ->name('candidates.import');
+            Route::post('candidates/{candidate}/import/publish', [CandidateController::class, 'publishImport'])
+                ->middleware('permission:aspirants.approve')
+                ->name('candidates.import.publish');
+            Route::post('candidates/{candidate}/import/discard', [CandidateController::class, 'discardImport'])
+                ->middleware('permission:aspirants.delete')
+                ->name('candidates.import.discard');
+            Route::post('candidates/export', [CandidateController::class, 'export'])
+                ->middleware('permission:aspirants.create')
+                ->name('candidates.export');
+            Route::get('candidates/export/{run}/download', [CandidateController::class, 'exportDownload'])
+                ->middleware('permission:aspirants.view')
+                ->name('candidates.export.download');
+            Route::get('candidates/transfer/{run}/status', [CandidateController::class, 'transferStatus'])
+                ->middleware('permission:aspirants.view')
+                ->name('candidates.transfer.status');
+
             // --- Core Admin & Dashboard ---
             Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
             Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->middleware('permission:voters.view')->name('dashboard.stats');

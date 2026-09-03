@@ -10,10 +10,31 @@
             Candidates Management
         </h1>
 
-        <a href="{{ route('candidates.create') }}"
-           class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
-            <i class="fas fa-plus"></i> Add New Candidate
-        </a>
+        <div class="flex flex-wrap items-center gap-3">
+            <button type="button"
+                    onclick="document.getElementById('importModal').classList.remove('hidden'); document.getElementById('importModal').classList.add('flex');"
+                    class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 text-white">
+                <i class="fas fa-file-csv"></i> Import CSV
+            </button>
+
+            <form method="POST" action="{{ route('candidates.export') }}" class="inline">
+                @csrf
+                @foreach(request()->only(['candidate', 'position', 'political_party', 'approval_status', 'account_claim', 'import_filter']) as $key => $value)
+                    @if($value !== '' && $value !== null)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
+                @endforeach
+                <button type="submit"
+                        class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 text-white">
+                    <i class="fas fa-file-export"></i> Export CSV
+                </button>
+            </form>
+
+            <a href="{{ route('candidates.create') }}"
+               class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-plus"></i> Add New Candidate
+            </a>
+        </div>
     </div>
 
 
@@ -75,6 +96,16 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="block text-sm text-zinc-400 mb-2">Import</label>
+                <select name="import_filter" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="">All</option>
+                    <option value="imported" {{ request('import_filter') === 'imported' ? 'selected' : '' }}>Imported</option>
+                    <option value="imported_pending" {{ request('import_filter') === 'imported_pending' ? 'selected' : '' }}>Imported – Not published</option>
+                    <option value="imported_published" {{ request('import_filter') === 'imported_published' ? 'selected' : '' }}>Imported – Published</option>
+                    <option value="not_imported" {{ request('import_filter') === 'not_imported' ? 'selected' : '' }}>Not imported</option>
+                </select>
+            </div>
             <div class="flex items-end gap-3">
                 <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl font-semibold text-white">
                     Filter
@@ -85,6 +116,50 @@
             </div>
         </div>
     </form>
+    @if($transferRuns->isNotEmpty())
+    <div class="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5" data-transfer-panel>
+        <div class="mb-4 flex items-center gap-2">
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-clock-rotate-left text-emerald-500"></i> Import / Export Jobs
+            </h2>
+            <span class="rounded-full bg-zinc-800 px-3 py-1 text-xs text-zinc-400">updates automatically</span>
+        </div>
+        <div class="space-y-3">
+            @foreach($transferRuns as $run)
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                     data-transfer-run="{{ $run->id }}"
+                     data-transfer-url="{{ route('candidates.transfer.status', $run) }}">
+                    <span class="inline-flex rounded-full bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase text-zinc-300">
+                        {{ $run->type }}
+                    </span>
+                    <span class="text-xs font-semibold uppercase {{ $run->status === 'complete' ? 'text-emerald-400' : ($run->status === 'failed' ? 'text-red-400' : 'text-amber-300') }}"
+                          data-transfer-status>{{ $run->status }}</span>
+                    <span class="text-xs text-zinc-500">{{ $run->created_at->diffForHumans() }}</span>
+                    <span class="ml-auto text-xs text-zinc-400" data-transfer-summary>
+                        @if($run->type === 'import' && $run->status === 'complete')
+                            {{ $run->imported_count }} imported, {{ $run->linked_count }} linked, {{ $run->skipped_count }} skipped
+                        @elseif($run->type === 'export' && $run->status === 'complete')
+                            {{ $run->exported_count }} exported
+                        @elseif(in_array($run->status, ['pending', 'running'], true))
+                            Processing&hellip;
+                        @endif
+                    </span>
+                    @if($run->status === 'complete' && $run->type === 'export' && $run->result_path)
+                        <a href="{{ route('candidates.export.download', $run) }}"
+                           class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    @endif
+                    @if($run->status === 'failed' && $run->error_message)
+                        <span class="w-full text-xs text-red-300" title="{{ $run->error_message }}">
+                            <i class="fas fa-circle-exclamation mr-1"></i>{{ \Illuminate\Support\Str::limit($run->error_message, 160) }}
+                        </span>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
         <div class="w-full max-w-full overflow-x-auto">
         <table class="min-w-[1320px] w-full">
@@ -224,6 +299,21 @@
                                     <button class="text-amber-400 hover:text-amber-500" title="Reject"><i class="fas fa-ban"></i></button>
                                 </form>
                             @endif
+                            @if(($candidate->is_imported ?? false) && ($candidate->import_status ?? null) === 'pending')
+                                <form method="POST" action="{{ route('candidates.import.publish', $candidate) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-400 hover:text-emerald-500" title="Publish imported">
+                                        <i class="fas fa-upload"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('candidates.import.discard', $candidate) }}" class="inline"
+                                      onsubmit="return confirm('Discard this imported aspirant?');">
+                                    @csrf
+                                    <button type="submit" class="text-zinc-400 hover:text-zinc-200" title="Discard imported">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </form>
+                            @endif
                             <a href="{{ route('candidates.edit', $candidate) }}"
                                class="text-blue-400 hover:text-blue-500 transition-colors">
                                 <i class="fas fa-edit"></i>
@@ -254,6 +344,22 @@
                     <div>
                         <h2 class="text-2xl font-semibold text-white">Account Claims</h2>
                         <p class="mt-1 text-sm text-zinc-400">{{ $candidate->name }} &bull; {{ $candidate->position->name ?? 'Aspirant' }}</p>
+                        @if($candidate->is_imported)
+                            <p class="mt-1 text-xs font-semibold text-sky-400">
+                                Imported
+                                @if($candidate->import_status === 'pending') – Not published
+                                @elseif($candidate->import_status === 'published') – Published
+                                @endif
+                            </p>
+                            @if($candidate->linked_candidate_id && $candidate->linkedCandidate)
+                                <p class="mt-1 text-xs text-amber-300">
+                                    Linked to:
+                                    <a href="{{ route('candidates.edit', $candidate->linkedCandidate) }}" class="underline">
+                                        {{ $candidate->linkedCandidate->name }} #{{ $candidate->linkedCandidate->id }}
+                                    </a>
+                                </p>
+                            @endif
+                        @endif
                     </div>
                     <button type="button" class="grid h-11 w-11 place-items-center rounded-xl border border-zinc-700 text-white hover:bg-zinc-800" data-claim-review-close aria-label="Close account claims">
                         <i class="fas fa-times"></i>
@@ -356,6 +462,54 @@
         {{ $candidates->appends(request()->query())->links() }}
     </div>
 </div>
+
+{{-- Import Modal --}}
+<div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-5 backdrop-blur-sm">
+    <div class="w-full max-w-lg rounded-3xl border border-zinc-700 bg-zinc-950 shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-zinc-800 px-6 py-5">
+            <div>
+                <h2 class="text-xl font-semibold text-white">Import Candidates</h2>
+                <p class="mt-1 text-sm text-zinc-400">
+                    Upload a <strong>CSV (UTF-8)</strong> file. In Excel: File &rarr; Save As &rarr; CSV UTF-8.
+                </p>
+            </div>
+            <button type="button"
+                    onclick="document.getElementById('importModal').classList.add('hidden'); document.getElementById('importModal').classList.remove('flex');"
+                    class="grid h-10 w-10 place-items-center rounded-xl border border-zinc-700 text-white hover:bg-zinc-800">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('candidates.import') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+            @csrf
+
+            @error('file')
+                <div class="rounded-2xl border border-red-700/60 bg-red-950/50 px-4 py-3 text-sm text-red-100">
+                    {{ $message }}
+                </div>
+            @enderror
+
+            <div>
+                <label class="block text-sm text-zinc-400 mb-2">CSV file</label>
+                <input type="file" name="file" accept=".csv,text/csv,text/plain" required
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+                <p class="mt-2 text-xs text-zinc-500">Accepted: .csv only (not .xlsx).</p>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('candidates.import.template') }}"
+                   class="inline-flex items-center gap-2 rounded-2xl border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800">
+                    <i class="fas fa-download"></i> Download template
+                </a>
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 py-3.5 rounded-2xl font-semibold text-white">
+                Import Candidates
+            </button>
+        </form>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -450,6 +604,80 @@ document.querySelectorAll('[data-approval-select]').forEach(function (select) {
             });
     });
     select.dataset.previous = select.value;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const rows = document.querySelectorAll('[data-transfer-run]');
+    if (!rows.length) return;
+
+    const statusClass = (status) => 'text-xs font-semibold uppercase ' + (status === 'complete' ? 'text-emerald-400' : (status === 'failed' ? 'text-red-400' : 'text-amber-300'));
+
+    const updateRow = (runId, data) => {
+        const row = document.querySelector(`[data-transfer-run="${runId}"]`);
+        if (!row) return;
+
+        const statusEl = row.querySelector('[data-transfer-status]');
+        const summaryEl = row.querySelector('[data-transfer-summary]');
+
+        if (statusEl) {
+            statusEl.textContent = data.status;
+            statusEl.className = statusClass(data.status);
+        }
+
+        if (summaryEl) {
+            if (data.type === 'import' && data.status === 'complete') {
+                summaryEl.textContent = `${data.imported_count} imported, ${data.linked_count} linked, ${data.skipped_count} skipped`;
+            } else if (data.type === 'export' && data.status === 'complete') {
+                summaryEl.textContent = `${data.exported_count} exported`;
+            } else if (data.status === 'pending' || data.status === 'running') {
+                summaryEl.textContent = 'Processing…';
+            }
+        }
+
+        if (data.status === 'failed' && data.error_message) {
+            let errEl = row.querySelector('[data-transfer-error]');
+            if (!errEl) {
+                errEl = document.createElement('span');
+                errEl.className = 'w-full text-xs text-red-300';
+                errEl.dataset.transferError = '';
+                row.appendChild(errEl);
+            }
+            errEl.textContent = '⚠ ' + data.error_message;
+        }
+
+        if (data.status === 'complete' && data.type === 'export' && data.download_url) {
+            let link = row.querySelector('[data-transfer-download]');
+            if (!link) {
+                link = document.createElement('a');
+                link.className = 'inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700';
+                link.dataset.transferDownload = '';
+                link.innerHTML = '<i class="fas fa-download"></i> Download';
+                row.appendChild(link);
+            }
+            link.href = data.download_url;
+        }
+    };
+
+    const poll = () => {
+        let active = false;
+
+        rows.forEach((row) => {
+            const status = row.querySelector('[data-transfer-status]')?.textContent.trim();
+            if (status !== 'pending' && status !== 'running') return;
+            active = true;
+
+            fetch(row.dataset.transferUrl, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then((response) => response.json())
+                .then((data) => updateRow(row.dataset.transferRun, data))
+                .catch(() => {});
+        });
+
+        if (active) setTimeout(poll, 4000);
+    };
+
+    poll();
 });
 </script>
 @endpush

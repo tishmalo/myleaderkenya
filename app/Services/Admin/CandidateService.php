@@ -11,11 +11,14 @@ use App\Models\SupportGroupType;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\Ward;
+use App\Models\PoliticalParty;
+use App\Models\Position;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -227,6 +230,18 @@ class CandidateService
 
         if (! Schema::hasColumn('candidates', 'approval_status')) {
             unset($data['approval_status']);
+        }
+
+        if (! Schema::hasColumn('candidates', 'is_imported')) {
+            unset($data['is_imported']);
+        }
+
+        if (! Schema::hasColumn('candidates', 'import_status')) {
+            unset($data['import_status']);
+        }
+
+        if (! Schema::hasColumn('candidates', 'linked_candidate_id')) {
+            unset($data['linked_candidate_id']);
         }
 
         $socialFields = ['facebook_url', 'x_url', 'instagram_url', 'tiktok_url', 'youtube_url', 'whatsapp_group_url'];
@@ -738,5 +753,304 @@ class CandidateService
     public function getPublicShow(Candidate $candidate): Candidate
     {
         return $this->candidateRepository->loadPublicShow($candidate);
+    }
+
+    /**
+     * @return array{imported:int,linked:int,errors:array<int,string>}
+     */
+    public function importCandidatesFromCsv(string $path): array
+    {
+        $handle = fopen($path, 'r');
+        if (! $handle) {
+            throw ValidationException::withMessages([
+                'file' => 'Could not read the uploaded file.',
+            ]);
+        }
+
+        $first = fgets($handle);
+        if ($first === false) {
+            fclose($handle);
+            throw ValidationException::withMessages([
+                'file' => 'File is empty.',
+            ]);
+        }
+
+        $first = preg_replace('/^\xEF\xBB\xBF/', '', $first);
+        $header = array_map(
+            fn ($h) => Str::slug(trim((string) $h), '_'),
+            str_getcsv($first)
+        );
+
+        $positions = Position::query()
+            ->get()
+            ->keyBy(fn (Position $p) => Str::lower(trim($p->name)));
+
+        $parties = collect();
+        foreach (PoliticalParty::all() as $party) {
+            $parties[Str::lower(trim($party->name))] = $party;
+            if ($party->abbreviation) {
+                $parties[Str::lower(trim($party->abbreviation))] = $party;
+            }
+        }
+
+        $imported = 0;
+        $linked = 0;
+        $errors = [];
+        $rowNumber = 1;
+
+        while (($data = fgetcsv($handle)) !== false) {
+            $rowNumber++;
+
+            if (count(array_filter($data, fn ($v) => trim((string) $v) !== '')) === 0) {
+                continue;
+            }
+
+            $row = [];
+            foreach ($header as $i => $key) {
+                $row[$key] = isset($data[$i]) ? trim((string) $data[$i]) : '';
+            }
+
+            $name = $row['name'] ?? '';
+            $positionLabel = $row['position'] ?? '';
+            $positionName = Str::lower($positionLabel);
+
+            if ($name === '') {
+                $errors[] = "Row {$rowNumber}: name is required.";
+                continue;
+            }
+
+            if ($positionName === '' || ! isset($positions[$positionName])) {
+                $errors[] = "Row {$rowNumber}: unknown or missing position \"{$positionLabel}\".";
+                continue;
+            }
+
+            $position = $positions[$positionName];
+            $partyId = null;
+            $partyRaw = $row['political_party'] ?? '';
+            if ($partyRaw !== '') {
+                $partyKey = Str::lower($partyRaw);
+                if (! isset($parties[$partyKey])) {
+                    $errors[] = "Row {$rowNumber}: unknown political party \"{$partyRaw}\".";
+                    continue;
+                }
+                $partyId = $parties[$partyKey]->id;
+            }
+
+            $county = ($row['county'] ?? '') !== '' ? $row['county'] : null;
+            $constituency = ($row['constituency'] ?? '') !== '' ? $row['constituency'] : null;
+            $ward = ($row['ward'] ?? '') !== '' ? $row['ward'] : null;
+
+            $pos = $positionName;
+            $needsCounty = str_contains($pos, 'governor')
+                || str_contains($pos, 'senator')
+                || str_contains($pos, 'women representative')
+                || str_contains($pos, 'mp')
+                || str_contains($pos, 'member of parliament')
+                || str_contains($pos, 'mca')
+                || str_contains($pos, 'county assembly');
+            $needsConstituency = str_contains($pos, 'mp')
+                || str_contains($pos, 'member of parliament')
+                || str_contains($pos, 'mca')
+                || str_contains($pos, 'county assembly');
+            $needsWard = str_contains($pos, 'mca') || str_contains($pos, 'county assembly');
+
+            if ($needsCounty && ! $county) {
+                $errors[] = "Row {$rowNumber}: county is required for this position.";
+                continue;
+            }
+            if ($needsConstituency && ! $constituency) {
+                $errors[] = "Row {$rowNumber}: constituency is required for this position.";
+                continue;
+            }
+            if ($needsWard && ! $ward) {
+                $errors[] = "Row {$rowNumber}: ward is required for this position.";
+                continue;
+            }
+
+            try {
+                $result = $this->createImportedCandidate([
+                    'name' => $name,
+                    'nick_name' => ($row['nick_name'] ?? '') !== '' ? $row['nick_name'] : null,
+                    'phone' => ($row['phone'] ?? '') !== '' ? $row['phone'] : null,
+                    'email' => ($row['email'] ?? '') !== '' ? $row['email'] : null,
+                    'political_party_id' => $partyId,
+                    'position_id' => $position->id,
+                    'county' => $county,
+                    'constituency' => $constituency,
+                    'ward' => $ward,
+                    'about' => ($row['about'] ?? '') !== '' ? $row['about'] : null,
+                    'approval_status' => 'pending',
+                    'is_imported' => true,
+                    'import_status' => 'pending',
+                ]);
+
+                $imported++;
+                if ($result['linked']) {
+                    $linked++;
+                }
+            } catch (\Throwable $e) {
+                $errors[] = "Row {$rowNumber}: " . $e->getMessage();
+            }
+        }
+
+        fclose($handle);
+
+        return compact('imported', 'linked', 'errors');
+    }
+
+    /**
+     * Create an imported aspirant without the normal "duplicate exists" rejection.
+     * If a same-name profile exists, link to it.
+     *
+     * @return array{candidate: Candidate, linked: bool}
+     */
+    public function createImportedCandidate(array $data): array
+    {
+        $data = $this->normalizeCandidateData($data);
+
+        $name = Str::lower(trim((string) ($data['name'] ?? '')));
+
+        // Prefer a non-imported live profile when linking
+        $existing = Candidate::query()
+            ->whereRaw('LOWER(name) = ?', [$name])
+            ->where(function ($q) {
+                $q->whereNull('import_status')
+                    ->orWhere('import_status', '!=', 'discarded');
+            })
+            ->orderByRaw('CASE WHEN COALESCE(is_imported, 0) = 0 THEN 0 ELSE 1 END')
+            ->orderBy('id')
+            ->first();
+
+        if (Schema::hasColumn('candidates', 'linked_candidate_id')) {
+            $data['linked_candidate_id'] = $existing?->id;
+        }
+
+        if (Schema::hasColumn('candidates', 'is_imported')) {
+            $data['is_imported'] = true;
+        }
+
+        if (Schema::hasColumn('candidates', 'import_status')) {
+            $data['import_status'] = 'pending';
+        }
+
+        if (Schema::hasColumn('candidates', 'approval_status')) {
+            $data['approval_status'] = $data['approval_status'] ?? 'pending';
+        }
+
+        // Do NOT call findPotentialDuplicate — import is reviewable on purpose
+        $candidate = $this->candidateRepository->create($data);
+
+        return [
+            'candidate' => $candidate,
+            'linked' => $existing !== null,
+        ];
+    }
+
+    public function publishImportedCandidate(Candidate $candidate): Candidate
+    {
+        if (! ($candidate->is_imported ?? false) || ($candidate->import_status ?? null) !== 'pending') {
+            throw ValidationException::withMessages([
+                'candidate' => 'Only pending imported aspirants can be published.',
+            ]);
+        }
+
+        $payload = [
+            'import_status' => 'published',
+            'approval_status' => 'approved',
+        ];
+
+        // Only keep columns that exist
+        if (! Schema::hasColumn('candidates', 'import_status')) {
+            unset($payload['import_status']);
+        }
+        if (! Schema::hasColumn('candidates', 'approval_status')) {
+            unset($payload['approval_status']);
+        }
+
+        $this->candidateRepository->update($candidate, $payload);
+
+        return $candidate->refresh();
+    }
+
+    public function discardImportedCandidate(Candidate $candidate): Candidate
+    {
+        if (! ($candidate->is_imported ?? false)) {
+            throw ValidationException::withMessages([
+                'candidate' => 'Only imported aspirants can be discarded.',
+            ]);
+        }
+
+        $payload = [
+            'import_status' => 'discarded',
+            'approval_status' => 'rejected',
+        ];
+
+        if (! Schema::hasColumn('candidates', 'import_status')) {
+            unset($payload['import_status']);
+        }
+        if (! Schema::hasColumn('candidates', 'approval_status')) {
+            unset($payload['approval_status']);
+        }
+
+        $this->candidateRepository->update($candidate, $payload);
+
+        return $candidate->refresh();
+    }
+
+    /**
+     * Stream all candidates (matching the given admin filters) into a CSV on the local disk.
+     *
+     * @return array{path:string,count:int}
+     */
+    public function exportCandidatesToCsv(array $filters, string $downloadName): array
+    {
+        $headers = [
+            'id', 'name', 'nick_name', 'phone', 'email', 'political_party', 'position',
+            'county', 'constituency', 'ward', 'about', 'featured', 'approval_status',
+            'is_imported', 'import_status', 'created_at',
+        ];
+
+        $disk = Storage::disk('local');
+        $relativePath = 'exports/'.Str::slug(pathinfo($downloadName, PATHINFO_FILENAME)).'-'.now()->format('Ymd-His').'-'.Str::lower(Str::random(8)).'.csv';
+
+        $handle = fopen($disk->path($relativePath), 'w');
+        if (! $handle) {
+            throw new \RuntimeException('Could not open the export file for writing.');
+        }
+
+        // UTF-8 BOM so Excel opens accents correctly
+        fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        fputcsv($handle, $headers);
+
+        $count = 0;
+        $this->candidateRepository->exportQuery($filters)
+            ->with(['position:id,name', 'politicalParty:id,name'])
+            ->chunkById(500, function ($candidates) use (&$handle, &$count): void {
+                foreach ($candidates as $candidate) {
+                    fputcsv($handle, [
+                        $candidate->id,
+                        $candidate->name,
+                        $candidate->nick_name ?? '',
+                        $candidate->phone ?? '',
+                        $candidate->email ?? '',
+                        $candidate->politicalParty?->name ?? '',
+                        $candidate->position?->name ?? '',
+                        $candidate->county ?? '',
+                        $candidate->constituency ?? '',
+                        $candidate->ward ?? '',
+                        $candidate->about ?? '',
+                        $candidate->featured ? '1' : '0',
+                        $candidate->approval_status ?? '',
+                        $candidate->is_imported ? '1' : '0',
+                        $candidate->import_status ?? '',
+                        $candidate->created_at?->toDateTimeString() ?? '',
+                    ]);
+                    $count++;
+                }
+            });
+
+        fclose($handle);
+
+        return ['path' => $relativePath, 'count' => $count];
     }
 }

@@ -11,6 +11,7 @@ use App\Models\NewsArticle;
 use App\Models\Position;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -20,24 +21,60 @@ class CandidateRepository implements CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $query = Candidate::with(['position', 'politicalParty', 'user', 'creatorAudit.user', 'claimRequests.user.relatedCandidates', 'claimRequests.reviewer'])
+        $query = Candidate::with(['position', 'politicalParty', 'user', 'creatorAudit.user', 'claimRequests.user.relatedCandidates', 'claimRequests.reviewer', 'linkedCandidate:id,name'])
             ->withSum([
                 'supportPayments as paid_support_gross_sum' => fn ($query) => $query->where('status', 'paid'),
             ], 'gross_amount')
             ->withCount([
                 'supportPayments as paid_support_count' => fn ($query) => $query->where('status', 'paid'),
             ])
-            ->withCount([
+->withCount([
                 'claimRequests as pending_claim_requests_count' => fn ($query) => $query->where('status', 'pending'),
                 'claimRequests as approved_claim_requests_count' => fn ($query) => $query->where('status', 'approved'),
                 'claimRequests as rejected_claim_requests_count' => fn ($query) => $query->where('status', 'rejected'),
             ]);
 
+        $this->applyFilters($query, $filters);
+
+        return $query->latest()->paginate($perPage)->withQueryString();
+    }
+
+    public function exportQuery(array $filters = []): Builder
+    {
+        return $this->applyFilters(Candidate::query(), $filters);
+    }
+
+    private function applyFilters(Builder $query, array $filters): Builder
+    {
         if (!empty($filters['candidate'])) {
             $candidate = $filters['candidate'];
             $query->where(function ($query) use ($candidate) {
                 $query->where('name', 'like', "%{$candidate}%")
                     ->orWhere('nick_name', 'like', "%{$candidate}%");
+            });
+        }
+
+        if (! empty($filters['import_filter']) && Schema::hasColumn('candidates', 'is_imported')) {
+            match ($filters['import_filter']) {
+                'imported' => $query->where('is_imported', true)
+                    ->where(function ($q) {
+                        $q->whereNull('import_status')
+                            ->orWhere('import_status', '!=', 'discarded');
+                    }),
+                'imported_pending' => $query->where('is_imported', true)->where('import_status', 'pending'),
+                'imported_published' => $query->where('is_imported', true)->where('import_status', 'published'),
+                'not_imported' => $query->where(function ($q) {
+                    $q->where('is_imported', false)->orWhereNull('is_imported');
+                }),
+                default => null,
+            };
+        }
+
+        // Hide discarded imports from the default list
+        if (Schema::hasColumn('candidates', 'import_status')) {
+            $query->where(function ($q) {
+                $q->whereNull('import_status')
+                    ->orWhere('import_status', '!=', 'discarded');
             });
         }
 
@@ -70,7 +107,7 @@ class CandidateRepository implements CandidateRepositoryInterface
             };
         }
 
-        return $query->latest()->paginate($perPage)->withQueryString();
+        return $query;
     }
 
     public function find(int $id): ?Candidate
