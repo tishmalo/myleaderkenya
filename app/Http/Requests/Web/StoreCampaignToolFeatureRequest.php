@@ -16,12 +16,14 @@ class StoreCampaignToolFeatureRequest extends FormRequest
 
     public function rules(): array
     {
+        $limits = config('spam_filter.character_limits', []);
+
         return [
-            'requester_name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+() .-]+$/'],
-            'requested_feature' => ['required', 'string', 'max:255'],
-            'use_case' => ['nullable', 'string', 'max:2000'],
+            'requester_name' => ['required', 'string', 'max:'.(int) ($limits['requester_name'] ?? 255)],
+            'email' => ['nullable', 'email', 'max:'.(int) ($limits['email'] ?? 255)],
+            'phone' => ['nullable', 'string', 'max:'.(int) ($limits['phone'] ?? 50), 'regex:/^[0-9+() .-]+$/'],
+            'requested_feature' => ['required', 'string', 'max:'.(int) ($limits['requested_feature'] ?? 255)],
+            'use_case' => ['nullable', 'string', 'max:'.(int) ($limits['use_case'] ?? 2000)],
             'feature_request_tool_id' => ['nullable', 'integer'],
             'other_campaign_tool_ids' => ['nullable', 'array'],
             'other_campaign_tool_ids.*' => [

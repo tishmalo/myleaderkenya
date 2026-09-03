@@ -142,9 +142,15 @@
                                     <option value="activate">Activate tool</option>
                                     <option value="reject">Reject / cancel</option>
                                     @if($requestItem->fulfilment_type === 'paid_package')<option value="refund">Refund before fulfilment</option>@endif
+                                    <option value="mark_spam" {{ $requestItem->is_spam ? 'selected' : '' }}>Mark as spam</option>
+                                    <option value="unmark_spam">Mark as not spam</option>
                                 </select>
                                 <textarea name="admin_notes" rows="4" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white" placeholder="Admin notes">{{ $requestItem->admin_notes }}</textarea>
                                 <button class="bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl text-sm font-medium">Apply Action</button>
+                            </form>
+                            <form method="POST" action="{{ route('campaign-tool-requests.spam', $requestItem) }}" class="grid gap-3">
+                                @csrf
+                                <button class="w-full border border-red-500/40 text-red-300 hover:bg-red-500/10 px-5 py-3 rounded-2xl text-sm font-medium"><i class="fas fa-flag mr-2"></i> Report as spam &amp; add sample</button>
                             </form>
                         @elseif($requestItem->admin_notes)
                             <div class="rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-sm text-zinc-300">{{ $requestItem->admin_notes }}</div>

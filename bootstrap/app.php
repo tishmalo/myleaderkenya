@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuditMutatingRequests;
+use App\Http\Middleware\BlockSpamIps;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsAspirant;
@@ -37,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'profile.complete' => EnsureUserProfileIsComplete::class,
         ]);
         $middleware->prepend(FixApiTokenHeader::class);
-        $middleware->appendToGroup('web', [PreventStaleCsrfPages::class, AuditMutatingRequests::class]);
+        $middleware->appendToGroup('web', [PreventStaleCsrfPages::class, BlockSpamIps::class, AuditMutatingRequests::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function ($request, $e) {

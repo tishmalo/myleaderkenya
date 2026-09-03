@@ -12,6 +12,7 @@ use App\Services\Admin\SettingService;
 use App\Services\Web\AspirantWorkspaceService;
 use App\Services\Web\CampaignToolFeatureRequestService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 
 class CampaignToolController extends Controller
 {
@@ -98,10 +99,14 @@ class CampaignToolController extends Controller
     {
         abort_unless($campaignTool->status === 'published', 404);
 
-        $user = $request->user();
-        $candidate = $user ? $this->workspaceService->candidateForUser($user) : null;
+        try {
+            $user = $request->user();
+            $candidate = $user ? $this->workspaceService->candidateForUser($user) : null;
 
-        $this->featureRequestService->submit($campaignTool, $request->validated(), $user, $candidate);
+            $this->featureRequestService->submit($campaignTool, $request->validated(), $user, $candidate);
+        } catch (ValidationException $e) {
+            return back()->withInput()->withErrors($e->errors());
+        }
 
         return redirect()->back()
             ->with('success', 'Feature request submitted. The admin team will review it.');

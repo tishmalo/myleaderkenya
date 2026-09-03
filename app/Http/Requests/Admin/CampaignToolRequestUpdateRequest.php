@@ -11,11 +11,12 @@ class CampaignToolRequestUpdateRequest extends FormRequest
         return $this->user()?->canAccess('campaign-tool-requests.update') ?? false;
     }
 
-    public function rules(): array
+public function rules(): array
     {
         return [
-            'action' => ['required', 'in:start_fulfilment,activate,reject,refund'],
+            'action' => ['required', 'in:start_fulfilment,activate,reject,refund,mark_spam,unmark_spam'],
             'admin_notes' => ['nullable', 'string', 'max:2000'],
+            'spam_reason' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

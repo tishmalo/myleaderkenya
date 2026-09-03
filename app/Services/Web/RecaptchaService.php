@@ -31,7 +31,8 @@ class RecaptchaService
     }
 
     /**
-     * Verify a reCAPTCHA v3 response token server-side.
+     * Verify a reCAPTCHA response token server-side.
+     * Supports both v3 (score present) and v2 checkbox (no score).
      */
     public function verify(?string $token): bool
     {
@@ -53,7 +54,15 @@ class RecaptchaService
 
         $body = $response->json();
 
-        return (bool) ($body['success'] ?? false)
-            && (float) ($body['score'] ?? 0.0) >= self::MIN_SCORE;
+        if (! (bool) ($body['success'] ?? false)) {
+            return false;
+        }
+
+        // v2 checkbox responses omit "score"; only enforce the threshold when present.
+        if (! array_key_exists('score', $body)) {
+            return true;
+        }
+
+        return (float) $body['score'] >= self::MIN_SCORE;
     }
 }

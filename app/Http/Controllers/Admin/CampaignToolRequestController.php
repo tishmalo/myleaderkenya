@@ -42,4 +42,11 @@ class CampaignToolRequestController extends Controller
         return redirect()->route('campaign-tool-requests.index')
             ->with('success', 'Campaign tool request deleted.');
     }
+
+    public function reportSpam(CampaignToolRequest $campaignToolRequest): RedirectResponse
+    {
+        $this->service->reportSpam($campaignToolRequest);
+
+        return back()->with('success', 'Request marked as spam and added to the spam samples.');
+    }
 }

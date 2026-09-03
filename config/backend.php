@@ -100,6 +100,7 @@ return [
                     ['label' => 'SMTP Settings', 'route' => 'admin.smtp', 'icon' => 'fas fa-envelope-circle-check', 'active' => ['admin.smtp'], 'permission' => 'settings.view'],
                     ['label' => 'Email Notifications', 'route' => 'notification-emails.index', 'icon' => 'fas fa-bell', 'active' => ['notification-emails.*'], 'permission' => 'settings.view'],
                     ['label' => 'reCAPTCHA Settings', 'route' => 'admin.recaptcha', 'icon' => 'fas fa-robot', 'active' => ['admin.recaptcha'], 'permission' => 'settings.view'],
+                    ['label' => 'Spam Filter Hub', 'route' => 'spam-filter.index', 'icon' => 'fas fa-shield-halved', 'active' => ['spam-filter.*'], 'permission' => 'settings.view'],
                     ['label' => 'Audit Log', 'route' => 'audits.index', 'icon' => 'fas fa-clock-rotate-left', 'active' => ['audits.*'], 'permission' => 'audit.superadmin', 'superadmin_only' => true],
                     ['label' => 'Admins, Roles & Permissions', 'route' => 'user-access.index', 'icon' => 'fas fa-user-shield', 'active' => ['user-access.*'], 'permission' => 'user-access.view'],
                 ],
