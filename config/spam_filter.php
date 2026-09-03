@@ -138,7 +138,7 @@ return [
     ],
 
     // How long flagged requests/samples are kept before the daily purge removes them.
-    'retention_days' => 30,
+    'retention_days' => 7,
 
     // Record every flagged submission as a spam sample for the admin hub.
     'record_samples' => true,
