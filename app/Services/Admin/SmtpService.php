@@ -14,7 +14,7 @@ class SmtpService
     /**
      * Persist SMTP settings to the .env file and clear config/cache.
      *
-     * @param array<string, string> $settings  Keyed by env variable name (e.g. MAIL_HOST)
+     * @param array<string, string|null> $settings  Keyed by env variable name (e.g. MAIL_HOST)
      */
     public function updateSettings(array $settings): void
     {

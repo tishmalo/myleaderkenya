@@ -6,7 +6,7 @@ use App\Contracts\Repositories\Admin\SmtpRepositoryInterface;
 
 class SmtpRepository implements SmtpRepositoryInterface
 {
-    public function setEnvironmentValue(string $key, string $value): void
+    public function setEnvironmentValue(string $key, ?string $value): void
     {
         $path = base_path('.env');
 
@@ -14,7 +14,7 @@ class SmtpRepository implements SmtpRepositoryInterface
             return;
         }
 
-        $value   = '"' . trim($value) . '"';
+        $value   = '"' . trim((string) $value) . '"';
         $current = file_get_contents($path);
 
         if (preg_match("/^{$key}=.*/m", $current)) {
