@@ -32,6 +32,7 @@
             <thead class="bg-zinc-950">
                 <tr>
                     <th class="px-8 py-5 text-left">Name</th>
+                    <th class="px-8 py-5 text-left">Type</th>
                     <th class="px-8 py-5 text-left">Counties / Notes</th>
                     <th class="px-8 py-5 text-center">Estimated Population</th>
                     <th class="px-8 py-5 text-center">Counties</th>

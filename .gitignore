@@ -22,6 +22,12 @@
 /.phpunit.result.cache
 /coverage/
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 /.idea/
 /.vscode/
 /.fleet/

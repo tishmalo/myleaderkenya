@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('scope_type')->nullable();
             $table->string('scope_column')->nullable();
             $table->string('scope_value')->nullable();
-            $table->timestamp('called_at');
+            $table->timestamp('called_at')->nullable();
             $table->timestamps();
 
             $table->index(['candidate_id', 'outcome']);

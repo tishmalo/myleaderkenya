@@ -12,10 +12,11 @@ return new class extends Migration
     public function up()
 {
     Schema::table('messages', function (Blueprint $table) {
-        $table->string('country')->nullable()->change();
-        $table->string('county')->nullable()->change();
-        $table->string('constituency')->nullable()->change();
-        $table->string('ward')->nullable()->change();
+        foreach (['country', 'county', 'constituency', 'ward'] as $column) {
+            if (Schema::hasColumn('messages', $column)) {
+                $table->string($column)->nullable()->change();
+            }
+        }
     });
 }
     /**
