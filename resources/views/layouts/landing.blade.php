@@ -100,9 +100,6 @@
     </div>
     @yield('content')
 
-    @unless(request()->routeIs('landing') || request()->boolean('modal'))
-        @include('components.video-showcase')
-    @endunless
     
 @unless(request()->boolean('modal'))
 <style>

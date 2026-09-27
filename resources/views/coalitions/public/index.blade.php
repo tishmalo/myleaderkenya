@@ -17,7 +17,8 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .party-hero h1 { font-size:clamp(42px,6vw,72px); line-height:1; margin:0 0 18px; }
 .party-hero h1 em { color:var(--green-bright); font-style:normal; }
 .party-hero p { max-width:720px; margin:0 auto; color:rgba(245,245,240,0.62); font-size:18px; line-height:1.7; }
-.party-grid { max-width:1280px; margin:0 auto; padding:64px 32px 90px; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; }
+    .party-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; }
+    .party-rail-wrap { max-width:1080px; margin:0 auto; padding:64px 32px 90px; }
 .party-card { position:relative; display:flex; flex-direction:column; min-height:360px; background:#151515; border:1px solid rgba(255,255,255,0.07); border-radius:18px; overflow:hidden; text-decoration:none; transition:border-color .25s, transform .25s, box-shadow .25s; }
 .party-card:hover { border-color:rgba(0,168,107,0.35); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,0.45); }
 .party-card-img { height:190px; background:#0f0f0f; overflow:hidden; }
@@ -51,17 +52,21 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .member-party-chip { display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; background:#101010; border:1px solid color-mix(in srgb, var(--brand) 36%, rgba(255,255,255,0.1)); color:white; text-decoration:none; }
 .member-party-chip img,.member-party-chip span { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:var(--brand); color:white; object-fit:cover; font-size:11px; }
 .member-party-empty { color:rgba(245,245,240,0.45); }
-@media (max-width:768px) { .party-hero { padding:58px 18px 42px; } .party-grid,.party-show,.party-back { padding-left:18px; padding-right:18px; } .party-show-head,.party-content,.member-section { padding:24px; } .party-show-head.has-logo { display:block; } .party-show-logo { width:130px; height:130px; margin-bottom:20px; } }
+@media (max-width:768px) { .party-hero { padding:58px 18px 42px; } .party-show,.party-back { padding-left:18px; padding-right:18px; } .party-rail-wrap { padding-left:18px; padding-right:18px; } .party-show-head,.party-content,.member-section { padding:24px; } .party-show-head.has-logo { display:block; } .party-show-logo { width:130px; height:130px; margin-bottom:20px; } }
 </style>
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
 <section class="party-hero"><div class="party-eyebrow"><span class="dot"></span> Coalition Directory</div><h1>Political <em>Coalitions</em></h1><p>Coalitions are built from political parties. Explore the published alliances and their member parties.</p></section>
+<section class="party-rail-wrap">
+<x-video-rail-layout>
 <section class="party-grid">
 @forelse($coalitions as $coalition)
     <x-public-party-card :item="$coalition" type="Coalition" :url="route('coalitions.show', $coalition->slug)" />
 @empty
     <div class="party-empty"><h3>No coalitions published yet.</h3><p>Published coalitions will appear here automatically.</p></div>
 @endforelse
+</section>
+</x-video-rail-layout>
 </section>
 @if($coalitions->hasPages())<div class="party-pagination">{{ $coalitions->links() }}</div>@endif
 @endsection

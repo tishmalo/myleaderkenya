@@ -62,7 +62,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 
 /* ── LAYOUT ── */
 .events-container {
-    max-width: 1280px; margin: 0 auto;
+    max-width: 1080px; margin: 0 auto;
     padding: 48px 32px 80px;
 }
 
@@ -223,6 +223,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <i class="fas fa-calendar-star text-green-bright"></i> Upcoming Events
     </h2>
 
+    <x-video-rail-layout>
     <div class="events-grid">
         @forelse($upcomingEvents as $event)
             <div class="event-card">
@@ -267,6 +268,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
             </div>
         @endif
     </div>
+    </x-video-rail-layout>
 
     <!-- PAST EVENTS -->
     @if($pastEvents->count() > 0)

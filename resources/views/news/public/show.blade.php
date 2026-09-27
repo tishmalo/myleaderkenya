@@ -162,12 +162,14 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 .article-no-img-meta-item i { font-size: 10px; color: var(--green-bright); }
 
 /* ── MAIN LAYOUT ── */
+/* Rail is fixed at 523px so each video card matches the campaign media card
+   on the aspirant page exactly, leaving the article column narrower. */
 .article-layout {
-    max-width: 1100px; margin: 0 auto;
+    max-width: 1080px; margin: 0 auto;
     padding: 48px 32px 80px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 40px;
+    grid-template-columns: minmax(0, 1fr) 523px;
+    gap: 28px;
     align-items: start;
 }
 .article-main {
@@ -177,9 +179,13 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 
 /* ── SIDEBAR ── */
 .article-sidebar {
-    position: sticky; top: 88px;
-    display: flex; flex-direction: column; gap: 20px;
+    position: sticky;
+    top: 88px;
+    align-self: start;
+    display: flex; flex-direction: column; gap: 22px;
+    min-width: 0;
 }
+.article-sidebar > * { flex-shrink: 0; }
 .sb-card {
     background: #141414;
     border: 1px solid rgba(255,255,255,0.07);
@@ -737,8 +743,10 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 
   </div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar: videos on top, categories beneath -->
   <aside class="article-sidebar">
+      @include('components.video-rail', ['railSticky' => false])
+
       <div class="sb-card">
           <div class="sb-head">
               <div class="sb-head-bar"></div>

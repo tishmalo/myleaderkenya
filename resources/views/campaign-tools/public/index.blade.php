@@ -19,7 +19,8 @@ h1,h2,h3 { font-family:'Oswald', sans-serif; }
 .ct-hero h1 { font-size:clamp(42px,6vw,72px); line-height:1; margin-bottom:18px; }
 .ct-hero h1 em { color:var(--green-bright); font-style:normal; }
 .ct-hero p { max-width:720px; margin:0 auto; color:rgba(245,245,240,0.62); font-size:18px; line-height:1.7; }
-.ct-grid { max-width:1280px; margin:0 auto; padding:64px 32px 90px; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; }
+    .ct-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; }
+    .ct-rail-wrap { max-width:1080px; margin:0 auto; padding:64px 32px 90px; }
 .ct-card { position:relative; display:flex; flex-direction:column; min-height:360px; background:#151515; border:1px solid rgba(255,255,255,0.07); border-radius:18px; overflow:hidden; text-decoration:none; transition:border-color .25s, transform .25s, box-shadow .25s; }
 .ct-card:hover { border-color:rgba(0,168,107,0.35); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,0.45); }
 .ct-card-img { height:190px; background:#0f0f0f; overflow:hidden; }
@@ -53,7 +54,7 @@ body.ct-modal-open { overflow:hidden; }
 .ct-flash { max-width:1280px; margin:24px auto 0; padding:0 32px; }
 .ct-flash div { border:1px solid rgba(34,197,94,.3); border-radius:12px; background:rgba(34,197,94,.12); color:#bbf7d0; padding:14px 16px; }
 .ct-pagination { max-width:1280px; margin:-50px auto 80px; padding:0 32px; display:flex; justify-content:center; }
-@media (max-width:768px) { .ct-hero { padding:58px 18px 42px; } .ct-grid { padding:42px 18px 72px; } .ct-request-fields { grid-template-columns:1fr; } .ct-request-tool-options { grid-template-columns:1fr; } .ct-card-actions,.ct-card-link,.ct-card-request { width:100%; justify-content:center; } .ct-card-link { padding-left:13px; } }
+@media (max-width:768px) { .ct-hero { padding:58px 18px 42px; } .ct-rail-wrap { padding:42px 18px 72px; } .ct-request-fields { grid-template-columns:1fr; } .ct-request-tool-options { grid-template-columns:1fr; } .ct-card-actions,.ct-card-link,.ct-card-request { width:100%; justify-content:center; } .ct-card-link { padding-left:13px; } }
 </style>
 
 <div class="flag-stripe"></div>
@@ -71,6 +72,8 @@ body.ct-modal-open { overflow:hidden; }
     <p>Digital tools for serious campaigns: communication, websites, voter data, opinion polling, and aspirant profile management.</p>
 </section>
 
+<section class="ct-rail-wrap">
+<x-video-rail-layout>
 <section class="ct-grid">
     @forelse($campaignTools as $tool)
         @php($modalId = 'campaign-tool-request-' . $tool->id)
@@ -97,6 +100,8 @@ body.ct-modal-open { overflow:hidden; }
             <p>Published campaign tools will appear here automatically.</p>
         </div>
     @endforelse
+</section>
+</x-video-rail-layout>
 </section>
 
 @if($campaignTools->hasPages())

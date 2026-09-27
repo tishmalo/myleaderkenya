@@ -182,9 +182,13 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 }
 
 /* ── GRID ── */
-.news-grid {
-    max-width: 1280px; margin: 0 auto;
+/* Width now comes from .news-rail-wrap, which pairs the card grid with the
+   523px sticky video rail. */
+.news-rail-wrap {
+    max-width: 1080px; margin: 0 auto;
     padding: 0 32px 80px;
+}
+.news-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 24px;
@@ -374,7 +378,8 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     .news-hero { padding: 56px 16px 44px; }
     .news-filter-wrap { padding: 0 16px; }
     .news-results-meta { padding: 0 16px; }
-    .news-grid { grid-template-columns: 1fr; padding: 0 16px 60px; }
+    .news-grid { grid-template-columns: 1fr; }
+    .news-rail-wrap { padding: 0 16px 60px; }
     .news-filter-label { display: none; }
 }
 </style>
@@ -419,8 +424,10 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     <div class="news-results-line"></div>
 </div>
 
-<!-- GRID -->
-<div class="news-grid">
+<!-- GRID + VIDEO RAIL -->
+<div class="news-rail-wrap">
+<x-video-rail-layout>
+    <div class="news-grid">
     @forelse($articles as $article)
     <div class="news-card">
 
@@ -504,6 +511,8 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <p>Check back soon for the latest news and updates.</p>
     </div>
     @endforelse
+    </div>
+</x-video-rail-layout>
 </div>
 
 <!-- PAGINATION -->
