@@ -82,29 +82,30 @@ jobs:
           open ${FTP_SERVER};
           mirror --reverse --verbose --delete \
             --no-perms --no-umask \
-            --exclude .git/ \
-            --exclude .git* \
-            --exclude .github/ \
-            --exclude node_modules/ \
-            --exclude tests/ \
-            --exclude .env \
-            --exclude .env.* \
-            --exclude .idea/ \
-            --exclude .vscode/ \
-            --exclude .fleet/ \
-            --exclude .phpunit.cache/ \
-            --exclude '.phpunit.result.cache' \
-            --exclude .ftp-deploy-sync-state.json \
-            --exclude storage/ \
-            --exclude bootstrap/cache/ \
-            --exclude vendor/bin/ \
-            --exclude public/hot \
-            --exclude '*.log' \
-            --exclude '*.zip' \
-            --exclude .well-known/ \
-            --exclude cgi-bin/ \
-            --exclude .htpasswd \
-            --exclude .ftpquota \
-            --exclude .user.ini \
+            --exclude '\.git/' \
+            --exclude '\.git' \
+            --exclude '\.github/' \
+            --exclude 'node_modules/' \
+            --exclude 'tests/' \
+            --exclude '\.env' \
+            --exclude '\.env\.' \
+            --exclude '\.idea/' \
+            --exclude '\.vscode/' \
+            --exclude '\.fleet/' \
+            --exclude '\.phpunit\.cache/' \
+            --exclude '\.phpunit\.result\.cache' \
+            --exclude '\.ftp-deploy-sync-state\.json' \
+            --exclude 'storage/' \
+            --exclude 'bootstrap/cache/' \
+            --exclude 'vendor/bin/' \
+            --exclude 'public/hot' \
+            --exclude '\.log$' \
+            --exclude 'error_log$' \
+            --exclude '\.zip$' \
+            --exclude '\.well-known/' \
+            --exclude 'cgi-bin/' \
+            --exclude '\.htpasswd' \
+            --exclude '\.ftpquota' \
+            --exclude '\.user\.ini' \
             ./ ${FTP_PATH};
           quit"
