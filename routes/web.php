@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\KittyTypeController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NewsArticleController;
+use App\Http\Controllers\Admin\NewsCommentController;
 use App\Http\Controllers\Admin\NotificationEmailController;
 use App\Http\Controllers\Admin\ParliamentMemberController;
 use App\Http\Controllers\Admin\PaymentMethodController;
@@ -68,6 +69,7 @@ use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageControl
 use App\Http\Controllers\Web\BotVerifyController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\MyAccountController;
+use App\Http\Controllers\Web\NewsCommentController as WebNewsCommentController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
 use App\Http\Controllers\Web\UserEventController;
@@ -173,6 +175,7 @@ Route::get('/events/payment/callback', [WebEventController::class, 'callback'])-
 Route::middleware('auth')->group(function () {
     Route::get('/my-account/profile', [UserProfileController::class, 'edit'])->name('account.profile.edit');
     Route::put('/my-account/profile', [UserProfileController::class, 'update'])->middleware('throttle:10,1')->name('account.profile.update');
+    Route::post('/news/{slug}/comments', [WebNewsCommentController::class, 'store'])->middleware('throttle:5,10')->name('news.comments.store');
 
     Route::middleware('profile.complete')->group(function () {
         Route::get('/my-account', [MyAccountController::class, 'index'])->name('my-account');
@@ -343,6 +346,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:frontend.view')->name('news.edit');
             Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
             Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
+
+            Route::get('/news-comments', [NewsCommentController::class, 'index'])->middleware('permission:frontend.view')->name('news-comments.index');
+            Route::put('/news-comments/{newsComment}', [NewsCommentController::class, 'update'])->middleware('permission:frontend.update')->name('news-comments.update');
+            Route::delete('/news-comments/{newsComment}', [NewsCommentController::class, 'destroy'])->middleware('permission:frontend.update')->name('news-comments.destroy');
 
             Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
             Route::patch('/admin/events/{event}/approval', [AdminEventController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('events.approval');

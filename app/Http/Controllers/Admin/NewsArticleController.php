@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\NewsArticleStoreRequest;
 use App\Http\Requests\Admin\NewsArticleUpdateRequest;
 use App\Models\NewsArticle;
+use App\Models\NewsArticleComment;
 use App\Services\Admin\NewsArticleService;
 
 class NewsArticleController extends Controller
@@ -21,7 +22,12 @@ class NewsArticleController extends Controller
 
         ['tags' => $tags] = $this->newsArticleService->getFormData();
 
-        return view('news.index', compact('articles', 'tags'));
+        $pendingCommentCount = $this->newsArticleService->getPaginatedComments(
+            ['status' => NewsArticleComment::STATUS_PENDING],
+            1
+        )->total();
+
+        return view('news.index', compact('articles', 'tags', 'pendingCommentCount'));
     }
 
     public function create()
@@ -90,9 +96,9 @@ class NewsArticleController extends Controller
 
     public function publicShow($slug)
     {
-        $article = $this->newsArticleService->getPublicShowData($slug);
+        $data = $this->newsArticleService->getPublicShowPageData($slug);
 
-        return view('news.public.show', compact('article'));
+        return view('news.public.show', $data);
     }
 }
 

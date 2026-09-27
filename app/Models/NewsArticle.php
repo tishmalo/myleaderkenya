@@ -41,6 +41,16 @@ class NewsArticle extends Model implements AuditableContract
     {
         return $this->belongsToMany(PoliticalParty::class, 'news_article_political_party');
     }
+
+    public function comments()
+    {
+        return $this->hasMany(NewsArticleComment::class);
+    }
+
+    public function approvedComments()
+    {
+        return $this->comments()->approved()->with('user')->oldest();
+    }
     protected static function boot()
     {
         parent::boot();

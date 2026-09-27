@@ -163,10 +163,227 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 
 /* ── MAIN LAYOUT ── */
 .article-layout {
-    max-width: 900px; margin: 0 auto;
+    max-width: 1100px; margin: 0 auto;
     padding: 48px 32px 80px;
-    display: flex; flex-direction: column; gap: 40px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 40px;
+    align-items: start;
 }
+.article-main {
+    display: flex; flex-direction: column; gap: 40px;
+    min-width: 0;
+}
+
+/* ── SIDEBAR ── */
+.article-sidebar {
+    position: sticky; top: 88px;
+    display: flex; flex-direction: column; gap: 20px;
+}
+.sb-card {
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px; overflow: hidden;
+}
+.sb-head {
+    padding: 16px 20px;
+    background: rgba(187,0,0,0.06);
+    border-bottom: 1px solid rgba(187,0,0,0.12);
+    display: flex; align-items: center; gap: 10px;
+}
+.sb-head-bar {
+    width: 3px; height: 18px; border-radius: 2px;
+    background: var(--kenya-red);
+}
+.sb-head-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,120,120,0.85);
+}
+.sb-body { padding: 14px 16px; }
+.sb-tags { display: flex; flex-direction: column; gap: 6px; }
+.sb-tag {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+}
+.sb-tag:hover {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.08);
+}
+.sb-tag.is-active {
+    background: rgba(187,0,0,0.1);
+    border-color: rgba(187,0,0,0.28);
+}
+.sb-tag-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    background: var(--kenya-red);
+}
+.sb-tag-name {
+    flex: 1; min-width: 0;
+    font-size: 13px; font-weight: 500;
+    color: rgba(245,245,240,0.72);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sb-tag.is-active .sb-tag-name { color: white; font-weight: 600; }
+.sb-tag-count {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px; font-weight: 600;
+    color: rgba(245,245,240,0.3);
+    background: rgba(255,255,255,0.05);
+    padding: 2px 8px; border-radius: 20px;
+}
+.sb-empty {
+    font-size: 12px; color: rgba(245,245,240,0.3);
+    padding: 4px 2px;
+}
+.sb-link-all {
+    display: block; text-align: center;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--green-bright); text-decoration: none;
+    transition: background 0.2s;
+}
+.sb-link-all:hover { background: rgba(0,168,107,0.07); }
+
+/* ── COMMENTS ── */
+.comments-card {
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px; overflow: hidden;
+}
+.comments-head {
+    padding: 18px 24px;
+    background: rgba(0,168,107,0.06);
+    border-bottom: 1px solid rgba(0,168,107,0.1);
+    display: flex; align-items: center; gap: 10px;
+}
+.comments-head-bar {
+    width: 3px; height: 18px; border-radius: 2px;
+    background: var(--green-bright);
+}
+.comments-head-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(0,168,107,0.85);
+}
+.comments-head-count {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px; color: rgba(245,245,240,0.35);
+    margin-left: auto;
+}
+.comments-list { padding: 8px 24px; }
+.comment-item {
+    display: flex; gap: 14px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.comment-item:last-child { border-bottom: none; }
+.comment-avatar {
+    width: 38px; height: 38px; border-radius: 10px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, var(--kenya-red), var(--kenya-green));
+}
+.comment-main { min-width: 0; flex: 1; }
+.comment-meta {
+    display: flex; align-items: baseline; gap: 10px;
+    flex-wrap: wrap; margin-bottom: 6px;
+}
+.comment-author {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px; font-weight: 600;
+    color: var(--kenya-white);
+}
+.comment-date { font-size: 11px; color: rgba(245,245,240,0.3); }
+.comment-body {
+    font-size: 14px; line-height: 1.75;
+    color: rgba(245,245,240,0.65);
+    white-space: pre-line;
+    word-break: break-word;
+}
+.comments-empty {
+    padding: 28px 24px;
+    text-align: center;
+    font-size: 13px; color: rgba(245,245,240,0.3);
+}
+.comment-form-wrap {
+    padding: 20px 24px 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.015);
+}
+.comment-form-label {
+    display: block;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(245,245,240,0.4);
+    margin-bottom: 10px;
+}
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 13px 15px;
+    background: #0f0f0f;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    color: var(--kenya-white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px; line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+.comment-form textarea:focus {
+    outline: none;
+    border-color: rgba(0,168,107,0.4);
+}
+.comment-form textarea::placeholder { color: rgba(245,245,240,0.22); }
+.comment-form-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; margin-top: 12px; flex-wrap: wrap;
+}
+.comment-form-hint { font-size: 11px; color: rgba(245,245,240,0.28); }
+.comment-form-submit {
+    padding: 10px 22px; border: none; border-radius: 10px;
+    background: var(--green-bright); color: #05231a;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+.comment-form-submit:hover { filter: brightness(1.1); }
+.comment-alert {
+    padding: 11px 14px; border-radius: 10px;
+    font-size: 13px; line-height: 1.5;
+    margin-bottom: 14px;
+}
+.comment-alert-success {
+    background: rgba(0,168,107,0.1);
+    border: 1px solid rgba(0,168,107,0.25);
+    color: rgba(0,200,130,0.9);
+}
+.comment-alert-error {
+    background: rgba(187,0,0,0.1);
+    border: 1px solid rgba(187,0,0,0.3);
+    color: rgba(255,120,120,0.9);
+}
+.comment-alert-info {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(245,245,240,0.55);
+}
+.comment-login-link { color: var(--green-bright); font-weight: 600; text-decoration: underline; }
+.comment-error-text { color: rgba(255,120,120,0.85); font-size: 11px; margin-top: 6px; }
 
 /* Meta bar below image (when image exists) */
 .article-meta-bar {
@@ -312,11 +529,18 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
     .article-hero-content { padding: 24px 20px 20px; }
     .article-hero-title { font-size: 22px; }
     .article-no-img-header { padding: 0 16px; margin-top: 24px; }
-    .article-layout { padding: 28px 16px 60px; gap: 24px; }
+    .article-layout {
+        padding: 28px 16px 60px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+    }
+    .article-main { gap: 24px; }
+    .article-sidebar { position: static; }
     .article-body-card { padding: 24px 22px; }
     .article-body { font-size: 15px; }
     .article-aspirant-chip { min-width: 100%; }
     .article-meta-bar { gap: 12px; }
+    .comments-list, .comment-form-wrap { padding-left: 18px; padding-right: 18px; }
 }
 </style>
 
@@ -388,6 +612,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 
 <!-- MAIN LAYOUT -->
 <div class="article-layout">
+  <div class="article-main">
 
     {{-- Meta bar (only shown when image exists, since meta is in overlay otherwise) --}}
     @if($article->featured_image)
@@ -448,6 +673,97 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <iframe src="{{ $article->video_url }}" allowfullscreen loading="lazy"></iframe>
     </div>
     @endif
+
+    <!-- Comments -->
+    <div class="comments-card" id="comments">
+        <div class="comments-head">
+            <div class="comments-head-bar"></div>
+            <span class="comments-head-label">Discussion</span>
+            <span class="comments-head-count">
+                {{ $commentCount }} {{ Str::plural('comment', $commentCount) }}
+            </span>
+        </div>
+
+        @if(session('comment_notice'))
+            <div class="comment-form-wrap" style="border-top: none; padding-bottom: 0; background: none;">
+                <div class="comment-alert comment-alert-success">{{ session('comment_notice') }}</div>
+            </div>
+        @endif
+
+        @if($comments->isEmpty())
+            <div class="comments-empty">No comments yet. Be the first to share your thoughts.</div>
+        @else
+            <div class="comments-list">
+                @foreach($comments as $comment)
+                <div class="comment-item">
+                    <div class="comment-avatar">
+                        {{ strtoupper(substr($comment->user->name ?? '?', 0, 1)) }}
+                    </div>
+                    <div class="comment-main">
+                        <div class="comment-meta">
+                            <span class="comment-author">{{ $comment->user->name ?? 'Deleted user' }}</span>
+                            <span class="comment-date">{{ $comment->created_at->diffForHumans() }}</span>
+                        </div>
+                        <div class="comment-body">{{ $comment->body }}</div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="comment-form-wrap">
+            @auth
+                <form method="POST" action="{{ route('news.comments.store', $article->slug) }}" class="comment-form">
+                    @csrf
+                    <label for="comment-body" class="comment-form-label">Join the discussion</label>
+                    <textarea id="comment-body" name="body" maxlength="2000" required
+                              placeholder="Share your thoughts on this story…">{{ old('body') }}</textarea>
+                    @error('body')
+                        <div class="comment-error-text">{{ $message }}</div>
+                    @enderror
+                    <div class="comment-form-foot">
+                        <span class="comment-form-hint">Comments are reviewed by an administrator before they appear.</span>
+                        <button type="submit" class="comment-form-submit">Post Comment</button>
+                    </div>
+                </form>
+            @else
+                <div class="comment-alert comment-alert-info">
+                    Please <a href="{{ route('login') }}" class="comment-login-link">log in</a>
+                    to leave a comment on this story.
+                </div>
+            @endauth
+        </div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="article-sidebar">
+      <div class="sb-card">
+          <div class="sb-head">
+              <div class="sb-head-bar"></div>
+              <span class="sb-head-label">Categories</span>
+          </div>
+          <div class="sb-body">
+              @if(($sidebarTags ?? collect())->isEmpty())
+                  <div class="sb-empty">No categories yet.</div>
+              @else
+                  <div class="sb-tags">
+                      @foreach($sidebarTags as $sidebarTag)
+                      @php $isActive = $article->tags->contains('id', $sidebarTag->id); @endphp
+                      <a href="{{ route('news.public', ['tag' => $sidebarTag->slug]) }}"
+                         class="sb-tag {{ $isActive ? 'is-active' : '' }}">
+                          <span class="sb-tag-dot" style="background: {{ $sidebarTag->color ?? '#BB0000' }}"></span>
+                          <span class="sb-tag-name">{{ $sidebarTag->name }}</span>
+                          <span class="sb-tag-count">{{ $sidebarTag->articles_count }}</span>
+                      </a>
+                      @endforeach
+                  </div>
+              @endif
+          </div>
+          <a href="{{ route('news.public') }}" class="sb-link-all">All News</a>
+      </div>
+  </aside>
 
 </div>
 

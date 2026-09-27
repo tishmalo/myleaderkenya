@@ -9,10 +9,19 @@
             <i class="fas fa-newspaper text-emerald-500"></i> 
             News Articles
         </h1>
-        <a href="{{ route('news.create') }}" 
-           class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
-            <i class="fas fa-plus"></i> New Article
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('news-comments.index') }}"
+               class="bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-comments"></i> Comments
+                @if($pendingCommentCount ?? 0)
+                    <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs">{{ $pendingCommentCount }}</span>
+                @endif
+            </a>
+            <a href="{{ route('news.create') }}" 
+               class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-plus"></i> New Article
+            </a>
+        </div>
     </div>
 
     <!-- Tag Filter -->

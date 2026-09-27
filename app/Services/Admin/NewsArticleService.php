@@ -4,6 +4,8 @@ namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\NewsArticleRepositoryInterface;
 use App\Models\NewsArticle;
+use App\Models\NewsArticleComment;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -86,6 +88,38 @@ class NewsArticleService
     public function getPublicShowData(string $slug): NewsArticle
     {
         return $this->newsArticleRepository->findBySlug($slug, true);
+    }
+
+    public function getPublicShowPageData(string $slug): array
+    {
+        $article = $this->getPublicShowData($slug);
+
+        return [
+            'article'        => $article,
+            'comments'       => $this->newsArticleRepository->approvedCommentsFor($article),
+            'commentCount'   => $this->newsArticleRepository->approvedCommentCountFor($article),
+            'sidebarTags'    => $this->newsArticleRepository->publicTagsWithCounts(),
+        ];
+    }
+
+    public function submitComment(NewsArticle $article, User $user, string $body): NewsArticleComment
+    {
+        return $this->newsArticleRepository->createComment($article, $user, $body);
+    }
+
+    public function getPaginatedComments(array $filters = [], int $perPage = 25): LengthAwarePaginator
+    {
+        return $this->newsArticleRepository->paginateComments($filters, $perPage);
+    }
+
+    public function setCommentStatus(NewsArticleComment $comment, string $status, User $moderator): NewsArticleComment
+    {
+        return $this->newsArticleRepository->setCommentStatus($comment, $status, $moderator);
+    }
+
+    public function deleteComment(NewsArticleComment $comment): bool
+    {
+        return $this->newsArticleRepository->deleteComment($comment);
     }
 }
 
