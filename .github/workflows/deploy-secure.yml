@@ -13,6 +13,9 @@ concurrency:
   group: deploy-prod
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -42,12 +45,19 @@ jobs:
             --no-interaction \
             --no-progress
 
-      # If you build assets locally and commit them, skip this.
-      # If not, build here:
-      # - name: Build assets
-      #   run: |
-      #     npm ci
-      #     npm run build
+      # public/build is gitignored, so it MUST be built here. Otherwise the
+      # reverse mirror below deletes it from the server and every @vite
+      # directive throws ViteManifestNotFoundException.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
 
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
@@ -63,6 +73,7 @@ jobs:
           echo "machine ${FTP_SERVER} login ${FTP_USERNAME} password ${FTP_PASSWORD}" > ~/.netrc
           chmod 600 ~/.netrc
           lftp -c "
+          set cmd:fail-exit yes;
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ssl:verify-certificate no;
@@ -79,10 +90,18 @@ jobs:
             --exclude tests/ \
             --exclude .env \
             --exclude .env.* \
+            --exclude .idea/ \
+            --exclude .vscode/ \
+            --exclude .fleet/ \
+            --exclude .phpunit.cache/ \
+            --exclude '.phpunit.result.cache' \
+            --exclude .ftp-deploy-sync-state.json \
             --exclude storage/ \
             --exclude bootstrap/cache/ \
             --exclude vendor/bin/ \
+            --exclude public/hot \
             --exclude '*.log' \
+            --exclude '*.zip' \
             --exclude .well-known/ \
             --exclude cgi-bin/ \
             --exclude .htpasswd \
