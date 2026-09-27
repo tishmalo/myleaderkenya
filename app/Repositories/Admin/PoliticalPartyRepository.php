@@ -27,7 +27,7 @@ class PoliticalPartyRepository implements PoliticalPartyRepositoryInterface
             });
         }
 
-        return $query->ordered()->paginate($perPage);
+        return $query->ordered()->withCount('candidates')->paginate($perPage);
     }
 
     public function published(int $perPage = 12): LengthAwarePaginator

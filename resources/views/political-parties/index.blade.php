@@ -22,7 +22,7 @@
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
         <div class="w-full max-w-full overflow-x-auto">
         <table class="min-w-[900px] w-full">
-            <thead class="bg-zinc-950"><tr><th class="px-6 py-4 text-left">Party</th><th class="px-6 py-4 text-left">URL</th><th class="px-6 py-4 text-center">Order</th><th class="px-6 py-4 text-center">Status</th><th class="px-6 py-4 text-center">Actions</th></tr></thead>
+            <thead class="bg-zinc-950"><tr><th class="px-6 py-4 text-left">Party</th><th class="px-6 py-4 text-left">URL</th><th class="px-6 py-4 text-center">Aspirants</th><th class="px-6 py-4 text-center">Order</th><th class="px-6 py-4 text-center">Status</th><th class="px-6 py-4 text-center">Actions</th></tr></thead>
             <tbody class="divide-y divide-zinc-800">
                 @forelse($politicalParties as $party)
                 <tr class="hover:bg-zinc-800/70">
@@ -31,12 +31,15 @@
                         <div><p class="font-medium text-white">{{ $party->name }}</p><p class="text-xs text-zinc-500">{{ $party->abbreviation ?: 'No abbreviation' }}</p></div>
                     </div></td>
                     <td class="px-6 py-4 text-sm text-zinc-400"><a href="{{ route('parties.show', $party->slug) }}" class="hover:text-emerald-400" target="_blank">/parties/{{ $party->slug }}</a></td>
+                    <td class="px-6 py-4 text-center">
+                        <a href="{{ route('political-parties.edit', $party) }}" class="font-medium text-emerald-400 hover:text-emerald-300">{{ number_format($party->candidates_count ?? 0) }}</a>
+                    </td>
                     <td class="px-6 py-4 text-center text-zinc-400">{{ $party->sort_order }}</td>
                     <td class="px-6 py-4 text-center">@if($party->status === 'published')<span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-400">Published</span>@else<span class="px-3 py-1 text-xs font-medium rounded-full bg-orange-500/20 text-orange-400">Draft</span>@endif</td>
                     <td class="px-6 py-4 text-center"><a href="{{ route('political-parties.edit', $party) }}" class="text-blue-400 hover:text-blue-500 mx-2"><i class="fas fa-edit"></i></a><button onclick="deletePoliticalParty('{{ $party->slug }}', '{{ addslashes($party->name) }}')" class="text-red-400 hover:text-red-500 mx-2"><i class="fas fa-trash"></i></button></td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center py-16 text-zinc-500">No political parties found.</td></tr>
+                <tr><td colspan="6" class="text-center py-16 text-zinc-500">No political parties found.</td></tr>
                 @endforelse
             </tbody>
         </table>
