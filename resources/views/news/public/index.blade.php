@@ -182,13 +182,13 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 }
 
 /* ── GRID ── */
-/* 3 cards per row, sized to match the aspirant listing cards (~290px). */
+/* 5 cards per row, matching the aspirant grid: 18px gap, 217px cards. */
 .news-grid {
-    max-width: 984px; margin: 0 auto;
+    max-width: 1222px; margin: 0 auto;
     padding: 0 32px 80px;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 18px;
 }
 
 /* ── NEWS CARD ── */
