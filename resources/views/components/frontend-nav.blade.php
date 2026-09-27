@@ -504,6 +504,17 @@
     .aspirant-register-loader-flag { animation: none; }
 }
 
+/* The full desktop nav needs ~1320px. It only collapses to the mobile
+   toggle below 1100px, so between 1101px and ~1320px the flex row overflowed
+   the viewport and added a horizontal scrollbar. Tighten the horizontal
+   rhythm in that band instead of collapsing the nav too early. */
+@media (max-width: 1400px) {
+    .frontend-nav-inner { padding: 16px 20px; gap: 16px; }
+    .frontend-nav-actions { gap: 8px; }
+    .frontend-nav-actions .btn-ghost,
+    .frontend-nav-actions .btn-primary { padding: 9px 14px; }
+}
+
 @media (max-width: 1100px) {
     .frontend-nav-inner { padding: 14px 20px; }
     .frontend-nav-menu,
