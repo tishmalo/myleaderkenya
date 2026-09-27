@@ -20,6 +20,13 @@ class LocationController extends Controller
         return response()->json($counties);
     }
 
+    public function getCountiesByBloc(int $blocId): JsonResponse
+    {
+        $counties = $this->locationService->getCountiesByBloc($blocId);
+
+        return response()->json($counties);
+    }
+
     public function getConstituenciesByCounty(Request $request): JsonResponse
     {
         $constituencies = $this->locationService->getConstituenciesByCountyName(

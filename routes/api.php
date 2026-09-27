@@ -55,6 +55,7 @@ Route::prefix('locations')->middleware('throttle:api')->group(function () {
     Route::get('/all', [LocationController::class, 'getLocations']);
 });
 
+Route::get('/counties/by-bloc/{blocId}', [LocationController::class, 'getCountiesByBloc'])->middleware('throttle:api');
 Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty'])->middleware('throttle:api');
 Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency'])->middleware('throttle:api');
 
