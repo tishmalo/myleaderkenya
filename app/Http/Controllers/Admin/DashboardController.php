@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportPollingStationsRequest;
 use App\Http\Requests\Admin\StorePollingStationRequest;
+use App\Models\PollingStation;
 use App\Services\Admin\DashboardService;
 use Illuminate\Http\Request;
 
@@ -55,6 +56,20 @@ class DashboardController extends Controller
         $this->dashboardService->createPollingStation($request->validated());
 
         return response()->json(['message' => 'Polling station added successfully']);
+    }
+
+    public function updateStation(StorePollingStationRequest $request, PollingStation $station)
+    {
+        $this->dashboardService->updatePollingStation($station, $request->validated());
+
+        return response()->json(['message' => 'Polling station updated successfully']);
+    }
+
+    public function destroyStation(PollingStation $station)
+    {
+        $this->dashboardService->deletePollingStation($station);
+
+        return response()->json(['message' => 'Polling station deleted successfully']);
     }
 
     public function importStations(ImportPollingStationsRequest $request)

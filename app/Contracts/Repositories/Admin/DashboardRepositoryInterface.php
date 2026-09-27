@@ -2,6 +2,8 @@
 
 namespace App\Contracts\Repositories\Admin;
 
+use App\Models\PollingStation;
+
 interface DashboardRepositoryInterface
 {
     public function getTotalUsersCount(): int;
@@ -14,6 +16,8 @@ interface DashboardRepositoryInterface
     public function getMessagesAndGroups($user): array;
     public function getStationsAndBlocs(): array;
     public function createPollingStation(array $data);
+    public function updatePollingStation(PollingStation $station, array $data): PollingStation;
+    public function deletePollingStation(PollingStation $station): void;
     public function importStations(array $stations): int;
     public function getCountiesByBloc($blocId);
     public function getCountiesByName($name);

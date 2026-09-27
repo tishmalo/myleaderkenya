@@ -91,6 +91,18 @@ class DashboardRepository implements DashboardRepositoryInterface
         return PollingStation::create($data);
     }
 
+    public function updatePollingStation(PollingStation $station, array $data): PollingStation
+    {
+        $station->update($data);
+
+        return $station;
+    }
+
+    public function deletePollingStation(PollingStation $station): void
+    {
+        $station->delete();
+    }
+
     public function importStations(array $stations): int
     {
         $importedCount = 0;

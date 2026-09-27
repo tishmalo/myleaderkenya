@@ -12,7 +12,7 @@
         </h1>
         
         <div class="flex gap-3">
-            <button onclick="showAddForm()" 
+            <button onclick="startAddForm()" 
                     class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl font-medium flex items-center gap-3 transition-all active:scale-95">
                 <i class="fas fa-plus"></i> 
                 Add New Station
@@ -38,6 +38,7 @@
                     <th class="px-8 py-5 text-left text-sm font-semibold text-zinc-400">Registered Voters</th>
                     <th class="px-8 py-5 text-left text-sm font-semibold text-zinc-400">Landmark</th>
                     <th class="px-8 py-5 text-left text-sm font-semibold text-zinc-400">Added By</th>
+                    <th class="px-8 py-5 text-right text-sm font-semibold text-zinc-400">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-800">
@@ -63,10 +64,41 @@
                             <span class="px-4 py-1.5 bg-emerald-500/10 text-emerald-400 text-xs rounded-2xl">Admin</span>
                         @endif
                     </td>
+                    <td class="px-8 py-6">
+                        @php
+                            $stationPayload = [
+                                'id'                => $station->id,
+                                'bloc_id'           => $station->bloc_id,
+                                'county'            => $station->county,
+                                'constituency'      => $station->constituency,
+                                'ward'              => $station->ward,
+                                'office'            => $station->office,
+                                'near_landmark'     => $station->near_landmark,
+                                'lat'               => $station->lat,
+                                'lon'               => $station->lon,
+                                'registered_voters' => $station->registered_voters,
+                            ];
+                        @endphp
+                        <div class="flex justify-end gap-2">
+                            <button type="button"
+                                    data-station='@json($stationPayload)'
+                                    onclick="editStation(this)"
+                                    class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-medium transition-colors">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button type="button"
+                                    data-id="{{ $station->id }}"
+                                    data-office="{{ $station->office }}"
+                                    onclick="deleteStation(this)"
+                                    class="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-medium transition-colors">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </td>
                 </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-8 py-20 text-center text-zinc-500">
+                        <td colspan="7" class="px-8 py-20 text-center text-zinc-500">
                             No polling stations found.
                         </td>
                     </tr>
@@ -84,6 +116,7 @@
         
         <form id="addStationForm">
             @csrf
+            <input type="hidden" id="stationId" name="station_id" value="">
 
             <!-- Bloc -->
             <div class="mb-4">
@@ -157,8 +190,7 @@
                         class="flex-1 py-4 border border-zinc-700 rounded-2xl font-medium">Cancel</button>
                 <button type="submit" 
                         class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-4 rounded-2xl font-medium">Save Station</button>
-            </div>
-        </form>
+            </div>        </form>
     </div>
 </div>
 @endsection
@@ -176,19 +208,39 @@
         document.getElementById('addModal').classList.remove('flex');
     }
 
-    // Form Submit
+    // Opening the modal for a new station must clear any previous edit.
+    function startAddForm() {
+        const form = document.getElementById('addStationForm');
+        form.reset();
+        document.getElementById('stationId').value = '';
+
+        fillSelect(countySelect, '-- Select County --', []);
+        fillSelect(constituencySelect, '-- Select Constituency --', []);
+        fillSelect(wardSelect, '-- Select Ward --', []);
+
+        showAddForm();
+    }
+    // Form Submit - POST to create, PUT to update
     document.getElementById('addStationForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
         const data = Object.fromEntries(formData.entries());
 
+        const stationId = formData.get('station_id');
+        const isEdit = Boolean(stationId);
+
+        const url = isEdit
+            ? stationUrl(STATION_UPDATE_URL, stationId)
+            : '{{ route("stations.store") }}';
+
         try {
-            const response = await fetch('{{ route("stations.store") }}', {
-                method: 'POST',
+            const response = await fetch(url, {
+                method: isEdit ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(data)
             });
@@ -196,11 +248,14 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert('✅ Polling station added successfully!');
+                alert(isEdit ? '✅ Polling station updated successfully!' : '✅ Polling station added successfully!');
                 hideAddForm();
                 location.reload();
             } else {
-                alert('❌ Error: ' + (result.message || 'Failed to add station'));
+                const errors = result.errors
+                    ? Object.values(result.errors).flat().join('\n')
+                    : null;
+                alert('❌ Error: ' + (errors || result.message || (isEdit ? 'Failed to update station' : 'Failed to add station')));
             }
         } catch (error) {
             console.error(error);
@@ -208,74 +263,218 @@
         }
     });
 
-    // Cascading Dropdowns - Fixed Version (expects array of strings)
+    // Cascading Dropdowns (each endpoint returns a flat array of names)
     const blocSelect         = document.getElementById('bloc');
     const countySelect       = document.getElementById('county');
     const constituencySelect = document.getElementById('constituency');
     const wardSelect         = document.getElementById('ward');
 
+    const STATION_UPDATE_URL   = '{{ route('stations.update', ['station' => '__STATION__']) }}';
+    const STATION_DESTROY_URL  = '{{ route('stations.destroy', ['station' => '__STATION__']) }}';
+
+    function stationUrl(template, stationId) {
+        return template.replace('__STATION__', encodeURIComponent(stationId));
+    }
+
+    async function fetchNameList(url, label) {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+
+        if (!res.ok) {
+            throw new Error(`${label} request failed (HTTP ${res.status})`);
+        }
+
+        const data = await res.json();
+
+        return Array.isArray(data) ? data : [];
+    }
+
+    function fillSelect(select, placeholder, values, selected = '') {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+
+        const names = Array.isArray(values) ? [...values] : [];
+
+        // Keep a stale value selectable so editing an existing station is not
+        // blocked by a county/constituency/ward that is no longer linked.
+        if (selected && !names.includes(selected)) {
+            names.push(selected);
+        }
+
+        names.forEach(name => select.appendChild(new Option(name, name)));
+
+        select.value = selected;
+    }
+
     blocSelect.addEventListener('change', async function() {
         const blocId = this.value;
-        
-        countySelect.innerHTML = '<option value="">-- Select County --</option>';
-        constituencySelect.innerHTML = '<option value="">-- Select Constituency --</option>';
-        wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
+
+        fillSelect(countySelect, '-- Select County --', []);
+        fillSelect(constituencySelect, '-- Select Constituency --', []);
+        fillSelect(wardSelect, '-- Select Ward --', []);
 
         if (!blocId) return;
 
         try {
-            const res = await fetch(`/api/counties/by-bloc/${blocId}`);
-            const counties = await res.json();   // should be ["County Name 1", "County Name 2", ...]
-
-            counties.forEach(name => {
-                const opt = new Option(name, name);
-                countySelect.appendChild(opt);
-            });
+            fillSelect(
+                countySelect,
+                '-- Select County --',
+                await fetchNameList(`/api/counties/by-bloc/${blocId}`, 'Counties')
+            );
         } catch (err) {
             console.error('Error fetching counties:', err);
+            alert('❌ Could not load counties for this bloc.');
         }
     });
 
     countySelect.addEventListener('change', async function() {
         const county = this.value;
-        
-        constituencySelect.innerHTML = '<option value="">-- Select Constituency --</option>';
-        wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
+
+        fillSelect(constituencySelect, '-- Select Constituency --', []);
+        fillSelect(wardSelect, '-- Select Ward --', []);
 
         if (!county) return;
 
         try {
-            const res = await fetch(`/api/constituencies/by-county?county=${encodeURIComponent(county)}`);
-            const constituencies = await res.json();
-
-            constituencies.forEach(name => {
-                const opt = new Option(name, name);
-                constituencySelect.appendChild(opt);
-            });
+            fillSelect(
+                constituencySelect,
+                '-- Select Constituency --',
+                await fetchNameList(
+                    `/api/constituencies/by-county?county=${encodeURIComponent(county)}`,
+                    'Constituencies'
+                )
+            );
         } catch (err) {
             console.error('Error fetching constituencies:', err);
+            alert('❌ Could not load constituencies for this county.');
         }
     });
 
     constituencySelect.addEventListener('change', async function() {
         const constituency = this.value;
-        
-        wardSelect.innerHTML = '<option value="">-- Select Ward --</option>';
+
+        fillSelect(wardSelect, '-- Select Ward --', []);
 
         if (!constituency) return;
 
         try {
-            const res = await fetch(`/api/wards/by-constituency?constituency=${encodeURIComponent(constituency)}`);
-            const wards = await res.json();
-
-            wards.forEach(name => {
-                const opt = new Option(name, name);
-                wardSelect.appendChild(opt);
-            });
+            fillSelect(
+                wardSelect,
+                '-- Select Ward --',
+                await fetchNameList(
+                    `/api/wards/by-constituency?constituency=${encodeURIComponent(constituency)}`,
+                    'Wards'
+                )
+            );
         } catch (err) {
             console.error('Error fetching wards:', err);
+            alert('❌ Could not load wards for this constituency.');
         }
     });
+
+    // Edit: pre-fill the shared modal, then load each cascade level.
+    async function editStation(button) {
+        const station = JSON.parse(button.dataset.station);
+
+        const form = document.getElementById('addStationForm');
+        form.reset();
+
+        document.getElementById('stationId').value = station.id ?? '';
+        blocSelect.value = station.bloc_id ?? '';
+
+        form.querySelector('[name="office"]').value            = station.office ?? '';
+        form.querySelector('[name="near_landmark"]').value     = station.near_landmark ?? '';
+        form.querySelector('[name="lat"]').value               = station.lat ?? '';
+        form.querySelector('[name="lon"]').value               = station.lon ?? '';
+        form.querySelector('[name="registered_voters"]').value = station.registered_voters ?? 0;
+
+        const county = station.county ?? '';
+
+        if (blocSelect.value) {
+            try {
+                fillSelect(
+                    countySelect,
+                    '-- Select County --',
+                    await fetchNameList(`/api/counties/by-bloc/${blocSelect.value}`, 'Counties'),
+                    county
+                );
+            } catch (err) {
+                console.error('Error fetching counties:', err);
+                fillSelect(countySelect, '-- Select County --', [], county);
+            }
+        } else {
+            fillSelect(countySelect, '-- Select County --', [], county);
+        }
+
+        if (county) {
+            try {
+                fillSelect(
+                    constituencySelect,
+                    '-- Select Constituency --',
+                    await fetchNameList(
+                        `/api/constituencies/by-county?county=${encodeURIComponent(county)}`,
+                        'Constituencies'
+                    ),
+                    station.constituency ?? ''
+                );
+            } catch (err) {
+                console.error('Error fetching constituencies:', err);
+                fillSelect(constituencySelect, '-- Select Constituency --', [], station.constituency ?? '');
+            }
+        } else {
+            fillSelect(constituencySelect, '-- Select Constituency --', []);
+        }
+
+        if (station.constituency) {
+            try {
+                fillSelect(
+                    wardSelect,
+                    '-- Select Ward --',
+                    await fetchNameList(
+                        `/api/wards/by-constituency?constituency=${encodeURIComponent(station.constituency)}`,
+                        'Wards'
+                    ),
+                    station.ward ?? ''
+                );
+            } catch (err) {
+                console.error('Error fetching wards:', err);
+                fillSelect(wardSelect, '-- Select Ward --', [], station.ward ?? '');
+            }
+        } else {
+            fillSelect(wardSelect, '-- Select Ward --', []);
+        }
+
+        showAddForm();
+    }
+
+    async function deleteStation(button) {
+        const stationId = button.dataset.id;
+        const office    = button.dataset.office;
+
+        if (!confirm(`Delete the polling station "${office}"? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(stationUrl(STATION_DESTROY_URL, stationId), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('✅ Polling station deleted successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error: ' + (result.message || 'Failed to delete station'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Request failed. Check console for details.');
+        }
+    }
 
     // Keep your importJson function if you still need it
     async function importJson(input) {

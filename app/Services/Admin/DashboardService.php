@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\DashboardRepositoryInterface;
 use App\Contracts\Repositories\Admin\LiveStatFigureRepositoryInterface;
+use App\Models\PollingStation;
 
 class DashboardService
 {
@@ -71,7 +72,28 @@ class DashboardService
 
     public function createPollingStation(array $data)
     {
-        return $this->dashboardRepository->createPollingStation([
+        return $this->dashboardRepository->createPollingStation(
+            $this->pollingStationAttributes($data) + ['is_user_added' => true]
+        );
+    }
+
+    public function updatePollingStation(PollingStation $station, array $data): PollingStation
+    {
+        // is_user_added records provenance, so an edit must not flip it.
+        return $this->dashboardRepository->updatePollingStation(
+            $station,
+            $this->pollingStationAttributes($data)
+        );
+    }
+
+    public function deletePollingStation(PollingStation $station): void
+    {
+        $this->dashboardRepository->deletePollingStation($station);
+    }
+
+    private function pollingStationAttributes(array $data): array
+    {
+        return [
             'bloc_id'            => $data['bloc_id'] ?? null,
             'county'             => $data['county'],
             'constituency'       => $data['constituency'],
@@ -82,8 +104,7 @@ class DashboardService
             'lat'                => $data['lat'],
             'lon'                => $data['lon'],
             'registered_voters'  => $data['registered_voters'] ?? 0,
-            'is_user_added'      => true,
-        ]);
+        ];
     }
 
     public function importStations(array $stations): int

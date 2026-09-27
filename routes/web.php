@@ -272,6 +272,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->middleware('permission:voters.view')->name('dashboard.stats');
             Route::get('/dashboard/stations', [DashboardController::class, 'stations'])->middleware('permission:data.view')->name('dashboard.stations');
             Route::post('/stations', [DashboardController::class, 'storeStation'])->middleware('permission:data.create')->name('stations.store');
+            Route::put('/stations/{station}', [DashboardController::class, 'updateStation'])->middleware('permission:data.update')->name('stations.update');
+            Route::delete('/stations/{station}', [DashboardController::class, 'destroyStation'])->middleware('permission:data.delete')->name('stations.destroy');
             Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->middleware('permission:messages.view')->name('dashboard.messages');
             Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->middleware('permission:finance.view')->name('dashboard.donors');
             Route::get('/live-stat-figures', [LiveStatFigureController::class, 'index'])->middleware('permission:live-stats.view')->name('live-stat-figures.index');
