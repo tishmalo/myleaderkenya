@@ -23,7 +23,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         radial-gradient(900px 420px at 86% 12%, rgba(0,102,0,.18), transparent 62%),
         #080808;
 }
-.profile-shell { max-width: 1280px; margin: 0 auto; padding: 0 32px 80px; }
+    .profile-shell { max-width: 1560px; margin: 0 auto; padding: 0 32px 80px; }
 .profile-cover {
     position: relative;
     min-height: 420px;
@@ -97,7 +97,21 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .profile-action { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-width:118px; padding:14px 18px; border-radius:12px; text-decoration:none; font-weight:800; color:white; border:1px solid rgba(255,255,255,.13); background:rgba(255,255,255,.05); }
 .profile-action.primary { background:linear-gradient(135deg,#00A86B,#007a4f); border-color:rgba(0,168,107,.7); }
 .profile-action:hover { transform: translateY(-1px); border-color:rgba(0,168,107,.45); }
-.profile-content { display:grid; grid-template-columns: 340px 1fr; gap:28px; }
+    /* Third column is the 523px video rail, matching the other public pages.
+       Not `align-items: start`: the side column must stretch to the full row
+       height or the sticky rail inside it has nowhere to travel. */
+    .profile-content { display:grid; grid-template-columns: 340px minmax(0,1fr) 523px; gap:28px; align-items:stretch; }
+    .profile-video-rail { min-width:0; }
+    /* Below this the three columns starve the profile body, so the rail drops
+       to a full-width row underneath instead. */
+    @media (max-width:1500px) {
+        .profile-shell { max-width:1280px; }
+        .profile-content { grid-template-columns: 340px minmax(0,1fr); }
+        .profile-video-rail { grid-column:1 / -1; }
+        .profile-video-rail .page-rail[data-rail-sticky] { position:static; }
+        .profile-video-rail .rail-videos { flex-direction:row; flex-wrap:wrap; }
+        .profile-video-rail .rail-video { flex:1 1 260px; }
+    }
 .profile-card { background:rgba(20,20,20,.86); border:1px solid rgba(255,255,255,.075); border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.26); }
 .profile-card-head { display:flex; align-items:center; gap:12px; padding:22px 24px; border-bottom:1px solid rgba(255,255,255,.06); }
 .profile-card-head .bar { width:4px; height:28px; border-radius:99px; background:linear-gradient(180deg,var(--kenya-red),var(--kenya-green)); }
@@ -490,6 +504,9 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                 </section>
                 @endif
             </main>
+            <aside class="profile-video-rail">
+                @include('components.video-rail')
+            </aside>
         </div>
     </div>
 </div>
