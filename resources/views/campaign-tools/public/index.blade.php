@@ -19,8 +19,8 @@ h1,h2,h3 { font-family:'Oswald', sans-serif; }
 .ct-hero h1 { font-size:clamp(42px,6vw,72px); line-height:1; margin-bottom:18px; }
 .ct-hero h1 em { color:var(--green-bright); font-style:normal; }
 .ct-hero p { max-width:720px; margin:0 auto; color:rgba(245,245,240,0.62); font-size:18px; line-height:1.7; }
-    .ct-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; }
-    .ct-rail-wrap { max-width:1080px; margin:0 auto; padding:64px 32px 90px; }
+    .ct-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+    .ct-rail-wrap { max-width:1280px; margin:0 auto; padding:64px 32px 90px; }
 .ct-card { position:relative; display:flex; flex-direction:column; min-height:360px; background:#151515; border:1px solid rgba(255,255,255,0.07); border-radius:18px; overflow:hidden; text-decoration:none; transition:border-color .25s, transform .25s, box-shadow .25s; }
 .ct-card:hover { border-color:rgba(0,168,107,0.35); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,0.45); }
 .ct-card-img { height:190px; background:#0f0f0f; overflow:hidden; }

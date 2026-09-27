@@ -62,7 +62,7 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 
 /* ── LAYOUT ── */
 .events-container {
-    max-width: 1080px; margin: 0 auto;
+    max-width: 1280px; margin: 0 auto;
     padding: 48px 32px 80px;
 }
 
@@ -79,8 +79,8 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 /* ── GRID & CARDS ── */
 .events-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 28px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
     margin-bottom: 64px;
 }
 
