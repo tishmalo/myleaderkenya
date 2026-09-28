@@ -137,7 +137,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/coalitions', [CoalitionController::class, 'publicIndex'])->name('coalitions.public');
     Route::get('/coalitions/{slug}', [CoalitionController::class, 'publicShow'])->name('coalitions.show');
 
-    Route::get('/news/public', [NewsArticleController::class, 'publicIndex'])->name('news.public');
+    Route::get('/news', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
 
     // Legacy alias so the old /events/create admin URL keeps working.
@@ -340,12 +340,12 @@ Route::middleware('auth')->group(function () {
                 ->names('coalitions')
                 ->except(['show'])->middleware('permission:parties.view');
 
-            Route::get('/news', [NewsArticleController::class, 'index'])->middleware('permission:frontend.view')->name('news.index');
-            Route::get('/news.create', [NewsArticleController::class, 'create'])->middleware('permission:frontend.view')->name('news.create');
-            Route::post('/news', [NewsArticleController::class, 'store'])->middleware('permission:frontend.update')->name('news.store');
-            Route::get('/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:frontend.view')->name('news.edit');
-            Route::put('/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
-            Route::delete('/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
+            Route::get('/admin/news', [NewsArticleController::class, 'index'])->middleware('permission:frontend.view')->name('news.index');
+            Route::get('/admin/news.create', [NewsArticleController::class, 'create'])->middleware('permission:frontend.view')->name('news.create');
+            Route::post('/admin/news', [NewsArticleController::class, 'store'])->middleware('permission:frontend.update')->name('news.store');
+            Route::get('/admin/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:frontend.view')->name('news.edit');
+            Route::put('/admin/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
+            Route::delete('/admin/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
 
             Route::get('/news-comments', [NewsCommentController::class, 'index'])->middleware('permission:frontend.view')->name('news-comments.index');
             Route::put('/news-comments/{newsComment}', [NewsCommentController::class, 'update'])->middleware('permission:frontend.update')->name('news-comments.update');
