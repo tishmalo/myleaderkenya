@@ -98,12 +98,15 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .profile-action.primary { background:linear-gradient(135deg,#00A86B,#007a4f); border-color:rgba(0,168,107,.7); }
 .profile-action:hover { transform: translateY(-1px); border-color:rgba(0,168,107,.45); }
     .profile-content { display:grid; grid-template-columns: 340px 1fr; gap:28px; }
-    /* Videos sit at the top of the Profile Summary card, above the summary
-       fields, so they are visible without scrolling past the cover/header. */
-    .summary-videos { padding:20px 24px 0; }
+    /* Videos sit at the bottom of the Profile Summary card, under the personal
+       detail fields, so they read as part of the card rather than a block
+       wedged above them. */
+    .summary-videos { padding: 0 24px 24px; }
     .summary-videos-title {
         display:flex; align-items:center; gap:8px;
-        margin-bottom:12px; color:#fff;
+        margin-bottom:12px; padding-top:20px;
+        border-top:1px solid rgba(255,255,255,.06);
+        color:#fff;
         font-family:'Oswald', sans-serif; font-size:15px;
         font-weight:700; letter-spacing:.3px;
     }
@@ -323,10 +326,6 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         <div class="profile-content">
             <aside class="profile-card">
                 <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Profile Summary</div></div>
-                <div class="summary-videos">
-                    <div class="summary-videos-title"><i class="fas fa-circle-play"></i> Campaign Videos</div>
-                    @include('components.video-rail', ['railSticky' => false])
-                </div>
                 <div class="profile-card-body summary-list">
                     @if($positionLabel)<div class="summary-item"><span class="summary-icon"><i class="fas fa-briefcase"></i></span><div><div class="summary-label">Position</div><div class="summary-value">{{ $positionLabel }}</div></div></div>@endif
                     @if($candidate->politicalParty)<div class="summary-item"><span class="summary-icon"><i class="fas fa-flag"></i></span><div><div class="summary-label">Party</div><div class="summary-value">{{ $candidate->politicalParty->name }}</div></div></div>@endif
@@ -335,6 +334,10 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                     @if($candidate->ward)<div class="summary-item"><span class="summary-icon"><i class="fas fa-location-dot"></i></span><div><div class="summary-label">Ward</div><div class="summary-value">{{ $candidate->ward }}</div></div></div>@endif
                     @if($maskedPhone)<div class="summary-item"><span class="summary-icon"><i class="fas fa-phone"></i></span><div><div class="summary-label">Phone</div><div class="summary-value">{{ $maskedPhone }}</div></div></div>@endif
                     @if($maskedEmail)<div class="summary-item"><span class="summary-icon"><i class="fas fa-envelope"></i></span><div><div class="summary-label">Email</div><div class="summary-value">{{ $maskedEmail }}</div></div></div>@endif
+                </div>
+                <div class="summary-videos">
+                    <div class="summary-videos-title"><i class="fas fa-circle-play"></i> Campaign Videos</div>
+                    @include('components.video-rail', ['railSticky' => false])
                 </div>
             </aside>
 
