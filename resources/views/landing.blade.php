@@ -254,7 +254,6 @@
                                 <span class="latest-blog-content">
                                     <span class="latest-blog-date">{{ optional($blog->published_at)->format('M d, Y') ?? $blog->created_at->format('M d, Y') }}</span>
                                     <span class="latest-blog-title">{{ $blog->title }}</span>
-                                    <span class="latest-blog-excerpt">{{ \Illuminate\Support\Str::limit($blog->excerpt ?: strip_tags($blog->content), 92) }}</span>
                                 </span>
                             </a>
                         @endforeach
