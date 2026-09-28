@@ -23,7 +23,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         radial-gradient(900px 420px at 86% 12%, rgba(0,102,0,.18), transparent 62%),
         #080808;
 }
-.profile-shell { max-width: 1280px; margin: 0 auto; padding: 0 32px 80px; }
+    .profile-shell { max-width: 1280px; margin: 0 auto; padding: 0 32px 80px; }
 .profile-cover {
     position: relative;
     min-height: 420px;
