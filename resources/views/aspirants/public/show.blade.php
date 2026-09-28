@@ -97,7 +97,19 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
 .profile-action { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-width:118px; padding:14px 18px; border-radius:12px; text-decoration:none; font-weight:800; color:white; border:1px solid rgba(255,255,255,.13); background:rgba(255,255,255,.05); }
 .profile-action.primary { background:linear-gradient(135deg,#00A86B,#007a4f); border-color:rgba(0,168,107,.7); }
 .profile-action:hover { transform: translateY(-1px); border-color:rgba(0,168,107,.45); }
-.profile-content { display:grid; grid-template-columns: 340px 1fr; gap:28px; }
+    .profile-content { display:grid; grid-template-columns: 340px 1fr; gap:28px; }
+    /* Videos sit at the top of the Profile Summary card, above the summary
+       fields, so they are visible without scrolling past the cover/header. */
+    .summary-videos { padding:20px 24px 0; }
+    .summary-videos-title {
+        display:flex; align-items:center; gap:8px;
+        margin-bottom:12px; color:#fff;
+        font-family:'Oswald', sans-serif; font-size:15px;
+        font-weight:700; letter-spacing:.3px;
+    }
+    .summary-videos-title i { color:var(--kenya-red); }
+    .summary-videos .page-rail,
+    .summary-videos .rail-videos { gap:14px; }
 .profile-card { background:rgba(20,20,20,.86); border:1px solid rgba(255,255,255,.075); border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.26); }
 .profile-card-head { display:flex; align-items:center; gap:12px; padding:22px 24px; border-bottom:1px solid rgba(255,255,255,.06); }
 .profile-card-head .bar { width:4px; height:28px; border-radius:99px; background:linear-gradient(180deg,var(--kenya-red),var(--kenya-green)); }
@@ -184,6 +196,10 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     .profile-name { font-size:34px; }
     .profile-actions { flex-wrap:wrap; }
     .profile-content { grid-template-columns:1fr; }
+    /* Single column makes the card full width, so cap the videos instead of
+       letting them stretch to ~900px. */
+    .summary-videos .rail-videos { flex-direction:row; flex-wrap:wrap; }
+    .summary-videos .rail-video { flex:1 1 240px; max-width:420px; }
     .priority-grid { grid-template-columns:1fr 1fr; }
 }
 @media (max-width: 560px) {
@@ -307,6 +323,10 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         <div class="profile-content">
             <aside class="profile-card">
                 <div class="profile-card-head"><span class="bar"></span><div class="profile-card-title">Profile Summary</div></div>
+                <div class="summary-videos">
+                    <div class="summary-videos-title"><i class="fas fa-circle-play"></i> Campaign Videos</div>
+                    @include('components.video-rail', ['railSticky' => false])
+                </div>
                 <div class="profile-card-body summary-list">
                     @if($positionLabel)<div class="summary-item"><span class="summary-icon"><i class="fas fa-briefcase"></i></span><div><div class="summary-label">Position</div><div class="summary-value">{{ $positionLabel }}</div></div></div>@endif
                     @if($candidate->politicalParty)<div class="summary-item"><span class="summary-icon"><i class="fas fa-flag"></i></span><div><div class="summary-label">Party</div><div class="summary-value">{{ $candidate->politicalParty->name }}</div></div></div>@endif
