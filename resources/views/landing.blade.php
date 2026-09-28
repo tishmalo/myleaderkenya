@@ -200,6 +200,14 @@
                     <span class="typing-line typing-line-two">Candidates</span>
                 </span>
             </h1>
+
+            <div class="hero-promo">
+                @include('components.video-rail', [
+                    'videos' => [['id' => 'SNAMMJbnSFo', 'title' => 'My Leader Kenya']],
+                    'railSticky' => false,
+                ])
+            </div>
+
             <p class="hero-sub">
                 Your future. Your voice. Your vote.<br>
                 Meet the leaders shaping Kenya's next chapter.

@@ -322,6 +322,10 @@
     .hero-inner { position: relative; z-index: 5; max-width: 1280px; margin: 0 auto; padding: 80px 32px; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 64px; align-items: center; width: 100%; }
     .hero-inner > * { min-width: 0; }
 
+    /* Featured promo video, sitting between the headline and the hero copy. */
+    .hero-promo { margin: 28px 0; }
+    .hero-promo .page-rail { gap: 0; }
+
     .hero-badge { display: inline-flex; align-items: center; gap: 10px; border: 1px solid rgba(187,0,0,0.5); background: rgba(187,0,0,0.1); padding: 8px 20px; border-radius: 40px; font-size: 11px; font-weight: 700; letter-spacing: 2.5px; color: #ff6666; text-transform: uppercase; margin-bottom: 28px; }
     .hero-badge .dot { width: 6px; height: 6px; background: var(--red-bright); border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }

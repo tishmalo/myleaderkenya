@@ -238,13 +238,16 @@ class NewsArticleCommentsTest extends TestCase
             ->assertSee('bg-orange-500/20 text-orange-400 text-xs">1<', escape: false);
     }
 
-    public function test_video_showcase_appears_on_public_pages_but_not_the_homepage(): void
+    public function test_campaign_videos_appear_on_public_pages_and_the_promo_on_the_homepage(): void
     {
         $article = $this->article();
 
+        // The homepage carries the single featured promo video.
         $this->get(route('landing'))
             ->assertOk()
-            ->assertDontSee('data-vs-video', escape: false);
+            ->assertSee('data-vs-video', escape: false)
+            ->assertSee('SNAMMJbnSFo', escape: false)
+            ->assertDontSee('M5arkEcnuy4', escape: false);
 
         $this->get(route('news.public.show', $article->slug))
             ->assertOk()
