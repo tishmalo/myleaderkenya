@@ -300,11 +300,21 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 }
 
 /* GRID */
+/* 3 aspirant cards per row beside the 523px sticky video rail, matching the
+   public news page. */
+.asp-rail-wrap {
+    max-width: 1280px; margin: 0 auto;
+    padding: 0 32px 80px;
+}
+/* The listing blocks bring their own 1280 max-width and 32px padding, which
+   would fight the rail layout, so drop them when nested in the rail wrap. */
+.asp-rail-wrap .county-aspirant-groups,
+.asp-rail-wrap .asp-grid { max-width:none; margin:0; padding:0; }
 .asp-grid {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
 }
 
@@ -439,7 +449,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 .county-aspirant-grid {
     padding: 24px 28px 28px;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
 }
 .county-aspirant-grid .asp-card-photo { height: auto; }
@@ -803,7 +813,9 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     </a>
 </div>
 
-<!-- GRID -->
+<!-- GRID + VIDEO RAIL -->
+<div class="asp-rail-wrap">
+<x-video-rail-layout>
 @if($showPositionGroups ?? false)
     <div class="county-aspirant-groups">
         @forelse($positionGroups as $group)
@@ -903,6 +915,8 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         </div>
     @endif
 @endif
+</x-video-rail-layout>
+</div>
 
 @include('aspirants.public._county-navigation', [
     'countyNavigation' => $countyNavigation,
