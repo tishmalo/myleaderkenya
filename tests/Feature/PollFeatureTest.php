@@ -193,8 +193,40 @@ class PollFeatureTest extends TestCase
             ->assertSee('Option A');
     }
 
-    public function test_the_results_endpoint_returns_the_live_tally(): void
+    /**
+     * The create form is passed a null poll. old() evaluates its arguments
+     * eagerly, so reading $poll->options as a default used to throw and 500
+     * the whole page. Both the blank create screen and the screen redisplayed
+     * with old() input after a failed submit have to render.
+     */
+    public function test_the_create_page_renders_with_a_null_poll(): void
     {
+        $this->actingAs($this->admin())
+            ->get(route('polls.create'))
+            ->assertOk()
+            ->assertSee('Create Poll');
+    }
+
+    public function test_the_create_page_renders_again_with_old_input_after_a_failed_submit(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)
+            ->from(route('polls.create'))
+            ->post(route('polls.store'), [
+                'question' => '',
+                'options' => [['label' => 'Option A'], ['label' => 'Option B']],
+            ])
+            ->assertRedirect(route('polls.create'))
+            ->assertSessionHasErrors('question');
+
+        $this->actingAs($admin)
+            ->get(route('polls.create'))
+            ->assertOk()
+            ->assertSee('Option A');
+    }
+
+    public function test_the_results_endpoint_returns_the_live_tally(): void    {
         $poll = $this->makePoll();
         $this->makeOptions($poll);
         $options = $poll->options()->get();

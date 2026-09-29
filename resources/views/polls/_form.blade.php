@@ -1,11 +1,19 @@
 @php
     $editing = isset($poll) && $poll;
     $selectedType = old('poll_type', $poll->poll_type ?? 'words');
-    $existingOptions = old('options', $poll->options->map(fn ($option) => [
-        'id' => $option->id,
-        'label' => $option->label,
-        'candidate_id' => $option->candidate_id,
-    ])->all());
+    // old() arguments are evaluated eagerly, so the existing rows cannot be
+    // passed as its default here: on the create screen $poll is null and
+    // $poll->options would throw. Resolve them separately instead.
+    $existingOptions = old('options');
+    if (is_null($existingOptions)) {
+        $existingOptions = $editing
+            ? $poll->options->map(fn ($option) => [
+                'id' => $option->id,
+                'label' => $option->label,
+                'candidate_id' => $option->candidate_id,
+            ])->all()
+            : [];
+    }
     if (empty($existingOptions)) {
         $existingOptions = [['id' => null, 'label' => '', 'candidate_id' => null], ['id' => null, 'label' => '', 'candidate_id' => null]];
     }
