@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Services\Admin\SettingService;
 use App\Services\Web\LandingService;
+use App\Services\Web\PollService;
 use App\Support\HomepageCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -17,13 +18,19 @@ class LandingController extends Controller
 {
     public function __construct(
         protected LandingService $landingService,
-        private SettingService $settingService
+        private SettingService $settingService,
+        private PollService $pollService
     ) {}
 
     public function index()
     {
         $landingData = $this->landingService->getLandingData();
         $landingData['recaptchaSiteKey'] = $this->settingService->recaptchaSiteKey();
+
+        // Resolved outside the cached landing payload: the poll state is
+        // per-visitor (has this person voted?) and time-sensitive (has the
+        // deadline passed?), so it must not sit behind the 2 hour cache.
+        $landingData['activePoll'] = $this->pollService->homepagePoll(request()->user());
 
         return view('landing', $landingData);
     }

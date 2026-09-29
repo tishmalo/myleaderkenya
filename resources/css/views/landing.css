@@ -488,6 +488,63 @@
     .aspirant-mini-party { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--green-bright); font-size: 12px; font-weight: 800; }
     .aspirant-mini-badge { flex: 0 0 auto; border-radius: 999px; padding: 2px 7px; background: rgba(0,168,107,0.14); color: var(--green-bright); font-size: 10px; font-weight: 800; }
     .aspirants-empty { padding: 32px; border: 1px dashed rgba(255,255,255,0.14); border-radius: 16px; text-align: center; color: rgba(245,245,240,0.55); background: #141414; }
+
+    /* ────────────────────────────────────────────────────────────────────────
+       ACTIVE POLL
+       Sits directly above Public Sentiment. Only the active poll renders; the
+       whole section is omitted when there is none.
+    ──────────────────────────────────────────────────────────────────────── */
+    .poll-section { padding: 82px 0 8px; background: #101010; }
+    .poll-section .section-header { margin-bottom: 36px; }
+    .poll-section .section-title { font-size: clamp(26px, 3vw, 38px); }
+    .poll-section .section-sub { font-size: 14px; }
+    .poll-notice { margin-bottom: 20px; border: 1px solid rgba(0,168,107,0.35); border-radius: 12px; background: rgba(0,168,107,0.1); padding: 12px 16px; color: var(--kenya-white); font-size: 14px; }
+    .poll-form { margin: 0; }
+    .poll-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .poll-grid.is-political { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .poll-option { position: relative; display: block; min-width: 0; overflow: hidden; border-radius: 16px; background: #151815; border: 1px solid rgba(255,255,255,0.08); transition: border-color .2s, background .2s; }
+    .poll-option.is-selectable { cursor: pointer; }
+    .poll-option.is-selectable:hover { border-color: rgba(0,168,107,0.45); background: #171b17; }
+    .poll-option.is-chosen { border-color: var(--green-bright); background: rgba(0,168,107,0.09); }
+    .poll-radio { position: absolute; top: 12px; right: 12px; z-index: 2; width: 18px; height: 18px; accent-color: var(--green-bright); cursor: pointer; }
+    .poll-option-bar { position: absolute; inset: 0 auto 0 0; width: var(--poll-percent, 0%); background: linear-gradient(90deg, rgba(0,168,107,0.24), rgba(0,168,107,0.06)); pointer-events: none; }
+    .poll-option-inner { position: relative; display: flex; align-items: center; gap: 12px; min-height: 96px; padding: 14px; }
+    .poll-option.has-result .poll-option-inner { flex-direction: column; align-items: stretch; gap: 12px; }
+    .poll-option-photo { display: grid; flex: 0 0 auto; place-items: center; width: 54px; height: 54px; overflow: hidden; border-radius: 12px; background: #222; color: var(--green-bright); font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; }
+    .poll-option-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .poll-option-body { display: grid; min-width: 0; gap: 3px; }
+    .poll-option-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 700; line-height: 1.2; color: var(--kenya-white); }
+    .poll-option-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(245,245,240,0.7); font-size: 12px; }
+    .poll-option-party { color: var(--green-bright); font-size: 11px; font-weight: 800; letter-spacing: .04em; }
+    .poll-option-body.is-plain { align-content: center; }
+    .poll-option-tally { display: flex; align-items: baseline; gap: 8px; }
+    .poll-option-tally strong { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 800; color: var(--green-bright); line-height: 1; }
+    .poll-option-tally small { color: rgba(245,245,240,0.45); font-size: 11px; }
+    .poll-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 24px; }
+    .poll-submit { border: 0; border-radius: 10px; padding: 13px 26px; background: var(--kenya-red); color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; transition: background .2s; }
+    .poll-submit:hover { background: #d00000; }
+    .poll-hint { color: rgba(245,245,240,0.45); font-size: 13px; }
+    .poll-hint-voted { display: flex; align-items: center; gap: 8px; margin-top: 24px; color: var(--green-bright); }
+    .poll-login-link { border: 0; background: none; padding: 0; color: var(--green-bright); font-weight: 800; text-decoration: underline; cursor: pointer; }
+    .poll-error { margin-top: 12px; color: #ff6b6b; font-size: 13px; }
+    .poll-participation { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 22px; color: rgba(245,245,240,0.4); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 700; }
+    .poll-participation-lock { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 10px; background: rgba(255,255,255,0.06); color: rgba(245,245,240,0.55); }
+    .poll-comments { margin-top: 40px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .poll-comments-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .poll-comments-title { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 700; }
+    .poll-comments-count { display: inline-grid; place-items: center; min-width: 24px; height: 24px; border-radius: 999px; padding: 0 7px; background: rgba(0,168,107,0.16); color: var(--green-bright); font-size: 12px; font-weight: 800; }
+    .poll-comment-form { display: grid; gap: 10px; margin-bottom: 26px; }
+    .poll-comment-label { color: rgba(245,245,240,0.6); font-size: 13px; font-weight: 700; }
+    .poll-comment-form textarea { width: 100%; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; background: #171717; padding: 12px 14px; color: var(--kenya-white); font-family: inherit; font-size: 14px; resize: vertical; }
+    .poll-comment-form textarea:focus { outline: 0; border-color: rgba(0,168,107,0.5); }
+    .poll-comment-submit { justify-self: start; border: 0; border-radius: 10px; padding: 11px 22px; background: var(--kenya-red); color: #fff; font-size: 11px; font-weight: 900; letter-spacing: 1.1px; text-transform: uppercase; cursor: pointer; }
+    .poll-comment-submit:hover { background: #d00000; }
+    .poll-comment-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+    .poll-comment { border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; background: #141414; padding: 14px 16px; }
+    .poll-comment-author { font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 700; }
+    .poll-comment-body { margin: 6px 0 8px; color: rgba(245,245,240,0.78); font-size: 14px; line-height: 1.55; }
+    .poll-comment-time { color: rgba(245,245,240,0.35); font-size: 11px; }
+    .poll-comments-empty { color: rgba(245,245,240,0.4); font-size: 13px; }
     .public-approval-section { padding: 82px 0 48px; background: #101010; }
     .approval-card-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
     .approval-card { overflow: hidden; border-radius: 16px; background: #151815; border: 1px solid rgba(255,255,255,0.08); }
@@ -604,6 +661,7 @@
         .landing-tool-card { flex-basis: calc((100% - 18px) / 2); }
         .aspirants-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .aspirant-mini-card:nth-child(6) { display: block; }
+        .poll-grid, .poll-grid.is-political { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .steps-grid  { grid-template-columns: 1fr; }
         .nav-links   { display: none; }
     }
@@ -614,6 +672,9 @@
         .landing-tool-request { opacity: 1; transform: none; pointer-events: auto; }
         .ct-request-fields { grid-template-columns: 1fr; }
         .ct-request-tool-options { grid-template-columns: 1fr; }
+        .poll-section { padding-top: 62px; }
+        .poll-grid, .poll-grid.is-political { grid-template-columns: 1fr; }
+        .poll-actions { flex-direction: column; align-items: flex-start; }
     }
 
     .ct-flash { max-width: 1280px; margin: 24px auto 0; padding: 0 32px; }

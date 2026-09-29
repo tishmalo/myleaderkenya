@@ -1,0 +1,106 @@
+@extends('layouts.app')
+
+@section('page_title', 'Polls')
+
+@section('content')
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-semibold flex items-center gap-3 text-white">
+            <i class="fas fa-chart-simple text-emerald-500"></i>
+            Polls
+        </h1>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('poll-comments.index') }}"
+               class="bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-comments"></i> Comments
+                @if($pendingCommentCount ?? 0)
+                    <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs">{{ $pendingCommentCount }}</span>
+                @endif
+            </a>
+            <a href="{{ route('polls.create') }}"
+               class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-plus"></i> New Poll
+            </a>
+        </div>
+    </div>
+
+    <div class="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 text-sm text-zinc-400">
+        <i class="fas fa-circle-info text-emerald-500"></i>
+        Only one poll can be active at a time, because the homepage shows a single poll directly above Public Sentiment.
+        Activating a poll automatically closes any other that was live.
+    </div>
+
+    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-zinc-950">
+                <tr>
+                    <th class="px-6 py-4 text-left">Question</th>
+                    <th class="px-6 py-4 text-left">Type</th>
+                    <th class="px-6 py-4 text-left">Closes</th>
+                    <th class="px-6 py-4 text-center">Votes</th>
+                    <th class="px-6 py-4 text-center">Public Results</th>
+                    <th class="px-6 py-4 text-center">Status</th>
+                    <th class="px-6 py-4 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800">
+                @forelse($polls as $poll)
+                <tr class="hover:bg-zinc-800/70">
+                    <td class="px-6 py-4">
+                        <p class="font-medium text-white">{{ $poll->question }}</p>
+                        <p class="text-xs text-zinc-500">{{ $poll->options()->count() }} options</p>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-zinc-400">
+                        {{ $poll->poll_type === 'political' ? 'Political' : 'Words' }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-zinc-400">{{ $poll->ends_at->format('d M Y, g:ia') }}</td>
+                    <td class="px-6 py-4 text-center text-sm text-zinc-300">{{ number_format($poll->votes_count ?? 0) }}</td>
+                    <td class="px-6 py-4 text-center">
+                        @if($poll->hasPublicResults())
+                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-400">Visible</span>
+                        @elseif($poll->reveal_results)
+                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-orange-500/20 text-orange-400">At deadline</span>
+                        @else
+                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-zinc-700/60 text-zinc-300">Never</span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        @php
+                            $badge = match ($poll->status) {
+                                'active' => 'bg-emerald-500/20 text-emerald-400',
+                                'closed' => 'bg-zinc-700/60 text-zinc-300',
+                                default => 'bg-orange-500/20 text-orange-400',
+                            };
+                        @endphp
+                        <span class="px-3 py-1 text-xs font-medium rounded-full {{ $badge }}">{{ ucfirst($poll->status) }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <a href="{{ route('polls.edit', $poll) }}" class="text-blue-400 hover:text-blue-500 mx-2">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button onclick="deletePoll({{ $poll->id }}, '{{ addslashes($poll->question) }}')"
+                                class="text-red-400 hover:text-red-500 mx-2">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="7" class="text-center py-16 text-zinc-500">No polls yet.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-8 flex justify-center">
+        {{ $polls->links() }}
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+function deletePoll(id, question) {
+    showDeleteModal(`/admin/polls/${id}`, `Delete poll <strong>${question}</strong> and all of its votes?`);
+}
+</script>
+@endpush

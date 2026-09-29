@@ -437,6 +437,10 @@
         </div>
     </section>
 
+    @if(! empty($activePoll))
+        @include('landing.partials.poll', ['poll' => $activePoll])
+    @endif
+
     @if(! empty($publicApprovalCards))
         <section class="public-approval-section">
             <div class="section-inner">

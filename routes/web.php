@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\LiveStatFigureController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\NewsCommentController;
+use App\Http\Controllers\Admin\PollController;
 use App\Http\Controllers\Admin\NotificationEmailController;
 use App\Http\Controllers\Admin\ParliamentMemberController;
 use App\Http\Controllers\Admin\PaymentMethodController;
@@ -70,6 +71,8 @@ use App\Http\Controllers\Web\BotVerifyController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\MyAccountController;
 use App\Http\Controllers\Web\NewsCommentController as WebNewsCommentController;
+use App\Http\Controllers\Web\PollCommentController;
+use App\Http\Controllers\Web\PollVoteController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
 use App\Http\Controllers\Web\UserEventController;
@@ -176,6 +179,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-account/profile', [UserProfileController::class, 'edit'])->name('account.profile.edit');
     Route::put('/my-account/profile', [UserProfileController::class, 'update'])->middleware('throttle:10,1')->name('account.profile.update');
     Route::post('/news/{slug}/comments', [WebNewsCommentController::class, 'store'])->middleware('throttle:5,10')->name('news.comments.store');
+
+    // Homepage poll. Voting and commenting require a logged-in account; the
+    // auth modal is offered to guests instead of a redirect.
+    Route::post('/polls/{poll}/vote', [PollVoteController::class, 'store'])->middleware('throttle:10,1')->name('poll.vote');
+    Route::post('/polls/{poll}/comments', [PollCommentController::class, 'store'])->middleware('throttle:5,10')->name('poll.comments.store');
 
     Route::middleware('profile.complete')->group(function () {
         Route::get('/my-account', [MyAccountController::class, 'index'])->name('my-account');
@@ -350,6 +358,17 @@ Route::middleware('auth')->group(function () {
             Route::get('/news-comments', [NewsCommentController::class, 'index'])->middleware('permission:frontend.view')->name('news-comments.index');
             Route::put('/news-comments/{newsComment}', [NewsCommentController::class, 'update'])->middleware('permission:frontend.update')->name('news-comments.update');
             Route::delete('/news-comments/{newsComment}', [NewsCommentController::class, 'destroy'])->middleware('permission:frontend.update')->name('news-comments.destroy');
+
+            Route::get('/admin/polls', [PollController::class, 'index'])->middleware('permission:frontend.view')->name('polls.index');
+            Route::get('/admin/polls/create', [PollController::class, 'create'])->middleware('permission:frontend.view')->name('polls.create');
+            Route::post('/admin/polls', [PollController::class, 'store'])->middleware('permission:frontend.update')->name('polls.store');
+            Route::get('/admin/polls/{poll}/edit', [PollController::class, 'edit'])->middleware('permission:frontend.view')->name('polls.edit');
+            Route::put('/admin/polls/{poll}', [PollController::class, 'update'])->middleware('permission:frontend.update')->name('polls.update');
+            Route::delete('/admin/polls/{poll}', [PollController::class, 'destroy'])->middleware('permission:frontend.update')->name('polls.destroy');
+            Route::get('/admin/polls/{poll}/results', [PollController::class, 'results'])->middleware('permission:frontend.view')->name('polls.results');
+            Route::get('/poll-comments', [PollController::class, 'pendingComments'])->middleware('permission:frontend.view')->name('poll-comments.index');
+            Route::put('/poll-comments/{pollComment}', [PollController::class, 'moderateComment'])->middleware('permission:frontend.update')->name('poll-comments.update');
+            Route::delete('/poll-comments/{pollComment}', [PollController::class, 'destroyComment'])->middleware('permission:frontend.update')->name('poll-comments.destroy');
 
             Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
             Route::patch('/admin/events/{event}/approval', [AdminEventController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('events.approval');
