@@ -303,7 +303,7 @@ class CandidateController extends Controller
         return back()->with('success', 'The aspirant export has been queued. The download link will appear in the Import / Export panel below.');
     }
 
-    public function exportDownload(CandidateTransferRun $run): BinaryFileResponse
+    public function exportDownload(CandidateTransferRun $run): StreamedResponse|BinaryFileResponse
     {
         abort_unless($run->type === 'export' && $run->status === 'complete' && $run->result_path, 404);
 
