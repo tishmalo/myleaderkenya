@@ -2,16 +2,20 @@
 
 namespace App\Services\Web;
 
+use App\Contracts\Repositories\Web\PollRepositoryInterface;
 use App\Models\Poll;
 use App\Models\PollComment;
-use App\Models\PollOption;
-use App\Models\PollVote;
 use App\Models\User;
 use App\Support\HomepageCache;
+use App\Support\PollPresenter;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Business rules for the public poll: when a poll is open, who may vote, and
+ * who may join the discussion. Every query lives in the repository and every
+ * formatting decision lives in the presenter.
+ */
 class PollService
 {
     /**
@@ -20,124 +24,61 @@ class PollService
      */
     private const SHELL_TTL = 60;
 
-    public function __construct(private readonly SpamFilterService $spamFilterService) {}
+    public function __construct(
+        private readonly PollRepositoryInterface $repository,
+        private readonly SpamFilterService $spamFilterService
+    ) {}
 
     /**
-     * The poll shell shared by every visitor.
+     * The section the homepage renders, or null when there is no poll to show.
      *
-     * Only anonymous-safe data is cached here. Whether the current viewer has
-     * voted, and whether results are visible to them, is resolved per request
-     * in homepagePoll() so one visitor's vote can never leak into another's
-     * page.
-     */
-    public function activePollShell(): ?array
-    {
-        return Cache::remember(
-            HomepageCache::key('active-poll'),
-            self::SHELL_TTL,
-            function (): ?array {
-                $poll = Poll::query()
-                    ->with('options.candidate.position')
-                    ->where('status', Poll::STATUS_ACTIVE)
-                    ->orderByDesc('ends_at')
-                    ->first();
-
-                if ($poll === null) {
-                    return null;
-                }
-
-                return [
-                    'id' => $poll->id,
-                    'question' => $poll->question,
-                    'poll_type' => $poll->poll_type,
-                    'starts_at' => $poll->starts_at?->toIso8601String(),
-                    'ends_at' => $poll->ends_at->toIso8601String(),
-                    'reveal_results' => $poll->reveal_results,
-                    'options' => $poll->options->map(fn (PollOption $option) => [
-                        'id' => $option->id,
-                        'label' => $option->label,
-                        'candidate' => $option->candidate ? [
-                            'name' => $option->candidate->name,
-                            'position' => $option->candidate->position->name ?? 'Aspirant',
-                            'area' => $option->candidate->display_area ?? 'Kenya',
-                            'party' => $option->candidate->politicalParty->abbreviation
-                                ?? $option->candidate->politicalParty->name
-                                ?? 'Independent',
-                            'photo' => $option->candidate->profile_picture
-                                ? \Illuminate\Support\Facades\Storage::url($option->candidate->profile_picture)
-                                : null,
-                            'url' => route('aspirants.show', $option->candidate),
-                        ] : null,
-                    ])->values(),
-                ];
-            }
-        );
-    }
-
-    /**
-     * The view model for the homepage section, or null when there is no poll
-     * to show. Only the active poll is ever rendered.
+     * Only anonymous-safe data is cached. Whether the current viewer has voted,
+     * and whether results are visible to them, is resolved per request so one
+     * visitor's vote can never leak into another's page.
      */
     public function homepagePoll(?User $viewer): ?array
     {
-        $shell = $this->activePollShell();
+        // Only the id is cached, and only briefly: the deadline moves, so a
+        // longer TTL could show a poll as open after it has closed.
+        $pollId = Cache::remember(
+            HomepageCache::key('active-poll'),
+            self::SHELL_TTL,
+            fn (): ?int => $this->repository->activePollId()
+        );
 
-        if ($shell === null) {
+        if ($pollId === null) {
             return null;
         }
 
-        $poll = Poll::query()
-            ->withCount('votes')
-            ->find($shell['id']);
+        $poll = $this->repository->findForDisplay($pollId);
 
+        // The cached id can outlive the row if a poll is deleted or deactivated.
         if ($poll === null) {
+            Cache::forget(HomepageCache::key('active-poll'));
+
             return null;
         }
 
-        $userId = $viewer?->id;
+        $resultsArePublic = $poll->hasPublicResults();
 
-        $votedOptionId = $userId === null
+        $tallies = $resultsArePublic
+            ? $this->repository->resultsFor($poll->id)
+            : collect();
+
+        $votedOptionId = $viewer === null
             ? null
-            : PollVote::query()
-                ->where('poll_id', $poll->id)
-                ->where('user_id', $userId)
-                ->value('poll_option_id');
+            : $this->repository->votedOptionId($poll->id, $viewer->id);
 
-        $revealResults = $poll->hasPublicResults();
-
-        return [
-            'id' => $poll->id,
-            'question' => $shell['question'],
-            'poll_type' => $shell['poll_type'],
-            'ends_at' => $shell['ends_at'],
-            'starts_at' => $shell['starts_at'],
-            'is_open' => $poll->isOpenForVoting(),
-            // Distinguishes "has not opened yet" from "already closed", so the
-            // homepage never claims a scheduled poll is finished.
-            'has_started' => $poll->starts_at === null || $poll->starts_at->isPast(),
-            'has_voted' => $votedOptionId !== null,
-            'voted_option_id' => $votedOptionId,
-            'reveal_results' => $revealResults,
-            // Participation is public; the breakdown is not, until the deadline.
-            'total_votes' => (int) $poll->votes_count,
-            'results' => $revealResults
-                ? $poll->results()->map(fn (array $row) => [
-                    'option_id' => $row['option']->id,
-                    'votes' => $row['votes'],
-                    'percent' => $row['percent'],
-                ])->keyBy('option_id')
-                : collect(),
-            'options' => $shell['options'],
-        ] + [
-            // Approved comments only, and read per request so a freshly
-            // approved comment shows up without waiting on the shell cache.
-            'approved_comments' => $this->approvedComments($poll)->map(fn (PollComment $comment) => [
-                'author' => $comment->user?->name ?? 'Member',
-                'body' => $comment->body,
-                'created_at' => $comment->created_at?->diffForHumans(),
-            ])->all(),
-            'comment_count' => $this->approvedCommentCount($poll),
-        ];
+        return PollPresenter::homepage(
+            $poll,
+            $poll->options,
+            $tallies,
+            $this->repository->approvedComments($poll->id),
+            (int) $poll->votes_count,
+            $this->repository->approvedCommentCount($poll->id),
+            $votedOptionId,
+            $viewer !== null
+        );
     }
 
     /**
@@ -153,25 +94,18 @@ class PollService
             ]);
         }
 
-        $option = $poll->options()->whereKey($optionId)->first();
-
-        if ($option === null) {
+        if (! $this->repository->optionExists($poll->id, $optionId)) {
             throw ValidationException::withMessages([
                 'option_id' => 'That option is not part of this poll.',
             ]);
         }
 
-        DB::transaction(function () use ($poll, $option, $user) {
-            PollVote::updateOrCreate(
-                ['poll_id' => $poll->id, 'user_id' => $user->id],
-                ['poll_option_id' => $option->id]
-            );
-        });
+        $this->repository->recordVote($poll->id, $optionId, $user->id);
     }
 
     public function canComment(Poll $poll, ?User $user): bool
     {
-        if ($user === null || ! $poll->hasVotedBy($user->id)) {
+        if ($user === null || ! $this->repository->votedOptionId($poll->id, $user->id)) {
             return false;
         }
 
@@ -204,20 +138,6 @@ class PollService
             ]);
         }
 
-        return $poll->comments()->create([
-            'user_id' => $user->id,
-            'body' => $body,
-            'status' => PollComment::STATUS_PENDING,
-        ]);
-    }
-
-    public function approvedComments(Poll $poll)
-    {
-        return $poll->approvedComments()->with('user')->limit(20)->get();
-    }
-
-    public function approvedCommentCount(Poll $poll): int
-    {
-        return $poll->comments()->approved()->count();
+        return $this->repository->saveComment($poll, $user, $body);
     }
 }

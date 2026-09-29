@@ -9,6 +9,6 @@
         <a href="{{ route('polls.index') }}" class="text-zinc-400 hover:text-white">← Back to Polls</a>
     </div>
 
-    @include('polls._form', ['poll' => null])
+    @include('polls._form', ['form' => $form])
 </div>
 @endsection

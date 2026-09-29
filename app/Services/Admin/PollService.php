@@ -3,7 +3,6 @@
 namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\PollRepositoryInterface;
-use App\Models\Candidate;
 use App\Models\Poll;
 use App\Models\PollComment;
 use App\Models\User;
@@ -27,6 +26,11 @@ class PollService
     public function approvedCandidates()
     {
         return $this->repository->approvedCandidates();
+    }
+
+    public function resultsFor(int $pollId)
+    {
+        return $this->repository->resultsFor($pollId);
     }
 
     /**
@@ -80,9 +84,7 @@ class PollService
             ->map(fn ($id) => (int) $id)
             ->unique();
 
-        $candidates = $candidateIds->isEmpty()
-            ? collect()
-            : Candidate::query()->whereIn('id', $candidateIds)->get()->keyBy('id');
+        $candidates = $this->repository->candidatesByIds($candidateIds->all());
 
         $options = [];
 
@@ -131,10 +133,7 @@ class PollService
         $slug = $base;
         $suffix = 2;
 
-        while (Poll::query()
-            ->where('slug', $slug)
-            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
-            ->exists()) {
+        while ($this->repository->slugExists($slug, $ignoreId)) {
             $slug = $base.'-'.$suffix++;
         }
 
@@ -151,10 +150,7 @@ class PollService
             return;
         }
 
-        Poll::query()
-            ->active()
-            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
-            ->update(['status' => Poll::STATUS_CLOSED]);
+        $this->repository->closeOtherActivePolls($ignoreId);
     }
 
     public function comments(array $filters = [], int $perPage = 25)

@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Models\Concerns\AuditsChanges;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -103,51 +102,5 @@ class Poll extends Model implements AuditableContract
     public function hasPublicResults(): bool
     {
         return $this->reveal_results && $this->ends_at->isPast();
-    }
-
-    public function totalVotes(): int
-    {
-        return $this->votes_count ?? $this->votes()->count();
-    }
-
-    /**
-     * Vote tallies per option, ordered as the options render. Kept in one
-     * place so the homepage and any results view cannot drift apart.
-     *
-     * @return Collection<int, array{option: PollOption, votes: int, percent: int}>
-     */
-    public function results(): Collection
-    {
-        // Wrapped so map()/values() stay a base Collection: Eloquent's
-        // values() downcasts, which would break the declared return type.
-        $options = collect($this->options()->get());
-
-        if ($options->isEmpty()) {
-            return collect();
-        }
-
-        $counts = $this->votes()
-            ->selectRaw('poll_option_id, COUNT(*) as aggregate')
-            ->groupBy('poll_option_id')
-            ->pluck('aggregate', 'poll_option_id');
-
-        $total = (int) $counts->sum();
-
-        return $options->map(fn (PollOption $option) => [
-            'option' => $option,
-            'votes' => (int) ($counts[$option->id] ?? 0),
-            'percent' => $total > 0
-                ? (int) round(((int) ($counts[$option->id] ?? 0)) / $total * 100)
-                : 0,
-        ])->values();
-    }
-
-    public function hasVotedBy(?int $userId): bool
-    {
-        if ($userId === null) {
-            return false;
-        }
-
-        return $this->votes()->where('user_id', $userId)->exists();
     }
 }

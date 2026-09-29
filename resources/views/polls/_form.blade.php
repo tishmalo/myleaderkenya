@@ -1,48 +1,14 @@
-@php
-    $editing = isset($poll) && $poll;
-    $selectedType = old('poll_type', $poll->poll_type ?? 'words');
-    // old() arguments are evaluated eagerly, so the existing rows cannot be
-    // passed as its default here: on the create screen $poll is null and
-    // $poll->options would throw. Resolve them separately instead.
-    $existingOptions = old('options');
-    if (is_null($existingOptions)) {
-        $existingOptions = $editing
-            ? $poll->options->map(fn ($option) => [
-                'id' => $option->id,
-                'label' => $option->label,
-                'candidate_id' => $option->candidate_id,
-            ])->all()
-            : [];
-    }
-    if (empty($existingOptions)) {
-        $existingOptions = [['id' => null, 'label' => '', 'candidate_id' => null], ['id' => null, 'label' => '', 'candidate_id' => null]];
-    }
-    $candidateGroups = $candidates->groupBy(fn ($candidate) => $candidate->position->name ?? 'Aspirants');
-    // Precomputed here rather than inline in the script: Blade's @json()
-    // directive cannot parse a nested array expression, and the hex flags
-    // keep candidate names from closing the <script> block.
-    $candidateGroupsJson = json_encode(
-        $candidateGroups->map(fn ($group, $name) => [
-            'label' => $name,
-            'candidates' => $group->map(fn ($candidate) => [
-                'id' => $candidate->id,
-                'name' => $candidate->name.($candidate->politicalParty?->abbreviation ? ' ('.$candidate->politicalParty->abbreviation.')' : ''),
-            ])->values(),
-        ])->values(),
-        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-    );
-@endphp
 
 <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-    <form method="POST" action="{{ $editing ? route('polls.update', $poll) : route('polls.store') }}" data-poll-form>
+    <form method="POST" action="{{ $form['action'] }}" data-poll-form>
         @csrf
-        @if($editing) @method('PUT') @endif
+        @if($form['editing']) @method('PUT') @endif
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="md:col-span-2">
                 <label class="block text-sm text-zinc-400 mb-2">Question <span class="text-red-500">*</span></label>
                 <input type="text" name="question" required maxlength="255" data-poll-type-toggle
-                       value="{{ old('question', $poll->question ?? '') }}"
+                       value="{{ $form['question'] }}"
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
                 @error('question')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
@@ -51,8 +17,8 @@
                 <label class="block text-sm text-zinc-400 mb-2">Poll Type</label>
                 <select name="poll_type" data-poll-type-select
                         class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                    <option value="words" @selected($selectedType === 'words')>Words — plain text options</option>
-                    <option value="political" @selected($selectedType === 'political')>Political — aspirant cards</option>
+                    <option value="words" @selected($form['selected_type'] === 'words')>Words — plain text options</option>
+                    <option value="political" @selected($form['selected_type'] === 'political')>Political — aspirant cards</option>
                 </select>
                 <p class="mt-2 text-xs text-zinc-500">Political options are shown as aspirant cards using their current profile photo, position, area and party.</p>
                 @error('poll_type')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
@@ -61,9 +27,9 @@
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Status</label>
                 <select name="status" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-                    <option value="draft" @selected(old('status', $poll->status ?? 'draft') === 'draft')>Draft — hidden from the homepage</option>
-                    <option value="active" @selected(old('status', $poll->status ?? 'draft') === 'active')>Active — show on the homepage</option>
-                    <option value="closed" @selected(old('status', $poll->status ?? 'draft') === 'closed')>Closed — stop accepting votes</option>
+                    <option value="draft" @selected($form['status_selected'] === 'draft')>Draft — hidden from the homepage</option>
+                    <option value="active" @selected($form['status_selected'] === 'active')>Active — show on the homepage</option>
+                    <option value="closed" @selected($form['status_selected'] === 'closed')>Closed — stop accepting votes</option>
                 </select>
                 @error('status')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
@@ -71,7 +37,7 @@
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Opens (optional)</label>
                 <input type="datetime-local" name="starts_at"
-                       value="{{ old('starts_at', isset($poll->starts_at) && $poll->starts_at ? $poll->starts_at->format('Y-m-d\TH:i') : '') }}"
+                       value="{{ $form['starts_at_value'] }}"
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                 <p class="mt-2 text-xs text-zinc-500">Leave blank to open as soon as the poll is active.</p>
                 @error('starts_at')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
@@ -80,7 +46,7 @@
             <div>
                 <label class="block text-sm text-zinc-400 mb-2">Closes <span class="text-red-500">*</span></label>
                 <input type="datetime-local" name="ends_at" required
-                       value="{{ old('ends_at', isset($poll->ends_at) && $poll->ends_at ? $poll->ends_at->format('Y-m-d\TH:i') : '') }}"
+                       value="{{ $form['ends_at_value'] }}"
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                 <p class="mt-2 text-xs text-zinc-500">Voting stops and results unlock at this moment.</p>
                 @error('ends_at')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
@@ -90,7 +56,7 @@
         <div class="mt-6">
             <label class="flex items-start gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 cursor-pointer">
                 <input type="checkbox" name="reveal_results" value="1" class="mt-1 w-4 h-4 accent-emerald-500"
-                       @checked(old('reveal_results', $poll->reveal_results ?? true))>
+                       @checked($form['reveal_results_checked'])>
                 <span>
                     <span class="block text-sm text-white">Reveal results to the public when the poll closes</span>
                     <span class="block text-xs text-zinc-500 mt-1">When off, the public sees that a poll ran and how many people voted, but never the breakdown. You still see everything.</span>
@@ -111,7 +77,7 @@
             @error('options.*')<p class="mb-3 text-sm text-red-400">{{ $message }}</p>@enderror
 
             <div data-poll-options class="grid gap-3">
-                @foreach($existingOptions as $index => $option)
+                @foreach($form['existing_options'] as $index => $option)
                     <div class="poll-option-row grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-start" data-poll-option-row>
                         <input type="hidden" name="options[{{ $index }}][id]" value="{{ $option['id'] ?? '' }}" data-poll-option-id>
 
@@ -126,11 +92,11 @@
                             <select name="options[{{ $index }}][candidate_id]" data-poll-candidate
                                     class="w-full md:w-80 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                                 <option value="">Select an aspirant</option>
-                                @foreach($candidateGroups as $groupName => $groupCandidates)
-                                    <optgroup label="{{ $groupName }}">
-                                        @foreach($groupCandidates as $candidate)
-                                            <option value="{{ $candidate->id }}" @selected((int) ($option['candidate_id'] ?? 0) === (int) $candidate->id)>
-                                                {{ $candidate->name }}{{ $candidate->politicalParty?->abbreviation ? ' ('.$candidate->politicalParty->abbreviation.')' : '' }}
+                                @foreach($form['candidate_groups'] as $group)
+                                    <optgroup label="{{ $group['label'] }}">
+                                        @foreach($group['candidates'] as $candidate)
+                                            <option value="{{ $candidate['id'] }}" @selected((int) ($option['candidate_id'] ?? 0) === (int) $candidate['id'])>
+                                                {{ $candidate['name'] }}
                                             </option>
                                         @endforeach
                                     </optgroup>
@@ -149,7 +115,7 @@
 
         <div class="mt-10">
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-2xl font-semibold text-lg">
-                {{ $editing ? 'Save Poll' : 'Create Poll' }}
+                {{ $form['submit_label'] }}
             </button>
         </div>
     </form>
@@ -163,7 +129,7 @@
 
     if (!forms.length) return;
 
-    var candidateMarkup = {!! $candidateGroupsJson !!};
+    var candidateMarkup = {!! $form['candidate_groups_json'] !!};
 
     forms.forEach(function (form) {
         var list = form.querySelector('[data-poll-options]');

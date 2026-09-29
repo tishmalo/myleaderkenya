@@ -7,7 +7,7 @@ use App\Models\Candidate;
 use App\Models\Poll;
 use App\Models\PollComment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class PollRepository implements PollRepositoryInterface
@@ -16,6 +16,9 @@ class PollRepository implements PollRepositoryInterface
     {
         return Poll::query()
             ->withCount('votes')
+            // Counted here rather than per row in the Blade, which used to
+            // fire one extra query for every poll on the page.
+            ->withCount('options')
             ->withCount(['comments as pending_comments_count' => fn ($query) => $query->where('status', PollComment::STATUS_PENDING)])
             ->latest()
             ->paginate($perPage);
@@ -40,6 +43,70 @@ class PollRepository implements PollRepositoryInterface
             ->where('approval_status', 'approved')
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * Candidates keyed by id, used to resolve the labels an admin submitted
+     * and to reject ids that no longer point at a real candidate.
+     */
+    public function candidatesByIds(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return Candidate::query()
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+    }
+
+    public function slugExists(string $slug, ?int $ignoreId = null): bool
+    {
+        return Poll::query()
+            ->where('slug', $slug)
+            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->exists();
+    }
+
+    /**
+     * Demotes every other live poll. The homepage shows a single poll, so a
+     * second active one would simply be invisible.
+     */
+    public function closeOtherActivePolls(?int $ignoreId = null): void
+    {
+        Poll::query()
+            ->active()
+            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->update(['status' => Poll::STATUS_CLOSED]);
+    }
+
+    public function resultsFor(int $pollId): Collection
+    {
+        $poll = Poll::query()
+            ->with('options')
+            ->find($pollId);
+
+        if ($poll === null) {
+            return new Collection;
+        }
+
+        $tallies = DB::table('poll_votes')
+            ->select('poll_option_id', DB::raw('COUNT(*) as aggregate'))
+            ->where('poll_id', $pollId)
+            ->groupBy('poll_option_id')
+            ->pluck('aggregate', 'poll_option_id');
+
+        $total = (int) $tallies->sum();
+
+        return collect($poll->options)->map(fn ($option) => [
+            'option_id' => (int) $option->id,
+            'label' => $option->label,
+            'votes' => (int) ($tallies[$option->id] ?? 0),
+            'percent' => $total > 0
+                ? (int) round(((int) ($tallies[$option->id] ?? 0)) / $total * 100)
+                : 0,
+        ])->values();
     }
 
     public function create(array $data, array $options): Poll

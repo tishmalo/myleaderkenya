@@ -19,17 +19,23 @@ class PollController extends Controller
 
     public function index(Request $request): View
     {
+        $polls = $this->pollService->paginate(15);
+
         return view('polls.index', [
-            'polls' => $this->pollService->paginate(15),
+            'paginator' => $polls,
+            'rows' => \App\Support\AdminPollPresenter::index(collect($polls->items()))['polls'],
             'pendingCommentCount' => $this->pollService->comments(['status' => PollComment::STATUS_PENDING], 1)->total(),
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         return view('polls.create', [
-            'poll' => null,
-            'candidates' => $this->pollService->approvedCandidates(),
+            'form' => \App\Support\AdminPollPresenter::form(
+                null,
+                $request->old() ?: [],
+                $this->pollService->approvedCandidates()
+            ),
         ]);
     }
 
@@ -42,7 +48,7 @@ class PollController extends Controller
             ->with('success', 'Poll "'.$poll->question.'" created.');
     }
 
-    public function edit(int $poll): View
+    public function edit(Request $request, int $poll): View
     {
         $record = $this->pollService->find($poll);
 
@@ -50,9 +56,12 @@ class PollController extends Controller
 
         return view('polls.edit', [
             'poll' => $record,
-            'results' => $record->results(),
-            'candidates' => $this->pollService->approvedCandidates(),
-            'comments' => $this->pollService->commentsForPoll($record->id),
+            'results' => \App\Support\AdminPollPresenter::results($this->pollService->resultsFor($record->id)),
+            'form' => \App\Support\AdminPollPresenter::form(
+                $record,
+                $request->old() ?: [],
+                $this->pollService->approvedCandidates()
+            ),
         ]);
     }
 
@@ -78,16 +87,11 @@ class PollController extends Controller
 
     public function results(Poll $poll): JsonResponse
     {
-        $poll->load('options.candidate.position');
+        $rows = \App\Support\AdminPollPresenter::results($this->pollService->resultsFor($poll->id));
 
         return response()->json([
-            'total' => $poll->totalVotes(),
-            'results' => $poll->results()->map(fn (array $row) => [
-                'option_id' => $row['option']->id,
-                'label' => $row['option']->label,
-                'votes' => $row['votes'],
-                'percent' => $row['percent'],
-            ])->all(),
+            'total' => $rows['total_votes_raw'],
+            'results' => $rows['rows'],
         ]);
     }
 
@@ -99,8 +103,18 @@ class PollController extends Controller
             'poll_id' => $request->integer('poll_id') ?: null,
         ];
 
+        $comments = $this->pollService->comments($filters, 25);
+
         return view('polls.comments', [
-            'comments' => $this->pollService->comments($filters, 25),
+            'paginator' => $comments,
+            'rows' => \App\Support\AdminPollPresenter::commentRows(collect($comments->items())),
+            'statusTabs' => \App\Support\AdminPollPresenter::commentTabs(
+                $filters['status'],
+                route('poll-comments.index')
+            ),
+            'currentStatus' => $filters['status'],
+            'search' => $request->query('search'),
+            'queryString' => collect($request->query())->all(),
         ]);
     }
 

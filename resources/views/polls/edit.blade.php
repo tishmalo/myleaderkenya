@@ -17,8 +17,7 @@
             </h2>
             <div class="flex items-center gap-4">
                 <span class="text-sm text-zinc-400">
-                    <strong class="text-white" data-total-votes>{{ number_format($results->sum('votes')) }}</strong>
-                    {{ \Illuminate\Support\Str::plural('vote', $results->sum('votes')) }}
+                    <strong class="text-white" data-total-votes>{{ $results['total_votes_label'] }}</strong>
                 </span>
                 <button type="button" data-refresh-results
                         class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
@@ -27,17 +26,17 @@
             </div>
         </div>
 
-        @if($results->isEmpty())
+        @if(! $results['has_rows'])
             <p class="text-zinc-500 text-sm">This poll has no options yet.</p>
         @else
             <div class="space-y-4">
-                @foreach($results as $row)
-                    <div data-result-row="{{ $row['option']->id }}">
+            @foreach($results['rows'] as $row)
+                    <div data-result-row="{{ $row['option_id'] }}">
                         <div class="flex items-center justify-between mb-1.5 text-sm">
-                            <span class="text-white">{{ $row['option']->label }}</span>
+                            <span class="text-white">{{ $row['label'] }}</span>
                             <span class="text-zinc-400">
                                 <strong class="text-emerald-400" data-row-percent>{{ $row['percent'] }}%</strong>
-                                · <span data-row-votes>{{ number_format($row['votes']) }}</span>
+                                · <span data-row-votes>{{ $row['votes_label'] }}</span>
                             </span>
                         </div>
                         <div class="h-2.5 rounded-full bg-zinc-950 overflow-hidden">
@@ -45,7 +44,7 @@
                                  data-row-bar style="width: {{ $row['percent'] }}%"></div>
                         </div>
                     </div>
-                @endforeach
+            @endforeach
             </div>
         @endif
 
@@ -55,7 +54,7 @@
         </p>
     </div>
 
-    @include('polls._form', ['poll' => $poll])
+    @include('polls._form', ['form' => $form])
 </div>
 @endsection
 

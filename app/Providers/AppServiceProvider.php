@@ -54,6 +54,7 @@ use App\Contracts\Repositories\Web\LandingRepositoryInterface;
 use App\Contracts\Repositories\Web\MentionClassificationCacheRepositoryInterface;
 use App\Contracts\Repositories\Web\PoliticalPartyManagementRepositoryInterface;
 use App\Contracts\Repositories\Web\PoliticalPartyTokenRepositoryInterface;
+use App\Contracts\Repositories\Web\PollRepositoryInterface as WebPollRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseHomepageRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
@@ -124,6 +125,7 @@ use App\Repositories\Web\LandingRepository;
 use App\Repositories\Web\MentionClassificationCacheRepository;
 use App\Repositories\Web\PoliticalPartyManagementRepository;
 use App\Repositories\Web\PoliticalPartyTokenRepository;
+use App\Repositories\Web\PollRepository as WebPollRepository;
 use App\Repositories\Web\PublicApprovalRepository;
 use App\Repositories\Web\PublicPulseHomepageRepository;
 use App\Repositories\Web\PublicPulseJobRepository;
@@ -209,6 +211,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Web Repositories
         $this->app->bind(LandingRepositoryInterface::class, LandingRepository::class);
+        $this->app->bind(WebPollRepositoryInterface::class, WebPollRepository::class);
         $this->app->bind(PublicApprovalRepositoryInterface::class, PublicApprovalRepository::class);
         $this->app->bind(StoredPublicApprovalRepositoryInterface::class, StoredPublicApprovalRepository::class);
         $this->app->bind(PublicPulseMentionRepositoryInterface::class, PublicPulseMentionRepository::class);

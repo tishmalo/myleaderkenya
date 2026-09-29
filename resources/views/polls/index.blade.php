@@ -44,41 +44,28 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-800">
-                @forelse($polls as $poll)
+                @forelse($rows as $row)
                 <tr class="hover:bg-zinc-800/70">
                     <td class="px-6 py-4">
-                        <p class="font-medium text-white">{{ $poll->question }}</p>
-                        <p class="text-xs text-zinc-500">{{ $poll->options()->count() }} options</p>
+                        <p class="font-medium text-white">{{ $row['question'] }}</p>
+                        <p class="text-xs text-zinc-500">{{ $row['option_count'] }} options</p>
                     </td>
                     <td class="px-6 py-4 text-sm text-zinc-400">
-                        {{ $poll->poll_type === 'political' ? 'Political' : 'Words' }}
+                        {{ $row['type_label'] }}
                     </td>
-                    <td class="px-6 py-4 text-sm text-zinc-400">{{ $poll->ends_at->format('d M Y, g:ia') }}</td>
-                    <td class="px-6 py-4 text-center text-sm text-zinc-300">{{ number_format($poll->votes_count ?? 0) }}</td>
+                    <td class="px-6 py-4 text-sm text-zinc-400">{{ $row['closes_at'] }}</td>
+                    <td class="px-6 py-4 text-center text-sm text-zinc-300">{{ $row['total_votes_label'] }}</td>
                     <td class="px-6 py-4 text-center">
-                        @if($poll->hasPublicResults())
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-400">Visible</span>
-                        @elseif($poll->reveal_results)
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-orange-500/20 text-orange-400">At deadline</span>
-                        @else
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-zinc-700/60 text-zinc-300">Never</span>
-                        @endif
+                        <span class="px-3 py-1 text-xs font-medium rounded-full {{ $row['results_visibility']['class'] }}">{{ $row['results_visibility']['label'] }}</span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        @php
-                            $badge = match ($poll->status) {
-                                'active' => 'bg-emerald-500/20 text-emerald-400',
-                                'closed' => 'bg-zinc-700/60 text-zinc-300',
-                                default => 'bg-orange-500/20 text-orange-400',
-                            };
-                        @endphp
-                        <span class="px-3 py-1 text-xs font-medium rounded-full {{ $badge }}">{{ ucfirst($poll->status) }}</span>
+                        <span class="px-3 py-1 text-xs font-medium rounded-full {{ $row['status_badge_class'] }}">{{ $row['status_label'] }}</span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <a href="{{ route('polls.edit', $poll) }}" class="text-blue-400 hover:text-blue-500 mx-2">
+                        <a href="{{ $row['edit_url'] }}" class="text-blue-400 hover:text-blue-500 mx-2">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <button onclick="deletePoll({{ $poll->id }}, '{{ addslashes($poll->question) }}')"
+                        <button onclick="deletePoll({{ $row['id'] }}, '{{ $row['delete_question'] }}')"
                                 class="text-red-400 hover:text-red-500 mx-2">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -92,7 +79,7 @@
     </div>
 
     <div class="mt-8 flex justify-center">
-        {{ $polls->links() }}
+        {{ $paginator->links() }}
     </div>
 </div>
 @endsection
