@@ -10,12 +10,11 @@ use Illuminate\Support\Collection;
 interface PollRepositoryInterface
 {
     /**
-     * Id of the single poll eligible for the homepage section, or null.
-     *
-     * Kept separate from the full load so the caller can cache this cheap
-     * lookup while still reading fresh relations.
+     * Shells of every open poll, keyed by id, carrying only the audience
+     * columns. Light enough to cache and to filter per viewer before any full
+     * poll is loaded.
      */
-    public function activePollId(): ?int;
+    public function openPollCandidates(): Collection;
 
     /**
      * Load a poll for display, with its options, candidate details and vote

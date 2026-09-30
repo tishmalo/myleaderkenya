@@ -72,6 +72,22 @@
                 </button>
             </div>
 
+            <div class="mb-6 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4">
+                <label class="block text-sm text-zinc-400 mb-1">Audience</label>
+                @if($form['audience']['draft'])
+                    <p class="text-sm text-zinc-300">{{ $form['audience']['label'] }}</p>
+                @else
+                    <p class="text-sm text-emerald-400">{{ $form['audience']['label'] }}</p>
+                    @if($form['audience']['scope_key'] === 'county' || $form['audience']['scope_key'] === 'constituency' || $form['audience']['scope_key'] === 'ward')
+                        <p class="mt-1 text-xs text-zinc-500">
+                            County: {{ $form['audience']['county'] }}
+                            @if($form['audience']['constituency']) · Constituency: {{ $form['audience']['constituency'] }} @endif
+                            @if($form['audience']['ward']) · Ward: {{ $form['audience']['ward'] }} @endif
+                        </p>
+                    @endif
+                @endif
+            </div>
+
             @error('options')<p class="mb-3 text-sm text-red-400">{{ $message }}</p>@enderror
             @error('options.*')<p class="mb-3 text-sm text-red-400">{{ $message }}</p>@enderror
 

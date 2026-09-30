@@ -13,14 +13,24 @@ use Illuminate\Support\Facades\DB;
 
 class PollRepository implements PollRepositoryInterface
 {
-    public function activePollId(): ?int
+    /**
+     * The shells of every open poll, light enough to cache and filter by
+     * audience before any full poll is loaded. Returns rows keyed by id, each
+     * exposing the audience columns only.
+     */
+    public function openPollCandidates(): Collection
     {
-        $id = Poll::query()
+        return Poll::query()
             ->where('status', Poll::STATUS_ACTIVE)
             ->orderByDesc('ends_at')
-            ->value('id');
-
-        return $id === null ? null : (int) $id;
+            ->get(['id', 'audience_scope', 'audience_county', 'audience_constituency', 'audience_ward'])
+            ->mapWithKeys(fn (Poll $poll) => [$poll->id => [
+                'id' => $poll->id,
+                'audience_scope' => $poll->audience_scope,
+                'audience_county' => $poll->audience_county,
+                'audience_constituency' => $poll->audience_constituency,
+                'audience_ward' => $poll->audience_ward,
+            ]]);
     }
 
     public function findForDisplay(int $pollId): ?Poll

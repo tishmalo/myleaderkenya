@@ -4,13 +4,19 @@ namespace Tests\Feature;
 
 use App\Models\AspirantPoll;
 use App\Models\Candidate;
+use App\Models\Constituency;
+use App\Models\County;
 use App\Models\Poll;
 use App\Models\PollComment;
 use App\Models\PollOption;
 use App\Models\PollVote;
+use App\Models\Position;
 use App\Models\User;
+use App\Services\Web\PublicApprovalService;
 use App\Support\HomepageCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PollFeatureTest extends TestCase
@@ -69,15 +75,40 @@ class PollFeatureTest extends TestCase
 
     private function governorPositionId(): int
     {
-        return \App\Models\Position::firstOrCreate(
+        return Position::firstOrCreate(
             ['name' => 'Governor'],
             ['sort_order' => 2]
         )->id;
     }
 
+    private function mpPositionId(): int
+    {
+        return Position::firstOrCreate(
+            ['name' => 'Member of Parliament'],
+            ['sort_order' => 3]
+        )->id;
+    }
+
+    private function mcaPositionId(): int
+    {
+        return Position::firstOrCreate(
+            ['name' => 'Member of County Assembly'],
+            ['sort_order' => 4]
+        )->id;
+    }
+
+    private function candidateWithPosition(string $name, int $positionId, array $location = []): Candidate
+    {
+        return Candidate::create(array_merge([
+            'name' => $name,
+            'approval_status' => 'approved',
+            'position_id' => $positionId,
+        ], $location));
+    }
+
     private function positionId(): int
     {
-        return \App\Models\Position::firstOrCreate(
+        return Position::firstOrCreate(
             ['name' => 'Presidential Aspirant'],
             ['sort_order' => 1]
         )->id;
@@ -94,6 +125,22 @@ class PollFeatureTest extends TestCase
             'reveal_results' => true,
             'created_by' => $this->admin()->id,
         ], $overrides));
+    }
+
+    private function makeCountyScopedPoll(string $question): Poll
+    {
+        $poll = $this->makePoll([
+            'question' => $question,
+            'slug' => Str::slug($question),
+            'poll_type' => Poll::TYPE_POLITICAL,
+            'audience_scope' => Poll::AUDIENCE_COUNTY,
+            'audience_county' => 'Kirinyaga',
+        ]);
+
+        $poll->options()->create(['label' => 'Option A', 'display_order' => 0]);
+        $poll->options()->create(['label' => 'Option B', 'display_order' => 1]);
+
+        return $poll;
     }
 
     private function makeOptions(Poll $poll, array $labels = ['Option A', 'Option B']): void
@@ -159,7 +206,7 @@ class PollFeatureTest extends TestCase
         $this->assertDatabaseCount('polls', 0);
     }
 
-    public function test_activating_a_poll_closes_the_previous_live_poll(): void
+    public function test_activating_a_poll_leaves_other_live_polls_alone(): void
     {
         $live = $this->makePoll();
         $this->makeOptions($live);
@@ -180,14 +227,15 @@ class PollFeatureTest extends TestCase
             ]))
             ->assertRedirect(route('polls.index'));
 
-        // The previously live poll is demoted...
-        $this->assertSame(Poll::STATUS_CLOSED, $live->fresh()->status);
+        // Once duplicate polls could be created, a second live poll no longer
+        // demotes the first: the homepage shows every open poll in audience.
+        $this->assertSame(Poll::STATUS_ACTIVE, $live->fresh()->status);
 
-        // ...but an unrelated draft is left alone; it never was on the homepage.
+        // ...and the unrelated draft is left alone; it never was on the homepage.
         $this->assertSame(Poll::STATUS_DRAFT, $draft->fresh()->status);
 
-        // And only the newly created poll is active.
-        $this->assertSame(1, Poll::query()->where('status', Poll::STATUS_ACTIVE)->count());
+        // Two polls can be live at the same time now.
+        $this->assertSame(2, Poll::query()->where('status', Poll::STATUS_ACTIVE)->count());
     }
 
     public function test_creating_a_draft_poll_does_not_close_the_live_poll(): void
@@ -252,7 +300,8 @@ class PollFeatureTest extends TestCase
             ->assertSee('Option A');
     }
 
-    public function test_the_results_endpoint_returns_the_live_tally(): void    {
+    public function test_the_results_endpoint_returns_the_live_tally(): void
+    {
         $poll = $this->makePoll();
         $this->makeOptions($poll);
         $options = $poll->options()->get();
@@ -340,8 +389,8 @@ class PollFeatureTest extends TestCase
 
     public function test_the_aspirant_picker_returns_locations_and_matching_aspirants(): void
     {
-        $county = \App\Models\County::create(['name' => 'Kirinyaga']);
-        \App\Models\Constituency::create(['name' => 'Kirinyaga Central', 'county_id' => $county->id]);
+        $county = County::create(['name' => 'Kirinyaga']);
+        Constituency::create(['name' => 'Kirinyaga Central', 'county_id' => $county->id]);
 
         $this->governorAt('Jane Nduku', ['county' => 'Kirinyaga', 'constituency' => 'Kirinyaga Central']);
         $this->governorAt('Martha Karua', ['county' => 'Kirinyaga']);
@@ -394,6 +443,166 @@ class PollFeatureTest extends TestCase
         $this->assertDatabaseHas('poll_options', [
             'label' => 'Jane Nduku',
             'candidate_id' => $b->id,
+        ]);
+    }
+
+    /* ------------------------------------------------------------------
+       Audience scoping
+    ------------------------------------------------------------------ */
+
+    public function test_a_county_race_is_scoped_to_the_shared_county(): void
+    {
+        $this->governorAt('Jane Nduku', ['county' => 'Kirinyaga', 'constituency' => 'Kirinyaga Central']);
+        $this->governorAt('Martha Karua', ['county' => 'Kirinyaga']);
+
+        $this->actingAs($this->admin())
+            ->post(route('polls.store'), $this->payload([
+                'question' => 'Who wins Kirinyaga?',
+                'poll_type' => 'political',
+                'options' => [
+                    ['candidate_id' => 1, 'label' => 'Jane Nduku'],
+                    ['candidate_id' => 2, 'label' => 'Martha Karua'],
+                    ['label' => 'None of the above'],
+                ],
+            ]))
+            ->assertRedirect(route('polls.index'));
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'Who wins Kirinyaga?',
+            'audience_scope' => Poll::AUDIENCE_COUNTY,
+            'audience_county' => 'Kirinyaga',
+            'audience_constituency' => null,
+            'audience_ward' => null,
+        ]);
+    }
+
+    public function test_an_mp_race_is_scoped_to_the_shared_constituency(): void
+    {
+        $this->candidateWithPosition('A', $this->mpPositionId(), ['county' => 'Kirinyaga', 'constituency' => 'Ndia', 'ward' => 'Kariti']);
+        $this->candidateWithPosition('B', $this->mpPositionId(), ['county' => 'Kirinyaga', 'constituency' => 'Ndia', 'ward' => 'Kariti']);
+
+        $this->actingAs($this->admin())
+            ->post(route('polls.store'), $this->payload([
+                'question' => 'Who wins Ndia?',
+                'poll_type' => 'political',
+                'options' => [
+                    ['candidate_id' => 1, 'label' => 'A'],
+                    ['candidate_id' => 2, 'label' => 'B'],
+                ],
+            ]))
+            ->assertRedirect(route('polls.index'));
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'Who wins Ndia?',
+            'audience_scope' => Poll::AUDIENCE_CONSTITUENCY,
+            'audience_county' => 'Kirinyaga',
+            'audience_constituency' => 'Ndia',
+            'audience_ward' => null,
+        ]);
+    }
+
+    public function test_an_mca_race_is_scoped_to_the_shared_ward(): void
+    {
+        $this->candidateWithPosition('A', $this->mcaPositionId(), ['county' => 'Kirinyaga', 'constituency' => 'Ndia', 'ward' => 'Kariti']);
+        $this->candidateWithPosition('B', $this->mcaPositionId(), ['county' => 'Kirinyaga', 'constituency' => 'Ndia', 'ward' => 'Kariti']);
+
+        $this->actingAs($this->admin())
+            ->post(route('polls.store'), $this->payload([
+                'question' => 'Who wins Kariti?',
+                'poll_type' => 'political',
+                'options' => [
+                    ['candidate_id' => 1, 'label' => 'A'],
+                    ['candidate_id' => 2, 'label' => 'B'],
+                ],
+            ]))
+            ->assertRedirect(route('polls.index'));
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'Who wins Kariti?',
+            'audience_scope' => Poll::AUDIENCE_WARD,
+            'audience_county' => 'Kirinyaga',
+            'audience_constituency' => 'Ndia',
+            'audience_ward' => 'Kariti',
+        ]);
+    }
+
+    public function test_a_presidential_race_is_national(): void
+    {
+        $this->candidate('Martha Karua');
+        $this->candidate('Raila Odinga');
+
+        $this->actingAs($this->admin())
+            ->post(route('polls.store'), $this->payload([
+                'question' => 'Who is our next president?',
+                'poll_type' => 'political',
+                'options' => [
+                    ['candidate_id' => 1, 'label' => 'Martha Karua'],
+                    ['candidate_id' => 2, 'label' => 'Raila Odinga'],
+                ],
+            ]))
+            ->assertRedirect(route('polls.index'));
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'Who is our next president?',
+            'audience_scope' => Poll::AUDIENCE_NATIONAL,
+            'audience_county' => null,
+        ]);
+    }
+
+    public function test_aspirants_spanning_counties_fall_back_to_members(): void
+    {
+        $a = $this->candidateWithPosition('A', $this->governorPositionId(), ['county' => 'Kirinyaga']);
+        $b = $this->candidateWithPosition('B', $this->governorPositionId(), ['county' => 'Nairobi']);
+
+        $this->actingAs($this->admin())
+            ->post(route('polls.store'), $this->payload([
+                'question' => 'A very wide race',
+                'poll_type' => 'political',
+                'options' => [
+                    ['candidate_id' => $a->id, 'label' => 'A'],
+                    ['candidate_id' => $b->id, 'label' => 'B'],
+                ],
+            ]))
+            ->assertRedirect(route('polls.index'));
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'A very wide race',
+            'audience_scope' => Poll::AUDIENCE_MEMBERS,
+            'audience_county' => null,
+        ]);
+    }
+
+    public function test_the_audience_is_recomputed_when_editing_aspirants(): void
+    {
+        Poll::create([
+            'question' => 'Who wins Kirinyaga?',
+            'slug' => 'who-wins-kirinyaga',
+            'poll_type' => Poll::TYPE_POLITICAL,
+            'status' => Poll::STATUS_DRAFT,
+            'ends_at' => now()->addDays(3),
+            'created_by' => $this->admin()->id,
+            'audience_scope' => Poll::AUDIENCE_COUNTY,
+            'audience_county' => 'Kirinyaga',
+        ]);
+
+        $a = $this->candidate('Martha Karua');
+        $b = $this->candidate('Raila Odinga');
+
+        $this->actingAs($this->admin())
+            ->put(route('polls.update', ['poll' => 1]), $this->payload([
+                'question' => 'Who wins Kirinyaga?',
+                'poll_type' => 'political',
+                'options' => [
+                    ['candidate_id' => $a->id, 'label' => 'Martha Karua'],
+                    ['candidate_id' => $b->id, 'label' => 'Raila Odinga'],
+                ],
+            ]))
+            ->assertRedirect(route('polls.edit', ['poll' => 1]));
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'Who wins Kirinyaga?',
+            'audience_scope' => Poll::AUDIENCE_NATIONAL,
+            'audience_county' => null,
         ]);
     }
 
@@ -576,6 +785,97 @@ class PollFeatureTest extends TestCase
             ->assertDontSee('An old closed poll');
     }
 
+    public function test_a_guest_only_see_national_polls(): void
+    {
+        $national = $this->makePoll(['question' => 'National question', 'slug' => 'national-question']);
+        $this->makeOptions($national);
+
+        $county = $this->makeCountyScopedPoll('Who wins Kirinyaga?');
+
+        $this->get(route('landing'))
+            ->assertOk()
+            ->assertSee('National question')
+            ->assertDontSee('Who wins Kirinyaga?');
+    }
+
+    public function test_a_member_sees_only_their_countys_poll(): void
+    {
+        $county = $this->makeCountyScopedPoll('Who wins Kirinyaga?');
+
+        $resident = User::factory()->create(['role' => 'voter', 'county' => 'Kirinyaga', 'constituency' => 'Kirinyaga Central', 'ward' => 'Kariti']);
+        $outsider = User::factory()->create(['role' => 'voter', 'county' => 'Nairobi']);
+
+        $this->actingAs($resident)->get(route('landing'))
+            ->assertOk()
+            ->assertSee('Who wins Kirinyaga?');
+
+        $this->actingAs($outsider)->get(route('landing'))
+            ->assertOk()
+            ->assertDontSee('Who wins Kirinyaga?')->assertOk();
+    }
+
+    public function test_a_member_without_a_location_sees_no_local_poll_and_is_prompted(): void
+    {
+        $this->makeCountyScopedPoll('Who wins Kirinyaga?');
+
+        $member = $this->voter();
+
+        $this->actingAs($member)
+            ->get(route('landing'))
+            ->assertOk()
+            ->assertDontSee('Who wins Kirinyaga?')
+            ->assertSee('Set your location');
+    }
+
+    public function test_a_member_in_the_right_location_can_vote_on_a_local_poll(): void
+    {
+        $poll = $this->makeCountyScopedPoll('Who wins Kirinyaga?');
+        $option = $poll->options()->first();
+
+        $resident = User::factory()->create(['role' => 'voter', 'county' => 'Kirinyaga']);
+
+        $this->actingAs($resident)
+            ->post(route('poll.vote', $poll), ['option_id' => $option->id])
+            ->assertRedirect(route('landing'))
+            ->assertSessionHas('poll_notice');
+
+        $this->assertDatabaseHas('poll_votes', ['poll_id' => $poll->id, 'user_id' => $resident->id]);
+    }
+
+    public function test_a_member_outside_the_area_cannot_vote_on_a_local_poll(): void
+    {
+        $poll = $this->makeCountyScopedPoll('Who wins Kirinyaga?');
+        $option = $poll->options()->first();
+
+        $outsider = User::factory()->create(['role' => 'voter', 'county' => 'Nairobi']);
+
+        $this->actingAs($outsider)
+            ->post(route('poll.vote', $poll), ['option_id' => $option->id])
+            ->assertSessionHasErrors('option_id');
+
+        $this->assertDatabaseCount('poll_votes', 0);
+    }
+
+    public function test_a_member_cannot_vote_on_a_constituency_poll_they_are_not_in(): void
+    {
+        $poll = $this->makePoll([
+            'question' => 'Who wins Ndia?',
+            'slug' => 'who-wins-ndia',
+            'audience_scope' => Poll::AUDIENCE_CONSTITUENCY,
+            'audience_county' => 'Kirinyaga',
+            'audience_constituency' => 'Ndia',
+        ]);
+        $this->makeOptions($poll);
+
+        $wrongWard = User::factory()->create(['role' => 'voter', 'county' => 'Kirinyaga', 'constituency' => 'Kirinyaga Central']);
+
+        $this->actingAs($wrongWard)
+            ->post(route('poll.vote', $poll), ['option_id' => $poll->options()->first()->id])
+            ->assertSessionHasErrors('option_id');
+
+        $this->assertDatabaseCount('poll_votes', 0);
+    }
+
     public function test_the_poll_sits_above_the_public_pulse_section(): void
     {
         $poll = $this->makePoll();
@@ -584,7 +884,7 @@ class PollFeatureTest extends TestCase
         // The pulse section is wrapped in @if(! empty($publicApprovalCards)),
         // so it only renders when the service returns cards. Stub it so the
         // ordering between the two sections can actually be asserted.
-        $this->instance(\App\Services\Web\PublicApprovalService::class, new class extends \App\Services\Web\PublicApprovalService
+        $this->instance(PublicApprovalService::class, new class extends PublicApprovalService
         {
             public function __construct() {}
 
@@ -743,9 +1043,9 @@ class PollFeatureTest extends TestCase
 
     public function test_the_existing_aspirant_poll_tables_are_untouched(): void
     {
-        $this->assertTrue(\Illuminate\Support\Facades\Schema::hasTable('aspirant_polls'));
-        $this->assertTrue(\Illuminate\Support\Facades\Schema::hasTable('aspirant_poll_responses'));
-        $this->assertTrue(\Illuminate\Support\Facades\Schema::hasColumns('aspirant_polls', [
+        $this->assertTrue(Schema::hasTable('aspirant_polls'));
+        $this->assertTrue(Schema::hasTable('aspirant_poll_responses'));
+        $this->assertTrue(Schema::hasColumns('aspirant_polls', [
             'question',
             'options',
             'status',

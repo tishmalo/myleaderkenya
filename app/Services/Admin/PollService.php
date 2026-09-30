@@ -4,9 +4,11 @@ namespace App\Services\Admin;
 
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\PollRepositoryInterface;
+use App\Models\Candidate;
 use App\Models\Poll;
 use App\Models\PollComment;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -60,14 +62,12 @@ class PollService
     }
 
     /**
-     * Turning a poll live closes any other live poll, because the homepage
-     * shows exactly one and a second active poll would be invisible.
+     * Polls may now run alongside each other: the homepage filters open polls
+     * by audience, so several can be live at once.
      */
     public function create(array $validated, User $author): Poll
     {
         [$data, $options] = $this->shape($validated);
-
-        $this->enforceSingleActivePoll($data['status'], null);
 
         return $this->repository->create($data + ['created_by' => $author->id], $options);
     }
@@ -75,8 +75,6 @@ class PollService
     public function update(Poll $poll, array $validated): Poll
     {
         [$data, $options] = $this->shape($validated, $poll);
-
-        $this->enforceSingleActivePoll($data['status'], $poll->id);
 
         return $this->repository->update($poll, $data, $options);
     }
@@ -150,7 +148,143 @@ class PollService
         // collide rather than letting the insert fail on a duplicate.
         $data['slug'] = $this->uniqueSlug($data['question'], $poll?->id);
 
+        $data += $this->audienceFor($data['poll_type'], $candidates);
+
         return [$data, $options];
+    }
+
+    /**
+     * The audience a poll addresses, derived from the aspirants it is built
+     * from rather than a manual pick:
+     *
+     *   - words polls and any poll with a presidential aspirant are national,
+     *     so guests may view them;
+     *   - a race whose aspirants are all ward-level (MCA) is scoped to the
+     *     ward they share;
+     *   - all-constituency aspirants (MP) scope to the constituency;
+     *   - everything else scopes to the single county its aspirants share;
+     *   - aspirants that cannot agree on one county fall back to "members",
+     *     visible to any registered user with a defined location.
+     *
+     * @param  Collection<int, Candidate>  $candidates
+     */
+    protected function audienceFor(string $pollType, Collection $candidates): array
+    {
+        if ($pollType === Poll::TYPE_WORDS || $candidates->isEmpty()) {
+            return $this->nationalAudience();
+        }
+
+        $hasPresidential = $candidates->contains(fn (Candidate $candidate) => $this->isPresidentialPosition((string) ($candidate->position?->name ?? '')));
+
+        if ($hasPresidential) {
+            return $this->nationalAudience();
+        }
+
+        $county = $this->sharedValue($candidates, 'county');
+
+        if ($county === null) {
+            return $this->membersAudience();
+        }
+
+        $allWardLevel = $candidates->every(fn (Candidate $candidate) => $this->isWardLevelPosition((string) ($candidate->position?->name ?? '')));
+        $allConstituencyLevel = $allWardLevel
+            || $candidates->every(fn (Candidate $candidate) => $this->isConstituencyLevelPosition((string) ($candidate->position?->name ?? '')));
+
+        if ($allWardLevel) {
+            $constituency = $this->sharedValue($candidates, 'constituency');
+            $ward = $this->sharedValue($candidates, 'ward');
+
+            if ($constituency !== null && $ward !== null) {
+                return [
+                    'audience_scope' => Poll::AUDIENCE_WARD,
+                    'audience_county' => $county,
+                    'audience_constituency' => $constituency,
+                    'audience_ward' => $ward,
+                ];
+            }
+        }
+
+        if ($allConstituencyLevel) {
+            $constituency = $this->sharedValue($candidates, 'constituency');
+
+            if ($constituency !== null) {
+                return [
+                    'audience_scope' => Poll::AUDIENCE_CONSTITUENCY,
+                    'audience_county' => $county,
+                    'audience_constituency' => $constituency,
+                    'audience_ward' => null,
+                ];
+            }
+        }
+
+        return [
+            'audience_scope' => Poll::AUDIENCE_COUNTY,
+            'audience_county' => $county,
+            'audience_constituency' => null,
+            'audience_ward' => null,
+        ];
+    }
+
+    /**
+     * Every aspirant that names this column must name the same value, and at
+     * least one must name it, otherwise return null (no shared region).
+     *
+     * @param  Collection<int, Candidate>  $candidates
+     */
+    private function sharedValue(Collection $candidates, string $column): ?string
+    {
+        $values = $candidates->pluck($column)
+            ->filter(fn ($value) => filled($value))
+            ->unique()
+            ->values();
+
+        return $values->count() === 1 ? trim((string) $values->first()) : null;
+    }
+
+    private function nationalAudience(): array
+    {
+        return [
+            'audience_scope' => Poll::AUDIENCE_NATIONAL,
+            'audience_county' => null,
+            'audience_constituency' => null,
+            'audience_ward' => null,
+        ];
+    }
+
+    private function membersAudience(): array
+    {
+        return [
+            'audience_scope' => Poll::AUDIENCE_MEMBERS,
+            'audience_county' => null,
+            'audience_constituency' => null,
+            'audience_ward' => null,
+        ];
+    }
+
+    private function isPresidentialPosition(string $name): bool
+    {
+        return str_contains(strtolower($name), 'president');
+    }
+
+    private function isMcaPosition(string $name): bool
+    {
+        return $name === 'mca'
+            || str_contains(strtolower($name), 'member of county assembly');
+    }
+
+    private function isWardLevelPosition(string $name): bool
+    {
+        return $this->isMcaPosition($name);
+    }
+
+    private function isConstituencyLevelPosition(string $name): bool
+    {
+        $name = strtolower($name);
+
+        return $this->isMcaPosition($name)
+            || $name === 'mp'
+            || str_contains($name, 'member of parliament')
+            || str_starts_with($name, 'mp ');
     }
 
     protected function uniqueSlug(string $question, ?int $ignoreId = null): string
@@ -164,19 +298,6 @@ class PollService
         }
 
         return $slug;
-    }
-
-    /**
-     * Only one poll may be live at a time. Activating one demotes any other,
-     * so the homepage never has to choose between two live polls.
-     */
-    protected function enforceSingleActivePoll(string $status, ?int $ignoreId): void
-    {
-        if ($status !== Poll::STATUS_ACTIVE) {
-            return;
-        }
-
-        $this->repository->closeOtherActivePolls($ignoreId);
     }
 
     public function comments(array $filters = [], int $perPage = 25)

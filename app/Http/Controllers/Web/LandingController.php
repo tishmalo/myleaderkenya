@@ -30,7 +30,8 @@ class LandingController extends Controller
         // Resolved outside the cached landing payload: the poll state is
         // per-visitor (has this person voted?) and time-sensitive (has the
         // deadline passed?), so it must not sit behind the 2 hour cache.
-        $landingData['activePoll'] = $this->pollService->homepagePoll(request()->user());
+        $landingData['polls'] = $this->pollService->homepagePolls(request()->user());
+        $landingData['needsLocationPrompt'] = $this->pollService->needsLocationPrompt(request()->user());
 
         return view('landing', $landingData);
     }

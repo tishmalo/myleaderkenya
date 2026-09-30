@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\HomepageCache;
 use App\Support\PollPresenter;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -30,35 +31,120 @@ class PollService
     ) {}
 
     /**
-     * The section the homepage renders, or null when there is no poll to show.
+     * The poll sections the homepage renders, one per open poll the viewer may
+     * take part in. A viewer who is not logged in only sees national polls;
+     * logged-in viewers additionally see every poll scoped to their location.
      *
-     * Only anonymous-safe data is cached. Whether the current viewer has voted,
-     * and whether results are visible to them, is resolved per request so one
-     * visitor's vote can never leak into another's page.
+     * Only anonymous-safe data is cached: the lightweight shells (ids plus
+     * audience columns). Whether the current viewer has voted, and whether
+     * results are visible to them, is resolved per request so one visitor's
+     * vote can never leak into another's page.
+     *
+     * @return list<array<string, mixed>>
      */
-    public function homepagePoll(?User $viewer): ?array
+    public function homepagePolls(?User $viewer): array
     {
-        // Only the id is cached, and only briefly: the deadline moves, so a
-        // longer TTL could show a poll as open after it has closed.
-        $pollId = Cache::remember(
-            HomepageCache::key('active-poll'),
+        $candidates = Cache::remember(
+            HomepageCache::key('open-poll-candidates'),
             self::SHELL_TTL,
-            fn (): ?int => $this->repository->activePollId()
+            fn (): array => $this->repository->openPollCandidates()->all()
         );
 
-        if ($pollId === null) {
-            return null;
+        $polls = [];
+
+        foreach ($candidates as $candidate) {
+            if (! $this->viewerEligible($candidate, $viewer)) {
+                continue;
+            }
+
+            $poll = $this->repository->findForDisplay((int) $candidate['id']);
+
+            // The cached shell can outlive the row if a poll is deleted or
+            // deactivated between the cache write and this read.
+            if ($poll === null) {
+                continue;
+            }
+
+            $polls[] = $this->present($poll, $viewer);
         }
 
-        $poll = $this->repository->findForDisplay($pollId);
+        return $polls;
+    }
 
-        // The cached id can outlive the row if a poll is deleted or deactivated.
-        if ($poll === null) {
-            Cache::forget(HomepageCache::key('active-poll'));
-
-            return null;
+    /**
+     * Whether the homepage should nudge this viewer to give their location.
+     * Guests are allowed to browse national polls without one, so the prompt
+     * is only for a logged-in member whose profile is missing a location, and
+     * only when an open poll actually needs one.
+     */
+    public function needsLocationPrompt(?User $viewer): bool
+    {
+        if ($viewer === null || filled($viewer->county)) {
+            return false;
         }
 
+        return collect($this->openPollCandidates())
+            ->contains(fn (array $candidate) => $candidate['audience_scope'] !== Poll::AUDIENCE_NATIONAL);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function openPollCandidates(): array
+    {
+        return Cache::remember(
+            HomepageCache::key('open-poll-candidates'),
+            self::SHELL_TTL,
+            fn (): array => $this->repository->openPollCandidates()->all()
+        );
+    }
+
+    /**
+     * Can this viewer see a poll defined by these audience columns? National
+     * polls are open to everyone; everything else needs a registered user
+     * whose location matches the derived region - or, for a "members" poll,
+     * any registered user with a location at all.
+     *
+     * @param  array<string, mixed>  $candidate
+     */
+    protected function viewerEligible(array $candidate, ?User $viewer): bool
+    {
+        $scope = $candidate['audience_scope'];
+
+        if ($scope === Poll::AUDIENCE_NATIONAL) {
+            return true;
+        }
+
+        if ($viewer === null) {
+            return false;
+        }
+
+        return match ($scope) {
+            Poll::AUDIENCE_MEMBERS => filled($viewer->county),
+            Poll::AUDIENCE_COUNTY => $this->sameLocation(
+                $viewer->county,
+                $candidate['audience_county']
+            ),
+            Poll::AUDIENCE_CONSTITUENCY => $this->sameLocation($viewer->county, $candidate['audience_county'])
+                && $this->sameLocation($viewer->constituency, $candidate['audience_constituency']),
+            Poll::AUDIENCE_WARD => $this->sameLocation($viewer->county, $candidate['audience_county'])
+                && $this->sameLocation($viewer->constituency, $candidate['audience_constituency'])
+                && $this->sameLocation($viewer->ward, $candidate['audience_ward']),
+            default => false,
+        };
+    }
+
+    private function sameLocation(?string $viewerValue, mixed $audienceValue): bool
+    {
+        return filled($viewerValue)
+            && Str::lower(trim((string) $viewerValue)) === Str::lower(trim((string) $audienceValue));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function present(Poll $poll, ?User $viewer): array
+    {
         $resultsArePublic = $poll->hasPublicResults();
 
         $tallies = $resultsArePublic
@@ -94,6 +180,12 @@ class PollService
             ]);
         }
 
+        if (! $this->viewerEligibleForPoll($poll, $user)) {
+            throw ValidationException::withMessages([
+                'option_id' => 'This poll is only open to voters in its area.',
+            ]);
+        }
+
         if (! $this->repository->optionExists($poll->id, $optionId)) {
             throw ValidationException::withMessages([
                 'option_id' => 'That option is not part of this poll.',
@@ -101,6 +193,20 @@ class PollService
         }
 
         $this->repository->recordVote($poll->id, $optionId, $user->id);
+    }
+
+    /**
+     * A live poll row may be reached with a URL even though the homepage would
+     * not have offered it to this viewer, so the vote is gated again here.
+     */
+    protected function viewerEligibleForPoll(Poll $poll, User $user): bool
+    {
+        return $this->viewerEligible([
+            'audience_scope' => $poll->audience_scope,
+            'audience_county' => $poll->audience_county,
+            'audience_constituency' => $poll->audience_constituency,
+            'audience_ward' => $poll->audience_ward,
+        ], $user);
     }
 
     public function canComment(Poll $poll, ?User $user): bool

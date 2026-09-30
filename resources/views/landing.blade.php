@@ -437,8 +437,21 @@
         </div>
     </section>
 
-    @if(! empty($activePoll))
-        @include('landing.partials.poll', ['poll' => $activePoll])
+    @if($needsLocationPrompt)
+        <section class="poll-location-prompt">
+            <div class="section-inner">
+                <div class="location-nudge">
+                    Tell us where you vote to see polls for your area.
+                    <a href="{{ route('account.profile.edit') }}" class="location-nudge-link">Set your location</a>
+                </div>
+            </div>
+        </section>
+    @endif
+
+    @if(! empty($polls))
+        @foreach($polls as $poll)
+            @include('landing.partials.poll', ['poll' => $poll])
+        @endforeach
     @endif
 
     @if(! empty($publicApprovalCards))

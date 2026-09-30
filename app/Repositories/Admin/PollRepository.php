@@ -33,8 +33,10 @@ class PollRepository implements PollRepositoryInterface
     }
 
     /**
-     * Candidates keyed by id, used to resolve the labels an admin submitted
-     * and to reject ids that no longer point at a real candidate.
+     * Candidates keyed by id, used to resolve the labels an admin submitted,
+     * to reject ids that no longer point at a real candidate, and to derive
+     * the audience (presidential/national vs. a shared county) a poll built
+     * from them addresses.
      */
     public function candidatesByIds(array $ids): Collection
     {
@@ -43,6 +45,7 @@ class PollRepository implements PollRepositoryInterface
         }
 
         return Candidate::query()
+            ->with('position')
             ->whereIn('id', $ids)
             ->get()
             ->keyBy('id');
@@ -54,18 +57,6 @@ class PollRepository implements PollRepositoryInterface
             ->where('slug', $slug)
             ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
             ->exists();
-    }
-
-    /**
-     * Demotes every other live poll. The homepage shows a single poll, so a
-     * second active one would simply be invisible.
-     */
-    public function closeOtherActivePolls(?int $ignoreId = null): void
-    {
-        Poll::query()
-            ->active()
-            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
-            ->update(['status' => Poll::STATUS_CLOSED]);
     }
 
     public function resultsFor(int $pollId): Collection

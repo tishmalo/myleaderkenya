@@ -20,8 +20,6 @@ interface PollRepositoryInterface
 
     public function slugExists(string $slug, ?int $ignoreId = null): bool;
 
-    public function closeOtherActivePolls(?int $ignoreId = null): void;
-
     /**
      * Tally for one poll, covering every option so options with no votes
      * still report zero. Admin only: the public tally is deadline gated.

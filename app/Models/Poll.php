@@ -5,9 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\AuditsChanges;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 class Poll extends Model implements AuditableContract
@@ -24,6 +22,16 @@ class Poll extends Model implements AuditableContract
 
     public const STATUS_CLOSED = 'closed';
 
+    public const AUDIENCE_NATIONAL = 'national';
+
+    public const AUDIENCE_MEMBERS = 'members';
+
+    public const AUDIENCE_COUNTY = 'county';
+
+    public const AUDIENCE_CONSTITUENCY = 'constituency';
+
+    public const AUDIENCE_WARD = 'ward';
+
     protected $fillable = [
         'question',
         'slug',
@@ -33,6 +41,10 @@ class Poll extends Model implements AuditableContract
         'ends_at',
         'reveal_results',
         'created_by',
+        'audience_scope',
+        'audience_county',
+        'audience_constituency',
+        'audience_ward',
     ];
 
     protected $casts = [

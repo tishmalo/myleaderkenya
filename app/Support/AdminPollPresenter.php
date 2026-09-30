@@ -2,8 +2,10 @@
 
 namespace App\Support;
 
+use App\Models\Candidate;
 use App\Models\Poll;
 use App\Models\PollComment;
+use App\Models\Position;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -77,12 +79,57 @@ class AdminPollPresenter
                 : (bool) ($poll?->reveal_results ?? true),
             'existing_options' => self::normalizeOptions($options),
             'aspirant_picker_url' => route('polls.aspirants'),
+            'audience' => self::audience($poll),
         ];
     }
 
     /**
-     * @param  Collection<int, \App\Models\Position>  $positions
+     * The derived audience, shown read-only. Created when the poll is saved
+     * from the aspirants it is linked to, so a stored poll reports its scope
+     * while a fresh one simply explains where the scope comes from.
      *
+     * @return array{draft:bool,label:string|null,scope_key:string|null,county:string|null,constituency:string|null,ward:string|null}
+     */
+    private static function audience(?Poll $poll): array
+    {
+        if ($poll === null) {
+            return [
+                'draft' => true,
+                'label' => 'Calculated from the aspirants you add.',
+                'scope_key' => null,
+                'county' => null,
+                'constituency' => null,
+                'ward' => null,
+            ];
+        }
+
+        $part = fn (?string $value) => filled($value) ? $value : null;
+        $area = trim(implode(', ', array_filter([
+            $part($poll->audience_county),
+            $part($poll->audience_constituency),
+            $part($poll->audience_ward),
+        ])));
+
+        $labels = [
+            Poll::AUDIENCE_NATIONAL => 'Everyone',
+            Poll::AUDIENCE_MEMBERS => 'Logged-in members with a location',
+            Poll::AUDIENCE_COUNTY => 'Voters in '.$poll->audience_county,
+            Poll::AUDIENCE_CONSTITUENCY => 'Voters in '.$area,
+            Poll::AUDIENCE_WARD => 'Voters in '.$area,
+        ];
+
+        return [
+            'draft' => false,
+            'label' => $labels[$poll->audience_scope] ?? 'Logged-in members',
+            'scope_key' => $poll->audience_scope,
+            'county' => $part($poll->audience_county),
+            'constituency' => $part($poll->audience_constituency),
+            'ward' => $part($poll->audience_ward),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, Position>  $positions
      * @return array<int, array{id:int,name:string}>
      */
     public static function pickerPositions(Collection $positions): array
@@ -94,8 +141,7 @@ class AdminPollPresenter
     }
 
     /**
-     * @param  Collection<int, \App\Models\Candidate>  $candidates
-     *
+     * @param  Collection<int, Candidate>  $candidates
      * @return array<int, array{id:int,name:string,party:string|null,area:string|null,badge:string}>
      */
     public static function pickerCandidates(Collection $candidates): array
