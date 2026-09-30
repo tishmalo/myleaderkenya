@@ -49,6 +49,32 @@ class PollFeatureTest extends TestCase
         ]);
     }
 
+    private function candidateAt(string $name, array $location = []): Candidate
+    {
+        return Candidate::create(array_merge([
+            'name' => $name,
+            'approval_status' => 'approved',
+            'position_id' => $this->positionId(),
+        ], $location));
+    }
+
+    private function governorAt(string $name, array $location = []): Candidate
+    {
+        return Candidate::create(array_merge([
+            'name' => $name,
+            'approval_status' => 'approved',
+            'position_id' => $this->governorPositionId(),
+        ], $location));
+    }
+
+    private function governorPositionId(): int
+    {
+        return \App\Models\Position::firstOrCreate(
+            ['name' => 'Governor'],
+            ['sort_order' => 2]
+        )->id;
+    }
+
     private function positionId(): int
     {
         return \App\Models\Position::firstOrCreate(
@@ -300,6 +326,74 @@ class PollFeatureTest extends TestCase
         $this->assertDatabaseHas('poll_options', [
             'label' => 'Martha Karua',
             'candidate_id' => $candidate->id,
+        ]);
+    }
+
+    /* ------------------------------------------------------------------
+       Bulk aspirant picker
+    ------------------------------------------------------------------ */
+
+    public function test_the_aspirant_picker_rejects_guests(): void
+    {
+        $this->getJson(route('polls.aspirants'))->assertUnauthorized();
+    }
+
+    public function test_the_aspirant_picker_returns_locations_and_matching_aspirants(): void
+    {
+        $county = \App\Models\County::create(['name' => 'Kirinyaga']);
+        \App\Models\Constituency::create(['name' => 'Kirinyaga Central', 'county_id' => $county->id]);
+
+        $this->governorAt('Jane Nduku', ['county' => 'Kirinyaga', 'constituency' => 'Kirinyaga Central']);
+        $this->governorAt('Martha Karua', ['county' => 'Kirinyaga']);
+        $this->governorAt('Sam Waweru', ['county' => 'Nairobi']);
+
+        $governorPositionId = $this->governorPositionId();
+        $this->actingAs($this->admin())
+            ->getJson(route('polls.aspirants', [
+                'position_id' => $governorPositionId,
+                'county' => 'Kirinyaga',
+            ]))
+            ->assertOk()
+            ->assertJsonPath('constituencies.0', 'Kirinyaga Central')
+            ->assertJsonCount(2, 'candidates')
+            ->assertJsonPath('candidates.0.name', 'Jane Nduku');
+    }
+
+    public function test_the_aspirant_picker_refuses_to_dump_every_aspirant(): void
+    {
+        $this->candidate('Martha Karua');
+
+        $this->actingAs($this->admin())
+            ->getJson(route('polls.aspirants'))
+            ->assertOk()
+            ->assertJsonCount(0, 'candidates');
+    }
+
+    public function test_an_admin_can_add_many_aspirants_in_one_submit(): void
+    {
+        $a = $this->candidateAt('Martha Karua', ['county' => 'Kirinyaga']);
+        $b = $this->candidateAt('Jane Nduku', ['county' => 'Kirinyaga']);
+
+        $this->actingAs($this->admin())
+            ->post(route('polls.store'), $this->payload([
+                'question' => 'Who wins the county?',
+                'poll_type' => 'political',
+                'options' => [
+                    ['candidate_id' => $a->id, 'label' => 'Martha Karua'],
+                    ['candidate_id' => $b->id, 'label' => 'Jane Nduku'],
+                    ['label' => 'None of the above'],
+                ],
+            ]))
+            ->assertRedirect(route('polls.index'));
+
+        $this->assertDatabaseCount('poll_options', 3);
+        $this->assertDatabaseHas('poll_options', [
+            'label' => 'Martha Karua',
+            'candidate_id' => $a->id,
+        ]);
+        $this->assertDatabaseHas('poll_options', [
+            'label' => 'Jane Nduku',
+            'candidate_id' => $b->id,
         ]);
     }
 

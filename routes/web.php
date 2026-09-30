@@ -361,6 +361,7 @@ Route::middleware('auth')->group(function () {
 
             Route::get('/admin/polls', [PollController::class, 'index'])->middleware('permission:frontend.view')->name('polls.index');
             Route::get('/admin/polls/create', [PollController::class, 'create'])->middleware('permission:frontend.view')->name('polls.create');
+            Route::get('/admin/polls/aspirants', [PollController::class, 'aspirantPicker'])->middleware('permission:frontend.view')->name('polls.aspirants');
             Route::post('/admin/polls', [PollController::class, 'store'])->middleware('permission:frontend.update')->name('polls.store');
             Route::get('/admin/polls/{poll}/edit', [PollController::class, 'edit'])->middleware('permission:frontend.view')->name('polls.edit');
             Route::put('/admin/polls/{poll}', [PollController::class, 'update'])->middleware('permission:frontend.update')->name('polls.update');

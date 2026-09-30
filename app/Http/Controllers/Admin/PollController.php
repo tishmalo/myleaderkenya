@@ -33,9 +33,34 @@ class PollController extends Controller
         return view('polls.create', [
             'form' => \App\Support\AdminPollPresenter::form(
                 null,
-                $request->old() ?: [],
-                $this->pollService->approvedCandidates()
+                $request->old() ?: []
             ),
+        ]);
+    }
+
+    /**
+     * JSON backing for the bulk aspirant picker in the poll form. Given the
+     * position and/or location the admin has chosen, returns the matching
+     * location options and the approved aspirants in that scope.
+     */
+    public function aspirantPicker(Request $request): JsonResponse
+    {
+        $filters = [
+            'position_id' => $request->integer('position_id') ?: null,
+            'county' => $request->string('county')->toString() ?: null,
+            'constituency' => $request->string('constituency')->toString() ?: null,
+            'ward' => $request->string('ward')->toString() ?: null,
+            'search' => $request->string('search')->toString() ?: null,
+        ];
+
+        $data = $this->pollService->pickerData($filters);
+
+        return response()->json([
+            'positions' => \App\Support\AdminPollPresenter::pickerPositions($data['positions']),
+            'counties' => $data['counties']->values()->all(),
+            'constituencies' => $data['constituencies']->values()->all(),
+            'wards' => $data['wards']->values()->all(),
+            'candidates' => \App\Support\AdminPollPresenter::pickerCandidates($data['candidates']),
         ]);
     }
 
@@ -59,8 +84,7 @@ class PollController extends Controller
             'results' => \App\Support\AdminPollPresenter::results($this->pollService->resultsFor($record->id)),
             'form' => \App\Support\AdminPollPresenter::form(
                 $record,
-                $request->old() ?: [],
-                $this->pollService->approvedCandidates()
+                $request->old() ?: []
             ),
         ]);
     }

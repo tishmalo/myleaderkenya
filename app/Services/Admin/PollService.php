@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\PollRepositoryInterface;
 use App\Models\Poll;
 use App\Models\PollComment;
@@ -11,7 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class PollService
 {
-    public function __construct(private readonly PollRepositoryInterface $repository) {}
+    public function __construct(
+        private readonly PollRepositoryInterface $repository,
+        private readonly CandidateRepositoryInterface $candidates,
+    ) {}
 
     public function paginate(int $perPage = 15)
     {
@@ -23,9 +27,31 @@ class PollService
         return $this->repository->find($id);
     }
 
-    public function approvedCandidates()
+    /**
+     * The bulk aspirant picker for political polls. Returns everything a
+     * single picker request needs: the position and county lists, the
+     * dependent location lists for whatever the admin has chosen, and the
+     * approved aspirants that match the current filters.
+     */
+    public function pickerData(array $filters): array
     {
-        return $this->repository->approvedCandidates();
+        $county = $filters['county'] ?? null;
+        $constituency = $filters['constituency'] ?? null;
+
+        // Never dump the whole aspirant table: candidates are only listed once
+        // the admin has narrowed by position and/or location.
+        $inScope = ! empty($filters['position_id'])
+            || filled($county)
+            || filled($constituency)
+            || isset($filters['ward']) && filled($filters['ward']);
+
+        return [
+            'positions' => $this->candidates->allPositions(),
+            'counties' => $this->candidates->allCounties(),
+            'constituencies' => $county ? $this->candidates->allConstituencies($county) : collect(),
+            'wards' => $constituency ? $this->candidates->allWards($constituency) : collect(),
+            'candidates' => $inScope ? $this->candidates->forPicker($filters, 500) : collect(),
+        ];
     }
 
     public function resultsFor(int $pollId)

@@ -37,6 +37,15 @@ interface CandidateRepositoryInterface
 
     public function filterPublic(array $filters, int $perPage = 30): LengthAwarePaginator;
 
+    /**
+     * Approved aspirants for the poll bulk picker, filtered by position and
+     * location. The exact-match fields mirror how candidates store their area
+     * (free-text county/constituency/ward).
+     *
+     * @param  array{filters}  $filters
+     */
+    public function forPicker(array $filters, int $limit = 500): Collection;
+
     public function publicPositionGroups(array $filters, int $perPage = 20): Collection;
 
     public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator;

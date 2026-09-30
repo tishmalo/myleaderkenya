@@ -217,6 +217,30 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->values();
     }
 
+    /**
+     * Approved aspirants for the poll bulk picker.
+     *
+     * @param  array{position_id?:int,county?:string,constituency?:string,ward?:string,search?:string}  $filters
+     */
+    public function forPicker(array $filters, int $limit = 500): Collection
+    {
+        $query = Candidate::query()
+            ->with(['position', 'politicalParty'])
+            ->where('approval_status', 'approved')
+            ->when($position = $filters['position_id'] ?? null, fn ($query) => $query->where('position_id', (int) $position))
+            ->when($county = $filters['county'] ?? null, fn ($query) => $query->where('county', $county))
+            ->when($constituency = $filters['constituency'] ?? null, fn ($query) => $query->where('constituency', $constituency))
+            ->when($ward = $filters['ward'] ?? null, fn ($query) => $query->where('ward', $ward))
+            ->when($search = $filters['search'] ?? null, function ($query) use ($search): void {
+                $query->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")
+                    ->orWhere('nick_name', 'like', "%{$search}%"));
+            })
+            ->orderBy('name')
+            ->limit($limit);
+
+        return $query->get();
+    }
+
     public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator
     {
         $query = $this->publicQuery($filters);

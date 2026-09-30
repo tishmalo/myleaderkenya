@@ -27,22 +27,9 @@ class PollRepository implements PollRepositoryInterface
     public function find(int $id): ?Poll
     {
         return Poll::query()
-            ->with('options.candidate.position')
+            ->with(['options.candidate.position', 'options.candidate.politicalParty'])
             ->withCount('votes')
             ->find($id);
-    }
-
-    /**
-     * Approved candidates for the political option picker, preloaded so the
-     * admin form can render every row without another round trip.
-     */
-    public function approvedCandidates(): Collection
-    {
-        return Candidate::query()
-            ->with(['position', 'politicalParty'])
-            ->where('approval_status', 'approved')
-            ->orderBy('name')
-            ->get();
     }
 
     /**

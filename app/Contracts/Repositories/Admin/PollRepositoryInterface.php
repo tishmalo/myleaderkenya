@@ -13,8 +13,6 @@ interface PollRepositoryInterface
 
     public function find(int $id): ?Poll;
 
-    public function approvedCandidates(): Collection;
-
     /**
      * @param  array<int, int>  $ids
      */

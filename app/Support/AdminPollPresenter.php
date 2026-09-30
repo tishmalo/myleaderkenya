@@ -56,7 +56,7 @@ class AdminPollPresenter
      *
      * @param  array  $old  Illuminate\Http\Request::old(), may be empty
      */
-    public static function form(?Poll $poll, array $old, Collection $candidates): array
+    public static function form(?Poll $poll, array $old): array
     {
         $options = $old['options'] ?? self::storedOptions($poll);
         $startsAt = $poll?->starts_at;
@@ -76,9 +76,46 @@ class AdminPollPresenter
                 ? (bool) $old['reveal_results']
                 : (bool) ($poll?->reveal_results ?? true),
             'existing_options' => self::normalizeOptions($options),
-            'candidate_groups' => self::candidateGroups($candidates),
-            'candidate_groups_json' => self::candidateGroupsJson($candidates),
+            'aspirant_picker_url' => route('polls.aspirants'),
         ];
+    }
+
+    /**
+     * @param  Collection<int, \App\Models\Position>  $positions
+     *
+     * @return array<int, array{id:int,name:string}>
+     */
+    public static function pickerPositions(Collection $positions): array
+    {
+        return $positions->map(fn ($position) => [
+            'id' => (int) $position->id,
+            'name' => $position->name,
+        ])->values()->all();
+    }
+
+    /**
+     * @param  Collection<int, \App\Models\Candidate>  $candidates
+     *
+     * @return array<int, array{id:int,name:string,party:string|null,area:string|null,badge:string}>
+     */
+    public static function pickerCandidates(Collection $candidates): array
+    {
+        return $candidates->map(function ($candidate) {
+            $party = $candidate->politicalParty?->abbreviation ?: $candidate->politicalParty?->name;
+            $area = $candidate->getDisplayAreaAttribute();
+
+            return [
+                'id' => (int) $candidate->id,
+                'name' => $candidate->name,
+                'party' => $party,
+                'area' => $area,
+                'badge' => trim(implode(' · ', array_filter([
+                    $candidate->position?->name,
+                    $party,
+                    $area,
+                ]))),
+            ];
+        })->values()->all();
     }
 
     /**
@@ -169,11 +206,20 @@ class AdminPollPresenter
 
     private static function storedOptions(?Poll $poll): array
     {
-        return $poll?->options->map(fn ($option) => [
-            'id' => $option->id,
-            'label' => $option->label,
-            'candidate_id' => $option->candidate_id,
-        ])->all() ?? [];
+        return $poll?->options->map(function ($option) {
+            $candidate = $option->candidate;
+            $party = $candidate?->politicalParty?->abbreviation ?: $candidate?->politicalParty?->name;
+
+            return [
+                'id' => $option->id,
+                'label' => $option->label,
+                'candidate_id' => $option->candidate_id,
+                'candidate_name' => $candidate?->name,
+                'candidate_badge' => $candidate
+                    ? trim(implode(' · ', array_filter([$candidate->position?->name, $party, $candidate->getDisplayAreaAttribute()])))
+                    : null,
+            ];
+        })->all() ?? [];
     }
 
     /**
@@ -182,7 +228,7 @@ class AdminPollPresenter
      */
     private static function normalizeOptions(array $options): array
     {
-        $empty = ['id' => null, 'label' => '', 'candidate_id' => null];
+        $empty = ['id' => null, 'label' => '', 'candidate_id' => null, 'candidate_name' => null, 'candidate_badge' => null];
 
         if ($options === []) {
             return [$empty, $empty];
@@ -192,29 +238,8 @@ class AdminPollPresenter
             'id' => $option['id'] ?? null,
             'label' => $option['label'] ?? '',
             'candidate_id' => $option['candidate_id'] ?? null,
+            'candidate_name' => $option['candidate_name'] ?? null,
+            'candidate_badge' => $option['candidate_badge'] ?? null,
         ])->values()->all();
-    }
-
-    private static function candidateGroups(Collection $candidates): Collection
-    {
-        return $candidates
-            ->groupBy(fn ($candidate) => $candidate->position?->name ?? 'Aspirants')
-            ->map(fn (Collection $group, string $name) => [
-                'label' => $name,
-                'candidates' => $group->map(fn ($candidate) => [
-                    'id' => $candidate->id,
-                    'name' => $candidate->name.($candidate->politicalParty?->abbreviation
-                        ? ' ('.$candidate->politicalParty->abbreviation.')'
-                        : ''),
-                ])->values(),
-            ])->values();
-    }
-
-    private static function candidateGroupsJson(Collection $candidates): string
-    {
-        return json_encode(
-            self::candidateGroups($candidates),
-            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-        );
     }
 }
