@@ -141,6 +141,23 @@ class PollService
     }
 
     /**
+     * The full presentation of a live poll, reachable by its shareable slug.
+     * Returns null when no such poll is live, so the controller can 404.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function presentPollBySlug(string $slug, ?User $viewer): ?array
+    {
+        $poll = $this->repository->findLivePollBySlug($slug);
+
+        if ($poll === null) {
+            return null;
+        }
+
+        return $this->present($poll, $viewer);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function present(Poll $poll, ?User $viewer): array

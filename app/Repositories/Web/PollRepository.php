@@ -41,6 +41,16 @@ class PollRepository implements PollRepositoryInterface
             ->find($pollId);
     }
 
+    public function findLivePollBySlug(string $slug): ?Poll
+    {
+        return Poll::query()
+            ->active()
+            ->with('options.candidate.position')
+            ->withCount('votes')
+            ->where('slug', $slug)
+            ->first();
+    }
+
     public function resultsFor(int $pollId): Collection
     {
         $tallies = DB::table('poll_votes')

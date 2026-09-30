@@ -527,3 +527,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 450);
     });
 });
+
+/* Poll share: copy-to-clipboard buttons (homepage + shared poll page) */
+document.addEventListener('click', function (event) {
+    var btn = event.target.closest('[data-poll-copy-link]');
+    if (!btn) return;
+    event.preventDefault();
+
+    var url = btn.getAttribute('data-poll-copy-link');
+    function done(ok) {
+        var original = btn.innerHTML;
+        var previousState = btn.dataset.copiedOriginal;
+        btn.dataset.copiedOriginal = original;
+        btn.innerHTML = ok
+            ? '<i class="fas fa-check" aria-hidden="true"></i> Link copied'
+            : '<i class="fas fa-check" aria-hidden="true"></i> Copied';
+        window.setTimeout(function () {
+            if (btn.dataset.copiedOriginal === original) btn.innerHTML = original;
+        }, 2200);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () { done(true); }, function () { window.prompt('Copy this poll link:', url); });
+    } else {
+        window.prompt('Copy this poll link:', url);
+    }
+});

@@ -1160,4 +1160,77 @@ class PollFeatureTest extends TestCase
             ->assertSee('You can change it until the poll closes')
             ->assertDontSee('You cannot change it once cast');
     }
+
+    public function test_a_active_poll_is_reachable_by_slug_with_share_actions(): void
+    {
+        $poll = $this->makePoll();
+        $this->makeOptions($poll);
+
+        $this->get(route('poll.show', $poll->slug))
+            ->assertOk()
+            ->assertSee($poll->question)
+            ->assertSee('Share this poll')
+            ->assertSee('wa.me')
+            ->assertSee('twitter.com/intent/tweet')
+            ->assertSee('facebook.com/sharer/sharer.php')
+            ->assertSee('data-poll-copy-link')
+            ->assertDontSee('class="poll-submit"');
+    }
+
+    public function test_share_page_carries_seo_metadata(): void
+    {
+        $poll = $this->makePoll();
+        $this->makeOptions($poll);
+
+        $this->get(route('poll.show', $poll->slug))
+            ->assertOk()
+            ->assertSee('og:title')
+            ->assertSee('og:description')
+            ->assertSee('og:image')
+            ->assertSee('twitter:card')
+            ->assertSee('application/ld+json')
+            ->assertSee('Article')
+            ->assertSee('rel="canonical"', false);
+    }
+
+    public function test_a_draft_or_unknown_poll_slug_returns_not_found(): void
+    {
+        $draft = $this->makePoll(['status' => Poll::STATUS_DRAFT]);
+        $this->makeOptions($draft);
+
+        $this->get(route('poll.show', $draft->slug))->assertNotFound();
+
+        $this->get(route('poll.show', 'no-such-poll'))->assertNotFound();
+    }
+
+    public function test_a_voter_can_vote_from_the_share_page(): void
+    {
+        $poll = $this->makePoll();
+        $this->makeOptions($poll);
+
+        $this->actingAs($this->voter())
+            ->get(route('poll.show', $poll->slug))
+            ->assertOk()
+            ->assertSee('Cast your vote');
+
+        $this->post(route('poll.vote', $poll->id), ['option_id' => $poll->options->first()->id])
+            ->assertRedirect(route('landing'));
+
+        $this->assertDatabaseHas('poll_votes', [
+            'poll_id' => $poll->id,
+            'poll_option_id' => $poll->options->first()->id,
+        ]);
+    }
+
+    public function test_the_homepage_offers_a_share_link_for_the_active_poll(): void
+    {
+        $poll = $this->makePoll();
+        $this->makeOptions($poll);
+
+        $this->get(route('landing'))
+            ->assertOk()
+            ->assertSee('Share this poll')
+            ->assertSee(route('poll.show', $poll->slug))
+            ->assertSee('data-poll-copy-link');
+    }
 }

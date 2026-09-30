@@ -6,6 +6,7 @@ use App\Models\Poll;
 use App\Models\PollComment;
 use App\Models\PollOption;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -43,11 +44,15 @@ class PollPresenter
 
         return [
             'id' => $poll->id,
+            'slug' => $poll->slug,
             'section_label' => $poll->poll_type === Poll::TYPE_POLITICAL ? 'Vote Your Candidate' : 'Have Your Say',
             'question' => $poll->question,
             'status_line' => self::statusLine($poll, $isOpen, $isScheduled),
             'vote_action' => route('poll.vote', $poll->id),
             'comment_action' => route('poll.comments.store', $poll->id),
+            'share_url' => route('poll.show', $poll->slug),
+            'share_og_image' => self::shareOgImage($options),
+            'share_created_at' => ($poll->created_at?->toIso8601String()) ?? now()->toIso8601String(),
             'grid_class' => $poll->poll_type === Poll::TYPE_POLITICAL ? 'poll-grid is-political' : 'poll-grid',
             'is_authenticated' => $isAuthenticated,
             'can_vote' => $isOpen && ! $hasVoted && $isAuthenticated,
@@ -97,7 +102,7 @@ class PollPresenter
             'party' => self::party($option),
             'profile_url' => $option->candidate ? route('aspirants.show', $option->candidate) : null,
             'photo_url' => $option->candidate?->profile_picture
-                ? \Illuminate\Support\Facades\Storage::url($option->candidate->profile_picture)
+                ? Storage::url($option->candidate->profile_picture)
                 : null,
             'show_tally' => $resultsArePublic,
             'percent' => (int) ($tally['percent'] ?? 0),
@@ -110,6 +115,18 @@ class PollPresenter
         return $option->candidate?->politicalParty?->abbreviation
             ?? $option->candidate?->politicalParty?->name
             ?? 'Independent';
+    }
+
+    private static function shareOgImage(Collection $options): string
+    {
+        $firstPhoto = $options
+            ->map(fn (PollOption $option) => $option->candidate?->profile_picture)
+            ->filter()
+            ->first();
+
+        return $firstPhoto
+            ? Storage::url($firstPhoto)
+            : asset('images/myleader.png');
     }
 
     private static function hasStarted(Poll $poll): bool

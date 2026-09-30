@@ -529,6 +529,14 @@
     .poll-error { margin-top: 12px; color: #ff6b6b; font-size: 13px; }
     .poll-participation { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 22px; color: rgba(245,245,240,0.4); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 700; }
     .poll-participation-lock { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 10px; background: rgba(255,255,255,0.06); color: rgba(245,245,240,0.55); }
+    .poll-share-line { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+    .poll-share-line-link { display: inline-flex; align-items: center; gap: 8px; color: rgba(245,245,240,0.75); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; text-decoration: none; transition: color .2s; }
+    .poll-share-line-link:hover { color: var(--green-bright); }
+    .poll-share-line-icon { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; color: #fff; font-size: 14px; text-decoration: none; transition: filter .2s, transform .2s; }
+    .poll-share-line-icon:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .poll-share-line-icon.is-whatsapp { background: #25D366; }
+    .poll-share-line-icon.is-x { background: #111; border: 1px solid rgba(255,255,255,0.2); color: #fff; }
+    .poll-share-line-icon.is-copy { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); cursor: pointer; }
     .poll-comments { margin-top: 40px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.07); }
     .poll-comments-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
     .poll-comments-title { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 700; }

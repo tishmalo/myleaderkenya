@@ -29,21 +29,21 @@ use App\Http\Controllers\Admin\LiveStatFigureController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\NewsCommentController;
-use App\Http\Controllers\Admin\PollController;
 use App\Http\Controllers\Admin\NotificationEmailController;
 use App\Http\Controllers\Admin\ParliamentMemberController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\PoliticalPartyController;
 use App\Http\Controllers\Admin\PoliticalPartyManagementController;
+use App\Http\Controllers\Admin\PollController;
 use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PublicPulseController;
 use App\Http\Controllers\Admin\PublicPulseJobController;
 use App\Http\Controllers\Admin\PublicPulseSourceAccountController;
 use App\Http\Controllers\Admin\RecaptchaSettingController;
-use App\Http\Controllers\Admin\SpamFilterController;
 use App\Http\Controllers\Admin\SmsBalanceRequestController;
 use App\Http\Controllers\Admin\SmtpController;
+use App\Http\Controllers\Admin\SpamFilterController;
 use App\Http\Controllers\Admin\SupportGroupTypeController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\UserAccessController;
@@ -60,6 +60,7 @@ use App\Http\Controllers\Web\AspirantSupportController;
 use App\Http\Controllers\Web\AspirantTokenController;
 use App\Http\Controllers\Web\AspirantToolActivationRequestController;
 use App\Http\Controllers\Web\AspirantToolController;
+use App\Http\Controllers\Web\BotVerifyController;
 use App\Http\Controllers\Web\CampaignToolPaymentController;
 use App\Http\Controllers\Web\CandidateCampaignPriorityController;
 use App\Http\Controllers\Web\CandidateClaimController;
@@ -67,14 +68,14 @@ use App\Http\Controllers\Web\CandidateClaimRequestController;
 use App\Http\Controllers\Web\DonorToolboxController;
 use App\Http\Controllers\Web\EventController as WebEventController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
-use App\Http\Controllers\Web\BotVerifyController;
 use App\Http\Controllers\Web\LandingController;
 use App\Http\Controllers\Web\MyAccountController;
 use App\Http\Controllers\Web\NewsCommentController as WebNewsCommentController;
-use App\Http\Controllers\Web\PollCommentController;
-use App\Http\Controllers\Web\PollVoteController;
 use App\Http\Controllers\Web\PoliticalPartyAccountRequestController;
 use App\Http\Controllers\Web\PoliticalPartyDashboardController;
+use App\Http\Controllers\Web\PollCommentController;
+use App\Http\Controllers\Web\PollController as WebPollController;
+use App\Http\Controllers\Web\PollVoteController;
 use App\Http\Controllers\Web\UserEventController;
 use App\Http\Controllers\Web\UserNewsArticleController;
 use App\Http\Controllers\Web\UserProfileController;
@@ -142,6 +143,10 @@ Route::middleware('throttle:web')->group(function () {
 
     Route::get('/news', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
+
+    // A poll's stable, shareable URL. The homepage sections are the same
+    // polls, but this page carries per-poll SEO metadata for social sharing.
+    Route::get('/polls/{slug}', [WebPollController::class, 'show'])->middleware('throttle:public-data')->name('poll.show');
 
     // Legacy alias so the old /events/create admin URL keeps working.
     Route::get('/events/create', fn () => redirect()->route('events.create'));
@@ -393,9 +398,9 @@ Route::middleware('auth')->group(function () {
             Route::put('/admin/campaign-tools/{campaignTool}/packages/{package}', [CampaignToolPackageController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tools.packages.update');
             Route::delete('/admin/campaign-tools/{campaignTool}/packages/{package}', [CampaignToolPackageController::class, 'destroy'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tools.packages.destroy');
             Route::get('/admin/campaign-tool-requests', [CampaignToolRequestController::class, 'index'])->middleware('permission:campaign-tool-requests.view')->name('campaign-tool-requests.index');
-Route::patch('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.update');
-        Route::post('/admin/campaign-tool-requests/{campaignToolRequest}/spam', [CampaignToolRequestController::class, 'reportSpam'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.spam');
-        Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');
+            Route::patch('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.update');
+            Route::post('/admin/campaign-tool-requests/{campaignToolRequest}/spam', [CampaignToolRequestController::class, 'reportSpam'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.spam');
+            Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');
             Route::get('/admin/public-pulse', [PublicPulseJobController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.index');
             Route::post('/admin/public-pulse/jobs', [PublicPulseJobController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.jobs.store');
             Route::put('/admin/public-pulse/homepage', [PublicPulseJobController::class, 'updateHomepage'])->middleware('permission:frontend.update')->name('public-pulse.homepage.update');

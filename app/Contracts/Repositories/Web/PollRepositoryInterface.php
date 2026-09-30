@@ -23,6 +23,13 @@ interface PollRepositoryInterface
     public function findForDisplay(int $pollId): ?Poll;
 
     /**
+     * Load a live poll by its slug for the public shareable page. The full
+     * display payload (options, candidates, vote count) is eager loaded so
+     * the shared page renders without extra queries.
+     */
+    public function findLivePollBySlug(string $slug): ?Poll;
+
+    /**
      * Tally for one poll, keyed by option id. Only ever called once results
      * are public, so the raw figures cannot leak before the deadline.
      */
