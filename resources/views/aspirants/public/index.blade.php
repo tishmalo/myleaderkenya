@@ -434,6 +434,10 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
     color: rgba(245,245,240,0.42);
     font-size: 13px;
 }
+.county-aspirant-head-actions {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    justify-content: flex-end;
+}
 .county-aspirant-link {
     display: inline-flex; align-items: center; gap: 8px;
     color: var(--green-bright);
@@ -851,7 +855,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 @elseif($showLocationGroups ?? false)
     <div class="location-card-grid">
         @forelse($locationGroups as $group)
-            <a href="{{ route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="location-card">
+            <a href="{{ !empty($group['slug']) && Route::has('county.show') ? route('county.show', $group['slug']) : route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="location-card">
                 @if(!empty($group['image_url']))
                     <img src="{{ $group['image_url'] }}" alt="{{ $group['label'] }}">
                 @else
@@ -877,9 +881,14 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
                         <div class="county-aspirant-title">{{ $group['label'] }}</div>
                         <div class="county-aspirant-meta">{{ $group['total'] }} aspirant{{ $group['total'] != 1 ? 's' : '' }}</div>
                     </div>
-                    <a href="{{ route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="county-aspirant-link">
-                        View all <i class="fas fa-arrow-right"></i>
-                    </a>
+                    <div class="county-aspirant-head-actions">
+                        @if(!empty($group['slug']) && Route::has('county.show'))
+                            <a href="{{ route('county.show', $group['slug']) }}" class="county-aspirant-link">County page <i class="fas fa-map-marker-alt"></i></a>
+                        @endif
+                        <a href="{{ route('aspirants.public', array_merge(request()->except('page'), [$group['filter_key'] => $group['filter_value']])) }}" class="county-aspirant-link">
+                            View all <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
                 <div class="county-aspirant-grid">
                     @foreach($group['candidates'] as $candidate)

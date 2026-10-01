@@ -13,10 +13,13 @@ use App\Models\Candidate;
 use App\Models\CandidateTransferRun;
 use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
+use App\Services\Web\PublicCountyService;
+use App\Services\Web\UserLinkService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +30,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class CandidateController extends Controller
 {
     public function __construct(
-        private CandidateService $candidateService
+        private CandidateService $candidateService,
+        private UserLinkService $userLinkService,
+        private PublicCountyService $publicCountyService
     ) {}
 
     public function index()
@@ -39,7 +44,6 @@ class CandidateController extends Controller
 
         return view('candidates.index', array_merge($formData, compact('candidates', 'transferRuns')));
     }
-
 
     public function search(Request $request)
     {
@@ -60,7 +64,7 @@ class CandidateController extends Controller
                 'id' => $candidate->id,
                 'name' => $candidate->name,
                 'nickname' => $candidate->nick_name,
-                'text' => trim($candidate->name . ($candidate->nick_name ? ' (' . $candidate->nick_name . ')' : '')),
+                'text' => trim($candidate->name.($candidate->nick_name ? ' ('.$candidate->nick_name.')' : '')),
                 'image_url' => null,
                 'position' => null,
                 'party' => null,
@@ -69,6 +73,7 @@ class CandidateController extends Controller
 
         return response()->json(['results' => $candidates]);
     }
+
     public function create()
     {
         return view('candidates.create', $this->candidateService->getFormData());
@@ -86,7 +91,7 @@ class CandidateController extends Controller
         );
 
         return redirect()->route('candidates.index')
-                         ->with('success', 'Aspirant added successfully.');
+            ->with('success', 'Aspirant added successfully.');
     }
 
     public function edit(Candidate $candidate)
@@ -124,7 +129,7 @@ class CandidateController extends Controller
             'parliament',
         ], true) ? $request->input('active_tab') : 'profile-basic';
 
-        return redirect(route('candidates.edit', $candidate) . '#' . $activeTab)
+        return redirect(route('candidates.edit', $candidate).'#'.$activeTab)
             ->with('success', 'Aspirant updated successfully.');
     }
 
@@ -141,12 +146,13 @@ class CandidateController extends Controller
             'featured' => $candidate->featured,
         ]);
     }
+
     public function updateApproval(UpdateCandidateApprovalRequest $request, Candidate $candidate): RedirectResponse
     {
         $status = $request->validated('status');
         $this->candidateService->updateApprovalStatus($candidate, $status);
 
-        return back()->with('success', 'Aspirant ' . $status . ' successfully.');
+        return back()->with('success', 'Aspirant '.$status.' successfully.');
     }
 
     public function sendClaimLink(Candidate $candidate)
@@ -173,8 +179,9 @@ class CandidateController extends Controller
         Notification::route('mail', $candidate->email)
             ->notify(new CandidateClaimLinkNotification($candidate->name, $claimUrl, $expiresAt));
 
-        return back()->with('success', 'Claim link queued for ' . $candidate->email . '.');
+        return back()->with('success', 'Claim link queued for '.$candidate->email.'.');
     }
+
     private function filterSupportContactsData(array $data, Request $request, ?Candidate $candidate): array
     {
         if (! array_key_exists('support_contacts', $data)) {
@@ -209,6 +216,7 @@ class CandidateController extends Controller
 
         return $data;
     }
+
     public function destroy(Request $request, Candidate $candidate): RedirectResponse|JsonResponse
     {
         $this->candidateService->deleteCandidate($candidate);
@@ -233,7 +241,7 @@ class CandidateController extends Controller
 
     public function publicShow(Candidate $candidate): RedirectResponse|View
     {
-        if (\Illuminate\Support\Facades\Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
+        if (Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
             abort(404);
         }
 
@@ -242,7 +250,12 @@ class CandidateController extends Controller
         }
 
         $candidate = $this->candidateService->getPublicShow($candidate);
-        return view('aspirants.public.show', compact('candidate'));
+
+        return view('aspirants.public.show', [
+            'candidate' => $candidate,
+            'candidateLinks' => $this->userLinkService->forCandidate($candidate),
+            'candidateCounty' => $this->publicCountyService->countyFor($candidate),
+        ]);
     }
 
     public function importTemplate(): StreamedResponse
@@ -254,7 +267,7 @@ class CandidateController extends Controller
 
         return response()->streamDownload(function () use ($headers) {
             $out = fopen('php://output', 'w');
-            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($out, $headers);
             fputcsv($out, [
                 'Jane Doe', 'JD', '0712345678', 'jane@example.com', 'UDA',
@@ -350,4 +363,3 @@ class CandidateController extends Controller
         return back()->with('success', $candidate->name.' discarded.');
     }
 }
-

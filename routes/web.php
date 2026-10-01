@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\FrontendPageController as AdminFrontendPageController;
 use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\KittyTypeController;
+use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LiveStatFigureController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NewsArticleController;
@@ -76,7 +77,9 @@ use App\Http\Controllers\Web\PoliticalPartyDashboardController;
 use App\Http\Controllers\Web\PollCommentController;
 use App\Http\Controllers\Web\PollController as WebPollController;
 use App\Http\Controllers\Web\PollVoteController;
+use App\Http\Controllers\Web\PublicCountyController;
 use App\Http\Controllers\Web\UserEventController;
+use App\Http\Controllers\Web\UserLinkController;
 use App\Http\Controllers\Web\UserNewsArticleController;
 use App\Http\Controllers\Web\UserProfileController;
 use App\Models\Constituency;
@@ -171,6 +174,10 @@ Route::middleware('throttle:web')->group(function () {
     Route::post('/aspirants/{candidate}/claim-requests', [CandidateClaimRequestController::class, 'store'])->middleware(['throttle:3,10', 'cache.headers:no_store;private'])->name('aspirants.claim-requests.store');
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->middleware('throttle:public-data')->name('aspirants.public');
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->middleware('throttle:public-data')->name('aspirants.show');
+
+    // A county's public page: its approved aspirants and the community pages
+    // and links submitted for that county.
+    Route::get('/counties/{county}', [PublicCountyController::class, 'show'])->middleware('throttle:public-data')->name('county.show');
 });
 
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
@@ -204,6 +211,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/my-account/events', [UserEventController::class, 'index'])->name('account.events.index');
         Route::get('/my-account/events/submit', [UserEventController::class, 'create'])->name('account.events.create');
         Route::post('/my-account/events', [UserEventController::class, 'store'])->middleware('throttle:3,10')->name('account.events.store');
+        Route::get('/my-account/links', [UserLinkController::class, 'index'])->name('account.links.index');
+        Route::get('/my-account/links/submit', [UserLinkController::class, 'create'])->name('account.links.create');
+        Route::post('/my-account/links', [UserLinkController::class, 'store'])->middleware('throttle:3,10')->name('account.links.store');
         Route::middleware(['aspirant', 'aspirant.owner'])->group(function () {
             Route::get('/aspirant/audits', [AspirantAuditController::class, 'index'])->name('aspirant.audits.index');
             Route::get('/aspirant/audits/{audit}', [AspirantAuditController::class, 'show'])->name('aspirant.audits.show');
@@ -378,6 +388,10 @@ Route::middleware('auth')->group(function () {
 
             Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
             Route::patch('/admin/events/{event}/approval', [AdminEventController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('events.approval');
+
+            Route::get('/admin/links', [LinkController::class, 'index'])->middleware('permission:frontend.view')->name('links.index');
+            Route::patch('/admin/links/{resourceLink}/approval', [LinkController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('links.approval');
+            Route::delete('/admin/links/{resourceLink}', [LinkController::class, 'destroy'])->middleware('permission:frontend.update')->name('links.destroy');
             Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
             Route::post('/admin/events/{event}/registrations/{registration}/resend', [AdminEventController::class, 'resendTicketEmail'])->middleware('permission:frontend.view')->name('events.registrations.resend');
             Route::post('/admin/events/{event}/registrations/{registration}/tickets/generate', [AdminEventController::class, 'generateTickets'])->middleware('permission:frontend.view')->name('events.registrations.tickets.generate');
@@ -436,7 +450,9 @@ Route::middleware('auth')->group(function () {
 
             // --- Geography (Core Data) ---
             Route::resource('/blocs', BlocController::class)->names('blocs')->middleware('permission:data.view');
-            Route::resource('/counties', CountyController::class)->names('counties')->middleware('permission:data.view');
+            // `show` is excluded: the admin controller has no show action, and
+            // GET /counties/{county} belongs to the public county page.
+            Route::resource('/counties', CountyController::class)->names('counties')->except(['show'])->middleware('permission:data.view');
             Route::resource('/constituencies', ConstituencyController::class)->names('constituencies')->middleware('permission:data.view');
             Route::resource('/wards', WardController::class)->names('wards')->middleware('permission:data.view');
             Route::get('/locations', [LocationController::class, 'adminIndex'])->middleware('permission:voters.view')->name('locations.index');

@@ -3,11 +3,11 @@
 namespace App\Repositories\Admin;
 
 use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
-use App\Models\PoliticalParty;
 use App\Models\Candidate;
 use App\Models\Constituency;
 use App\Models\County;
 use App\Models\NewsArticle;
+use App\Models\PoliticalParty;
 use App\Models\Position;
 use App\Models\Ward;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -28,7 +28,7 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->withCount([
                 'supportPayments as paid_support_count' => fn ($query) => $query->where('status', 'paid'),
             ])
-->withCount([
+            ->withCount([
                 'claimRequests as pending_claim_requests_count' => fn ($query) => $query->where('status', 'pending'),
                 'claimRequests as approved_claim_requests_count' => fn ($query) => $query->where('status', 'approved'),
                 'claimRequests as rejected_claim_requests_count' => fn ($query) => $query->where('status', 'rejected'),
@@ -46,7 +46,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     private function applyFilters(Builder $query, array $filters): Builder
     {
-        if (!empty($filters['candidate'])) {
+        if (! empty($filters['candidate'])) {
             $candidate = $filters['candidate'];
             $query->where(function ($query) use ($candidate) {
                 $query->where('name', 'like', "%{$candidate}%")
@@ -78,19 +78,19 @@ class CandidateRepository implements CandidateRepositoryInterface
             });
         }
 
-        if (!empty($filters['position'])) {
+        if (! empty($filters['position'])) {
             $query->where('position_id', $filters['position']);
         }
 
-        if (!empty($filters['political_party'])) {
+        if (! empty($filters['political_party'])) {
             $query->where('political_party_id', $filters['political_party']);
         }
 
-        if (!empty($filters['approval_status'])) {
+        if (! empty($filters['approval_status'])) {
             $query->where('approval_status', $filters['approval_status']);
         }
 
-        if (!empty($filters['account_claim'])) {
+        if (! empty($filters['account_claim'])) {
             match ($filters['account_claim']) {
                 'claimed_pending' => $query->whereHas('claimRequests', fn ($q) => $q->where('relationship', 'aspirant')->where('status', 'pending')),
                 'claimed_approved' => $query->where(function ($q) {
@@ -193,6 +193,7 @@ class CandidateRepository implements CandidateRepositoryInterface
         if (Schema::hasColumn('candidates', 'approval_status')) {
             $query->where('approval_status', 'approved');
         }
+
         return $query
             ->distinct()
             ->orderBy('country')
@@ -285,6 +286,7 @@ class CandidateRepository implements CandidateRepositoryInterface
                 ];
             });
     }
+
     public function publicCountyGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection
     {
         $counties = $includeEmpty ? $this->allCountyNamesForPublicFilters($filters) : $this->countiesForPublicFilters($filters);
@@ -302,6 +304,7 @@ class CandidateRepository implements CandidateRepositoryInterface
                     'county' => $county,
                     'filter_key' => 'county',
                     'filter_value' => $county,
+                    'slug' => $countyModel?->slug,
                     'image' => $countyModel?->image,
                     'image_url' => $countyModel?->image ? Storage::url($countyModel->image) : null,
                     'total' => (clone $baseQuery)->count(),
@@ -328,7 +331,7 @@ class CandidateRepository implements CandidateRepositoryInterface
 
         $countyModels = County::query()
             ->whereIn('name', $counts->pluck('county'))
-            ->get(['name', 'image'])
+            ->get(['name', 'image', 'slug'])
             ->keyBy('name');
 
         return $counts->map(function ($count) use ($countyModels): array {
@@ -337,6 +340,7 @@ class CandidateRepository implements CandidateRepositoryInterface
             return [
                 'label' => $count->county,
                 'filter_value' => $count->county,
+                'slug' => $county?->slug,
                 'image_url' => $county?->image ? Storage::url($county->image) : null,
                 'total' => (int) $count->total,
             ];
@@ -404,7 +408,7 @@ class CandidateRepository implements CandidateRepositoryInterface
         }
 
         $candidate = $filters['candidate'] ?? $filters['search'] ?? null;
-        if (!empty($candidate)) {
+        if (! empty($candidate)) {
             $query->where(function ($query) use ($candidate) {
                 $query->where('name', 'like', "%{$candidate}%")
                     ->orWhere('nick_name', 'like', "%{$candidate}%")
@@ -412,20 +416,20 @@ class CandidateRepository implements CandidateRepositoryInterface
             });
         }
 
-        if (!empty($filters['country'])) {
+        if (! empty($filters['country'])) {
             $query->where('country', $filters['country']);
         }
 
-        if (!empty($filters['bloc']) && empty($filters['county'])) {
+        if (! empty($filters['bloc']) && empty($filters['county'])) {
             $counties = $this->countiesForPublicFilters($filters);
             $query->whereIn('county', $counties->all());
         }
 
-        if (!empty($filters['county'])) {
+        if (! empty($filters['county'])) {
             $query->where('county', $filters['county']);
         }
 
-        if (!empty($filters['bloc'])) {
+        if (! empty($filters['bloc'])) {
             $blocCountyNames = $this->countyNamesForBloc($filters['bloc']);
 
             if ($blocCountyNames->isEmpty()) {
@@ -435,15 +439,15 @@ class CandidateRepository implements CandidateRepositoryInterface
             }
         }
 
-        if (!empty($filters['constituency'])) {
+        if (! empty($filters['constituency'])) {
             $query->where('constituency', $filters['constituency']);
         }
 
-        if (!empty($filters['ward'])) {
+        if (! empty($filters['ward'])) {
             $query->where('ward', $filters['ward']);
         }
 
-        if (!empty($filters['position'])) {
+        if (! empty($filters['position'])) {
             $position = trim((string) $filters['position']);
 
             if (in_array(strtolower($position), ['all', 'any'], true)) {
@@ -457,14 +461,14 @@ class CandidateRepository implements CandidateRepositoryInterface
 
                 $query->whereHas('position', function ($positionQuery) use ($names) {
                     $positionQuery->whereIn(
-                        DB::raw('LOWER(' . $positionQuery->getModel()->getTable() . '.name)'),
+                        DB::raw('LOWER('.$positionQuery->getModel()->getTable().'.name)'),
                         $names
                     );
                 });
             }
         }
 
-        if (!empty($filters['political_party'])) {
+        if (! empty($filters['political_party'])) {
             $party = $filters['political_party'];
 
             if (is_numeric($party)) {
@@ -525,11 +529,11 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     private function countiesForPublicFilters(array $filters): Collection
     {
-        if (!empty($filters['county'])) {
+        if (! empty($filters['county'])) {
             return collect([$filters['county']]);
         }
 
-        if (!empty($filters['bloc'])) {
+        if (! empty($filters['bloc'])) {
             return $this->countyNamesForBloc($filters['bloc']);
         }
 
@@ -583,28 +587,29 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     private function constituenciesForPublicFilters(array $filters): Collection
     {
-        if (!empty($filters['constituency'])) {
+        if (! empty($filters['constituency'])) {
             return collect([$filters['constituency']]);
         }
 
         return Constituency::query()
-            ->when(!empty($filters['county']), fn ($query) => $query->whereHas('county', fn ($countyQuery) => $countyQuery->where('name', $filters['county'])))
+            ->when(! empty($filters['county']), fn ($query) => $query->whereHas('county', fn ($countyQuery) => $countyQuery->where('name', $filters['county'])))
             ->orderBy('name')
             ->pluck('name');
     }
 
     private function wardsForPublicFilters(array $filters): Collection
     {
-        if (!empty($filters['ward'])) {
+        if (! empty($filters['ward'])) {
             return collect([$filters['ward']]);
         }
 
         return Ward::query()
-            ->when(!empty($filters['constituency']), fn ($query) => $query->whereHas('constituency', fn ($constituencyQuery) => $constituencyQuery->where('name', $filters['constituency'])))
+            ->when(! empty($filters['constituency']), fn ($query) => $query->whereHas('constituency', fn ($constituencyQuery) => $constituencyQuery->where('name', $filters['constituency'])))
             ->pluck('name')
             ->sort(SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
     }
+
     public function loadPublicShow(Candidate $candidate): Candidate
     {
         $candidate->load([
@@ -627,4 +632,3 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $candidate;
     }
 }
-

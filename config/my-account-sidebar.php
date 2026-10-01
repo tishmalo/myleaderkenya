@@ -21,10 +21,22 @@ return [
             'active' => ['account.profile.*'],
         ],
         [
-            'label' => 'Submit or Claim',
+            'label' => 'Add Aspirant',
             'icon' => 'fas fa-user-plus',
             'route' => 'aspirants.register',
             'style' => 'primary',
+        ],
+        [
+            'label' => 'Add Link/Page',
+            'icon' => 'fas fa-link',
+            'route' => 'account.links.create',
+            'active' => ['account.links.create'],
+        ],
+        [
+            'label' => 'My Links',
+            'icon' => 'fas fa-list-ul',
+            'route' => 'account.links.index',
+            'active' => ['account.links.index'],
         ],
         [
             'label' => 'My Toolbox',

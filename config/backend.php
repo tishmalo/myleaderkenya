@@ -65,6 +65,7 @@ return [
                     ['label' => 'News', 'route' => 'news.index', 'icon' => 'fas fa-newspaper', 'active' => ['news.*'], 'permission' => 'frontend.view'],
                     ['label' => 'Polls', 'route' => 'polls.index', 'icon' => 'fas fa-chart-simple', 'active' => ['polls.*', 'poll-comments.*'], 'permission' => 'frontend.view'],
                     ['label' => 'Events', 'route' => 'events.index', 'icon' => 'fas fa-calendar-alt', 'active' => ['events.*'], 'permission' => 'frontend.view'],
+                    ['label' => 'Pages & Links', 'route' => 'links.index', 'icon' => 'fas fa-link', 'active' => ['links.*'], 'permission' => 'frontend.view'],
                     ['label' => 'Tags', 'route' => 'tags.index', 'icon' => 'fas fa-tags', 'active' => ['tags.*'], 'permission' => 'frontend.view'],
                     ['label' => 'Public Pulse', 'route' => 'public-pulse.index', 'icon' => 'fas fa-wave-square', 'active' => ['public-pulse.*'], 'permission' => 'frontend.view'],
                 ],
