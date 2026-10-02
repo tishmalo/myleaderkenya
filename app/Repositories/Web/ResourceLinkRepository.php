@@ -79,15 +79,11 @@ class ResourceLinkRepository implements ResourceLinkRepositoryInterface
         $query = $this->approvedQuery()
             ->with(['county:id,name', 'constituency:id,name', 'ward:id,name', 'politicalParty:id,name', 'candidate:id,name'])
             ->where(function (Builder $match) use ($candidate): void {
-                $match->where('candidate_id', $candidate->id);
-
-                if ($candidate->political_party_id) {
-                    $match->orWhere('political_party_id', $candidate->political_party_id);
-                }
-
-                $this->orMatchLocation($match, $candidate->county, 'county');
-                $this->orMatchLocation($match, $candidate->constituency, 'constituency');
-                $this->orMatchLocation($match, $candidate->ward, 'ward');
+                $match->where('candidate_id', $candidate->id)
+                    ->orWhere(function (Builder $area) use ($candidate): void {
+                        $area->whereNull('candidate_id');
+                        $this->matchAreaScopes($area, $candidate);
+                    });
             });
 
         return $query->latest()->get();
@@ -117,17 +113,57 @@ class ResourceLinkRepository implements ResourceLinkRepositoryInterface
     }
 
     /**
-     * Aspirants keep their location as free-text names, so a link is matched by
-     * the region name the submitter picked rather than by the region row itself.
-     * Matching tolerates "Nairobi" / "Nairobi County" spelling differences.
+     * A link's narrowest geographic scope wins against a candidate's free-text
+     * locations: a ward link only reaches that ward's aspirants, a
+     * constituency link only its constituency, otherwise the whole county.
+     * The party tag is orthogonal to geography and must also match.
      */
-    private function orMatchLocation(Builder $query, ?string $name, string $relation): void
+    private function matchAreaScopes(Builder $query, Candidate $candidate): void
     {
-        $variants = LocationName::variants($name);
+        $ward = LocationName::variants($candidate->ward);
+        $constituency = LocationName::variants($candidate->constituency);
+        $county = LocationName::variants($candidate->county);
 
-        if ($variants !== []) {
-            $query->orWhereHas($relation, fn (Builder $region) => $region->whereIn('name', $variants));
+        if ($ward === [] && $constituency === [] && $county === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
         }
+
+        $query->where(function (Builder $location) use ($ward, $constituency, $county): void {
+            $location->whereRaw('1 = 0');
+
+            if ($ward !== []) {
+                $location->orWhere(function (Builder $row) use ($ward): void {
+                    $row->whereNotNull('ward_id')
+                        ->whereHas('ward', fn (Builder $region) => $region->whereIn('name', $ward));
+                });
+            }
+
+            if ($constituency !== []) {
+                $location->orWhere(function (Builder $row) use ($constituency): void {
+                    $row->whereNull('ward_id')
+                        ->whereNotNull('constituency_id')
+                        ->whereHas('constituency', fn (Builder $region) => $region->whereIn('name', $constituency));
+                });
+            }
+
+            if ($county !== []) {
+                $location->orWhere(function (Builder $row) use ($county): void {
+                    $row->whereNull('ward_id')
+                        ->whereNull('constituency_id')
+                        ->whereHas('county', fn (Builder $region) => $region->whereIn('name', $county));
+                });
+            }
+        });
+
+        $query->where(function (Builder $party) use ($candidate): void {
+            $party->whereNull('political_party_id');
+
+            if ($candidate->political_party_id) {
+                $party->orWhere('political_party_id', $candidate->political_party_id);
+            }
+        });
     }
 
     private function approvedQuery(): Builder

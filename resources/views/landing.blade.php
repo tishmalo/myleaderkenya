@@ -583,6 +583,7 @@
         <p class="footer-copy">&copy; {{ date('Y') }} Tuko Kadi. All rights reserved.</p>
         <div class="footer-links">
             <a href="{{ route('privacy') }}">Privacy Policy</a>
+            <a href="{{ route('about.public') }}">About Us</a>
             <a href="#">Terms of Service</a>
             <a href="#">Contact Us</a>
         </div>

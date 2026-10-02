@@ -36,6 +36,7 @@ class ResourceLink extends Model implements AuditableContract
     protected $fillable = [
         'user_id',
         'platform',
+        'title',
         'url',
         'county_id',
         'constituency_id',
@@ -116,5 +117,10 @@ class ResourceLink extends Model implements AuditableContract
             'x' => 'fa-brands fa-x-twitter',
             default => 'fas fa-link',
         };
+    }
+
+    public function getDisplayTitleAttribute(): string
+    {
+        return $this->title ?: $this->platform_label;
     }
 }

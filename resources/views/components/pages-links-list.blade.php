@@ -19,7 +19,8 @@
                 <a class="pages-links-item" href="{{ $resourceLink->url }}" target="_blank" rel="noopener nofollow">
                     <i class="{{ $resourceLink->platform_icon }} pages-links-icon" aria-hidden="true"></i>
                     <div class="pages-links-body">
-                        <span class="pages-links-platform">{{ $resourceLink->platform_label }}</span>
+                        <span class="pages-links-title-txt">{{ $resourceLink->display_title }}</span>
+                        <span class="pages-links-platform"><i class="{{ $resourceLink->platform_icon }}" aria-hidden="true"></i> {{ $resourceLink->platform_label }}</span>
                         @if($audience->isNotEmpty())
                             <span class="pages-links-audience">{{ $audience->implode(' &bull; ') }}</span>
                         @endif
@@ -49,7 +50,8 @@
     .pages-links-item:hover { border-color: #059669; background: #151517; }
     .pages-links-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 12px; background: rgba(5, 150, 105, .16); color: #34d399; font-size: 19px; }
     .pages-links-body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: 3px; }
-    .pages-links-platform { font-size: 14px; font-weight: 800; }
+    .pages-links-title-txt { font-size: 15px; font-weight: 800; }
+    .pages-links-platform { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #a1a1aa; }
     .pages-links-audience { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #34d399; }
     .pages-links-comment { margin: 3px 0 0; font-size: 13px; line-height: 1.5; color: #a1a1aa; }
     .pages-links-followers { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; border-radius: 999px; background: #202023; padding: 6px 11px; font-size: 12px; font-weight: 800; color: #a1a1aa; }

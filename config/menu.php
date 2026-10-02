@@ -3,6 +3,12 @@
 return [
     'frontend' => [
         [
+            'label' => 'Polls',
+            'route' => 'landing',
+            'fragment' => 'poll',
+            'active' => ['landing'],
+        ],
+        [
             'label' => 'About',
             'route' => 'about.public',
             'active' => ['about.public'],

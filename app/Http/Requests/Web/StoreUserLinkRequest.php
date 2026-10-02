@@ -17,6 +17,7 @@ class StoreUserLinkRequest extends FormRequest
     {
         return [
             'platform' => ['required', 'string', Rule::in(array_keys(ResourceLink::PLATFORMS))],
+            'title' => ['required', 'string', 'max:255'],
             'url' => ['required', 'url', 'max:2048'],
             'county_id' => ['required', 'integer', 'exists:counties,id'],
             'constituency_id' => ['nullable', 'integer', 'exists:constituencies,id'],
@@ -32,6 +33,7 @@ class StoreUserLinkRequest extends FormRequest
     {
         return [
             'platform.in' => 'Select a valid link platform.',
+            'title.required' => 'Give the page or group a title (e.g. Manaichi Linda).',
             'county_id.required' => 'Select the county this link belongs to.',
             'constituency_id.exists' => 'Select a valid constituency.',
             'ward_id.exists' => 'Select a valid ward.',

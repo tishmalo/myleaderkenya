@@ -13,6 +13,10 @@
             <i class="fas fa-link text-emerald-500"></i> Pages &amp; Links
             <span class="text-sm font-normal text-zinc-500">User-submitted community pages, groups and links</span>
         </h1>
+        <a href="{{ route('account.links.create') }}"
+           class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+            <i class="fas fa-plus"></i> Add Link/Page
+        </a>
     </div>
 
     <form method="GET" action="{{ route('links.index') }}" class="mb-6 flex flex-wrap gap-3">
@@ -46,7 +50,8 @@
                             <div class="flex items-start gap-3">
                                 <i class="{{ $link->platform_icon }} mt-1 text-emerald-400"></i>
                                 <div>
-                                    <p class="font-medium text-white">{{ $link->platform_label }}</p>
+                                    <p class="font-medium text-white">{{ $link->display_title }}</p>
+                                    <p class="text-xs text-zinc-500 mt-0.5">{{ $link->platform_label }}</p>
                                     <a href="{{ $link->url }}" target="_blank" rel="noopener nofollow" class="text-xs text-blue-400 hover:underline break-all">{{ $link->url }}</a>
                                     @if($link->comment)
                                         <p class="text-xs text-zinc-500 mt-1">{{ $link->comment }}</p>
