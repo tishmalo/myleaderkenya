@@ -9,7 +9,7 @@
 <main class="news-account-shell"><div class="news-account-layout">
 @include('components.my-account-sidebar')
 <section class="news-account-content">
-<p class="news-kicker">My Account</p><h1 class="news-title">Add a link or page</h1><p class="news-subtitle">Add a Facebook group, WhatsApp group or web page for a county, party or aspirant. It stays private until an administrator approves it.</p>
+<p class="news-kicker">My Account</p><h1 class="news-title">Add a link or page</h1><p class="news-subtitle">Add a Facebook group, WhatsApp group or web page for a county, constituency, ward, party or aspirant. Give it a title — that title is what visitors click. It stays private until an administrator approves it.</p>
 <div class="news-actions"><a class="news-button" href="{{ route('account.links.index') }}">&larr; My Links</a></div>
 @if($errors->any())<div class="news-alert" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#fecaca">{{ $errors->first() }}</div>@endif
 <form class="news-form" method="POST" action="{{ route('account.links.store') }}">@csrf
@@ -20,6 +20,7 @@
 <option value="{{ $value }}" @selected(old('platform') === $value)>{{ $label }}</option>
 @endforeach
 </select>@error('platform')<p class="news-error">{{ $message }}</p>@enderror</div>
+<div class="news-field"><label for="title">Title *</label><input id="title" type="text" name="title" value="{{ old('title') }}" maxlength="255" required placeholder="e.g. Manaichi Linda"><p class="news-help">The name visitors see and click, e.g. "Manaichi Facebook page".</p>@error('title')<p class="news-error">{{ $message }}</p>@enderror</div>
 <div class="news-field"><label for="url">Link *</label><input id="url" type="url" name="url" value="{{ old('url') }}" maxlength="2048" required placeholder="https://www.facebook.com/share/g/...">@error('url')<p class="news-error">{{ $message }}</p>@enderror</div>
 <div class="news-field"><label for="county_id">County *</label><select id="county_id" name="county_id" required>
 <option value="">Select a county</option>

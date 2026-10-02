@@ -10,7 +10,9 @@ use App\Models\PoliticalParty;
 use App\Models\Position;
 use App\Models\ResourceLink;
 use App\Models\User;
+use App\Models\Ward;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Tests\TestCase;
 
 class ResourceLinkFeatureTest extends TestCase
@@ -69,6 +71,7 @@ class ResourceLinkFeatureTest extends TestCase
     {
         return array_merge([
             'platform' => 'facebook_group',
+            'title' => 'Nyandarua County Announcements',
             'url' => 'https://www.facebook.com/share/g/1UqwN8Sw26/',
             'county_id' => $county->id,
             'followers' => '12500',
@@ -108,6 +111,7 @@ class ResourceLinkFeatureTest extends TestCase
             'user_id' => $user->id,
             'county_id' => $county->id,
             'platform' => 'facebook_group',
+            'title' => 'Nyandarua County Announcements',
             'url' => 'https://www.facebook.com/share/g/1UqwN8Sw26/',
             'approval_status' => ResourceLink::STATUS_PENDING,
             'followers' => 12500,
@@ -271,12 +275,11 @@ class ResourceLinkFeatureTest extends TestCase
     }
 
     /**
-     * County is a required field, so a link is always county-wide. Targeting an
-     * aspirant therefore adds that profile to the county it already covered.
-     * The test points the aspirant at a different county to prove the targeting
-     * itself is exclusive.
+     * The most specific target wins: a link explicitly aimed at one aspirant
+     * appears on that profile and nowhere else, not even elsewhere in the same
+     * county or on another aspirant of the aspirant's county.
      */
-    public function test_link_targeted_at_one_aspirant_reaches_that_profile_and_stays_exclusive_elsewhere(): void
+    public function test_link_targeted_at_one_aspirant_reaches_only_that_profile(): void
     {
         $county = $this->county();
         $target = $this->candidate('Alice Wanjiru', 'Nakuru');
@@ -297,14 +300,14 @@ class ResourceLinkFeatureTest extends TestCase
 
         $this->get(route('aspirants.show', $countyMember->slug))
             ->assertOk()
-            ->assertSee('facebook.com/groups/target-only/');
+            ->assertDontSee('facebook.com/groups/target-only/');
 
         $this->get(route('aspirants.show', $otherInTargetCounty->slug))
             ->assertOk()
             ->assertDontSee('facebook.com/groups/target-only/');
     }
 
-    public function test_party_link_appears_on_every_aspirant_of_that_party(): void
+    public function test_party_link_reaches_only_party_aspirants_within_the_county(): void
     {
         $county = $this->county();
         $party = PoliticalParty::create([
@@ -313,8 +316,9 @@ class ResourceLinkFeatureTest extends TestCase
             'content' => 'A test party.',
         ]);
 
-        $member = $this->candidate('Alice Wanjiru', 'Nakuru', ['political_party_id' => $party->id]);
-        $outsider = $this->candidate('Brian Kamau', 'Nakuru');
+        $memberInCounty = $this->candidate('Alice Wanjiru', 'Nyandarua', ['political_party_id' => $party->id]);
+        $outsiderInCounty = $this->candidate('Brian Kamau', 'Nyandarua');
+        $memberElsewhere = $this->candidate('Carol Achieng', 'Nakuru', ['political_party_id' => $party->id]);
 
         $this->actingAs($this->submitter())->post(route('account.links.store'), $this->payload($county, [
             'url' => 'https://www.facebook.com/groups/jubilee/',
@@ -324,13 +328,137 @@ class ResourceLinkFeatureTest extends TestCase
             ->from(route('links.index'))
             ->patch(route('links.approval', ResourceLink::firstOrFail()), ['status' => 'approved']);
 
-        $this->get(route('aspirants.show', $member->slug))
+        $this->get(route('aspirants.show', $memberInCounty->slug))
             ->assertOk()
             ->assertSee('facebook.com/groups/jubilee/');
 
-        $this->get(route('aspirants.show', $outsider->slug))
+        $this->get(route('aspirants.show', $outsiderInCounty->slug))
             ->assertOk()
             ->assertDontSee('facebook.com/groups/jubilee/');
+
+        $this->get(route('aspirants.show', $memberElsewhere->slug))
+            ->assertOk()
+            ->assertDontSee('facebook.com/groups/jubilee/');
+    }
+
+    public function test_ward_link_reaches_only_aspirants_of_that_ward(): void
+    {
+        $county = $this->county();
+        $mathiEast = $this->constituency($county, 'Mathi East');
+        $this->constituency($county, 'Mathi West');
+        $kaguru = Ward::create(['name' => 'Kaguru', 'constituency_id' => $mathiEast->id]);
+        $kaguruAspirant = $this->candidate('Alice Wanjiru', 'Nyandarua', ['constituency' => 'Mathi East', 'ward' => 'Kaguru']);
+        $mugumoAspirant = $this->candidate('Brian Kamau', 'Nyandarua', ['constituency' => 'Mathi West', 'ward' => 'Mugumo']);
+
+        $this->actingAs($this->submitter())->post(route('account.links.store'), $this->payload($county, [
+            'url' => 'https://chat.whatsapp.com/kaguru-ward/',
+            'ward_id' => $kaguru->id,
+        ]));
+        $this->actingAs($this->admin())
+            ->from(route('links.index'))
+            ->patch(route('links.approval', ResourceLink::firstOrFail()), ['status' => 'approved']);
+
+        $this->get(route('aspirants.show', $kaguruAspirant->slug))
+            ->assertOk()
+            ->assertSee('chat.whatsapp.com/kaguru-ward/');
+
+        $this->get(route('aspirants.show', $mugumoAspirant->slug))
+            ->assertOk()
+            ->assertDontSee('chat.whatsapp.com/kaguru-ward/');
+    }
+
+    public function test_constituency_link_reaches_only_aspirants_of_that_constituency(): void
+    {
+        $county = $this->county();
+        $mathiEast = $this->constituency($county, 'Mathi East');
+        $this->constituency($county, 'Mathi West');
+        $inEast = $this->candidate('Alice Wanjiru', 'Nyandarua', ['constituency' => 'Mathi East']);
+        $inWest = $this->candidate('Brian Kamau', 'Nyandarua', ['constituency' => 'Mathi West']);
+        $countyOnly = $this->candidate('Carol Achieng', 'Nyandarua');
+
+        $this->actingAs($this->submitter())->post(route('account.links.store'), $this->payload($county, [
+            'url' => 'https://chat.whatsapp.com/mathi-east/',
+            'constituency_id' => $mathiEast->id,
+        ]));
+        $this->actingAs($this->admin())
+            ->from(route('links.index'))
+            ->patch(route('links.approval', ResourceLink::firstOrFail()), ['status' => 'approved']);
+
+        $this->get(route('aspirants.show', $inEast->slug))
+            ->assertOk()
+            ->assertSee('chat.whatsapp.com/mathi-east/');
+
+        $this->get(route('aspirants.show', $inWest->slug))
+            ->assertOk()
+            ->assertDontSee('chat.whatsapp.com/mathi-east/');
+
+        $this->get(route('aspirants.show', $countyOnly->slug))
+            ->assertOk()
+            ->assertDontSee('chat.whatsapp.com/mathi-east/');
+    }
+
+    public function test_submission_requires_a_title(): void
+    {
+        $county = $this->county();
+
+        $this->actingAs($this->submitter())
+            ->post(route('account.links.store'), Arr::except($this->payload($county), 'title'))
+            ->assertSessionHasErrors('title');
+
+        $this->assertDatabaseCount('resource_links', 0);
+    }
+
+    public function test_title_is_shown_on_the_aspirant_and_county_pages(): void
+    {
+        $county = $this->county();
+        $candidate = $this->candidate('Alice Wanjiru', 'Nyandarua');
+
+        $this->actingAs($this->submitter())->post(route('account.links.store'), $this->payload($county));
+        $this->actingAs($this->admin())
+            ->from(route('links.index'))
+            ->patch(route('links.approval', ResourceLink::firstOrFail()), ['status' => 'approved']);
+
+        $this->get(route('county.show', $county->slug))
+            ->assertOk()
+            ->assertSee('Nyandarua County Announcements');
+
+        $this->get(route('aspirants.show', $candidate->slug))
+            ->assertOk()
+            ->assertSee('Nyandarua County Announcements');
+    }
+
+    public function test_links_without_a_title_fall_back_to_the_platform_label(): void
+    {
+        $county = $this->county();
+
+        ResourceLink::create([
+            'user_id' => $this->submitter()->id,
+            'platform' => 'facebook_group',
+            'url' => 'https://www.facebook.com/groups/legacy/',
+            'county_id' => $county->id,
+            'approval_status' => ResourceLink::STATUS_APPROVED,
+        ]);
+
+        $this->get(route('county.show', $county->slug))
+            ->assertOk()
+            ->assertSee('Facebook Group');
+    }
+
+    public function test_admin_can_submit_a_link(): void
+    {
+        $county = $this->county();
+        $admin = $this->admin();
+
+        $this->actingAs($admin)
+            ->post(route('account.links.store'), $this->payload($county))
+            ->assertRedirect(route('account.links.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('resource_links', [
+            'user_id' => $admin->id,
+            'title' => 'Nyandarua County Announcements',
+            'approval_status' => ResourceLink::STATUS_PENDING,
+        ]);
     }
 
     public function test_county_page_lists_its_aspirants_and_constituencies(): void

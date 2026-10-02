@@ -12,8 +12,8 @@
 <div class="news-list">
 @forelse($links as $link)
 <article class="news-row"><div>
-<h2>{{ $link->platform_label }}{{ $link->candidate ? ' &bull; '.$link->candidate->name : '' }}</h2>
-<div class="news-meta">{{ $link->county?->name }}@if($link->constituency) , {{ $link->constituency->name }}@endif @if($link->ward) , {{ $link->ward->name }}@endif &bull; Submitted {{ $link->created_at->format('d M Y, H:i') }}</div>
+<h2>{{ $link->display_title }}{{ $link->candidate ? ' &bull; '.$link->candidate->name : '' }}</h2>
+<div class="news-meta">{{ $link->platform_label }} &bull; {{ $link->county?->name }}@if($link->constituency) , {{ $link->constituency->name }}@endif @if($link->ward) , {{ $link->ward->name }}@endif &bull; Submitted {{ $link->created_at->format('d M Y, H:i') }}</div>
 <div class="news-meta"><a href="{{ $link->url }}" target="_blank" rel="noopener nofollow">{{ Str::limit($link->url, 60) }}</a>@if($link->followers) &bull; {{ number_format($link->followers) }} followers @endif</div>
 @if($link->comment)<div class="news-meta">{{ $link->comment }}</div>@endif
 </div>
