@@ -16,6 +16,15 @@ class PollController extends Controller
 {
     public function __construct(private readonly PollService $pollService) {}
 
+    public function index(Request $request): View
+    {
+        $polls = $this->pollService->homepagePolls($request->user());
+
+        return view('polls.public.index', [
+            'polls' => $polls,
+        ]);
+    }
+
     public function show(Request $request, string $slug): View
     {
         $poll = $this->pollService->presentPollBySlug($slug, $request->user());
