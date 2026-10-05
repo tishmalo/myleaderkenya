@@ -76,7 +76,6 @@ return [
                 'items' => [
                     ['label' => 'Payment Methods', 'route' => 'payment-methods.index', 'icon' => 'fas fa-credit-card', 'active' => ['payment-methods.*'], 'permission' => 'finance.view'],
                     ['label' => 'Donors', 'route' => 'donors.index', 'icon' => 'fas fa-hand-holding-heart', 'active' => ['donors.*'], 'permission' => 'finance.view'],
-                    ['label' => 'Dashboard Donors', 'route' => 'dashboard.donors', 'icon' => 'fas fa-chart-column', 'active' => ['dashboard.donors'], 'permission' => 'finance.view'],
                 ],
             ],
             [

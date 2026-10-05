@@ -87,7 +87,7 @@
             </div>
 
             <div class="flex gap-4 mt-10">
-                <a href="{{ route('dashboard.donors') }}" 
+                <a href="{{ route('donors.index') }}" 
                    class="flex-1 py-4 border border-zinc-700 rounded-2xl text-center font-medium hover:bg-zinc-800 transition-colors">
                     Cancel
                 </a>

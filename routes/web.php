@@ -84,13 +84,6 @@ use App\Http\Controllers\Web\UserNewsArticleController;
 use App\Http\Controllers\Web\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
-// ====================== PUBLIC ROUTES (Throttled) ======================
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing');
     Route::get('/featured-aspirants', [LandingController::class, 'featuredAspirants'])->middleware('throttle:public-data')->name('landing.featured-aspirants');
@@ -103,7 +96,6 @@ Route::middleware('throttle:web')->group(function () {
         return view('privacy');
     })->name('privacy');
 
-    // Public Campaign Tools, News & Aspirants
     Route::get('/campaign-tools', [CampaignToolController::class, 'publicIndex'])->name('campaign-tools.public');
     Route::post('/campaign-tools/{campaignTool}/requests', [CampaignToolController::class, 'storeFeatureRequest'])->middleware('throttle:campaignToolRequests')->name('campaign-tools.requests.store');
     Route::get('/campaign-tools/{slug}', [CampaignToolController::class, 'publicShow'])->name('campaign-tools.show');
@@ -150,8 +142,6 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->middleware('throttle:public-data')->name('aspirants.public');
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->middleware('throttle:public-data')->name('aspirants.show');
 
-    // A county's public page: its approved aspirants and the community pages
-    // and links submitted for that county.
     Route::get('/counties/{county}', [PublicCountyController::class, 'show'])->middleware('throttle:public-data')->name('county.show');
 });
 
@@ -161,7 +151,6 @@ Route::get('/toolbox/payments/ipay/callback', [DonorToolboxController::class, 'c
 Route::get('/toolbox/supports/ipay/callback', [DonorToolboxController::class, 'supportCallback'])->name('toolbox.supports.ipay.callback');
 Route::get('/events/payment/callback', [WebEventController::class, 'callback'])->name('events.payment.callback');
 
-// ====================== AUTHENTICATED ROUTES ======================
 Route::middleware('auth')->group(function () {
     Route::get('/my-account/profile', [UserProfileController::class, 'edit'])->name('account.profile.edit');
     Route::put('/my-account/profile', [UserProfileController::class, 'update'])->middleware('throttle:10,1')->name('account.profile.update');
@@ -245,7 +234,6 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/audits/{audit}', [AuditController::class, 'show'])->name('audits.show');
         });
         Route::middleware('admin')->group(function () {
-            // --- Aspirant CSV Import ---
             Route::get('candidates/import/template', [CandidateController::class, 'importTemplate'])
                 ->middleware('permission:aspirants.create')
                 ->name('candidates.import.template');
@@ -268,7 +256,6 @@ Route::middleware('auth')->group(function () {
                 ->middleware('permission:aspirants.view')
                 ->name('candidates.transfer.status');
 
-            // --- Core Admin & Dashboard ---
             Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
             Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->middleware('permission:voters.view')->name('dashboard.stats');
             Route::get('/dashboard/stations', [DashboardController::class, 'stations'])->middleware('permission:data.view')->name('dashboard.stations');
@@ -276,7 +263,6 @@ Route::middleware('auth')->group(function () {
             Route::put('/stations/{station}', [DashboardController::class, 'updateStation'])->middleware('permission:data.update')->name('stations.update');
             Route::delete('/stations/{station}', [DashboardController::class, 'destroyStation'])->middleware('permission:data.delete')->name('stations.destroy');
             Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->middleware('permission:messages.view')->name('dashboard.messages');
-            Route::get('/dashboard/donors', [DashboardController::class, 'donors'])->middleware('permission:finance.view')->name('dashboard.donors');
             Route::get('/live-stat-figures', [LiveStatFigureController::class, 'index'])->middleware('permission:live-stats.view')->name('live-stat-figures.index');
             Route::post('/live-stat-figures', [LiveStatFigureController::class, 'store'])->middleware('permission:live-stats.create')->name('live-stat-figures.store');
             Route::delete('/live-stat-figures/batches/{batchId}', [LiveStatFigureController::class, 'destroyBatch'])->middleware('permission:live-stats.delete')->name('live-stat-figures.batches.destroy');
@@ -287,7 +273,6 @@ Route::middleware('auth')->group(function () {
             Route::get('/recaptcha', [RecaptchaSettingController::class, 'index'])->middleware('permission:settings.view')->name('admin.recaptcha');
             Route::post('/recaptcha', [RecaptchaSettingController::class, 'update'])->middleware('permission:settings.update')->name('admin.recaptcha.update');
 
-            // --- Spam Filter Hub ---
             Route::get('/admin/spam-filter', [SpamFilterController::class, 'index'])->middleware('permission:settings.view')->name('spam-filter.index');
             Route::post('/admin/spam-filter/analyze', [SpamFilterController::class, 'analyze'])->middleware('permission:settings.update')->name('spam-filter.analyze');
             Route::post('/admin/spam-filter/samples', [SpamFilterController::class, 'storeSample'])->middleware('permission:settings.update')->name('spam-filter.samples.store');
@@ -302,7 +287,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/notifications/emails/{key}/toggle', [NotificationEmailController::class, 'toggle'])->middleware('permission:settings.update')->name('notification-emails.toggle');
             Route::post('/notifications/emails/{key}/test', [NotificationEmailController::class, 'sendTest'])->middleware('permission:settings.update')->name('notification-emails.test');
 
-            // --- Content Management ---
             Route::resource('positions', PositionController::class)->except(['show'])->middleware('permission:aspirants.view');
             Route::get('/campaign-priority-categories', [CampaignPriorityCategoryController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-priority-categories.index');
             Route::post('/campaign-priority-categories', [CampaignPriorityCategoryController::class, 'store'])->middleware('permission:aspirants.create')->name('campaign-priority-categories.store');
@@ -321,7 +305,7 @@ Route::middleware('auth')->group(function () {
             Route::patch('/admin/parliament-members/{parliamentMember}/link', [ParliamentMemberController::class, 'link'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('parliament-members.link');
             Route::patch('/admin/parliament-members/{parliamentMember}/publish', [ParliamentMemberController::class, 'publish'])->middleware(['permission:aspirants.approve', 'throttle:30,1'])->name('parliament-members.publish');
             Route::post('/admin/parliament-members/{parliamentMember}/retry', [ParliamentMemberController::class, 'retry'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('parliament-members.retry');
-            Route::resource('candidates', CandidateController::class)->middleware('permission:aspirants.view');
+            Route::resource('candidates', CandidateController::class)->except(['show'])->middleware('permission:aspirants.view');
             Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy'])->middleware('permission:frontend.view');
             Route::get('/admin/party-management', [PoliticalPartyManagementController::class, 'index'])->middleware('permission:parties.view')->name('party-management.index');
             Route::post('/admin/party-management/officials', [PoliticalPartyManagementController::class, 'storeOfficial'])->middleware('permission:parties.update')->name('party-management.officials.store');
@@ -339,7 +323,7 @@ Route::middleware('auth')->group(function () {
                 ->except(['show'])->middleware('permission:parties.view');
 
             Route::get('/admin/news', [NewsArticleController::class, 'index'])->middleware('permission:frontend.view')->name('news.index');
-            Route::get('/admin/news.create', [NewsArticleController::class, 'create'])->middleware('permission:frontend.view')->name('news.create');
+            Route::get('/admin/news/create', [NewsArticleController::class, 'create'])->middleware('permission:frontend.view')->name('news.create');
             Route::post('/admin/news', [NewsArticleController::class, 'store'])->middleware('permission:frontend.update')->name('news.store');
             Route::get('/admin/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:frontend.view')->name('news.edit');
             Route::put('/admin/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
@@ -421,27 +405,23 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->middleware('permission:frontend.view')->name('frontend-pages.edit');
             Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->middleware('permission:frontend.update')->name('frontend-pages.update');
 
-            // --- Finance & Donors ---
-            Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods')->middleware('permission:finance.view');
-            Route::resource('donors', DonorController::class)->names('donors')->middleware('permission:finance.view');
+            Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods')->except(['show'])->middleware('permission:finance.view');
+            Route::resource('donors', DonorController::class)->names('donors')->except(['show'])->middleware('permission:finance.view');
 
-            // --- Geography (Core Data) ---
-            Route::resource('/blocs', BlocController::class)->names('blocs')->middleware('permission:data.view');
+            Route::resource('/blocs', BlocController::class)->names('blocs')->except(['show'])->middleware('permission:data.view');
             // `show` is excluded: the admin controller has no show action, and
             // GET /counties/{county} belongs to the public county page.
             Route::resource('/counties', CountyController::class)->names('counties')->except(['show'])->middleware('permission:data.view');
-            Route::resource('/constituencies', ConstituencyController::class)->names('constituencies')->middleware('permission:data.view');
-            Route::resource('/wards', WardController::class)->names('wards')->middleware('permission:data.view');
+            Route::resource('/constituencies', ConstituencyController::class)->names('constituencies')->except(['show'])->middleware('permission:data.view');
+            Route::resource('/wards', WardController::class)->names('wards')->except(['show'])->middleware('permission:data.view');
             Route::get('/locations', [LocationController::class, 'adminIndex'])->middleware('permission:voters.view')->name('locations.index');
 
-            // Geography Imports
             Route::post('/blocs/import', [BlocController::class, 'import'])->middleware('permission:data.import')->name('blocs.import');
             Route::post('/counties/import', [CountyController::class, 'import'])->middleware('permission:data.import')->name('counties.import');
             Route::post('/constituencies/import', [ConstituencyController::class, 'import'])->middleware('permission:data.import')->name('constituencies.import');
             Route::post('/wards/import', [WardController::class, 'import'])->middleware('permission:data.import')->name('wards.import');
             Route::post('/stations/import', [DashboardController::class, 'importStations'])->middleware('permission:data.import')->name('stations.import');
 
-            // --- User Access, Voter & Group Management ---
             Route::get('/user-access', [UserAccessController::class, 'index'])->name('user-access.index');
             Route::post('/user-access/admins', [UserAccessController::class, 'store'])->name('user-access.admins.store');
             Route::patch('/user-access/users/{user}/role', [UserAccessController::class, 'updateRole'])->name('user-access.roles.update');
@@ -450,17 +430,15 @@ Route::middleware('auth')->group(function () {
             Route::resource('groups', GroupController::class)->only(['create', 'store', 'show'])->middleware('permission:messages.create');
             Route::post('/groups/{group}/messages', [GroupController::class, 'sendMessage'])->middleware('permission:messages.create')->name('groups.messages.store');
 
-            // --- Messages Management ---
             Route::get('/messages/create', [MessageController::class, 'createMessageForm'])->middleware('permission:messages.create')->name('messages.create');
             Route::post('/messages', [MessageController::class, 'storeMessageFromWeb'])->middleware('permission:messages.create')->name('messages.store');
             Route::get('/messages', [MessageController::class, 'index'])->middleware('permission:messages.view')->name('messages.index');
         });
 
-        // --- Profile Management ---
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-        Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop')->withoutMiddleware('profile.complete');
+        Route::post('/impersonation/stop', [AspirantImpersonationController::class, 'stop'])->name('impersonation.stop');
     });
 });
 require __DIR__.'/auth.php';
