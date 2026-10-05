@@ -147,10 +147,10 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/news', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
 
-Route::get('/polls', [WebPollController::class, 'index'])->middleware('throttle:public-data')->name('polls.public');
-// A poll's stable, shareable URL. The homepage sections are the same
-// polls, but this page carries per-poll SEO metadata for social sharing.
-Route::get('/polls/{slug}', [WebPollController::class, 'show'])->middleware('throttle:public-data')->name('poll.show');
+    Route::get('/polls', [WebPollController::class, 'index'])->middleware('throttle:public-data')->name('polls.public');
+    // A poll's stable, shareable URL. The homepage sections are the same
+    // polls, but this page carries per-poll SEO metadata for social sharing.
+    Route::get('/polls/{slug}', [WebPollController::class, 'show'])->middleware('throttle:public-data')->name('poll.show');
 
     // Legacy alias so the old /events/create admin URL keeps working.
     Route::get('/events/create', fn () => redirect()->route('events.create'));
@@ -391,6 +391,8 @@ Route::middleware('auth')->group(function () {
             Route::patch('/admin/events/{event}/approval', [AdminEventController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('events.approval');
 
             Route::get('/admin/links', [LinkController::class, 'index'])->middleware('permission:frontend.view')->name('links.index');
+            Route::get('/admin/links/create', [LinkController::class, 'create'])->middleware('permission:frontend.update')->name('links.create');
+            Route::post('/admin/links', [LinkController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:3,10'])->name('links.store');
             Route::patch('/admin/links/{resourceLink}/approval', [LinkController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('links.approval');
             Route::delete('/admin/links/{resourceLink}', [LinkController::class, 'destroy'])->middleware('permission:frontend.update')->name('links.destroy');
             Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');

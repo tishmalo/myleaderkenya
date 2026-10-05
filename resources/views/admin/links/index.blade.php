@@ -13,7 +13,7 @@
             <i class="fas fa-link text-emerald-500"></i> Pages &amp; Links
             <span class="text-sm font-normal text-zinc-500">User-submitted community pages, groups and links</span>
         </h1>
-        <a href="{{ route('account.links.create') }}"
+        <a href="{{ route('links.create') }}"
            class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
             <i class="fas fa-plus"></i> Add Link/Page
         </a>

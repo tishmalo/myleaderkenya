@@ -461,6 +461,41 @@ class ResourceLinkFeatureTest extends TestCase
         ]);
     }
 
+    public function test_guests_are_redirected_from_the_admin_link_pages(): void
+    {
+        $this->get(route('links.create'))->assertRedirect(route('login'));
+        $this->post(route('links.store'), [])->assertRedirect(route('login'));
+    }
+
+    public function test_admin_can_open_the_admin_submission_form(): void
+    {
+        $this->county();
+
+        $this->actingAs($this->admin())
+            ->get(route('links.create'))
+            ->assertOk()
+            ->assertSee('Add Link/Page')
+            ->assertSee('Submit for review');
+    }
+
+    public function test_admin_can_submit_a_link_from_the_admin_area(): void
+    {
+        $county = $this->county();
+        $admin = $this->admin();
+
+        $this->actingAs($admin)
+            ->post(route('links.store'), $this->payload($county))
+            ->assertRedirect(route('links.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('resource_links', [
+            'user_id' => $admin->id,
+            'county_id' => $county->id,
+            'title' => 'Nyandarua County Announcements',
+            'approval_status' => ResourceLink::STATUS_PENDING,
+        ]);
+    }
+
     public function test_county_page_lists_its_aspirants_and_constituencies(): void
     {
         $county = $this->county();
@@ -483,35 +518,35 @@ class ResourceLinkFeatureTest extends TestCase
             ->assertSee($county->name);
     }
 
-    public function test_aspirant_profile_links_to_its_county_page(): void
+    public function test_aspirant_profile_does_not_link_to_a_county_page(): void
     {
         $county = $this->county();
         $candidate = $this->candidate('Alice Wanjiru', 'Nyandarua');
 
         $this->get(route('aspirants.show', $candidate->slug))
             ->assertOk()
-            ->assertSee(route('county.show', $county->slug), false);
+            ->assertDontSee(route('county.show', $county->slug), false);
     }
 
-    public function test_aspirant_profile_still_links_to_county_page_for_variant_names(): void
+    public function test_aspirant_profile_still_has_no_county_page_link_for_variant_names(): void
     {
         $county = $this->county();
         $candidate = $this->candidate('Alice Wanjiru', 'Nyandarua County');
 
         $this->get(route('aspirants.show', $candidate->slug))
             ->assertOk()
-            ->assertSee(route('county.show', $county->slug), false);
+            ->assertDontSee(route('county.show', $county->slug), false);
     }
 
-    public function test_aspirant_index_county_group_links_to_the_county_page(): void
+    public function test_aspirant_index_county_group_does_not_link_to_a_county_page(): void
     {
         $county = $this->county();
         $candidate = $this->candidate('Alice Wanjiru', 'Nyandarua');
 
         // With a position filter and no county, the index browses by county, so
-        // the county cards are the entry point to the new county pages.
+        // the county cards filter the listing instead of leaving it.
         $this->get(route('aspirants.public', ['position' => $candidate->position_id]))
             ->assertOk()
-            ->assertSee(route('county.show', $county->slug), false);
+            ->assertDontSee(route('county.show', $county->slug), false);
     }
 }
