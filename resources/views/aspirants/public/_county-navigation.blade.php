@@ -10,7 +10,7 @@
         </div>
         <div class="location-card-grid">
             @foreach($countyNavigation as $group)
-                <a href="{{ !empty($group['slug']) && Route::has('county.show') ? route('county.show', $group['slug']) : route('aspirants.public', array_merge($countyNavigationQuery, ['county' => $group['filter_value']])) }}" class="location-card">
+                <a href="{{ route('aspirants.public', array_merge($countyNavigationQuery, ['county' => $group['filter_value']])) }}" class="location-card">
                     @if(!empty($group['image_url']))
                         <img src="{{ $group['image_url'] }}" alt="{{ $group['label'] }}">
                     @else
