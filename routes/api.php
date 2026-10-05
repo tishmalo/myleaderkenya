@@ -18,6 +18,10 @@ use App\Http\Controllers\Api\PulseEngineAccountController;
 use App\Http\Controllers\Api\PulseWebhookController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Middleware\EnsureAllowedPublicApprovalDomain;
+use App\Models\Constituency;
+use App\Models\County;
+use App\Models\Ward;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,7 +37,6 @@ Route::middleware('pulse.engine')->group(function () {
     Route::post('/scraper/accounts/{publicPulseSourceAccount}/invalid', [PulseEngineAccountController::class, 'invalid'])->name('api.scraper.accounts.invalid');
     Route::post('/pulse/webhook', PulseWebhookController::class)->name('api.pulse.webhook');
 });
-
 
 // Authentication
 Route::prefix('auth')->middleware('throttle:auth')->group(function () {
@@ -58,6 +61,32 @@ Route::prefix('locations')->middleware('throttle:api')->group(function () {
 Route::get('/counties/by-bloc/{blocId}', [LocationController::class, 'getCountiesByBloc'])->middleware('throttle:api');
 Route::get('/constituencies/by-county', [LocationController::class, 'getConstituenciesByCounty'])->middleware('throttle:api');
 Route::get('/wards/by-constituency', [LocationController::class, 'getWardsByConstituency'])->middleware('throttle:api');
+
+// Candidate location JSON helpers used by the web forms (moved from web.php).
+// Defined here, they resolve to the same /api/counties, /api/constituencies
+// and /api/wards URLs the forms already fetch.
+Route::middleware('throttle:api')->group(function () {
+    Route::get('/counties', function () {
+        return County::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    });
+
+    Route::get('/constituencies', function (Request $request) {
+        return Constituency::query()
+            ->when($request->query('county_id'), fn ($query, $countyId) => $query->where('county_id', $countyId))
+            ->orderBy('name')
+            ->get(['id', 'name', 'county_id']);
+    });
+
+    Route::get('/wards', function (Request $request) {
+        return Ward::query()
+            ->when($request->query('constituency_id'), fn ($query, $constituencyId) => $query->where('constituency_id', $constituencyId))
+            ->get(['id', 'name', 'constituency_id'])
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+    });
+});
 
 // Admin-Specific API (Consolidated from web.php)
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
@@ -172,4 +201,3 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DonorController::class, 'store']);
     });
 });
-
