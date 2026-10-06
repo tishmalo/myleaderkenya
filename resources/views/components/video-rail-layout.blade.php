@@ -4,7 +4,8 @@
      Usage:  <x-video-rail-layout> ...cards... </x-video-rail-layout>
              <x-video-rail-layout variant="majority"> ...cards... </x-video-rail-layout>
      The "majority" variant gives the grid ~70% and the sidebar ~30% on
-     desktop; anything else keeps the default fixed-rail split. --}}
+     desktop with full-width sidebar videos; anything else keeps the
+     default fixed-rail split with the compact rail. --}}
 @props(['variant' => null])
 
 <div class="with-rail{{ $variant === 'majority' ? ' with-rail--majority' : '' }}">
@@ -13,6 +14,8 @@
     </div>
 
     <div class="with-rail-side">
-        @include('components.video-rail')
+        {{-- The majority layout was approved with full-width sidebar videos;
+             every other layout takes the compact default. --}}
+        @include('components.video-rail', ['compact' => $variant !== 'majority'])
     </div>
 </div>
