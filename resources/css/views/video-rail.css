@@ -1,12 +1,9 @@
 /* Shared video-reel layer.
  *
  * Single source of truth for every video rail on the site (aspirant pages,
- * listing pages, news, events, parties, coalitions, campaign tools). Pages
- * opt into sizing with variant classes instead of overriding these rules
- * locally:
- *   .page-rail--compact  - sidebar-sized reel (narrower cards, smaller chrome)
- *   .with-rail--majority - 70/30 grid/sidebar split (desktop only)
- */
+ * listing pages, news, events, parties, coalitions, campaign tools). One
+ * default layout everywhere: grid ~70%, sidebar ~30%, rail videos at full
+ * sidebar width. No variants, no per-page overrides. */
 
 /* ---------- rail ---------- */
 .page-rail {
@@ -92,22 +89,10 @@
     background: #000;
 }
 
-/* ---------- compact variant: a by-the-way, not the main event ---------- */
-.page-rail--compact { gap: 12px; }
-.page-rail--compact .rail-videos { gap: 12px; }
-.page-rail--compact .rail-video { max-width: 250px; margin-inline: auto; }
-.page-rail--compact .rail-video-label { min-height: 32px; padding: 7px 10px; font-size: 12px; }
-.page-rail--compact .rail-video-play { width: 44px; height: 44px; font-size: 14px; }
-
-@media (max-width: 980px) {
-    .page-rail--compact .rail-videos { flex-direction: row; flex-wrap: wrap; }
-    .page-rail--compact .rail-video { flex: 1 1 200px; max-width: 320px; }
-}
-
-/* ---------- rail layout: card grid beside the rail ---------- */
+/* ---------- rail layout: card grid (~70%) beside the rail (~30%) ---------- */
 .with-rail {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 523px;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
     gap: 28px;
     /* Not `align-items: start`: the side column has to stretch to the full row
        height, otherwise it collapses to the rail's own height and the sticky
@@ -116,13 +101,6 @@
 }
 .with-rail-main { min-width: 0; }
 .with-rail-side { min-width: 0; }
-
-/* ---------- majority variant: grid ~70%, sidebar ~30% (desktop only) ---------- */
-@media (min-width: 1181px) {
-    .with-rail--majority {
-        grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-    }
-}
 
 @media (max-width: 1180px) {
     .with-rail {

@@ -301,8 +301,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* GRID */
 /* 3 aspirant cards per row beside the sticky video rail, matching the
-   public news page. The 70/30 split comes from the shared rail layer
-   (variant="majority" on the layout component below). */
+   public news page. The 70/30 split comes from the shared rail layer. */
 .asp-rail-wrap {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
@@ -816,7 +815,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 <!-- GRID + VIDEO RAIL -->
 <div class="asp-rail-wrap">
-<x-video-rail-layout variant="majority">
+<x-video-rail-layout>
 @if($showPositionGroups ?? false)
     <div class="county-aspirant-groups">
         @forelse($positionGroups as $group)

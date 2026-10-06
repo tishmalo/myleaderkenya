@@ -331,7 +331,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                 </div>
                 <div class="summary-videos">
                     <div class="summary-videos-title"><i class="fas fa-circle-play"></i> Campaign Videos</div>
-                    @include('components.video-rail', ['railSticky' => false, 'compact' => true])
+                    @include('components.video-rail', ['railSticky' => false])
                 </div>
             </aside>
 
