@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\Web\PollService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -16,8 +17,13 @@ class PollController extends Controller
 {
     public function __construct(private readonly PollService $pollService) {}
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if ($request->user() === null) {
+            return redirect()->guest(route('login'))
+                ->with('status', 'Log in to see the polls for your area - Presidential, Governor, Senator, Women Rep, MP and MCA - and cast your vote.');
+        }
+
         $viewer = $request->user();
 
         return view('polls.public.index', [

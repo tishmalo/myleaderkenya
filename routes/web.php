@@ -113,7 +113,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/news', [NewsArticleController::class, 'publicIndex'])->name('news.public');
     Route::get('/news/{slug}', [NewsArticleController::class, 'publicShow'])->name('news.public.show');
 
-    Route::get('/polls', [WebPollController::class, 'index'])->middleware(['throttle:public-data', 'auth'])->name('polls.public');
+    Route::get('/polls', [WebPollController::class, 'index'])->middleware('throttle:public-data')->name('polls.public');
     // A poll's stable, shareable URL. The homepage sections are the same
     // polls, but this page carries per-poll SEO metadata for social sharing.
     Route::get('/polls/{slug}', [WebPollController::class, 'show'])->middleware('throttle:public-data')->name('poll.show');

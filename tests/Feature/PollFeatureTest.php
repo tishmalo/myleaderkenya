@@ -1240,7 +1240,9 @@ class PollFeatureTest extends TestCase
 
     public function test_guests_are_redirected_from_the_polls_page(): void
     {
-        $this->get(route('polls.public'))->assertRedirect(route('login'));
+        $this->get(route('polls.public'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status');
     }
 
     public function test_member_sees_only_polls_for_their_area(): void
