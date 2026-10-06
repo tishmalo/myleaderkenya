@@ -4,15 +4,14 @@ return [
     'frontend' => [
         [
             'label' => 'Polls',
-            'route' => 'landing',
-            'fragment' => 'poll',
-            'active' => ['landing'],
+            'route' => 'polls.public',
+            'active' => ['polls.public', 'poll.show'],
         ],
-        [
-            'label' => 'About',
-            'route' => 'about.public',
-            'active' => ['about.public'],
-        ],
+        // [
+        //     'label' => 'About',
+        //     'route' => 'about.public',
+        //     'active' => ['about.public'],
+        // ],
         [
             'label' => 'Voter',
             'children' => [
