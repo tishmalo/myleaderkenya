@@ -2,9 +2,39 @@
 
 @section('title', $county->name.' Aspirants, Pages & Links - My Leader Kenya')
 @section('meta_description', 'Aspirants, official pages and community links for '.$county->name.', Kenya.')
+@section('og_image', $county->image ? Storage::url($county->image) : asset('images/myleader.png'))
 
 @section('content')
 @include('components.aspirant-card-styles')
+<script type="application/ld+json">
+@php
+    $countySchemaItems = [];
+    $countySchemaPosition = 1;
+    foreach (($candidateGroups ?? collect()) as $candidateGroup) {
+        foreach ($candidateGroup['candidates'] as $schemaCandidate) {
+            $countySchemaItems[] = [
+                '@type' => 'ListItem',
+                'position' => $countySchemaPosition++,
+                'name' => $schemaCandidate->name,
+                'url' => route('aspirants.show', $schemaCandidate),
+            ];
+        }
+    }
+    $countySchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => 'Aspirants in '.$county->name,
+        'description' => 'Aspirants, official pages and community links for '.$county->name.', Kenya.',
+        'url' => route('county.show', $county),
+        'isPartOf' => ['@type' => 'WebSite', 'name' => 'My Leader Kenya'],
+        'mainEntity' => [
+            '@type' => 'ItemList',
+            'itemListElement' => $countySchemaItems,
+        ],
+    ];
+@endphp
+{{ json_encode($countySchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}
+</script>
 <div class="county-page">
     <div class="county-page-shell">
         @include('components.frontend-nav')
