@@ -39,6 +39,10 @@ class PollPresenter
         $isOpen = $poll->isOpenForVoting();
         $hasVoted = $votedOptionId !== null;
         $isScheduled = ! $isOpen && ! self::hasStarted($poll);
+        // A voter sees the tally on polls they voted on, even before results
+        // go public - unless the admin switched that off for the poll - and
+        // may change their vote while the poll is open.
+        $resultsVisible = $resultsArePublic || ($hasVoted && $poll->show_results_to_voters);
 
         $byOption = $tallies->keyBy('option_id');
 
@@ -47,7 +51,7 @@ class PollPresenter
             'slug' => $poll->slug,
             'section_label' => $poll->poll_type === Poll::TYPE_POLITICAL ? 'Vote Your Candidate' : 'Have Your Say',
             'question' => $poll->question,
-            'status_line' => self::statusLine($poll, $isOpen, $isScheduled),
+            'status_line' => self::statusLine($poll, $isOpen, $isScheduled, $hasVoted),
             'vote_action' => route('poll.vote', $poll->id),
             'comment_action' => route('poll.comments.store', $poll->id),
             'share_url' => route('poll.show', $poll->slug),
@@ -55,16 +59,16 @@ class PollPresenter
             'share_created_at' => ($poll->created_at?->toIso8601String()) ?? now()->toIso8601String(),
             'grid_class' => $poll->poll_type === Poll::TYPE_POLITICAL ? 'poll-grid is-political' : 'poll-grid',
             'is_authenticated' => $isAuthenticated,
-            'can_vote' => $isOpen && ! $hasVoted && $isAuthenticated,
+            'can_vote' => $isOpen && $isAuthenticated,
             'prompts_login' => $isOpen && ! $hasVoted && ! $isAuthenticated,
             'confirms_vote' => $hasVoted && $isOpen,
             'total_votes_label' => number_format($totalVotes).' '.Str::plural('vote', $totalVotes).' cast',
-            'results_locked' => ! $resultsArePublic,
+            'results_locked' => ! $resultsVisible,
             'options' => $options->map(fn (PollOption $option) => self::option(
                 $option,
                 $byOption,
                 $votedOptionId,
-                $resultsArePublic
+                $resultsVisible
             ))->all(),
             'comment_count' => $commentCount,
             'comments' => $comments->map(fn (PollComment $comment) => [
@@ -86,7 +90,7 @@ class PollPresenter
         PollOption $option,
         Collection $byOption,
         ?int $votedOptionId,
-        bool $resultsArePublic
+        bool $showTally
     ): array {
         $tally = $byOption->get($option->id);
         $votes = (int) ($tally['votes'] ?? 0);
@@ -104,7 +108,7 @@ class PollPresenter
             'photo_url' => $option->candidate?->profile_picture
                 ? Storage::url($option->candidate->profile_picture)
                 : null,
-            'show_tally' => $resultsArePublic,
+            'show_tally' => $showTally,
             'percent' => (int) ($tally['percent'] ?? 0),
             'votes_label' => number_format($votes).' '.Str::plural('vote', $votes),
         ];
@@ -134,7 +138,7 @@ class PollPresenter
         return $poll->starts_at === null || $poll->starts_at->isPast();
     }
 
-    private static function statusLine(Poll $poll, bool $isOpen, bool $isScheduled): string
+    private static function statusLine(Poll $poll, bool $isOpen, bool $isScheduled, bool $hasVoted): string
     {
         $closes = $poll->ends_at->format('j M Y, g:ia');
 
@@ -143,7 +147,9 @@ class PollPresenter
         }
 
         if ($isOpen) {
-            return 'Voting closes '.$closes.'. Results unlock when the poll closes.';
+            return $hasVoted
+                ? 'Voting closes '.$closes.'. You can change your vote until then.'
+                : 'Voting closes '.$closes.'. Results unlock when the poll closes.';
         }
 
         return 'This poll closed '.$closes.'.';

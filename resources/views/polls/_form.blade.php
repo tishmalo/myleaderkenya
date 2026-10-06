@@ -63,6 +63,19 @@
             </label>
         </div>
 
+        <div class="mt-4">
+            {{-- Hidden fallback so unchecking the box actually saves as off. --}}
+            <input type="hidden" name="show_results_to_voters" value="0">
+            <label class="flex items-start gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 cursor-pointer">
+                <input type="checkbox" name="show_results_to_voters" value="1" class="mt-1 w-4 h-4 accent-emerald-500"
+                       @checked($form['show_results_to_voters_checked'])>
+                <span>
+                    <span class="block text-sm text-white">Show results to voters immediately after they vote</span>
+                    <span class="block text-xs text-zinc-500 mt-1">When off, voters see a confirmation but no breakdown until results go public. They can still change their vote while the poll is open.</span>
+                </span>
+            </label>
+        </div>
+
         <div class="mt-8">
             <div class="flex items-center justify-between mb-3">
                 <label class="block text-sm text-zinc-400">Options <span class="text-red-500">*</span></label>

@@ -12,16 +12,28 @@
 @if($poll['can_vote'])
     <form method="POST" action="{{ $poll['vote_action'] }}" class="poll-form">
         @csrf
+        @if($poll['confirms_vote'])
+            <p class="poll-hint poll-hint-voted">
+                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                Vote recorded. You can change it until the poll closes.
+            </p>
+        @endif
 @endif
 
 <div class="{{ $poll['grid_class'] }}">
     @foreach($poll['options'] as $option)
         @if($poll['can_vote'])
-            <label class="poll-option is-selectable">
-                <input type="radio" name="option_id" value="{{ $option['id'] }}" class="poll-radio" required>
-                <span class="poll-option-bar" style="--poll-percent: 0%"></span>
+            <label class="poll-option is-selectable {{ $option['is_chosen'] ? 'is-chosen' : '' }} {{ $option['show_tally'] ? 'has-result' : '' }}">
+                <input type="radio" name="option_id" value="{{ $option['id'] }}" class="poll-radio" required @checked($option['is_chosen'])>
+                <span class="poll-option-bar" style="--poll-percent: {{ $option['show_tally'] ? $option['percent'] : 0 }}%"></span>
                 <span class="poll-option-inner">
                     <x-landing.poll-option-body :option="$option" />
+                    @if($option['show_tally'])
+                        <span class="poll-option-tally">
+                            <strong>{{ $option['percent'] }}%</strong>
+                            <small>{{ $option['votes_label'] }}</small>
+                        </span>
+                    @endif
                 </span>
             </label>
         @else
@@ -47,18 +59,13 @@
 
 @if($poll['can_vote'])
     <div class="poll-actions">
-        <button type="submit" class="poll-submit">Cast your vote</button>
+        <button type="submit" class="poll-submit">{{ $poll['confirms_vote'] ? 'Update your vote' : 'Cast your vote' }}</button>
         <p class="poll-hint">One vote per account. You can change it until the poll closes.</p>
     </div>
 @elseif($poll['prompts_login'])
     <p class="poll-hint poll-hint-login">
         <button type="button" class="poll-login-link" onclick="window.openFrontendAuth ? window.openFrontendAuth('login') : null">Log in</button>
         to cast your vote. One vote per account.
-    </p>
-@elseif($poll['confirms_vote'])
-    <p class="poll-hint poll-hint-voted">
-        <i class="fas fa-check-circle" aria-hidden="true"></i>
-        Vote recorded. Results unlock when the poll closes.
     </p>
 @endif
 

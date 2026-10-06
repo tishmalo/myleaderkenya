@@ -1233,4 +1233,133 @@ class PollFeatureTest extends TestCase
             ->assertSee(route('poll.show', $poll->slug))
             ->assertSee('data-poll-copy-link');
     }
+
+    /* ------------------------------------------------------------------
+       Public polls page
+    ------------------------------------------------------------------ */
+
+    public function test_guests_are_redirected_from_the_polls_page(): void
+    {
+        $this->get(route('polls.public'))->assertRedirect(route('login'));
+    }
+
+    public function test_member_sees_only_polls_for_their_area(): void
+    {
+        $national = $this->makePoll([
+            'question' => 'Who should be president?',
+            'slug' => 'who-should-be-president',
+            'audience_scope' => Poll::AUDIENCE_NATIONAL,
+        ]);
+        $this->makeOptions($national);
+
+        $home = $this->makeCountyScopedPoll('Who should govern Kirinyaga?');
+        $away = $this->makePoll([
+            'question' => 'Who should govern Nakuru?',
+            'slug' => 'who-should-govern-nakuru',
+            'poll_type' => Poll::TYPE_POLITICAL,
+            'audience_scope' => Poll::AUDIENCE_COUNTY,
+            'audience_county' => 'Nakuru',
+        ]);
+        $this->makeOptions($away);
+
+        $voter = User::factory()->create(['role' => 'voter', 'county' => 'Kirinyaga']);
+
+        $this->actingAs($voter)
+            ->get(route('polls.public'))
+            ->assertOk()
+            ->assertSee('Who should be president?')
+            ->assertSee('Who should govern Kirinyaga?')
+            ->assertDontSee('Who should govern Nakuru?');
+    }
+
+    public function test_voter_sees_results_after_voting(): void
+    {
+        $poll = $this->makePoll();
+        $this->makeOptions($poll);
+        $user = $this->voter();
+
+        $this->actingAs($user)
+            ->get(route('polls.public'))
+            ->assertOk()
+            ->assertSee('Cast your vote')
+            ->assertDontSee('poll-option-tally', false);
+
+        $this->actingAs($user)->post(route('poll.vote', $poll), ['option_id' => $poll->options()->first()->id]);
+
+        $this->actingAs($user)
+            ->get(route('polls.public'))
+            ->assertOk()
+            ->assertSee('Update your vote')
+            ->assertSee('poll-option-tally', false);
+    }
+
+    public function test_voter_can_change_their_vote_from_the_polls_page(): void
+    {
+        $poll = $this->makePoll();
+        $this->makeOptions($poll);
+        $options = $poll->options()->get();
+        $user = $this->voter();
+
+        $this->actingAs($user)->post(route('poll.vote', $poll), ['option_id' => $options[0]->id]);
+
+        $this->actingAs($user)
+            ->post(route('poll.vote', $poll), ['option_id' => $options[1]->id])
+            ->assertRedirect(route('landing'));
+
+        $this->assertDatabaseCount('poll_votes', 1);
+        $this->assertDatabaseHas('poll_votes', [
+            'poll_id' => $poll->id,
+            'poll_option_id' => $options[1]->id,
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_voter_sees_no_breakdown_when_admin_switches_immediate_results_off(): void
+    {
+        $poll = $this->makePoll(['show_results_to_voters' => false]);
+        $this->makeOptions($poll);
+        $user = $this->voter();
+
+        $this->actingAs($user)->post(route('poll.vote', $poll), ['option_id' => $poll->options()->first()->id]);
+
+        // The vote still counts and can still be changed, but no breakdown shows.
+        $this->actingAs($user)
+            ->get(route('polls.public'))
+            ->assertOk()
+            ->assertSee('Update your vote')
+            ->assertDontSee('poll-option-tally', false);
+    }
+
+    public function test_non_voter_sees_no_breakdown_while_poll_is_open(): void
+    {
+        $poll = $this->makePoll();
+        $this->makeOptions($poll);
+
+        $this->actingAs($this->voter())
+            ->get(route('polls.public'))
+            ->assertOk()
+            ->assertDontSee('poll-option-tally', false);
+    }
+
+    public function test_immediate_results_default_on_for_new_polls(): void
+    {
+        $this->actingAs($this->admin())->post(route('polls.store'), $this->payload());
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'Which county should host the next forum?',
+            'show_results_to_voters' => true,
+        ]);
+    }
+
+    public function test_admin_can_switch_immediate_results_off_when_creating_a_poll(): void
+    {
+        $this->actingAs($this->admin())->post(route('polls.store'), $this->payload([
+            'show_results_to_voters' => '0',
+        ]));
+
+        $this->assertDatabaseHas('polls', [
+            'question' => 'Which county should host the next forum?',
+            'show_results_to_voters' => false,
+        ]);
+    }
 }

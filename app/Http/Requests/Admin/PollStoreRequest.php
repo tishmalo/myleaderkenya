@@ -22,6 +22,7 @@ class PollStoreRequest extends FormRequest
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['required', 'date', 'after:now', 'after:starts_at'],
             'reveal_results' => ['nullable', 'boolean'],
+            'show_results_to_voters' => ['nullable', 'boolean'],
             'options' => ['required', 'array', 'min:2', 'max:12'],
             'options.*.id' => ['nullable', 'integer'],
             'options.*.label' => ['nullable', 'string', 'max:255'],
@@ -50,8 +51,10 @@ class PollStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('reveal_results')) {
-            $this->merge(['reveal_results' => $this->boolean('reveal_results') ? 1 : 0]);
+        foreach (['reveal_results', 'show_results_to_voters'] as $flag) {
+            if ($this->has($flag)) {
+                $this->merge([$flag => $this->boolean($flag) ? 1 : 0]);
+            }
         }
     }
 }

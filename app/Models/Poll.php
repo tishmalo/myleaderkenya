@@ -40,6 +40,7 @@ class Poll extends Model implements AuditableContract
         'starts_at',
         'ends_at',
         'reveal_results',
+        'show_results_to_voters',
         'created_by',
         'audience_scope',
         'audience_county',
@@ -51,6 +52,7 @@ class Poll extends Model implements AuditableContract
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'reveal_results' => 'boolean',
+        'show_results_to_voters' => 'boolean',
     ];
 
     public function creator()

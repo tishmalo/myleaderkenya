@@ -18,10 +18,11 @@ class PollController extends Controller
 
     public function index(Request $request): View
     {
-        $polls = $this->pollService->homepagePolls($request->user());
+        $viewer = $request->user();
 
         return view('polls.public.index', [
-            'polls' => $polls,
+            'polls' => $this->pollService->homepagePolls($viewer),
+            'needsLocationPrompt' => $this->pollService->needsLocationPrompt($viewer),
         ]);
     }
 

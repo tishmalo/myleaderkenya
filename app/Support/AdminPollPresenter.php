@@ -77,6 +77,9 @@ class AdminPollPresenter
             'reveal_results_checked' => array_key_exists('reveal_results', $old)
                 ? (bool) $old['reveal_results']
                 : (bool) ($poll?->reveal_results ?? true),
+            'show_results_to_voters_checked' => array_key_exists('show_results_to_voters', $old)
+                ? (bool) $old['show_results_to_voters']
+                : (bool) ($poll?->show_results_to_voters ?? true),
             'existing_options' => self::normalizeOptions($options),
             'aspirant_picker_url' => route('polls.aspirants'),
             'audience' => self::audience($poll),

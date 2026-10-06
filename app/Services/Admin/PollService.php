@@ -100,6 +100,7 @@ class PollService
             'starts_at' => $validated['starts_at'] ?? null,
             'ends_at' => $validated['ends_at'],
             'reveal_results' => (bool) ($validated['reveal_results'] ?? false),
+            'show_results_to_voters' => (bool) ($validated['show_results_to_voters'] ?? true),
         ];
 
         $candidateIds = collect($validated['options'] ?? [])

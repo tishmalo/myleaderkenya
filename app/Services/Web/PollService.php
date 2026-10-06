@@ -164,13 +164,16 @@ class PollService
     {
         $resultsArePublic = $poll->hasPublicResults();
 
-        $tallies = $resultsArePublic
-            ? $this->repository->resultsFor($poll->id)
-            : collect();
-
         $votedOptionId = $viewer === null
             ? null
             : $this->repository->votedOptionId($poll->id, $viewer->id);
+
+        // A voter sees the tally on polls they voted on, even before results
+        // go public - unless the admin switched that off for the poll.
+        // Everyone else only sees public results.
+        $tallies = $resultsArePublic || ($votedOptionId !== null && $poll->show_results_to_voters)
+            ? $this->repository->resultsFor($poll->id)
+            : collect();
 
         return PollPresenter::homepage(
             $poll,
