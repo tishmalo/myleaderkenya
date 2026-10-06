@@ -52,16 +52,6 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .member-party-chip { display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; background:#101010; border:1px solid color-mix(in srgb, var(--brand) 36%, rgba(255,255,255,0.1)); color:white; text-decoration:none; }
 .member-party-chip img,.member-party-chip span { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:var(--brand); color:white; object-fit:cover; font-size:11px; }
 .member-party-empty { color:rgba(245,245,240,0.45); }
-.party-aspirants { margin-top:32px; padding:36px; border-radius:20px; border:1px solid rgba(255,255,255,0.08); background:#141414; }
-.party-aspirants-head { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:26px; }
-.party-aspirants-head h2 { margin:0 0 6px; color:white; font-size:32px; }
-.party-aspirants-head p { margin:0; color:rgba(245,245,240,0.45); }
-.party-aspirants-count { color:var(--green-bright); font-size:12px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; white-space:nowrap; }
-.party-position-group + .party-position-group { margin-top:38px; padding-top:34px; border-top:1px solid rgba(255,255,255,.08); }
-.party-position-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
-.party-position-title { display:flex; align-items:center; gap:12px; margin:0; color:white; font-size:25px; }
-.party-position-title::before { content:''; width:4px; height:28px; border-radius:999px; background:linear-gradient(to bottom,var(--kenya-red),var(--kenya-green)); }
-.party-position-count { color:rgba(245,245,240,.45); font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; white-space:nowrap; }
 .party-aspirant-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
 .asp-card { background:#101010; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; position:relative; transition:border-color .3s,transform .3s,box-shadow .3s; display:flex; flex-direction:column; }
 .asp-card:hover { border-color:rgba(0,168,107,.35); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 1px rgba(0,168,107,.15); }
@@ -83,14 +73,9 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
 .asp-card-action:hover .asp-card-action-text { color:var(--green-bright); }
 .asp-card-action-arrow { width:28px; height:28px; background:var(--kenya-red); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; color:white; transition:background .2s,transform .2s; }
 .asp-card:hover .asp-card-action-arrow { background:var(--green-bright); transform:translateX(2px); }
-.party-aspirants-empty { grid-column:1/-1; padding:54px 20px; text-align:center; color:rgba(245,245,240,.4); }
-.party-aspirants-empty i { display:block; margin-bottom:16px; color:rgba(0,168,107,.5); font-size:38px; }
-.party-aspirants-empty h3 { margin:0 0 8px; color:rgba(245,245,240,.65); font-size:24px; }
-.party-aspirants-empty p { margin:0; }
-.party-aspirants-pagination { margin-top:30px; display:flex; justify-content:center; }
 @media (max-width:900px) { .party-aspirant-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media (max-width:768px) { .party-hero { padding:58px 18px 42px; } .party-grid,.party-show,.party-back { padding-left:18px; padding-right:18px; } .party-show-head,.party-content,.member-section,.party-aspirants { padding:24px; } .party-show-head.has-logo { display:block; } .party-show-logo { width:130px; height:130px; margin-bottom:20px; } .party-aspirants-head { align-items:start; flex-direction:column; } }
-@media (max-width:520px) { .party-position-head { align-items:flex-start; flex-direction:column; } .party-aspirant-grid { grid-template-columns:1fr; } .asp-card-photo { height:240px; } }
+@media (max-width:768px) { .party-hero { padding:58px 18px 42px; } .party-grid,.party-show,.party-back { padding-left:18px; padding-right:18px; } .party-show-head,.party-content,.member-section { padding:24px; } .party-show-head.has-logo { display:block; } .party-show-logo { width:130px; height:130px; margin-bottom:20px; } }
+@media (max-width:520px) { .party-aspirant-grid { grid-template-columns:1fr; } .asp-card-photo { height:240px; } }
 </style>
 <div class="flag-stripe"></div>
 @include('components.frontend-nav')
@@ -104,52 +89,16 @@ h1,h2,h3 { font-family:'Oswald',sans-serif; }
         <div class="party-content">{!! nl2br(e($politicalParty->content)) !!}</div>
         <section class="member-section"><h2>Coalitions</h2><x-member-party-list :parties="$politicalParty->coalitions" route-name="coalitions.show" /></section>
     </article>
-    <section class="party-aspirants" aria-labelledby="party-aspirants-title">
-        <div class="party-aspirants-head">
-            <div>
-                <h2 id="party-aspirants-title">Aspirants vying under {{ $politicalParty->name }}</h2>
-                <p>Explore approved aspirants representing this political party.</p>
-            </div>
-            @if($candidateTotal > 0)
-                <div class="party-aspirants-count">
-                    {{ number_format($candidateTotal) }}
-                    {{ Str::plural('aspirant', $candidateTotal) }}
-                </div>
-            @endif
-        </div>
-        @forelse($candidateGroups as $group)
-            <section class="party-position-group" aria-labelledby="position-{{ $group['position']->id }}">
-                <div class="party-position-head">
-                    <h3 class="party-position-title" id="position-{{ $group['position']->id }}">
-                        {{ $group['position']->name }}
-                    </h3>
-                    <span class="party-position-count">
-                        {{ number_format($group['candidates']->total()) }}
-                        {{ Str::plural('aspirant', $group['candidates']->total()) }}
-                    </span>
-                </div>
-
-                <div class="party-aspirant-grid">
-                    @foreach($group['candidates'] as $candidate)
-                        @include('aspirants.public._card', ['candidate' => $candidate])
-                    @endforeach
-                </div>
-
-                @if($group['candidates']->hasPages())
-                    <div class="party-aspirants-pagination">
-                        {{ $group['candidates']->links() }}
-                    </div>
-                @endif
-            </section>
-        @empty
-            <div class="party-aspirants-empty">
-                <i class="fas fa-users"></i>
-                <h3>No approved aspirants yet</h3>
-                <p>Approved aspirants for this party will appear here.</p>
-            </div>
-        @endforelse
-
-    </section>
+    @include('components.position-aspirant-groups', [
+        'groups' => $candidateGroups,
+        'headingId' => 'party-aspirants-title',
+        'title' => 'Aspirants vying under '.$politicalParty->name,
+        'subtitle' => 'Explore approved aspirants representing this political party.',
+        'total' => $candidateTotal,
+        'gridClass' => 'party-aspirant-grid',
+        'emptyTitle' => 'No approved aspirants yet',
+        'emptyText' => 'Approved aspirants for this party will appear here.',
+    ])
 </main>
 @endsection
 

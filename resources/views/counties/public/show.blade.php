@@ -22,12 +22,12 @@
                     @if($county->registered_voters)
                         <div class="county-hero-stat"><span>Registered voters</span><strong>{{ number_format($county->registered_voters) }}</strong></div>
                     @endif
-                    <div class="county-hero-stat"><span>Aspirants</span><strong>{{ $aspirants->count() }}</strong></div>
+                    <div class="county-hero-stat"><span>Aspirants</span><strong>{{ number_format($candidateTotal) }}</strong></div>
                     <div class="county-hero-stat"><span>Pages &amp; links</span><strong>{{ $links->count() }}</strong></div>
                 </div>
                 <div class="county-hero-actions">
                     <a class="county-hero-action primary" href="{{ route('aspirants.public', ['county' => $county->name]) }}"><i class="fas fa-users"></i> Browse all aspirants</a>
-                    <a class="county-hero-action" href="{{ route('aspirants.public') }}"><i class="fas fa-arrow-left"></i> All counties</a>
+                    <a class="county-hero-action" href="{{ route('counties.public') }}"><i class="fas fa-arrow-left"></i> All counties</a>
                 </div>
             </div>
             @if($county->image)
@@ -36,6 +36,19 @@
                 </div>
             @endif
         </section>
+
+        <x-video-rail-layout>
+            @include('components.position-aspirant-groups', [
+                'groups' => $candidateGroups,
+                'headingId' => 'county-aspirants-title',
+                'title' => 'Aspirants in '.$county->name,
+                'subtitle' => 'Approved aspirants running in '.$county->name.', from Governor to MCA.',
+                'total' => $candidateTotal,
+                'gridClass' => 'county-position-grid',
+                'emptyTitle' => 'No approved aspirants yet',
+                'emptyText' => 'Approved aspirants for '.$county->name.' will appear here.',
+            ])
+        </x-video-rail-layout>
 
         @include('components.pages-links-list', [
             'resourceLinks' => $links,
@@ -57,24 +70,6 @@
                 </div>
             </section>
         @endif
-
-        @if($aspirants->isNotEmpty())
-            <section class="county-aspirants" aria-labelledby="countyAspirantsTitle">
-                <div class="county-section-head">
-                    <h2 id="countyAspirantsTitle">Aspirants in {{ $county->name }}</h2>
-                    <a class="county-section-link" href="{{ route('aspirants.public', ['county' => $county->name]) }}">View all <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="county-aspirant-grid">
-                    @foreach($aspirants as $candidate)
-                        @include('aspirants.public._card', ['candidate' => $candidate])
-                    @endforeach
-                </div>
-            </section>
-        @else
-            <section class="county-empty">
-                <p>No approved aspirants have been added for {{ $county->name }} yet.</p>
-            </section>
-        @endif
     </div>
 </div>
 
@@ -93,7 +88,8 @@
     .county-hero-action { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3f3f46; border-radius: 11px; padding: 11px 18px; color: #d4d4d8; font-size: 13px; font-weight: 800; text-decoration: none; }
     .county-hero-action.primary { border-color: transparent; background: #059669; color: #fff; }
     .county-hero-image img { width: 100%; border-radius: 16px; object-fit: cover; }
-    .county-constituencies, .county-aspirants { margin-top: 30px; }
+    .county-constituencies { margin-top: 30px; }
+    .county-position-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .county-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
     .county-section-head h2 { margin: 0; font-size: 22px; font-weight: 800; }
     .county-section-link { color: #34d399; font-size: 13px; font-weight: 800; text-decoration: none; }
@@ -102,8 +98,7 @@
     .county-constituency-card:hover { border-color: #059669; }
     .county-constituency-name { font-size: 14px; font-weight: 800; }
     .county-constituency-meta { color: #71717a; font-size: 12px; }
-    .county-aspirant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
-    .county-empty { margin-top: 30px; border: 1px solid #27272a; border-radius: 16px; background: #111113; padding: 30px; text-align: center; color: #a1a1aa; }
-    @media (max-width: 820px) { .county-hero { grid-template-columns: 1fr; } }
+    @media (max-width: 820px) { .county-hero { grid-template-columns: 1fr; } .county-position-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .county-position-grid { grid-template-columns: 1fr; } }
 </style>
 @endsection

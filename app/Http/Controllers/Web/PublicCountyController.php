@@ -11,6 +11,11 @@ class PublicCountyController extends Controller
 {
     public function __construct(private PublicCountyService $counties) {}
 
+    public function index(): View
+    {
+        return view('counties.public.index', $this->counties->directoryData());
+    }
+
     public function show(County $county): View
     {
         return view('counties.public.show', $this->counties->dataFor($county));

@@ -142,6 +142,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/aspirants', [CandidateController::class, 'publicIndex'])->middleware('throttle:public-data')->name('aspirants.public');
     Route::get('/aspirants/{candidate}', [CandidateController::class, 'publicShow'])->middleware('throttle:public-data')->name('aspirants.show');
 
+    Route::get('/counties', [PublicCountyController::class, 'index'])->middleware('throttle:public-data')->name('counties.public');
     Route::get('/counties/{county}', [PublicCountyController::class, 'show'])->middleware('throttle:public-data')->name('county.show');
 });
 
@@ -409,15 +410,14 @@ Route::middleware('auth')->group(function () {
             Route::resource('donors', DonorController::class)->names('donors')->except(['show'])->middleware('permission:finance.view');
 
             Route::resource('/blocs', BlocController::class)->names('blocs')->except(['show'])->middleware('permission:data.view');
-            // `show` is excluded: the admin controller has no show action, and
-            // GET /counties/{county} belongs to the public county page.
-            Route::resource('/counties', CountyController::class)->names('counties')->except(['show'])->middleware('permission:data.view');
+            // `show` is excluded: the admin controller has no show action.
+            Route::resource('/admin/counties', CountyController::class)->names('counties')->except(['show'])->middleware('permission:data.view');
             Route::resource('/constituencies', ConstituencyController::class)->names('constituencies')->except(['show'])->middleware('permission:data.view');
             Route::resource('/wards', WardController::class)->names('wards')->except(['show'])->middleware('permission:data.view');
             Route::get('/locations', [LocationController::class, 'adminIndex'])->middleware('permission:voters.view')->name('locations.index');
 
             Route::post('/blocs/import', [BlocController::class, 'import'])->middleware('permission:data.import')->name('blocs.import');
-            Route::post('/counties/import', [CountyController::class, 'import'])->middleware('permission:data.import')->name('counties.import');
+            Route::post('/admin/counties/import', [CountyController::class, 'import'])->middleware('permission:data.import')->name('counties.import');
             Route::post('/constituencies/import', [ConstituencyController::class, 'import'])->middleware('permission:data.import')->name('constituencies.import');
             Route::post('/wards/import', [WardController::class, 'import'])->middleware('permission:data.import')->name('wards.import');
             Route::post('/stations/import', [DashboardController::class, 'importStations'])->middleware('permission:data.import')->name('stations.import');
