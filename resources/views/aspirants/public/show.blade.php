@@ -111,12 +111,6 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
         font-weight:700; letter-spacing:.3px;
     }
     .summary-videos-title i { color:var(--kenya-red); }
-    .summary-videos .page-rail,
-    .summary-videos .rail-videos { gap:12px; }
-    /* Keep the sidebar reel compact: a by-the-way, not the main event. */
-    .summary-videos .rail-video { max-width:250px; margin-inline:auto; }
-    .summary-videos .rail-video-label { min-height:32px; padding:7px 10px; font-size:12px; }
-    .summary-videos .rail-video-play { width:44px; height:44px; font-size:14px; }
 .profile-card { background:rgba(20,20,20,.86); border:1px solid rgba(255,255,255,.075); border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.26); }
 .profile-card-head { display:flex; align-items:center; gap:12px; padding:22px 24px; border-bottom:1px solid rgba(255,255,255,.06); }
 .profile-card-head .bar { width:4px; height:28px; border-radius:99px; background:linear-gradient(180deg,var(--kenya-red),var(--kenya-green)); }
@@ -203,10 +197,6 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
     .profile-name { font-size:34px; }
     .profile-actions { flex-wrap:wrap; }
     .profile-content { grid-template-columns:1fr; }
-    /* Single column makes the card full width, so cap the videos instead of
-       letting them stretch to ~900px. */
-    .summary-videos .rail-videos { flex-direction:row; flex-wrap:wrap; }
-    .summary-videos .rail-video { flex:1 1 200px; max-width:320px; }
     .priority-grid { grid-template-columns:1fr 1fr; }
 }
 @media (max-width: 560px) {
@@ -341,7 +331,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                 </div>
                 <div class="summary-videos">
                     <div class="summary-videos-title"><i class="fas fa-circle-play"></i> Campaign Videos</div>
-                    @include('components.video-rail', ['railSticky' => false])
+                    @include('components.video-rail', ['railSticky' => false, 'compact' => true])
                 </div>
             </aside>
 

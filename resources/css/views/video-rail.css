@@ -1,0 +1,144 @@
+/* Shared video-reel layer.
+ *
+ * Single source of truth for every video rail on the site (aspirant pages,
+ * listing pages, news, events, parties, coalitions, campaign tools). Pages
+ * opt into sizing with variant classes instead of overriding these rules
+ * locally:
+ *   .page-rail--compact  - sidebar-sized reel (narrower cards, smaller chrome)
+ *   .with-rail--majority - 70/30 grid/sidebar split (desktop only)
+ */
+
+/* ---------- rail ---------- */
+.page-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+/* No max-height or overflow here: capping the rail turns it into its own
+   scroll container, which breaks the sticky pin and collapses the cards
+   below the videos. The rail is free to be taller than the viewport;
+   sticky releases it at the end of its containing block. */
+.page-rail[data-rail-sticky] {
+    position: sticky;
+    top: 88px;
+    align-self: start;
+}
+.page-rail > * { flex-shrink: 0; }
+
+.rail-videos { display: flex; flex-direction: column; gap: 18px; }
+
+/* Matches the campaign media card on the aspirant page. */
+.rail-video {
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 13px;
+    background: #111;
+}
+.rail-video-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 9px 12px;
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .3px;
+}
+.rail-video-label i.fa-youtube { color: #ff3434; }
+.rail-video-thumb {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border: 0;
+    padding: 0;
+    background: #000;
+    cursor: pointer;
+}
+.rail-video-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.rail-video-play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 4px;
+    background: rgba(187,0,0,.92);
+    color: #fff;
+    font-size: 18px;
+    transition: background .2s, transform .2s;
+}
+.rail-video-thumb:hover .rail-video-play {
+    background: #00A86B;
+    transform: scale(1.07);
+}
+.rail-video-frame {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border: 0;
+    background: #000;
+}
+
+/* ---------- compact variant: a by-the-way, not the main event ---------- */
+.page-rail--compact { gap: 12px; }
+.page-rail--compact .rail-videos { gap: 12px; }
+.page-rail--compact .rail-video { max-width: 250px; margin-inline: auto; }
+.page-rail--compact .rail-video-label { min-height: 32px; padding: 7px 10px; font-size: 12px; }
+.page-rail--compact .rail-video-play { width: 44px; height: 44px; font-size: 14px; }
+
+@media (max-width: 980px) {
+    .page-rail--compact .rail-videos { flex-direction: row; flex-wrap: wrap; }
+    .page-rail--compact .rail-video { flex: 1 1 200px; max-width: 320px; }
+}
+
+/* ---------- rail layout: card grid beside the rail ---------- */
+.with-rail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 523px;
+    gap: 28px;
+    /* Not `align-items: start`: the side column has to stretch to the full row
+       height, otherwise it collapses to the rail's own height and the sticky
+       rail inside it has nowhere to travel. */
+    align-items: stretch;
+}
+.with-rail-main { min-width: 0; }
+.with-rail-side { min-width: 0; }
+
+/* ---------- majority variant: grid ~70%, sidebar ~30% (desktop only) ---------- */
+@media (min-width: 1181px) {
+    .with-rail--majority {
+        grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+    }
+}
+
+@media (max-width: 1180px) {
+    .with-rail {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+    }
+    .with-rail-side .page-rail[data-rail-sticky] { position: static; }
+    /* Stacked rail would run far past the fold, so pair the videos up. */
+    .with-rail-side .rail-videos {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .with-rail-side .rail-video { flex: 1 1 260px; }
+}
+
+@media (max-width: 640px) {
+    .with-rail-side .rail-videos { flex-direction: column; }
+    .with-rail-side .rail-video { flex: 1 1 auto; }
+}

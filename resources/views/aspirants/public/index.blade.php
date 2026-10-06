@@ -301,20 +301,11 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 /* GRID */
 /* 3 aspirant cards per row beside the sticky video rail, matching the
-   public news page. The rail takes ~30% and the grid ~70%: fractional
-   columns, so the split holds at 1280px, 1440px and 1920px without any
-   hardcoded pixel widths. Scoped to this page; the shared rail component
-   keeps its own default for its other consumers. */
+   public news page. The 70/30 split comes from the shared rail layer
+   (variant="majority" on the layout component below). */
 .asp-rail-wrap {
     max-width: 1280px; margin: 0 auto;
     padding: 0 32px 80px;
-}
-/* Desktop only: below 1181px the shared rail component stacks the sidebar
-   under the grid with its own rules, so this must not override them. */
-@media (min-width: 1181px) {
-    .asp-rail-wrap .with-rail {
-        grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-    }
 }
 /* The listing blocks bring their own 1280 max-width and 32px padding, which
    would fight the rail layout, so drop them when nested in the rail wrap. */
@@ -825,7 +816,7 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
 
 <!-- GRID + VIDEO RAIL -->
 <div class="asp-rail-wrap">
-<x-video-rail-layout>
+<x-video-rail-layout variant="majority">
 @if($showPositionGroups ?? false)
     <div class="county-aspirant-groups">
         @forelse($positionGroups as $group)

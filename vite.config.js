@@ -8,7 +8,9 @@ export default defineConfig({
                 'resources/css/app.css',
                  'resources/js/app.js',
                  'resources/css/views/landing.css',
-                 'resources/js/views/landing.js',
+                  'resources/js/views/landing.js',
+                  'resources/css/views/video-rail.css',
+                  'resources/js/views/video-rail.js',
                  'resources/js/views/live-stats.js'
                 ],
             refresh: true,
