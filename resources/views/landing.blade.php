@@ -205,6 +205,7 @@
                 @include('components.video-rail', [
                     'videos' => [['id' => 'SNAMMJbnSFo', 'title' => 'My Leader Kenya']],
                     'railSticky' => false,
+                    'compact' => false,
                 ])
             </div>
 

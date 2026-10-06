@@ -5,8 +5,9 @@
     ];
     // Styling and click-to-play live in the shared video-rail layer
     // (resources/css|js/views/video-rail.js); pushed once no matter how
-    // many rails a page renders. Pass ['compact' => true] for the
-    // sidebar-sized variant.
+    // many rails a page renders. Compact is the default; pass
+    // ['compact' => false] for the full-size rail.
+    $compact = $compact ?? true;
 @endphp
 @pushOnce('styles')
     @vite('resources/css/views/video-rail.css')
@@ -15,7 +16,7 @@
     @vite('resources/js/views/video-rail.js')
 @endPushOnce
 
-<div class="page-rail{{ ! empty($compact) ? ' page-rail--compact' : '' }}" @if($railSticky ?? true) data-rail-sticky @endif>
+<div class="page-rail{{ $compact ? ' page-rail--compact' : '' }}" @if($railSticky ?? true) data-rail-sticky @endif>
     <div class="rail-videos">
         @foreach($videos as $video)
             <div class="rail-video" data-vs-video data-video-id="{{ $video['id'] }}">
