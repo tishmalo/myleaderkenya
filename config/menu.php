@@ -2,11 +2,6 @@
 
 return [
     'frontend' => [
-        [
-            'label' => 'Polls',
-            'route' => 'polls.public',
-            'active' => ['polls.public', 'poll.show'],
-        ],
         // [
         //     'label' => 'About',
         //     'route' => 'about.public',
@@ -41,6 +36,11 @@ return [
             'label' => 'Events',
             'route' => 'events.public',
             'active' => ['events.public', 'events.show'],
+        ],
+        [
+            'label' => 'Polls',
+            'route' => 'polls.public',
+            'active' => ['polls.public', 'poll.show'],
         ],
         [
             'label' => 'Services',
