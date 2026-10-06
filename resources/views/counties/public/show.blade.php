@@ -4,6 +4,7 @@
 @section('meta_description', 'Aspirants, official pages and community links for '.$county->name.', Kenya.')
 
 @section('content')
+@include('components.aspirant-card-styles')
 <div class="county-page">
     <div class="county-page-shell">
         @include('components.frontend-nav')

@@ -22,7 +22,7 @@
                         <span class="pages-links-title-txt">{{ $resourceLink->display_title }}</span>
                         <span class="pages-links-platform"><i class="{{ $resourceLink->platform_icon }}" aria-hidden="true"></i> {{ $resourceLink->platform_label }}</span>
                         @if($audience->isNotEmpty())
-                            <span class="pages-links-audience">{{ $audience->implode(' &bull; ') }}</span>
+                            <span class="pages-links-audience">{!! $audience->map(fn ($part) => e($part))->implode(' &bull; ') !!}</span>
                         @endif
                         @if($resourceLink->comment)
                             <p class="pages-links-comment">{{ $resourceLink->comment }}</p>

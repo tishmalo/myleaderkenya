@@ -4,6 +4,7 @@
 @section('meta_description', 'Browse all Kenyan counties and meet the aspirants running in each one.')
 
 @section('content')
+@include('components.aspirant-card-styles')
 <div class="county-directory">
     <div class="flag-stripe"></div>
     @include('components.frontend-nav')
@@ -56,3 +57,7 @@
     @media (max-width: 640px) { .county-directory-hero, .county-directory-shell { padding-left: 16px; padding-right: 16px; } }
 </style>
 @endsection
+
+@push('styles')
+    @vite('resources/css/views/landing.css')
+@endpush
