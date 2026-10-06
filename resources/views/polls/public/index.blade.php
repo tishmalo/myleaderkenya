@@ -48,6 +48,7 @@
 @endsection
 
 @push('styles')
+    @vite('resources/css/views/landing.css')
 <style>
 .polls-public-shell { background:#050505; color:#fff; }
 .polls-public-hero { padding: clamp(40px,8vw,90px) 0 0; }
@@ -56,4 +57,24 @@
 .empty-title { margin:0; font-size:clamp(24px,4vw,36px); font-weight:800; }
 .empty-text { margin:0; color:#a1a1aa; max-width:520px; }
 </style>
+@endpush
+
+@push('scripts')
+    <script>
+    document.querySelectorAll('[data-poll-copy-link]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            var url = btn.getAttribute('data-poll-copy-link');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function () {
+                    var old = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Link copied';
+                    window.setTimeout(function () { btn.innerHTML = old; }, 2000);
+                });
+            } else {
+                window.prompt('Copy this poll link:', url);
+            }
+        });
+    });
+    </script>
 @endpush
