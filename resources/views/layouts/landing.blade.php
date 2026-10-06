@@ -8,7 +8,7 @@
     <!-- SEO Meta Tags -->
     <title>@yield('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')</title>
     <meta name="description" content="@yield('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')">
-    <meta name="keywords" content="Kenya elections, 2027 Kenya elections, Niko Kadi, Tuko Kadi, Kenya aspirants, campaign software, election tools, voter registration, Kenya politics, election candidates database">
+    <meta name="keywords" content="Kenya elections, 2027 Kenya elections, Niko Kadi, Kenya aspirants, campaign software, election tools, voter registration, Kenya politics, election candidates database">
     <meta name="author" content="My Leader Kenya">
     <meta name="robots" content="index, follow">
 

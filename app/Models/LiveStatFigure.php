@@ -15,7 +15,7 @@ class LiveStatFigure extends Model implements AuditableContract
 
     public const METRICS = [
         'confirmed_voters' => 'Confirmed Voters',
-        'total_users' => 'Tuko Kadi Members',
+        'total_users' => 'My Leader Kenya Members',
         'total_messages' => 'Community Messages',
         'stations_count' => 'Polling Stations',
     ];

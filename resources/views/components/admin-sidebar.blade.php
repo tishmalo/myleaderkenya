@@ -57,7 +57,7 @@
         <div class="w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0">
             <img
                 src="{{ asset($brand['logo'] ?? 'images/myleader.png') }}"
-                alt="Tuko Kadi Logo"
+                alt="My Leader Kenya Logo"
                 class="w-full h-full object-cover"
             >
         </div>

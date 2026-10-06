@@ -133,8 +133,8 @@
         <div class="mt-6 text-center">
             <p class="text-zinc-400 text-sm">
                 Don't have an account?
-                <a href="{{ route('landing') }}" class="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
-                    Join Tuko Kadi
+                <a href="{{ route('register') }}" class="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
+                    Join My Leader Kenya
                 </a>
             </p>
         </div>

@@ -15,7 +15,7 @@
             </div>
             <div class="stat-card white">
                 <div class="stat-num" id="live-total-users">{{ number_format($totalUsers ?? 0) }}</div>
-                <div class="stat-label">Tuko Kadi Members</div>
+                <div class="stat-label">My Leader Kenya Members</div>
                 <div class="stat-meta">&nbsp;</div>
                 <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
             </div>

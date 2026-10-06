@@ -54,7 +54,7 @@
                     <label class="block text-sm text-zinc-400 mb-2">Account Name / Payee Name</label>
                     <input type="text" name="account_name"
                            class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500"
-                           placeholder="John Doe / Tuko Kadi Campaign">
+                           placeholder="John Doe / My Leader Kenya Campaign">
                 </div>
 
                 <!-- Bank Name (for bank transfers) -->

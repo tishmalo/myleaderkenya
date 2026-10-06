@@ -340,13 +340,13 @@
                     <h2>Introduction</h2>
                 </div>
                 <p>
-                    Welcome to <strong>Tuko Kadi</strong>. We are committed to protecting your privacy while providing a platform
+                    Welcome to <strong>My Leader Kenya</strong>. We are committed to protecting your privacy while providing a platform
                     that helps young Kenyans register to vote and engage in civic discussions.
                 </p>
                 <div class="pp-callout info">
                     <i class="fas fa-leaf pp-callout-icon"></i>
                     <div class="pp-callout-text">
-                        Tuko Kadi is a <strong>non-partisan youth civic initiative</strong>. We do not use your data for political campaigning or targeting.
+                        My Leader Kenya is a <strong>non-partisan youth civic initiative</strong>. We do not use your data for political campaigning or targeting.
                     </div>
                 </div>
             </section>
@@ -468,7 +468,7 @@
                     <h2>Changes to This Policy</h2>
                 </div>
                 <p>
-                    We may update this Privacy Policy from time to time. Continued use of Tuko Kadi after changes
+                    We may update this Privacy Policy from time to time. Continued use of My Leader Kenya after changes
                     constitutes acceptance of the updated policy. We will notify users of significant changes via
                     the platform.
                 </p>
@@ -482,7 +482,7 @@
         <div class="pp-ack-inner">
             <div class="pp-ack-flag"></div>
             <p class="pp-ack-text">
-                By using <strong>Tuko Kadi</strong>, you acknowledge that you have read and understood this Privacy Policy,
+                By using <strong>My Leader Kenya</strong>, you acknowledge that you have read and understood this Privacy Policy,
                 including the fact that <strong>location data and public messages are visible to others in your constituency</strong>.
                 Your participation helps build a more democratic Kenya. 🇰🇪
             </p>
@@ -491,7 +491,7 @@
 
     <!-- Footer -->
     <footer>
-        <p class="footer-copy">&copy; {{ date('Y') }} Tuko Kadi. All rights reserved.</p>
+        <p class="footer-copy">&copy; {{ date('Y') }} My Leader Kenya. All rights reserved.</p>
         <div class="footer-links">
             <a href="{{ route('privacy') }}">Privacy Policy</a>
             <a href="#">Terms of Service</a>

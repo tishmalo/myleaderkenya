@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', $pageData['content']['meta_title'] ?: ($pageData['content']['title'] . ' - Tuko Kadi'))
+@section('title', $pageData['content']['meta_title'] ?: ($pageData['content']['title'] . ' - My Leader Kenya'))
 @section('meta_description', $pageData['content']['meta_description'] ?: $pageData['content']['excerpt'])
 
 @if($pageData['key'] === 'live-stats')
@@ -87,12 +87,12 @@ body { font-family:'Barlow',sans-serif; background:#0a0a0a; color:var(--kenya-wh
                 <div class="stat-card green">
                     <div class="stat-num" id="live-confirmed-voters">{{ number_format($voterStats['confirmedVoters'] ?? 0) }}</div>
                     <div class="stat-label">Confirmed Voters</div>
-                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? '—' }}</span></div>
+                    <div class="stat-meta">Avg age: <span id="live-avg-age">{{ $voterStats['avgAge'] ?? 'ï¿½' }}</span></div>
                     <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
                 </div>
                 <div class="stat-card white">
                     <div class="stat-num" id="live-total-users">{{ number_format($totalUsers ?? 0) }}</div>
-                    <div class="stat-label">Tuko Kadi Members</div>
+                    <div class="stat-label">My Leader Kenya Members</div>
                     <div class="stat-meta">&nbsp;</div>
                     <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
                 </div>

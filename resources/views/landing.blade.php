@@ -405,7 +405,7 @@
                 </div>
                 <div class="stat-card white">
                     <div class="stat-num" id="live-total-users">{{ number_format($totalUsers ?? 0) }}</div>
-                    <div class="stat-label">Tuko Kadi Members</div>
+                    <div class="stat-label">My Leader Kenya Members</div>
                     <div class="stat-meta">&nbsp;</div>
                     <div class="live-badge"><span class="live-dot" style="background:#00A86B"></span><span class="live-text">Live</span></div>
                 </div>
@@ -556,8 +556,8 @@
     <section id="about" class="about-section">
         <div class="about-inner">
             <div class="section-label" style="display:block;margin-bottom:16px">Who We Are</div>
-            <h2 class="section-title" style="margin-bottom:28px">About My Leader Kenya Tuko Kadi Program</h2>
-            <p class="about-text">Tuko Kadi is a non-partisan youth initiative dedicated to increasing voter registration among young Kenyans ahead of the 2027 General Election. We believe that when the youth actively participate in democracy, Kenya becomes stronger, more accountable, and truly representative of its future leaders.</p>
+            <h2 class="section-title" style="margin-bottom:28px">About the My Leader Kenya Program</h2>
+            <p class="about-text">My Leader Kenya is a non-partisan youth initiative dedicated to increasing voter registration among young Kenyans ahead of the 2027 General Election. We believe that when the youth actively participate in democracy, Kenya becomes stronger, more accountable, and truly representative of its future leaders.</p>
         </div>
     </section>
 
@@ -579,8 +579,8 @@
 
     <!-- FOOTER -->
     <footer>
-        <div class="footer-logo">TUKO KADI</div>
-        <p class="footer-copy">&copy; {{ date('Y') }} Tuko Kadi. All rights reserved.</p>
+        <div class="footer-logo">MY LEADER KENYA</div>
+        <p class="footer-copy">&copy; {{ date('Y') }} My Leader Kenya. All rights reserved.</p>
         <div class="footer-links">
             <a href="{{ route('privacy') }}">Privacy Policy</a>
             <a href="{{ route('about.public') }}">About Us</a>

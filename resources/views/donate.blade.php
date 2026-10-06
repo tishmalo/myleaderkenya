@@ -329,8 +329,8 @@
     </div>
 
     <footer>
-        <div class="footer-logo">TUKO KADI</div>
-        <p class="footer-copy">&copy; {{ date('Y') }} Tuko Kadi. All rights reserved.</p>
+        <div class="footer-logo">MY LEADER KENYA</div>
+        <p class="footer-copy">&copy; {{ date('Y') }} My Leader Kenya. All rights reserved.</p>
         <div class="footer-links">
             <a href="{{ route('privacy') }}">Privacy Policy</a>
             <a href="#">Terms of Service</a>
