@@ -86,6 +86,9 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-center whitespace-nowrap">
+                            <a href="{{ route('links.edit', $link) }}" class="text-blue-400 hover:text-blue-500 mx-2" title="Edit">
+                                <i class="fas fa-pen"></i>
+                            </a>
                             @if($link->approval_status !== 'approved')
                                 <form action="{{ route('links.approval', $link) }}" method="POST" class="inline">
                                     @csrf

@@ -359,6 +359,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/links', [LinkController::class, 'index'])->middleware('permission:frontend.view')->name('links.index');
             Route::get('/admin/links/create', [LinkController::class, 'create'])->middleware('permission:frontend.update')->name('links.create');
             Route::post('/admin/links', [LinkController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:3,10'])->name('links.store');
+            Route::get('/admin/links/{resourceLink}/edit', [LinkController::class, 'edit'])->middleware('permission:frontend.update')->name('links.edit');
+            Route::put('/admin/links/{resourceLink}', [LinkController::class, 'update'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('links.update');
             Route::patch('/admin/links/{resourceLink}/approval', [LinkController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('links.approval');
             Route::delete('/admin/links/{resourceLink}', [LinkController::class, 'destroy'])->middleware('permission:frontend.update')->name('links.destroy');
             Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');

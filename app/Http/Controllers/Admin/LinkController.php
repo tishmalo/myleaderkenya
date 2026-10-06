@@ -30,7 +30,14 @@ class LinkController extends Controller
     {
         return view('admin.links.create', $this->userLinks->formData(
             array_values(array_filter((array) $request->old('candidate_id')))
-        ));
+        ) + [
+            'form' => [
+                'action' => route('links.store'),
+                'method' => 'POST',
+                'submit_label' => 'Submit for review',
+                'note' => 'It stays private until an administrator approves it.',
+            ],
+        ]);
     }
 
     public function store(StoreUserLinkRequest $request): RedirectResponse
@@ -39,6 +46,31 @@ class LinkController extends Controller
 
         return redirect()->route('links.index')
             ->with('success', 'Link submitted and awaiting approval.');
+    }
+
+    public function edit(Request $request, ResourceLink $resourceLink): View
+    {
+        $selected = array_values(array_filter((array) $request->old('candidate_id')));
+
+        return view('admin.links.edit', $this->userLinks->formData(
+            $selected !== [] ? $selected : array_filter([$resourceLink->candidate_id])
+        ) + [
+            'link' => $resourceLink,
+            'form' => [
+                'action' => route('links.update', $resourceLink),
+                'method' => 'PUT',
+                'submit_label' => 'Save changes',
+                'note' => 'The approval status stays exactly as it is.',
+            ],
+        ]);
+    }
+
+    public function update(StoreUserLinkRequest $request, ResourceLink $resourceLink): RedirectResponse
+    {
+        $this->links->update($resourceLink, $request->validated());
+
+        return redirect()->route('links.index')
+            ->with('success', 'Link updated successfully.');
     }
 
     public function updateApproval(Request $request, ResourceLink $resourceLink): RedirectResponse

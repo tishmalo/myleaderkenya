@@ -496,6 +496,74 @@ class ResourceLinkFeatureTest extends TestCase
         ]);
     }
 
+    public function test_guests_are_redirected_from_the_admin_edit_pages(): void
+    {
+        $this->get(route('links.edit', 1))->assertRedirect(route('login'));
+        $this->put(route('links.update', 1), [])->assertRedirect(route('login'));
+    }
+
+    public function test_admin_can_open_the_edit_form_with_current_values(): void
+    {
+        $county = $this->county();
+
+        $this->actingAs($this->submitter())->post(route('account.links.store'), $this->payload($county));
+        $link = ResourceLink::firstOrFail();
+
+        $this->actingAs($this->admin())
+            ->get(route('links.edit', $link))
+            ->assertOk()
+            ->assertSee('Edit Link/Page')
+            ->assertSee('Nyandarua County Announcements', false)
+            ->assertSee('Save changes');
+    }
+
+    public function test_admin_can_update_a_link_without_changing_its_approval(): void
+    {
+        $county = $this->county();
+
+        $this->actingAs($this->submitter())->post(route('account.links.store'), $this->payload($county));
+        $link = ResourceLink::firstOrFail();
+
+        $this->actingAs($this->admin())
+            ->from(route('links.index'))
+            ->patch(route('links.approval', $link), ['status' => 'approved']);
+
+        $this->actingAs($this->admin())
+            ->put(route('links.update', $link), $this->payload($county, [
+                'title' => 'Renamed County Group',
+                'url' => 'https://www.facebook.com/groups/renamed/',
+                'followers' => '999',
+            ]))
+            ->assertRedirect(route('links.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('resource_links', [
+            'id' => $link->id,
+            'title' => 'Renamed County Group',
+            'url' => 'https://www.facebook.com/groups/renamed/',
+            'followers' => 999,
+            'approval_status' => ResourceLink::STATUS_APPROVED,
+        ]);
+    }
+
+    public function test_admin_update_validates_the_link(): void
+    {
+        $county = $this->county();
+
+        $this->actingAs($this->submitter())->post(route('account.links.store'), $this->payload($county));
+        $link = ResourceLink::firstOrFail();
+
+        $this->actingAs($this->admin())
+            ->from(route('links.edit', $link))
+            ->put(route('links.update', $link), $this->payload($county, ['title' => '']))
+            ->assertSessionHasErrors('title');
+
+        $this->assertDatabaseHas('resource_links', [
+            'id' => $link->id,
+            'title' => 'Nyandarua County Announcements',
+        ]);
+    }
+
     public function test_county_page_lists_its_aspirants_and_constituencies(): void
     {
         $county = $this->county();
