@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\PublicPulseController;
 use App\Http\Controllers\Admin\PublicPulseJobController;
 use App\Http\Controllers\Admin\PublicPulseSourceAccountController;
 use App\Http\Controllers\Admin\RecaptchaSettingController;
+use App\Http\Controllers\Admin\SitemapController as AdminSitemapController;
 use App\Http\Controllers\Admin\SmsBalanceRequestController;
 use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Admin\SpamFilterController;
@@ -78,6 +79,7 @@ use App\Http\Controllers\Web\PollCommentController;
 use App\Http\Controllers\Web\PollController as WebPollController;
 use App\Http\Controllers\Web\PollVoteController;
 use App\Http\Controllers\Web\PublicCountyController;
+use App\Http\Controllers\Web\SitemapController as WebSitemapController;
 use App\Http\Controllers\Web\UserEventController;
 use App\Http\Controllers\Web\UserLinkController;
 use App\Http\Controllers\Web\UserNewsArticleController;
@@ -144,6 +146,9 @@ Route::middleware('throttle:web')->group(function () {
 
     Route::get('/counties', [PublicCountyController::class, 'index'])->middleware('throttle:public-data')->name('counties.public');
     Route::get('/counties/{county}', [PublicCountyController::class, 'show'])->middleware('throttle:public-data')->name('county.show');
+
+    Route::get('/sitemap.xml', [WebSitemapController::class, 'index'])->middleware('throttle:public-data')->name('sitemap.xml');
+    Route::get('/sitemaps/{file}.xml', [WebSitemapController::class, 'file'])->middleware('throttle:public-data')->where('file', '[a-z0-9-]+')->name('sitemap.file');
 });
 
 Route::get('/payments/ipay/callback', [AspirantTokenController::class, 'ipayCallback'])->name('payments.ipay.callback');
@@ -282,6 +287,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/admin/spam-filter/rules', [SpamFilterController::class, 'storeRule'])->middleware('permission:settings.update')->name('spam-filter.rules.store');
             Route::patch('/admin/spam-filter/rules/{spamRule}', [SpamFilterController::class, 'toggleRule'])->middleware('permission:settings.update')->name('spam-filter.rules.toggle');
             Route::delete('/admin/spam-filter/rules/{spamRule}', [SpamFilterController::class, 'destroyRule'])->middleware('permission:settings.update')->name('spam-filter.rules.destroy');
+            Route::get('/admin/sitemap', [AdminSitemapController::class, 'index'])->middleware('permission:frontend.view')->name('sitemap.admin');
+            Route::post('/admin/sitemap/regenerate', [AdminSitemapController::class, 'regenerate'])->middleware(['permission:frontend.update', 'throttle:6,10'])->name('sitemap.regenerate');
             Route::get('/notifications/emails', [NotificationEmailController::class, 'index'])->middleware('permission:settings.view')->name('notification-emails.index');
             Route::get('/notifications/emails/{key}/edit', [NotificationEmailController::class, 'edit'])->middleware('permission:settings.view')->name('notification-emails.edit');
             Route::put('/notifications/emails/{key}', [NotificationEmailController::class, 'update'])->middleware('permission:settings.update')->name('notification-emails.update');
