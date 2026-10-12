@@ -287,8 +287,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/admin/spam-filter/rules', [SpamFilterController::class, 'storeRule'])->middleware('permission:settings.update')->name('spam-filter.rules.store');
             Route::patch('/admin/spam-filter/rules/{spamRule}', [SpamFilterController::class, 'toggleRule'])->middleware('permission:settings.update')->name('spam-filter.rules.toggle');
             Route::delete('/admin/spam-filter/rules/{spamRule}', [SpamFilterController::class, 'destroyRule'])->middleware('permission:settings.update')->name('spam-filter.rules.destroy');
-            Route::get('/admin/sitemap', [AdminSitemapController::class, 'index'])->middleware('permission:frontend.view')->name('sitemap.admin');
-            Route::post('/admin/sitemap/regenerate', [AdminSitemapController::class, 'regenerate'])->middleware(['permission:frontend.update', 'throttle:6,10'])->name('sitemap.regenerate');
+            Route::get('/admin/sitemap', [AdminSitemapController::class, 'index'])->middleware('permission:sitemap.view')->name('sitemap.admin');
+            Route::post('/admin/sitemap/regenerate', [AdminSitemapController::class, 'regenerate'])->middleware(['permission:sitemap.regenerate', 'throttle:6,10'])->name('sitemap.regenerate');
             Route::get('/notifications/emails', [NotificationEmailController::class, 'index'])->middleware('permission:settings.view')->name('notification-emails.index');
             Route::get('/notifications/emails/{key}/edit', [NotificationEmailController::class, 'edit'])->middleware('permission:settings.view')->name('notification-emails.edit');
             Route::put('/notifications/emails/{key}', [NotificationEmailController::class, 'update'])->middleware('permission:settings.update')->name('notification-emails.update');
@@ -314,7 +314,9 @@ Route::middleware('auth')->group(function () {
             Route::patch('/admin/parliament-members/{parliamentMember}/publish', [ParliamentMemberController::class, 'publish'])->middleware(['permission:aspirants.approve', 'throttle:30,1'])->name('parliament-members.publish');
             Route::post('/admin/parliament-members/{parliamentMember}/retry', [ParliamentMemberController::class, 'retry'])->middleware(['permission:aspirants.update', 'throttle:30,1'])->name('parliament-members.retry');
             Route::resource('candidates', CandidateController::class)->except(['show'])->middleware('permission:aspirants.view');
-            Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy'])->middleware('permission:frontend.view');
+            Route::get('/tags', [TagController::class, 'index'])->middleware('permission:tags.view')->name('tags.index');
+            Route::post('/tags', [TagController::class, 'store'])->middleware('permission:tags.create')->name('tags.store');
+            Route::delete('/tags/{tag}', [TagController::class, 'destroy'])->middleware('permission:tags.delete')->name('tags.destroy');
             Route::get('/admin/party-management', [PoliticalPartyManagementController::class, 'index'])->middleware('permission:parties.view')->name('party-management.index');
             Route::post('/admin/party-management/officials', [PoliticalPartyManagementController::class, 'storeOfficial'])->middleware('permission:parties.update')->name('party-management.officials.store');
             Route::patch('/admin/party-management/parties/{politicalParty}/officials/{user}', [PoliticalPartyManagementController::class, 'status'])->middleware('permission:parties.update')->name('party-management.officials.status');
@@ -330,43 +332,49 @@ Route::middleware('auth')->group(function () {
                 ->names('coalitions')
                 ->except(['show'])->middleware('permission:parties.view');
 
-            Route::get('/admin/news', [NewsArticleController::class, 'index'])->middleware('permission:frontend.view')->name('news.index');
-            Route::get('/admin/news/create', [NewsArticleController::class, 'create'])->middleware('permission:frontend.view')->name('news.create');
-            Route::post('/admin/news', [NewsArticleController::class, 'store'])->middleware('permission:frontend.update')->name('news.store');
-            Route::get('/admin/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:frontend.view')->name('news.edit');
-            Route::put('/admin/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:frontend.update')->name('news.update');
-            Route::delete('/admin/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:frontend.update')->name('news.destroy');
+            Route::get('/admin/news', [NewsArticleController::class, 'index'])->middleware('permission:news.view')->name('news.index');
+            Route::get('/admin/news/create', [NewsArticleController::class, 'create'])->middleware('permission:news.create')->name('news.create');
+            Route::post('/admin/news', [NewsArticleController::class, 'store'])->middleware('permission:news.create')->name('news.store');
+            Route::get('/admin/news/{news}/edit', [NewsArticleController::class, 'edit'])->middleware('permission:news.update')->name('news.edit');
+            Route::put('/admin/news/{news}', [NewsArticleController::class, 'update'])->middleware('permission:news.update')->name('news.update');
+            Route::delete('/admin/news/{news}', [NewsArticleController::class, 'destroy'])->middleware('permission:news.delete')->name('news.destroy');
 
-            Route::get('/news-comments', [NewsCommentController::class, 'index'])->middleware('permission:frontend.view')->name('news-comments.index');
-            Route::put('/news-comments/{newsComment}', [NewsCommentController::class, 'update'])->middleware('permission:frontend.update')->name('news-comments.update');
-            Route::delete('/news-comments/{newsComment}', [NewsCommentController::class, 'destroy'])->middleware('permission:frontend.update')->name('news-comments.destroy');
+            Route::get('/news-comments', [NewsCommentController::class, 'index'])->middleware('permission:news-comments.moderate')->name('news-comments.index');
+            Route::put('/news-comments/{newsComment}', [NewsCommentController::class, 'update'])->middleware('permission:news-comments.moderate')->name('news-comments.update');
+            Route::delete('/news-comments/{newsComment}', [NewsCommentController::class, 'destroy'])->middleware('permission:news-comments.moderate')->name('news-comments.destroy');
 
-            Route::get('/admin/polls', [PollController::class, 'index'])->middleware('permission:frontend.view')->name('polls.index');
-            Route::get('/admin/polls/create', [PollController::class, 'create'])->middleware('permission:frontend.view')->name('polls.create');
-            Route::get('/admin/polls/aspirants', [PollController::class, 'aspirantPicker'])->middleware('permission:frontend.view')->name('polls.aspirants');
-            Route::post('/admin/polls', [PollController::class, 'store'])->middleware('permission:frontend.update')->name('polls.store');
-            Route::get('/admin/polls/{poll}/edit', [PollController::class, 'edit'])->middleware('permission:frontend.view')->name('polls.edit');
-            Route::put('/admin/polls/{poll}', [PollController::class, 'update'])->middleware('permission:frontend.update')->name('polls.update');
-            Route::delete('/admin/polls/{poll}', [PollController::class, 'destroy'])->middleware('permission:frontend.update')->name('polls.destroy');
-            Route::get('/admin/polls/{poll}/results', [PollController::class, 'results'])->middleware('permission:frontend.view')->name('polls.results');
-            Route::get('/poll-comments', [PollController::class, 'pendingComments'])->middleware('permission:frontend.view')->name('poll-comments.index');
-            Route::put('/poll-comments/{pollComment}', [PollController::class, 'moderateComment'])->middleware('permission:frontend.update')->name('poll-comments.update');
-            Route::delete('/poll-comments/{pollComment}', [PollController::class, 'destroyComment'])->middleware('permission:frontend.update')->name('poll-comments.destroy');
+            Route::get('/admin/polls', [PollController::class, 'index'])->middleware('permission:polls.view')->name('polls.index');
+            Route::get('/admin/polls/create', [PollController::class, 'create'])->middleware('permission:polls.create')->name('polls.create');
+            Route::get('/admin/polls/aspirants', [PollController::class, 'aspirantPicker'])->middleware('permission:polls.view,polls.create,polls.update')->name('polls.aspirants');
+            Route::post('/admin/polls', [PollController::class, 'store'])->middleware('permission:polls.create')->name('polls.store');
+            Route::get('/admin/polls/{poll}/edit', [PollController::class, 'edit'])->middleware('permission:polls.update')->name('polls.edit');
+            Route::put('/admin/polls/{poll}', [PollController::class, 'update'])->middleware('permission:polls.update')->name('polls.update');
+            Route::delete('/admin/polls/{poll}', [PollController::class, 'destroy'])->middleware('permission:polls.delete')->name('polls.destroy');
+            Route::get('/admin/polls/{poll}/results', [PollController::class, 'results'])->middleware('permission:polls.view')->name('polls.results');
+            Route::get('/poll-comments', [PollController::class, 'pendingComments'])->middleware('permission:poll-comments.moderate')->name('poll-comments.index');
+            Route::put('/poll-comments/{pollComment}', [PollController::class, 'moderateComment'])->middleware('permission:poll-comments.moderate')->name('poll-comments.update');
+            Route::delete('/poll-comments/{pollComment}', [PollController::class, 'destroyComment'])->middleware('permission:poll-comments.moderate')->name('poll-comments.destroy');
 
-            Route::resource('/admin/events', AdminEventController::class)->names('events')->except(['show'])->middleware('permission:frontend.view');
-            Route::patch('/admin/events/{event}/approval', [AdminEventController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('events.approval');
+            Route::get('/admin/events', [AdminEventController::class, 'index'])->middleware('permission:events.view')->name('events.index');
+            Route::get('/admin/events/create', [AdminEventController::class, 'create'])->middleware('permission:events.create')->name('events.create');
+            Route::post('/admin/events', [AdminEventController::class, 'store'])->middleware('permission:events.create')->name('events.store');
+            Route::get('/admin/events/{event}/edit', [AdminEventController::class, 'edit'])->middleware('permission:events.update')->name('events.edit');
+            Route::match(['put', 'patch'], '/admin/events/{event}', [AdminEventController::class, 'update'])->middleware('permission:events.update')->name('events.update');
+            Route::delete('/admin/events/{event}', [AdminEventController::class, 'destroy'])->middleware('permission:events.delete')->name('events.destroy');
+            Route::patch('/admin/events/{event}/approval', [AdminEventController::class, 'updateApproval'])->middleware(['permission:events.approve', 'throttle:30,1'])->name('events.approval');
 
-            Route::get('/admin/links', [LinkController::class, 'index'])->middleware('permission:frontend.view')->name('links.index');
-            Route::get('/admin/links/create', [LinkController::class, 'create'])->middleware('permission:frontend.update')->name('links.create');
-            Route::post('/admin/links', [LinkController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:3,10'])->name('links.store');
-            Route::get('/admin/links/{resourceLink}/edit', [LinkController::class, 'edit'])->middleware('permission:frontend.update')->name('links.edit');
-            Route::put('/admin/links/{resourceLink}', [LinkController::class, 'update'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('links.update');
-            Route::patch('/admin/links/{resourceLink}/approval', [LinkController::class, 'updateApproval'])->middleware(['permission:frontend.update', 'throttle:30,1'])->name('links.approval');
-            Route::delete('/admin/links/{resourceLink}', [LinkController::class, 'destroy'])->middleware('permission:frontend.update')->name('links.destroy');
-            Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:frontend.view')->name('events.registrations');
-            Route::post('/admin/events/{event}/registrations/{registration}/resend', [AdminEventController::class, 'resendTicketEmail'])->middleware('permission:frontend.view')->name('events.registrations.resend');
-            Route::post('/admin/events/{event}/registrations/{registration}/tickets/generate', [AdminEventController::class, 'generateTickets'])->middleware('permission:frontend.view')->name('events.registrations.tickets.generate');
-            Route::post('/admin/events/{event}/registrations/{registration}/tickets/{ticket}/check-in', [AdminEventController::class, 'checkInTicket'])->middleware('permission:frontend.view')->name('events.tickets.checkin');
+            Route::get('/admin/links', [LinkController::class, 'index'])->middleware('permission:links.view')->name('links.index');
+            Route::get('/admin/links/create', [LinkController::class, 'create'])->middleware('permission:links.create')->name('links.create');
+            Route::post('/admin/links', [LinkController::class, 'store'])->middleware(['permission:links.create', 'throttle:3,10'])->name('links.store');
+            Route::get('/admin/links/{resourceLink}/edit', [LinkController::class, 'edit'])->middleware('permission:links.update')->name('links.edit');
+            Route::put('/admin/links/{resourceLink}', [LinkController::class, 'update'])->middleware(['permission:links.update', 'throttle:30,1'])->name('links.update');
+            Route::patch('/admin/links/{resourceLink}/approval', [LinkController::class, 'updateApproval'])->middleware(['permission:links.approve', 'throttle:30,1'])->name('links.approval');
+            Route::delete('/admin/links/{resourceLink}', [LinkController::class, 'destroy'])->middleware('permission:links.delete')->name('links.destroy');
+
+            Route::get('/admin/events/{event}/registrations', [AdminEventController::class, 'registrations'])->middleware('permission:events.view')->name('events.registrations');
+            Route::post('/admin/events/{event}/registrations/{registration}/resend', [AdminEventController::class, 'resendTicketEmail'])->middleware('permission:events.update')->name('events.registrations.resend');
+            Route::post('/admin/events/{event}/registrations/{registration}/tickets/generate', [AdminEventController::class, 'generateTickets'])->middleware('permission:events.update')->name('events.registrations.tickets.generate');
+            Route::post('/admin/events/{event}/registrations/{registration}/tickets/{ticket}/check-in', [AdminEventController::class, 'checkInTicket'])->middleware('permission:events.update')->name('events.tickets.checkin');
 
             Route::resource('candidate-token-packages', CandidateTokenPackageController::class)->except(['show'])->middleware('permission:tokens.view');
             Route::resource('candidate-token-rates', CandidateTokenRateController::class)->except(['show'])->middleware('permission:tokens.view');
@@ -386,18 +394,18 @@ Route::middleware('auth')->group(function () {
             Route::patch('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'update'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.update');
             Route::post('/admin/campaign-tool-requests/{campaignToolRequest}/spam', [CampaignToolRequestController::class, 'reportSpam'])->middleware('permission:campaign-tool-requests.update')->name('campaign-tool-requests.spam');
             Route::delete('/admin/campaign-tool-requests/{campaignToolRequest}', [CampaignToolRequestController::class, 'destroy'])->middleware('permission:campaign-tool-requests.delete')->name('campaign-tool-requests.destroy');
-            Route::get('/admin/public-pulse', [PublicPulseJobController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.index');
-            Route::post('/admin/public-pulse/jobs', [PublicPulseJobController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.jobs.store');
-            Route::put('/admin/public-pulse/homepage', [PublicPulseJobController::class, 'updateHomepage'])->middleware('permission:frontend.update')->name('public-pulse.homepage.update');
-            Route::get('/admin/public-pulse/jobs/{publicPulseJob}', [PublicPulseJobController::class, 'show'])->middleware('permission:frontend.view')->name('public-pulse.jobs.show');
-            Route::patch('/admin/public-pulse/jobs/{publicPulseJob}/sync', [PublicPulseJobController::class, 'sync'])->middleware(['permission:frontend.update', 'throttle:20,10'])->name('public-pulse.jobs.sync');
-            Route::post('/admin/public-pulse/jobs/{publicPulseJob}/retry', [PublicPulseJobController::class, 'retry'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.jobs.retry');
-            Route::get('/admin/public-pulse/legacy', [PublicPulseController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.legacy');
-            Route::get('/admin/public-pulse/x-sessions', [PublicPulseSourceAccountController::class, 'index'])->middleware('permission:frontend.view')->name('public-pulse.x-sessions.index');
-            Route::post('/admin/public-pulse/x-sessions', [PublicPulseSourceAccountController::class, 'store'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.x-sessions.store');
-            Route::put('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}', [PublicPulseSourceAccountController::class, 'update'])->middleware(['permission:frontend.update', 'throttle:10,10'])->name('public-pulse.x-sessions.update');
-            Route::patch('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}/check', [PublicPulseSourceAccountController::class, 'check'])->middleware(['permission:frontend.update', 'throttle:20,10'])->name('public-pulse.x-sessions.check');
-            Route::patch('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}/replace', [PublicPulseSourceAccountController::class, 'replace'])->middleware('permission:frontend.update')->name('public-pulse.x-sessions.replace');
+            Route::get('/admin/public-pulse', [PublicPulseJobController::class, 'index'])->middleware('permission:public-pulse.view')->name('public-pulse.index');
+            Route::post('/admin/public-pulse/jobs', [PublicPulseJobController::class, 'store'])->middleware(['permission:public-pulse.create', 'throttle:10,10'])->name('public-pulse.jobs.store');
+            Route::put('/admin/public-pulse/homepage', [PublicPulseJobController::class, 'updateHomepage'])->middleware('permission:public-pulse.update')->name('public-pulse.homepage.update');
+            Route::get('/admin/public-pulse/jobs/{publicPulseJob}', [PublicPulseJobController::class, 'show'])->middleware('permission:public-pulse.view')->name('public-pulse.jobs.show');
+            Route::patch('/admin/public-pulse/jobs/{publicPulseJob}/sync', [PublicPulseJobController::class, 'sync'])->middleware(['permission:public-pulse.update', 'throttle:20,10'])->name('public-pulse.jobs.sync');
+            Route::post('/admin/public-pulse/jobs/{publicPulseJob}/retry', [PublicPulseJobController::class, 'retry'])->middleware(['permission:public-pulse.update', 'throttle:10,10'])->name('public-pulse.jobs.retry');
+            Route::get('/admin/public-pulse/legacy', [PublicPulseController::class, 'index'])->middleware('permission:public-pulse.view')->name('public-pulse.legacy');
+            Route::get('/admin/public-pulse/x-sessions', [PublicPulseSourceAccountController::class, 'index'])->middleware('permission:public-pulse.view')->name('public-pulse.x-sessions.index');
+            Route::post('/admin/public-pulse/x-sessions', [PublicPulseSourceAccountController::class, 'store'])->middleware(['permission:public-pulse.update', 'throttle:10,10'])->name('public-pulse.x-sessions.store');
+            Route::put('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}', [PublicPulseSourceAccountController::class, 'update'])->middleware(['permission:public-pulse.update', 'throttle:10,10'])->name('public-pulse.x-sessions.update');
+            Route::patch('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}/check', [PublicPulseSourceAccountController::class, 'check'])->middleware(['permission:public-pulse.update', 'throttle:20,10'])->name('public-pulse.x-sessions.check');
+            Route::patch('/admin/public-pulse/x-sessions/{publicPulseSourceAccount}/replace', [PublicPulseSourceAccountController::class, 'replace'])->middleware('permission:public-pulse.update')->name('public-pulse.x-sessions.replace');
             Route::get('/admin/support-group-types', [SupportGroupTypeController::class, 'index'])->middleware('permission:support-groups.view')->name('support-group-types.index');
             Route::post('/admin/support-group-types', [SupportGroupTypeController::class, 'store'])->middleware('permission:support-groups.create')->name('support-group-types.store');
             Route::patch('/admin/support-group-types/{supportGroupType}', [SupportGroupTypeController::class, 'update'])->middleware('permission:support-groups.update')->name('support-group-types.update');
@@ -411,9 +419,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'index'])->middleware('permission:aspirants.view')->name('campaign-website-samples.index');
             Route::post('/admin/campaign-website-samples', [CampaignWebsiteSampleController::class, 'store'])->middleware('throttle:10,10')->name('campaign-website-samples.store');
             Route::delete('/admin/campaign-website-samples/{campaignWebsiteSample}', [CampaignWebsiteSampleController::class, 'destroy'])->middleware('throttle:30,1')->name('campaign-website-samples.destroy');
-            Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->middleware('permission:frontend.view')->name('frontend-pages.index');
-            Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->middleware('permission:frontend.view')->name('frontend-pages.edit');
-            Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->middleware('permission:frontend.update')->name('frontend-pages.update');
+            Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->middleware('permission:frontend-pages.view')->name('frontend-pages.index');
+            Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->middleware('permission:frontend-pages.update')->name('frontend-pages.edit');
+            Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->middleware('permission:frontend-pages.update')->name('frontend-pages.update');
 
             Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods')->except(['show'])->middleware('permission:finance.view');
             Route::resource('donors', DonorController::class)->names('donors')->except(['show'])->middleware('permission:finance.view');

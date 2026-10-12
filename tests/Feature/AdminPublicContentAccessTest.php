@@ -13,8 +13,8 @@ use Tests\TestCase;
 
 /**
  * Clerks (the admin role) work the Public Content queue: adding links/pages,
- * creating polls and publishing news. That module is gated by the
- * frontend.view / frontend.update permissions, which this suite pins down.
+ * creating polls and publishing news. That module is gated by module specific
+ * permissions under the Public Content group, which this suite pins down.
  */
 class AdminPublicContentAccessTest extends TestCase
 {
@@ -60,13 +60,13 @@ class AdminPublicContentAccessTest extends TestCase
     }
 
     /**
-     * Runs the granting migration again, the way a deploy would when the admin
+     * Runs the splitting migration again, the way a deploy would when the admin
      * role lost the permissions after the fact.
      */
-    private function runPublicContentGrantMigration(): void
+    private function runPublicContentMigration(): void
     {
         $migration = self::$publicContentGrantMigration ??= require database_path(
-            'migrations/2026_10_12_000001_grant_public_content_access_to_admin_role.php'
+            'migrations/2026_10_12_000002_split_public_content_permissions.php'
         );
 
         $migration->up();
@@ -74,11 +74,14 @@ class AdminPublicContentAccessTest extends TestCase
 
     public function test_admin_role_holds_the_public_content_permissions(): void
     {
-        $this->assertTrue($this->adminHasFrontendPermissions());
+        $this->assertTrue($this->adminHasPublicContentPermissions());
 
-        $this->assertFalse(
+        $this->assertSame(
+            0,
             Role::query()->where('name', Role::USER)->firstOrFail()
-                ->permissions()->where('name', 'frontend.view')->exists(),
+                ->permissions()
+                ->whereIn('name', Permission::query()->where('group', 'Public Content')->pluck('name'))
+                ->count(),
             'Regular users must not gain public content access.'
         );
     }
@@ -155,15 +158,15 @@ class AdminPublicContentAccessTest extends TestCase
 
     public function test_migration_restores_access_when_the_permissions_were_removed(): void
     {
-        $this->removeFrontendPermissionsFromAdminRole();
+        $this->removePublicContentPermissionsFromAdminRole();
 
         $clerk = $this->clerk();
 
         $this->actingAs($clerk)->get(route('links.index'))->assertForbidden();
 
-        $this->runPublicContentGrantMigration();
+        $this->runPublicContentMigration();
 
-        $this->assertTrue($this->adminHasFrontendPermissions());
+        $this->assertTrue($this->adminHasPublicContentPermissions());
 
         $this->actingAs($clerk->fresh())->get(route('links.index'))->assertOk();
     }
@@ -177,19 +180,19 @@ class AdminPublicContentAccessTest extends TestCase
         $this->actingAs($user)->post(route('links.store'), [])->assertRedirect(route('landing'));
     }
 
-    private function adminHasFrontendPermissions(): bool
+    private function adminHasPublicContentPermissions(): bool
     {
+        $groupPermissions = Permission::query()->where('group', 'Public Content')->pluck('id');
+
         return Role::query()->where('name', Role::ADMIN)->firstOrFail()
             ->permissions()
-            ->whereIn('name', ['frontend.view', 'frontend.update'])
-            ->count() === 2;
+            ->whereIn('permission_id', $groupPermissions)
+            ->count() === $groupPermissions->count();
     }
 
-    private function removeFrontendPermissionsFromAdminRole(): void
+    private function removePublicContentPermissionsFromAdminRole(): void
     {
-        $permissionIds = Permission::query()
-            ->whereIn('name', ['frontend.view', 'frontend.update'])
-            ->pluck('id');
+        $permissionIds = Permission::query()->where('group', 'Public Content')->pluck('id');
 
         Role::query()->where('name', Role::ADMIN)->firstOrFail()->permissions()->detach($permissionIds);
     }
