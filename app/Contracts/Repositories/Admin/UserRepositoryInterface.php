@@ -3,28 +3,32 @@
 namespace App\Contracts\Repositories\Admin;
 
 use App\Models\User;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 interface UserRepositoryInterface
 {
     public function getFilteredUsersPaginated(array $filters, int $perPage): LengthAwarePaginator;
-    
+
+    public function getRoleAllocationUsersPaginated(array $filters, int $perPage): LengthAwarePaginator;
+
+    public function getAdminUsers(): Collection;
+
     public function getDistinctCounties(): \Illuminate\Support\Collection;
-    
+
     public function createUser(array $data): User;
 
     public function findByEmailHash(string $emailHash): ?User;
 
     public function usernameExists(string $username): bool;
-    
+
     public function updateUser(User $user, array $data): bool;
-    
+
     public function saveUser(User $user): bool;
-    
+
     public function deleteUser(User $user): bool;
-    
+
     public function getUsersWithLocationPaginated(int $perPage): LengthAwarePaginator;
-    
+
     public function getUsersWithLocation(): Collection;
 }

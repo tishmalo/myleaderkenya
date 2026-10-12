@@ -4,9 +4,9 @@ namespace App\Repositories\Admin;
 
 use App\Contracts\Repositories\Admin\UserRepositoryInterface;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Eloquent\Collection;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -35,13 +35,13 @@ class UserRepository implements UserRepositoryInterface
             });
         }
 
-        if (!empty($filters['county'])) {
+        if (! empty($filters['county'])) {
             $query->where('county', $filters['county']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             if ($filters['status'] === 'registered') {
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->where('is_voter', 1)->orWhere('is_registered', 1);
                 });
             } else {
@@ -52,12 +52,52 @@ class UserRepository implements UserRepositoryInterface
         return $query->latest()->paginate($perPage);
     }
 
+    public function getRoleAllocationUsersPaginated(array $filters, int $perPage): LengthAwarePaginator
+    {
+        $query = User::with('role')->where('username', '!=', 'admin');
+
+        if (! empty($filters['search'])) {
+            $search = trim((string) $filters['search']);
+            $term = '%'.$search.'%';
+            $normalized = strtolower($search);
+
+            // Emails are encrypted at rest, so they can only be matched through their hash.
+            $hashes = array_values(array_unique([
+                hash('sha256', $normalized),
+                User::piiHash($normalized),
+            ]));
+
+            $query->where(function ($q) use ($term, $hashes) {
+                $q->where('name', 'like', $term)
+                    ->orWhere('username', 'like', $term)
+                    ->orWhereIn('email_hash', $hashes);
+            });
+        }
+
+        if (! empty($filters['role_filter'])) {
+            $query->whereHas('role', fn ($roleQuery) => $roleQuery->where('name', $filters['role_filter']));
+        }
+
+        return $query->latest()->paginate($perPage)->withQueryString();
+    }
+
+    public function getAdminUsers(): Collection
+    {
+        return User::with('role')
+            ->where(function ($query): void {
+                $query->whereHas('role', fn ($roleQuery) => $roleQuery->where('grants_admin_access', true))
+                    ->orWhere('role', 'admin');
+            })
+            ->latest()
+            ->get();
+    }
+
     public function getDistinctCounties(): \Illuminate\Support\Collection
     {
         return User::whereNotNull('county')
-                   ->distinct()
-                   ->pluck('county')
-                   ->sort();
+            ->distinct()
+            ->pluck('county')
+            ->sort();
     }
 
     public function createUser(array $data): User
