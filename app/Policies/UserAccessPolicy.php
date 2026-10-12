@@ -31,4 +31,9 @@ class UserAccessPolicy
     {
         return $user->canAccess(Permission::USER_ACCESS_MANAGE_PERMISSIONS);
     }
+
+    public function manageRoles(User $user): bool
+    {
+        return $user->canAccess(Permission::USER_ACCESS_MANAGE_ROLES);
+    }
 }

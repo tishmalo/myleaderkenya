@@ -198,14 +198,36 @@ class User extends Authenticatable implements AuditableContract
         return $this->roleName() === $name;
     }
 
+    /**
+     * Whether this account may sign in to the admin area.
+     *
+     * Decided by the role row, so a new role only has to set the flag.
+     * Accounts created before the roles table (no role_id) fall back to the
+     * legacy users.role column.
+     */
     public function isAdmin(): bool
     {
-        return in_array($this->roleName(), [Role::ADMIN, Role::SUPERADMIN], true);
+        $role = $this->resolvedRole();
+
+        if ($role) {
+            return (bool) $role->grants_admin_access;
+        }
+
+        return in_array($this->attributes['role'] ?? null, [Role::ADMIN, Role::SUPERADMIN], true);
     }
 
+    /**
+     * Whether this account bypasses every permission check.
+     */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole(Role::SUPERADMIN);
+        $role = $this->resolvedRole();
+
+        if ($role) {
+            return (bool) $role->has_full_access;
+        }
+
+        return ($this->attributes['role'] ?? null) === Role::SUPERADMIN;
     }
 
     public function canAccess(string $permission): bool

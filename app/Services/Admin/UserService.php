@@ -28,12 +28,26 @@ class UserService
         $data['is_voter'] = false;
         $data['is_registered'] = false;
         $data['country_of_residence'] = $data['country_of_residence'] ?? 'Kenya';
-        $data['role_id'] = $data['role_id'] ?? Role::idFor(Role::USER);
 
-        $roleName = $data['role_id'] ? Role::query()->whereKey($data['role_id'])->value('name') : Role::USER;
-        $data['role'] = in_array($roleName, [Role::ADMIN, Role::SUPERADMIN], true) ? 'admin' : 'user';
+        $role = $this->resolveRole($data['role_id'] ?? null);
+
+        $data['role_id'] = $role?->id;
+        $data['role'] = $role?->legacyUserRole() ?? Role::USER;
 
         return $this->userRepository->createUser($data);
+    }
+
+    private function resolveRole(mixed $roleId): ?Role
+    {
+        if ($roleId) {
+            $role = Role::query()->find($roleId);
+
+            if ($role) {
+                return $role;
+            }
+        }
+
+        return Role::query()->where('name', Role::USER)->first();
     }
 
     public function updateProfile(User $user, array $data): bool

@@ -18,6 +18,7 @@ class Permission extends Model implements AuditableContract
     public const USER_ACCESS_CREATE_ADMIN = 'user-access.create-admin';
     public const USER_ACCESS_ASSIGN_ROLE = 'user-access.assign-role';
     public const USER_ACCESS_MANAGE_PERMISSIONS = 'user-access.manage-permissions';
+    public const USER_ACCESS_MANAGE_ROLES = 'user-access.manage-roles';
 
     protected $fillable = [
         'name',

@@ -126,21 +126,21 @@ class UserAccessRoleAllocationFilterTest extends TestCase
 
         $this->assertAllocationListing(
             $admin,
-            ['role' => Role::ADMIN],
+            ['role_filter' => Role::ADMIN],
             ['Admin Ada'],
             ['Voter Vera', 'Chief Chloe'],
         );
 
         $this->assertAllocationListing(
             $admin,
-            ['role' => Role::SUPERADMIN],
+            ['role_filter' => Role::SUPERADMIN],
             ['Chief Chloe'],
             ['Voter Vera', 'Admin Ada'],
         );
 
         $this->assertAllocationListing(
             $admin,
-            ['role' => Role::USER],
+            ['role_filter' => Role::USER],
             ['Voter Vera'],
             ['Admin Ada', 'Chief Chloe'],
         );
@@ -155,14 +155,14 @@ class UserAccessRoleAllocationFilterTest extends TestCase
 
         $this->assertAllocationListing(
             $admin,
-            ['search' => 'Grace', 'role' => Role::USER],
+            ['search' => 'Grace', 'role_filter' => Role::USER],
             ['Grace Wanjiru'],
             ['Grace Admin'],
         );
 
         $this->assertAllocationListing(
             $admin,
-            ['search' => 'Grace', 'role' => Role::ADMIN],
+            ['search' => 'Grace', 'role_filter' => Role::ADMIN],
             ['Grace Admin'],
             ['Grace Wanjiru'],
         );
@@ -174,7 +174,7 @@ class UserAccessRoleAllocationFilterTest extends TestCase
 
         $this->member(Role::USER, ['name' => 'Voter Vera', 'username' => 'voter-vera']);
 
-        $this->assertAllocationListing($admin, ['role' => 'not-a-real-role'], ['Voter Vera']);
+        $this->assertAllocationListing($admin, ['role_filter' => 'not-a-real-role'], ['Voter Vera']);
     }
 
     public function test_filters_are_kept_on_pagination_and_in_the_filter_controls(): void
@@ -190,7 +190,7 @@ class UserAccessRoleAllocationFilterTest extends TestCase
         }
 
         $response = $this->actingAs($admin)
-            ->get(route('user-access.index', ['search' => 'Probe', 'role' => Role::USER]))
+            ->get(route('user-access.index', ['search' => 'Probe', 'role_filter' => Role::USER]))
             ->assertOk()
             ->assertSee('21 users found')
             ->assertSee('data-allocation-filter', false)
@@ -199,7 +199,7 @@ class UserAccessRoleAllocationFilterTest extends TestCase
 
         // Pagination links must carry the active filters forward.
         $response->assertSee('search=Probe', false);
-        $response->assertSee('role=user', false);
+        $response->assertSee('role_filter=user', false);
     }
 
     public function test_role_save_returns_to_the_role_allocation_tab(): void

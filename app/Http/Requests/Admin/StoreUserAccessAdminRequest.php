@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreUserAccessAdminRequest extends FormRequest
 {
@@ -19,6 +20,8 @@ class StoreUserAccessAdminRequest extends FormRequest
             'email' => ['nullable', 'email', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+            // Only roles that can reach the admin area make sense here.
+            'role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('grants_admin_access', true)],
         ];
     }
 }

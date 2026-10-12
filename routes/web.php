@@ -443,6 +443,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/user-access/admins', [UserAccessController::class, 'store'])->name('user-access.admins.store');
             Route::patch('/user-access/users/{user}/role', [UserAccessController::class, 'updateRole'])->name('user-access.roles.update');
             Route::patch('/user-access/roles/{role}/permissions', [UserAccessController::class, 'updatePermissions'])->name('user-access.permissions.update');
+            Route::post('/user-access/roles', [UserAccessController::class, 'storeRole'])->name('user-access.roles.store');
+            Route::patch('/user-access/roles/{role}', [UserAccessController::class, 'updateRoleSettings'])->name('user-access.roles.settings.update');
+            Route::delete('/user-access/roles/{role}', [UserAccessController::class, 'destroyRole'])->name('user-access.roles.destroy');
             Route::resource('users', UserController::class)->except(['show'])->middleware('permission:voters.view');
             Route::resource('groups', GroupController::class)->only(['create', 'store', 'show'])->middleware('permission:messages.create');
             Route::post('/groups/{group}/messages', [GroupController::class, 'sendMessage'])->middleware('permission:messages.create')->name('groups.messages.store');
