@@ -66,6 +66,27 @@ class SupportGroupTypeManagementTest extends TestCase
             ->assertSessionHasErrors('name');
     }
 
+    public function test_a_new_group_type_requires_a_name(): void
+    {
+        $this->actingAs($this->admin())
+            ->from(route('support-group-types.index'))
+            ->post(route('support-group-types.store'), [])
+            ->assertSessionHasErrors('name');
+    }
+
+    public function test_updating_to_another_groups_name_is_rejected(): void
+    {
+        SupportGroupType::create(['name' => 'Volunteers', 'slug' => 'volunteers', 'is_active' => true]);
+        $family = SupportGroupType::create(['name' => 'Youth Wing', 'slug' => 'youth-wing', 'is_active' => true]);
+
+        $this->actingAs($this->admin())
+            ->from(route('support-group-types.index'))
+            ->patch(route('support-group-types.update', $family), ['name' => 'Volunteers'])
+            ->assertSessionHasErrors('name');
+
+        $this->assertSame('Youth Wing', $family->fresh()->name);
+    }
+
     public function test_admin_can_update_a_support_group_type(): void
     {
         $type = SupportGroupType::create([

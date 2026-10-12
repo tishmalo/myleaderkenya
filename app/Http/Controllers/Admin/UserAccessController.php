@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreRoleRequest;
 use App\Http\Requests\Admin\StoreUserAccessAdminRequest;
+use App\Http\Requests\Admin\UpdateRolePermissionsRequest;
+use App\Http\Requests\Admin\UpdateRoleSettingsRequest;
+use App\Http\Requests\Admin\UpdateUserRoleRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Admin\UserAccessService;
@@ -39,62 +43,38 @@ class UserAccessController extends Controller
             ->with($result['status'], $result['message']);
     }
 
-    public function updateRole(Request $request, User $user): RedirectResponse
+    public function updateRole(UpdateUserRoleRequest $request, User $user): RedirectResponse
     {
         Gate::authorize('assignRole', Role::class);
 
-        $validated = $request->validate([
-            'role_id' => ['required', 'integer', 'exists:roles,id'],
-        ]);
-
-        $result = $this->userAccess->updateUserRole($user, (int) $validated['role_id'], $request->user());
+        $result = $this->userAccess->updateUserRole($user, (int) $request->validated('role_id'), $request->user());
 
         return $this->backToAllocation()->with($result['status'], $result['message']);
     }
 
-    public function updatePermissions(Request $request, Role $role): RedirectResponse
+    public function updatePermissions(UpdateRolePermissionsRequest $request, Role $role): RedirectResponse
     {
         Gate::authorize('managePermissions', Role::class);
 
-        $validated = $request->validate([
-            'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['integer', 'exists:permissions,id'],
-        ]);
-
-        $result = $this->userAccess->updatePermissions($role, $validated['permissions'] ?? []);
+        $result = $this->userAccess->updatePermissions($role, $request->validated('permissions') ?? []);
 
         return $this->backToPermissions($role)->with($result['status'], $result['message']);
     }
 
-    public function storeRole(Request $request): RedirectResponse
+    public function storeRole(StoreRoleRequest $request): RedirectResponse
     {
         Gate::authorize('manageRoles', Role::class);
 
-        $validated = $request->validate([
-            'label' => ['required', 'string', 'max:60'],
-            'name' => ['nullable', 'string', 'max:60', 'alpha_dash', 'unique:roles,name'],
-            'description' => ['nullable', 'string', 'max:255'],
-            'grants_admin_access' => ['nullable', 'boolean'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
-        ]);
-
-        $result = $this->userAccess->createRole($validated);
+        $result = $this->userAccess->createRole($request->validated());
 
         return $this->backToRoles()->with($result['status'], $result['message']);
     }
 
-    public function updateRoleSettings(Request $request, Role $role): RedirectResponse
+    public function updateRoleSettings(UpdateRoleSettingsRequest $request, Role $role): RedirectResponse
     {
         Gate::authorize('manageRoles', Role::class);
 
-        $validated = $request->validate([
-            'label' => ['required', 'string', 'max:60'],
-            'description' => ['nullable', 'string', 'max:255'],
-            'grants_admin_access' => ['nullable', 'boolean'],
-            'has_full_access' => ['nullable', 'boolean'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
-        ]);
-
+        $validated = $request->validated();
         $validated['name'] = $request->string('name')->toString() ?: null;
 
         $result = $this->userAccess->updateRoleSettings($role, $validated, $request->user());
