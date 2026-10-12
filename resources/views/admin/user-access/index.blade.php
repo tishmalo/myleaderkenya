@@ -188,11 +188,53 @@
 
         @can('assignRole', \App\Models\Role::class)
             <section data-tab-panel="allocation" role="tabpanel" class="user-access-panel hidden">
-                <div class="px-6 py-5 border-b border-zinc-800">
-                    <h2 class="text-2xl font-semibold text-white flex items-center gap-3">
-                        <i class="fas fa-key text-emerald-400"></i>
-                        Role Allocation
-                    </h2>
+                <div class="px-6 py-5 border-b border-zinc-800 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h2 class="text-2xl font-semibold text-white flex items-center gap-3">
+                            <i class="fas fa-key text-emerald-400"></i>
+                            Role Allocation
+                        </h2>
+                        <p class="text-sm text-zinc-500">
+                            {{ number_format($users->total()) }} {{ Str::plural('user', $users->total()) }} found
+                        </p>
+                    </div>
+
+                    <form method="GET" action="{{ route('user-access.index') }}#allocation" data-allocation-filter
+                          class="flex flex-wrap items-center gap-3">
+                        <div class="relative flex-1 min-w-48">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"></i>
+                            <input type="search" name="search" value="{{ $search }}" style="padding-left: 2.75rem"
+                                   placeholder="Search name or email"
+                                   aria-label="Search user by name, username or email"
+                                   title="Match by name or username, or by the full email address"
+                                   class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500">
+                        </div>
+
+                        <select name="role" aria-label="Filter by role"
+                                class="min-w-48 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
+                            <option value="">Filter role</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->name }}" {{ $roleFilter === $role->name ? 'selected' : '' }}>
+                                    {{ $role->label }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 px-5 py-3 rounded-2xl font-medium whitespace-nowrap">
+                            <i class="fas fa-filter mr-2"></i> Apply
+                        </button>
+
+                        @if($search !== '' || $roleFilter !== '')
+                            <a href="{{ route('user-access.index') }}#allocation"
+                               class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-5 py-3 rounded-2xl font-medium text-zinc-300 whitespace-nowrap">
+                                Clear
+                            </a>
+                        @endif
+                    </form>
+
+                    <p class="text-xs text-zinc-500">
+                        Name and username match partially; emails are stored encrypted, so search them by the full address.
+                    </p>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -233,7 +275,13 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-zinc-500">No users found.</td>
+                                    <td colspan="5" class="px-6 py-12 text-center text-zinc-500">
+                                        @if($search !== '' || $roleFilter !== '')
+                                            No users match your search or role filter.
+                                        @else
+                                            No users found.
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -241,7 +289,7 @@
                 </div>
 
                 <div class="px-6 py-5 border-t border-zinc-800">
-                    {{ $users->links() }}
+                    {{ $users->withQueryString()->links() }}
                 </div>
             </section>
         @endcan
@@ -280,6 +328,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tabs.forEach(tab => tab.addEventListener('click', () => showTab(tab.dataset.tabTarget)));
     showTab(window.location.hash.replace('#', '') || tabs[0]?.dataset.tabTarget, false);
+
+    // Role Allocation: keep the tab anchored and apply the role filter immediately.
+    const allocationForm = root.querySelector('[data-allocation-filter]');
+    if (!allocationForm) return;
+
+    const anchor = (url) => (url && ! url.includes('#') ? `${url}#allocation` : url);
+
+    allocationForm.addEventListener('submit', () => {
+        allocationForm.setAttribute('action', anchor(allocationForm.getAttribute('action') || ''));
+    });
+
+    allocationForm.querySelector('select[name="role"]')?.addEventListener('change', () => {
+        allocationForm.requestSubmit();
+    });
+
+    // Pagination (and any other) links inside the panel keep the allocation tab active.
+    root.querySelectorAll('[data-tab-panel="allocation"] a[href]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && ! href.startsWith('#') && ! href.startsWith('javascript:')) {
+            link.setAttribute('href', anchor(href));
+        }
+    });
 });
 </script>
 @endpush

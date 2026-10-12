@@ -11,6 +11,7 @@ use App\Services\Admin\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class UserAccessController extends Controller
@@ -19,7 +20,7 @@ class UserAccessController extends Controller
         private UserService $userService
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         Gate::authorize('viewAny', Role::class);
 
@@ -45,13 +46,42 @@ class UserAccessController extends Controller
             ->latest()
             ->get();
 
+        // Role Allocation filters (name/username/email search + role filter).
+        $search = trim((string) $request->query('search', ''));
+        $roleFilter = (string) $request->query('role', '');
+
+        if ($roleFilter !== '' && ! $roles->contains('name', $roleFilter)) {
+            $roleFilter = '';
+        }
+
         $users = User::query()
             ->with('role')
             ->where('username', '!=', 'admin')
-            ->latest()
-            ->paginate(20);
+            ->when($search !== '', function ($query) use ($search): void {
+                $term = '%'.$search.'%';
+                $normalized = Str::lower($search);
 
-        return view('admin.user-access.index', compact('admins', 'permissionRoles', 'permissions', 'roles', 'users'));
+                // Emails are encrypted at rest, so they can only be matched through their hash.
+                $hashes = array_values(array_unique([
+                    hash('sha256', $normalized),
+                    User::piiHash($normalized),
+                ]));
+
+                $query->where(function ($query) use ($term, $hashes): void {
+                    $query->where('name', 'like', $term)
+                        ->orWhere('username', 'like', $term)
+                        ->orWhereIn('email_hash', $hashes);
+                });
+            })
+            ->when($roleFilter !== '', fn ($query) => $query->whereHas(
+                'role',
+                fn ($roleQuery) => $roleQuery->where('name', $roleFilter)
+            ))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.user-access.index', compact('admins', 'permissionRoles', 'permissions', 'roles', 'users', 'search', 'roleFilter'));
     }
 
     public function store(StoreUserAccessAdminRequest $request): RedirectResponse
@@ -81,7 +111,7 @@ class UserAccessController extends Controller
         $role = Role::query()->findOrFail($validated['role_id']);
 
         if ($request->user()->is($user) && $user->isSuperAdmin() && $role->name !== Role::SUPERADMIN) {
-            return back()->with('error', 'You cannot remove your own super admin access.');
+            return $this->backToAllocation()->with('error', 'You cannot remove your own super admin access.');
         }
 
         $user->forceFill([
@@ -89,7 +119,17 @@ class UserAccessController extends Controller
             'role' => in_array($role->name, [Role::ADMIN, Role::SUPERADMIN], true) ? 'admin' : 'user',
         ])->save();
 
-        return back()->with('success', 'User role updated successfully.');
+        return $this->backToAllocation()->with('success', 'User role updated successfully.');
+    }
+
+    /**
+     * Return to the Role Allocation tab, keeping the active search/role filters.
+     */
+    private function backToAllocation(): RedirectResponse
+    {
+        $previous = explode('#', url()->previous() ?: route('user-access.index'))[0];
+
+        return redirect()->to($previous.'#allocation');
     }
 
     public function updatePermissions(Request $request, Role $role): RedirectResponse
