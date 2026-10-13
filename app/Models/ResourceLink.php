@@ -100,6 +100,30 @@ class ResourceLink extends Model implements AuditableContract
         return $query->where('approval_status', self::STATUS_PENDING);
     }
 
+    /**
+     * National links carry no county: presidential aspirants and country wide
+     * pages and groups.
+     */
+    public function scopeNational(Builder $query): Builder
+    {
+        return $query->whereNull('county_id');
+    }
+
+    public function isNational(): bool
+    {
+        return $this->county_id === null;
+    }
+
+    /**
+     * The place this link belongs to, for lists that show one scope label.
+     */
+    public function getScopeLabelAttribute(): string
+    {
+        return $this->isNational()
+            ? 'National'
+            : (string) ($this->county?->name ?? 'County');
+    }
+
     public function getPlatformLabelAttribute(): string
     {
         return self::PLATFORMS[$this->platform] ?? $this->platform;

@@ -896,6 +896,13 @@ h1, h2, h3, h4 { font-family: 'Oswald', sans-serif; }
         @endforelse
     </div>
 @else
+    @if(($nationalLinks ?? collect())->isNotEmpty())
+        @include('components.pages-links-list', [
+            'resourceLinks' => $nationalLinks,
+            'pagesLinksTitle' => 'National pages & links',
+        ])
+    @endif
+
     <div class="asp-grid">
         @forelse($candidates as $candidate)
             @include('aspirants.public._card', ['candidate' => $candidate])

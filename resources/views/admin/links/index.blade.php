@@ -64,6 +64,9 @@
                         </td>
                         <td class="px-6 py-4 text-zinc-400">
                             <div class="flex flex-wrap gap-1">
+                                @if($link->isNational())
+                                    <span class="px-2 py-1 rounded-full text-xs bg-emerald-500/20 text-emerald-400">National</span>
+                                @endif
                                 @foreach(collect([$link->candidate?->name, $link->politicalParty?->name, $link->ward?->name, $link->constituency?->name, $link->county?->name])->filter() as $target)
                                     <span class="px-2 py-1 rounded-full text-xs bg-zinc-800 text-zinc-300">{{ $target }}</span>
                                 @endforeach

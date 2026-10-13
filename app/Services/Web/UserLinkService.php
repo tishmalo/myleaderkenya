@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\County;
 use App\Models\ResourceLink;
 use App\Models\User;
+use App\Support\ResourceLinkScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -47,11 +48,21 @@ class UserLinkService
             ? (int) $data['candidate_id']
             : null;
 
-        if ($candidateId !== null && ! $this->links->findCandidateById($candidateId)) {
+        $candidate = $candidateId !== null ? $this->links->findCandidateById($candidateId) : null;
+
+        if ($candidateId !== null && ! $candidate) {
             throw ValidationException::withMessages([
                 'candidate_id' => 'Select an approved aspirant.',
             ]);
         }
+
+        if (! ResourceLinkScope::isNational($data, $candidate) && empty($data['county_id'])) {
+            throw ValidationException::withMessages([
+                'county_id' => 'Select a county, or tick "National link" for a presidential aspirant or a country wide page.',
+            ]);
+        }
+
+        $data = ResourceLinkScope::apply($data, $candidate);
 
         $data['candidate_id'] = $candidateId;
         $data['followers'] = isset($data['followers']) && $data['followers'] !== ''
@@ -71,6 +82,15 @@ class UserLinkService
     public function forCounty(County $county): Collection
     {
         return $this->links->approvedForCounty($county);
+    }
+
+    /**
+     * Country wide links: presidential aspirants' pages plus national pages and
+     * groups that belong to no county.
+     */
+    public function forNational(int $limit = 20): Collection
+    {
+        return $this->links->approvedNational($limit);
     }
 
     /**

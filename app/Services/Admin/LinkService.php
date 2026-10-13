@@ -2,10 +2,13 @@
 
 namespace App\Services\Admin;
 
+use App\Models\Candidate;
 use App\Models\ResourceLink;
+use App\Support\ResourceLinkScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 
 class LinkService
 {
@@ -40,11 +43,21 @@ class LinkService
             ? (int) $data['candidate_id']
             : null;
 
+        $candidate = $candidateId !== null ? Candidate::query()->with('position:id,name')->find($candidateId) : null;
+
+        if (! ResourceLinkScope::isNational($data, $candidate) && empty($data['county_id'])) {
+            throw ValidationException::withMessages([
+                'county_id' => 'Select a county, or tick "National link" for a presidential aspirant or a country wide page.',
+            ]);
+        }
+
+        $data = ResourceLinkScope::apply($data, $candidate);
+
         return $resourceLink->update([
             'platform' => $data['platform'],
             'title' => $data['title'],
             'url' => $data['url'],
-            'county_id' => $data['county_id'],
+            'county_id' => $data['county_id'] ?? null,
             'constituency_id' => $data['constituency_id'] ?? null,
             'ward_id' => $data['ward_id'] ?? null,
             'political_party_id' => $data['political_party_id'] ?? null,

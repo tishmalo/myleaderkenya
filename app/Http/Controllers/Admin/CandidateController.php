@@ -235,6 +235,7 @@ class CandidateController extends Controller
     public function publicIndex(PublicAspirantFilterRequest $request)
     {
         $data = $this->candidateService->getPublicIndex($request->validated(), 30);
+        $data['nationalLinks'] = $this->userLinkService->forNational();
 
         return view('aspirants.public.index', $data);
     }

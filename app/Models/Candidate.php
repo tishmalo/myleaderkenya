@@ -176,6 +176,17 @@ class Candidate extends Model implements AuditableContract
         return $this->county ?: ($this->country ?: null);
     }
 
+    /**
+     * Presidential aspirants run country wide, so they have no county to scope
+     * a link to.
+     */
+    public function isPresidential(): bool
+    {
+        $positionName = Str::lower(trim((string) ($this->position?->name ?? '')));
+
+        return in_array($positionName, ['president', 'presidential'], true);
+    }
+
     private function encryptNullableString($value): ?string
     {
         if ($value === null || $value === '') {

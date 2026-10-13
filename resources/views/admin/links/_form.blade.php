@@ -4,6 +4,7 @@
 @php
     $effectiveCountyId = (int) old('county_id', $link?->county_id ?? '');
     $effectiveConstituencyId = (int) old('constituency_id', $link?->constituency_id ?? '');
+    $isNational = (bool) old('is_national', $link?->isNational() ?? false);
 @endphp
 <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
     <form method="POST" action="{{ $form['action'] }}">
@@ -37,21 +38,42 @@
                 @error('url')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 
-            <div>
-                <label class="block text-sm text-zinc-400 mb-2" for="county_id">County <span class="text-red-500">*</span></label>
+            <div class="md:col-span-2 rounded-2xl border border-zinc-800 bg-zinc-950 px-5 py-4">
+                <label class="flex items-start gap-3 text-sm text-zinc-300" for="is_national">
+                    <input id="is_national" type="checkbox" name="is_national" value="1" @checked($isNational)
+                           class="mt-0.5 h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-emerald-500 focus:ring-emerald-500">
+                    <span>
+                        <span class="font-medium text-white">National link (no county)</span>
+                        <span class="block text-xs text-zinc-500 mt-1">
+                            For presidential aspirants and country wide pages or groups. The link is published on the
+                            national aspirants page (Aspirants &rarr; President) and on its aspirant's profile, never on a
+                            county page. Tick this when the aspirant you pick is a presidential candidate.
+                        </span>
+                    </span>
+                </label>
+            </div>
+
+            <div data-county-field>
+                <label class="block text-sm text-zinc-400 mb-2" for="county_id">County <span class="text-red-500" data-county-required @if($isNational) hidden @endif>*</span></label>
                 <select id="county_id" name="county_id" required class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
                     <option value="">Select a county</option>
                     @foreach($counties as $county)
                         <option value="{{ $county->id }}" @selected($effectiveCountyId === $county->id)>{{ $county->name }}</option>
                     @endforeach
                 </select>
-                <p class="mt-2 text-xs text-zinc-500">The link will appear on this county's page and on its aspirants' profiles.</p>
+                <p class="mt-2 text-xs text-zinc-500" data-county-help>
+                    @if($isNational)
+                        Not used for a national link.
+                    @else
+                        The link will appear on this county's page and on its aspirants' profiles.
+                    @endif
+                </p>
                 @error('county_id')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 
-            <div>
+            <div data-county-field>
                 <label class="block text-sm text-zinc-400 mb-2" for="constituency_id">Constituency</label>
-                <select id="constituency_id" name="constituency_id" @disabled($effectiveCountyId === 0) class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white disabled:opacity-50">
+                <select id="constituency_id" name="constituency_id" @disabled($effectiveCountyId === 0 || $isNational) class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white disabled:opacity-50">
                     <option value="">Select a constituency</option>
                     @foreach($constituencies->where('county_id', $effectiveCountyId) as $constituency)
                         <option value="{{ $constituency->id }}" @selected($effectiveConstituencyId === $constituency->id)>{{ $constituency->name }}</option>
@@ -61,9 +83,9 @@
                 @error('constituency_id')<p class="mt-2 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 
-            <div>
+            <div data-county-field>
                 <label class="block text-sm text-zinc-400 mb-2" for="ward_id">Ward</label>
-                <select id="ward_id" name="ward_id" @disabled($effectiveConstituencyId === 0) class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white disabled:opacity-50">
+                <select id="ward_id" name="ward_id" @disabled($effectiveConstituencyId === 0 || $isNational) class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-white disabled:opacity-50">
                     <option value="">Select a ward</option>
                     @foreach($wards->where('constituency_id', $effectiveConstituencyId) as $ward)
                         <option value="{{ $ward->id }}" @selected((int) old('ward_id', $link?->ward_id ?? '') === $ward->id)>{{ $ward->name }}</option>
@@ -179,6 +201,58 @@
             option.textContent = wardOption.name;
             ward.appendChild(option);
         });
+    });
+
+    // A national link has no county, so the geographic fields step aside.
+    var nationalToggle = document.getElementById('is_national');
+    var countySelect = document.getElementById('county_id');
+    var countyRequiredMark = document.querySelector('[data-county-required]');
+    var countyHelp = document.querySelector('[data-county-help]');
+    var defaultCountyHelp = 'The link will appear on this county\'s page and on its aspirants\' profiles.';
+
+    function applyScope() {
+        var national = nationalToggle.checked;
+        var constituency = document.getElementById('constituency_id');
+        var ward = document.getElementById('ward_id');
+
+        document.querySelectorAll('[data-county-field]').forEach(function (field) {
+            field.classList.toggle('opacity-60', national);
+        });
+
+        countySelect.disabled = national;
+        if (national) {
+            countySelect.value = '';
+            reset(constituency, 'Select a constituency');
+            reset(ward, 'Select a ward');
+        } else {
+            constituency.disabled = ! countySelect.value;
+            ward.disabled = true;
+        }
+
+        if (countyRequiredMark) {
+            countyRequiredMark.hidden = national;
+        }
+
+        if (countyHelp) {
+            countyHelp.textContent = national
+                ? 'Not used for a national link.'
+                : defaultCountyHelp;
+        }
+    }
+
+    nationalToggle.addEventListener('change', applyScope);
+    applyScope();
+
+    // Picking a presidential aspirant implies a national link.
+    document.addEventListener('aspirant:selected', function (event) {
+        var position = String((event.detail && event.detail.position) || '').toLowerCase().trim();
+
+        if (position !== 'president' && position !== 'presidential') {
+            return;
+        }
+
+        nationalToggle.checked = true;
+        applyScope();
     });
 })();
 </script>

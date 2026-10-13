@@ -14,6 +14,7 @@
                         $resourceLink->ward?->name,
                         $resourceLink->constituency?->name,
                         $resourceLink->county?->name,
+                        $resourceLink->isNational() ? 'Kenya' : null,
                     ])->filter()->unique()->take(3);
                 @endphp
                 <a class="pages-links-item" href="{{ $resourceLink->url }}" target="_blank" rel="noopener nofollow">

@@ -100,6 +100,21 @@ class ResourceLinkRepository implements ResourceLinkRepositoryInterface
             ->get();
     }
 
+    /**
+     * Country wide links: presidential aspirants' pages and national pages and
+     * groups, i.e. every approved link that belongs to no county.
+     */
+    public function approvedNational(int $limit = 20): Collection
+    {
+        return $this->approvedQuery()
+            ->national()
+            ->with(['politicalParty:id,name,abbreviation', 'candidate:id,name'])
+            ->orderByDesc('followers')
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
     private function baseQuery(): Builder
     {
         return ResourceLink::query()->with([

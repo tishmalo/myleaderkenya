@@ -27,4 +27,6 @@ interface ResourceLinkRepositoryInterface
     public function approvedForCandidate(Candidate $candidate): Collection;
 
     public function approvedForCounty(County $county, int $limit = 50): Collection;
+
+    public function approvedNational(int $limit = 20): Collection;
 }
