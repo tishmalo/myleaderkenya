@@ -48,6 +48,7 @@ use App\Http\Controllers\Admin\SmtpController;
 use App\Http\Controllers\Admin\SpamFilterController;
 use App\Http\Controllers\Admin\SupportGroupTypeController;
 use App\Http\Controllers\Admin\TagController;
+use App\Http\Controllers\Admin\TrackingSettingController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WardController;
@@ -278,6 +279,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/smtp', [SmtpController::class, 'update'])->middleware('permission:settings.update')->name('admin.smtp.update');
             Route::get('/recaptcha', [RecaptchaSettingController::class, 'index'])->middleware('permission:settings.view')->name('admin.recaptcha');
             Route::post('/recaptcha', [RecaptchaSettingController::class, 'update'])->middleware('permission:settings.update')->name('admin.recaptcha.update');
+            Route::get('/tracking', [TrackingSettingController::class, 'index'])->middleware('permission:settings.view')->name('admin.tracking');
+            Route::post('/tracking', [TrackingSettingController::class, 'update'])->middleware('permission:settings.update')->name('admin.tracking.update');
 
             Route::get('/admin/spam-filter', [SpamFilterController::class, 'index'])->middleware('permission:settings.view')->name('spam-filter.index');
             Route::post('/admin/spam-filter/analyze', [SpamFilterController::class, 'analyze'])->middleware('permission:settings.update')->name('spam-filter.analyze');

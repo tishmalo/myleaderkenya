@@ -29,6 +29,8 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2);
         }
     </style>
+
+    <x-tracking-scripts area="admin" />
 </head>
 <body class="bg-zinc-950 text-zinc-100 overflow-x-hidden">
 

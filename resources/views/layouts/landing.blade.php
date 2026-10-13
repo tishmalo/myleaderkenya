@@ -89,6 +89,8 @@
   .site-boot-flag-img { width: min(380px, 82vw); }
   }
 </style>
+
+    <x-tracking-scripts area="public" />
 </head>
 <body class="bg-zinc-950 text-white antialiased">
     <div class="site-boot-loader" id="siteBootLoader" aria-hidden="true">

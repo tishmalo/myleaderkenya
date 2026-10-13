@@ -27,6 +27,8 @@
         [data-loading="true"] { cursor: wait; opacity: 0.82; }
         @keyframes button-spin { to { transform: rotate(360deg); } }
     </style>
+
+    <x-tracking-scripts area="admin" />
 </head>
 <body class="bg-zinc-950 text-zinc-100 overflow-x-hidden">
 
