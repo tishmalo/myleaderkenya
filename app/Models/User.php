@@ -111,6 +111,44 @@ class User extends Authenticatable implements AuditableContract
         $this->attributes['email_hash'] = hash('sha256', $email);
     }
 
+    public function getIdNumberAttribute($value): ?string
+    {
+        return $this->decryptNullableString($value);
+    }
+
+    public function setIdNumberAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['id_number'] = null;
+            $this->attributes['id_number_hash'] = null;
+
+            return;
+        }
+
+        $idNumber = trim((string) $value);
+        $this->attributes['id_number'] = Crypt::encryptString($idNumber);
+        $this->attributes['id_number_hash'] = self::piiHash($idNumber);
+    }
+
+    public static function idNumberExists(string $idNumber, ?int $ignoreUserId = null): bool
+    {
+        $normalized = trim($idNumber);
+
+        if ($normalized === '') {
+            return false;
+        }
+
+        $hashes = array_values(array_unique([
+            hash('sha256', Str::lower($normalized)),
+            self::piiHash($normalized),
+        ]));
+
+        return self::query()
+            ->whereIn('id_number_hash', $hashes)
+            ->when($ignoreUserId !== null, fn ($query) => $query->where('id', '!=', $ignoreUserId))
+            ->exists();
+    }
+
     public function getPhoneAttribute($value): ?string
     {
         return $this->decryptNullableString($value);
