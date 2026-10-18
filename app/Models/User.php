@@ -237,6 +237,24 @@ class User extends Authenticatable implements AuditableContract
     }
 
     /**
+     * A Niko Kadi verified member: someone whose account records them as a
+     * registered voter.
+     */
+    public function isVerifiedVoter(): bool
+    {
+        return (bool) ($this->is_voter || $this->is_registered);
+    }
+
+    /**
+     * Community pages and links are reserved for verified members; staff keep
+     * access so they can review what was submitted.
+     */
+    public function canViewMemberLinks(): bool
+    {
+        return $this->isAdmin() || $this->isVerifiedVoter();
+    }
+
+    /**
      * Whether this account may sign in to the admin area.
      *
      * Decided by the role row, so a new role only has to set the flag.
