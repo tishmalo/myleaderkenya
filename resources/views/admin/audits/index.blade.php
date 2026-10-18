@@ -20,7 +20,7 @@
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-zinc-900 text-xs uppercase tracking-wider text-zinc-500">
-                    <tr><th class="px-5 py-4">Actor</th><th class="px-5 py-4">Live aspirants</th><th class="px-5 py-4">Deleted / excluded</th><th class="px-5 py-4">Payment status</th></tr>
+                    <tr><th class="px-5 py-4">Actor</th><th class="px-5 py-4">Live aspirants</th><th class="px-5 py-4">Deleted / excluded</th><th class="px-5 py-4">Links added</th><th class="px-5 py-4">Payment status</th></tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-800">
                     @forelse($candidateCreatorSummary as $contributor)
@@ -28,10 +28,11 @@
                             <td class="px-5 py-4 font-semibold text-white">{{ $contributor->actor_name ?: 'User #'.$contributor->user_id }}</td>
                             <td class="px-5 py-4"><span class="rounded-full bg-emerald-500/10 px-3 py-1 font-bold text-emerald-400">{{ number_format($contributor->live_candidates) }}</span></td>
                             <td class="px-5 py-4"><span class="rounded-full bg-red-500/10 px-3 py-1 font-bold text-red-400">{{ number_format($contributor->deleted_candidates) }}</span></td>
+                            <td class="px-5 py-4"><span class="rounded-full bg-blue-500/10 px-3 py-1 font-bold text-blue-400">{{ number_format($contributor->links_added ?? 0) }}</span></td>
                             <td class="px-5 py-4 text-zinc-400">{{ $contributor->live_candidates > 0 ? 'Eligible count: '.number_format($contributor->live_candidates) : 'No eligible candidates' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="px-5 py-12 text-center text-zinc-500">No candidate-creation activity was found for this date range.</td></tr>
+                        <tr><td colspan="5" class="px-5 py-12 text-center text-zinc-500">No candidate-creation activity was found for this date range.</td></tr>
                     @endforelse
                 </tbody>
             </table>

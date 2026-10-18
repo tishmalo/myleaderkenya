@@ -5,6 +5,7 @@ namespace App\Repositories\Audit;
 use App\Contracts\Repositories\Audit\AuditRepositoryInterface;
 use App\Models\Audit;
 use App\Models\Candidate;
+use App\Models\ResourceLink;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -39,7 +40,7 @@ class AuditRepository implements AuditRepositoryInterface
         $candidateMorph = (new Candidate())->getMorphClass();
         $userMorph = (new User())->getMorphClass();
 
-        return Audit::query()
+        $summary = Audit::query()
             ->leftJoin('users', function ($join) use ($userMorph) {
                 $join->on('users.id', '=', 'audits.user_id')
                     ->where('audits.user_type', '=', $userMorph);
@@ -58,6 +59,33 @@ class AuditRepository implements AuditRepositoryInterface
             ->orderByDesc('live_candidates')
             ->orderBy('actor_name')
             ->get();
+
+        $linksAdded = $this->linksCreatedByActor($filters);
+
+        return $summary->each(function ($contributor) use ($linksAdded): void {
+            $contributor->links_added = $linksAdded[(int) $contributor->user_id] ?? 0;
+        });
+    }
+
+    /**
+     * How many links each actor added, counted from the trail so a link that was
+     * later removed still credits the person who created it.
+     *
+     * @return array<int, int>
+     */
+    private function linksCreatedByActor(array $filters): array
+    {
+        return Audit::query()
+            ->where('event', 'created')
+            ->where('auditable_type', (new ResourceLink())->getMorphClass())
+            ->whereNotNull('user_id')
+            ->when($filters['date_from'] ?? null, fn ($q, $value) => $q->whereDate('created_at', '>=', $value))
+            ->when($filters['date_to'] ?? null, fn ($q, $value) => $q->whereDate('created_at', '<=', $value))
+            ->groupBy('user_id')
+            ->selectRaw('user_id, COUNT(*) as links_added')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [(int) $row->user_id => (int) $row->links_added])
+            ->all();
     }
 
     public function findForCandidate(int $id, ?int $candidateId = null): ?Audit
