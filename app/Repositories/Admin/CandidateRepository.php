@@ -401,7 +401,11 @@ class CandidateRepository implements CandidateRepositoryInterface
 
     private function publicQuery(array $filters)
     {
-        $query = Candidate::with('position', 'politicalParty')->where('approval_status', 'approved');
+        $query = Candidate::with('position', 'politicalParty')
+            ->where('approval_status', 'approved')
+            // Registered aspirants come first on every public listing; imported
+            // profiles follow, however recently they were created.
+            ->registeredFirst();
 
         if (array_key_exists('featured', $filters) && $filters['featured'] !== null) {
             $query->where('featured', filter_var($filters['featured'], FILTER_VALIDATE_BOOLEAN));

@@ -86,6 +86,7 @@ class PublicCountyService
             ->where('position_id', $position->id)
             ->whereIn('county', LocationName::variants($county->name))
             ->orderByDesc('featured')
+            ->registeredFirst()
             ->orderBy('name')
             ->paginate($perPage, ['*'], 'position_'.$position->id.'_page')
             ->withQueryString();

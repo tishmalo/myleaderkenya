@@ -399,4 +399,28 @@ class Candidate extends Model implements AuditableContract
     {
         return $query->where('is_imported', true)->where('import_status', 'pending');
     }
+
+    /**
+     * Registered aspirants first, bulk imported profiles last, so an import
+     * never pushes real aspirants down a public listing.
+     */
+    public function scopeRegisteredFirst($query)
+    {
+        if (! static::usesImportFlag()) {
+            return $query;
+        }
+
+        return $query->orderByRaw('CASE WHEN COALESCE(is_imported, 0) = 0 THEN 0 ELSE 1 END');
+    }
+
+    /**
+     * The import columns arrive in a late migration, so guard against a database
+     * that has not run it yet. Checked once per process.
+     */
+    public static function usesImportFlag(): bool
+    {
+        static $hasColumn = null;
+
+        return $hasColumn ??= Schema::hasColumn((new static())->getTable(), 'is_imported');
+    }
 }
