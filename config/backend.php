@@ -17,6 +17,12 @@ return [
 
         'sections' => [
             [
+                'label' => 'Team',
+                'items' => [
+                    ['label' => 'Coordinators Guide', 'route' => 'coordinators-guide.index', 'icon' => 'fas fa-book-open', 'active' => ['coordinators-guide.*'], 'permission' => 'guide.view'],
+                ],
+            ],
+            [
                 'label' => 'Voter Management',
                 'items' => [
                     ['label' => 'Voters', 'route' => 'users.index', 'icon' => 'fas fa-user-check', 'active' => ['users.*'], 'permission' => 'voters.view'],
@@ -72,7 +78,7 @@ return [
                     ['label' => 'Add Link/Page', 'route' => 'links.create', 'icon' => 'fas fa-circle-plus', 'active' => ['links.create'], 'permission' => 'links.create'],
                     ['label' => 'Tags', 'route' => 'tags.index', 'icon' => 'fas fa-tags', 'active' => ['tags.*'], 'permission' => 'tags.view'],
                     ['label' => 'Public Pulse', 'route' => 'public-pulse.index', 'icon' => 'fas fa-wave-square', 'active' => ['public-pulse.*'], 'permission' => 'public-pulse.view'],
-                    ['label' => 'Popular Content', 'route' => 'admin.popular', 'icon' => 'fas fa-fire', 'active' => ['admin.popular'], 'permission' => 'frontend.view'],
+                    ['label' => 'Popular Content', 'route' => 'admin.popular', 'icon' => 'fas fa-fire', 'active' => ['admin.popular'], 'permission' => 'frontend-pages.view'],
                 ],
             ],
             [

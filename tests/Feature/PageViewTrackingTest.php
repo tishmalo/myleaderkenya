@@ -215,9 +215,10 @@ class PageViewTrackingTest extends TestCase
             'role_id' => Role::idFor(Role::ADMIN),
         ]);
 
-        // The clerk role has no frontend.view permission by default.
+        // Withdraw the Public Content read permission from the clerk role; the
+        // old blanket frontend.view name no longer exists after the split.
         Role::query()->where('name', Role::ADMIN)->firstOrFail()
-            ->permissions()->detach(\App\Models\Permission::query()->where('name', 'frontend.view')->pluck('id')->all());
+            ->permissions()->detach(\App\Models\Permission::query()->where('name', 'frontend-pages.view')->pluck('id')->all());
 
         $this->actingAs($clerk->fresh())
             ->get(route('admin.popular'))

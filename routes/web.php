@@ -51,6 +51,7 @@ use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\TrackingSettingController;
 use App\Http\Controllers\Admin\OutreachController;
 use App\Http\Controllers\Admin\PopularContentController;
+use App\Http\Controllers\Admin\CoordinatorsGuideController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WardController;
@@ -294,7 +295,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('/admin/spam-filter/rules/{spamRule}', [SpamFilterController::class, 'destroyRule'])->middleware('permission:settings.update')->name('spam-filter.rules.destroy');
             Route::get('/admin/sitemap', [AdminSitemapController::class, 'index'])->middleware('permission:sitemap.view')->name('sitemap.admin');
             Route::post('/admin/sitemap/regenerate', [AdminSitemapController::class, 'regenerate'])->middleware(['permission:sitemap.regenerate', 'throttle:6,10'])->name('sitemap.regenerate');
-            Route::get('/admin/popular', [PopularContentController::class, 'index'])->middleware('permission:frontend.view')->name('admin.popular');
+            Route::get('/admin/popular', [PopularContentController::class, 'index'])->middleware('permission:frontend-pages.view')->name('admin.popular');
+            Route::get('/admin/coordinators-guide', [CoordinatorsGuideController::class, 'index'])->middleware('permission:guide.view')->name('coordinators-guide.index');
+            Route::put('/admin/coordinators-guide', [CoordinatorsGuideController::class, 'update'])->middleware('permission:guide.update')->name('coordinators-guide.update');
             Route::get('/admin/send-emails', [OutreachController::class, 'emailIndex'])->middleware('permission:messages.view')->name('outreach.email');
             Route::get('/admin/send-sms', [OutreachController::class, 'smsIndex'])->middleware('permission:messages.view')->name('outreach.sms');
             Route::post('/admin/outreach', [OutreachController::class, 'store'])->middleware(['permission:messages.create', 'throttle:20,1'])->name('outreach.store');
