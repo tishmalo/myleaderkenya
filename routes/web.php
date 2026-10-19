@@ -49,6 +49,7 @@ use App\Http\Controllers\Admin\SpamFilterController;
 use App\Http\Controllers\Admin\SupportGroupTypeController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\TrackingSettingController;
+use App\Http\Controllers\Admin\OutreachController;
 use App\Http\Controllers\Admin\PopularContentController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
@@ -294,6 +295,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/sitemap', [AdminSitemapController::class, 'index'])->middleware('permission:sitemap.view')->name('sitemap.admin');
             Route::post('/admin/sitemap/regenerate', [AdminSitemapController::class, 'regenerate'])->middleware(['permission:sitemap.regenerate', 'throttle:6,10'])->name('sitemap.regenerate');
             Route::get('/admin/popular', [PopularContentController::class, 'index'])->middleware('permission:frontend.view')->name('admin.popular');
+            Route::get('/admin/send-emails', [OutreachController::class, 'emailIndex'])->middleware('permission:messages.view')->name('outreach.email');
+            Route::get('/admin/send-sms', [OutreachController::class, 'smsIndex'])->middleware('permission:messages.view')->name('outreach.sms');
+            Route::post('/admin/outreach', [OutreachController::class, 'store'])->middleware(['permission:messages.create', 'throttle:20,1'])->name('outreach.store');
+            Route::get('/admin/outreach/{campaign}', [OutreachController::class, 'show'])->middleware('permission:messages.view')->name('outreach.show');
             Route::get('/notifications/emails', [NotificationEmailController::class, 'index'])->middleware('permission:settings.view')->name('notification-emails.index');
             Route::get('/notifications/emails/{key}/edit', [NotificationEmailController::class, 'edit'])->middleware('permission:settings.view')->name('notification-emails.edit');
             Route::put('/notifications/emails/{key}', [NotificationEmailController::class, 'update'])->middleware('permission:settings.update')->name('notification-emails.update');

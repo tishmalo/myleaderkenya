@@ -32,6 +32,8 @@ return [
                     ['label' => 'Create Message', 'route' => 'messages.create', 'icon' => 'fas fa-paper-plane', 'active' => ['messages.create'], 'permission' => 'messages.create'],
                     ['label' => 'Groups', 'route' => 'groups.create', 'icon' => 'fas fa-users', 'active' => ['groups.*'], 'permission' => 'messages.create'],
                     ['label' => 'SMS Balance Requests', 'route' => 'sms-balance-requests.index', 'icon' => 'fas fa-comment-sms', 'active' => ['sms-balance-requests.*'], 'permission' => 'messages.view'],
+                    ['label' => 'Send Emails', 'route' => 'outreach.email', 'icon' => 'fas fa-envelope-open-text', 'active' => ['outreach.email'], 'permission' => 'messages.create'],
+                    ['label' => 'Send SMS', 'route' => 'outreach.sms', 'icon' => 'fas fa-paper-plane', 'active' => ['outreach.sms'], 'permission' => 'messages.create'],
                 ],
             ],
             [
