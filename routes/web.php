@@ -333,14 +333,21 @@ Route::middleware('auth')->group(function () {
             Route::patch('/admin/party-management/accounts/{accountRequest}', [PoliticalPartyManagementController::class, 'account'])->middleware('permission:parties.update')->name('party-management.accounts.update');
             Route::get('/admin/party-management/accounts/{accountRequest}/document', [PoliticalPartyManagementController::class, 'document'])->middleware('permission:parties.view')->name('party-management.accounts.document');
             Route::patch('/admin/party-management/claims/{claim}', [PoliticalPartyManagementController::class, 'claim'])->middleware('permission:parties.update')->name('party-management.claims.update');
-            Route::resource('/admin/political-parties', PoliticalPartyController::class)
-                ->parameters(['political-parties' => 'politicalParty'])
-                ->names('political-parties')
-                ->except(['show'])->middleware('permission:parties.view');
-            Route::resource('/admin/coalitions', CoalitionController::class)
-                ->parameters(['coalitions' => 'coalition'])
-                ->names('coalitions')
-                ->except(['show'])->middleware('permission:parties.view');
+            // Each action checks its own permission: a role allowed to edit
+            // coalitions or parties does not also need the view permission.
+            Route::get('/admin/political-parties', [PoliticalPartyController::class, 'index'])->middleware('permission:parties.view')->name('political-parties.index');
+            Route::get('/admin/political-parties/create', [PoliticalPartyController::class, 'create'])->middleware('permission:parties.create')->name('political-parties.create');
+            Route::post('/admin/political-parties', [PoliticalPartyController::class, 'store'])->middleware('permission:parties.create')->name('political-parties.store');
+            Route::get('/admin/political-parties/{politicalParty}/edit', [PoliticalPartyController::class, 'edit'])->middleware('permission:parties.update')->name('political-parties.edit');
+            Route::put('/admin/political-parties/{politicalParty}', [PoliticalPartyController::class, 'update'])->middleware('permission:parties.update')->name('political-parties.update');
+            Route::delete('/admin/political-parties/{politicalParty}', [PoliticalPartyController::class, 'destroy'])->middleware('permission:parties.delete')->name('political-parties.destroy');
+
+            Route::get('/admin/coalitions', [CoalitionController::class, 'index'])->middleware('permission:parties.view')->name('coalitions.index');
+            Route::get('/admin/coalitions/create', [CoalitionController::class, 'create'])->middleware('permission:parties.create')->name('coalitions.create');
+            Route::post('/admin/coalitions', [CoalitionController::class, 'store'])->middleware('permission:parties.create')->name('coalitions.store');
+            Route::get('/admin/coalitions/{coalition}/edit', [CoalitionController::class, 'edit'])->middleware('permission:parties.update')->name('coalitions.edit');
+            Route::put('/admin/coalitions/{coalition}', [CoalitionController::class, 'update'])->middleware('permission:parties.update')->name('coalitions.update');
+            Route::delete('/admin/coalitions/{coalition}', [CoalitionController::class, 'destroy'])->middleware('permission:parties.delete')->name('coalitions.destroy');
 
             Route::get('/admin/news', [NewsArticleController::class, 'index'])->middleware('permission:news.view')->name('news.index');
             Route::get('/admin/news/create', [NewsArticleController::class, 'create'])->middleware('permission:news.create')->name('news.create');

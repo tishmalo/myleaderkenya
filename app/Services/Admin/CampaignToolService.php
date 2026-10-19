@@ -86,10 +86,10 @@ class CampaignToolService
         $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
         $data['slug'] = Str::slug($data['slug'] ?: $data['title']);
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
-        $data['nav_label'] = $data['nav_label'] ?: null;
-        $data['excerpt'] = $data['excerpt'] ?: null;
-        $data['meta_title'] = $data['meta_title'] ?: null;
-        $data['meta_description'] = $data['meta_description'] ?: null;
+        $data['nav_label'] = ($data['nav_label'] ?? null) ?: null;
+        $data['excerpt'] = ($data['excerpt'] ?? null) ?: null;
+        $data['meta_title'] = ($data['meta_title'] ?? null) ?: null;
+        $data['meta_description'] = ($data['meta_description'] ?? null) ?: null;
 
         return $data;
     }

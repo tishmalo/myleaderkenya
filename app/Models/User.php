@@ -257,19 +257,21 @@ class User extends Authenticatable implements AuditableContract
     /**
      * Whether this account may sign in to the admin area.
      *
-     * Decided by the role row, so a new role only has to set the flag.
-     * Accounts created before the roles table (no role_id) fall back to the
-     * legacy users.role column.
+     * The role row's flag is authoritative. When the flag is not available (a
+     * deploy that has not run the roles migration yet) the role name is used
+     * instead, so staff are never locked out of the admin area, and accounts
+     * older than the roles table fall back to the legacy users.role column.
      */
     public function isAdmin(): bool
     {
         $role = $this->resolvedRole();
 
-        if ($role) {
+        if ($role && $role->grants_admin_access !== null) {
             return (bool) $role->grants_admin_access;
         }
 
-        return in_array($this->attributes['role'] ?? null, [Role::ADMIN, Role::SUPERADMIN], true);
+        return in_array($this->roleName(), [Role::ADMIN, Role::SUPERADMIN], true)
+            || in_array($this->attributes['role'] ?? null, [Role::ADMIN, Role::SUPERADMIN], true);
     }
 
     /**
@@ -279,11 +281,14 @@ class User extends Authenticatable implements AuditableContract
     {
         $role = $this->resolvedRole();
 
-        if ($role) {
+        // Same deploy safety as isAdmin(): without the flag a role called
+        // superadmin keeps its full access instead of losing everything.
+        if ($role && $role->has_full_access !== null) {
             return (bool) $role->has_full_access;
         }
 
-        return ($this->attributes['role'] ?? null) === Role::SUPERADMIN;
+        return $this->roleName() === Role::SUPERADMIN
+            || ($this->attributes['role'] ?? null) === Role::SUPERADMIN;
     }
 
     public function canAccess(string $permission): bool

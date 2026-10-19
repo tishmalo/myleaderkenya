@@ -84,10 +84,10 @@ class CoalitionService
     {
         $data['slug'] = Str::slug(($data['slug'] ?? '') ?: $data['name']);
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
-        $data['brand_color'] = $data['brand_color'] ?: null;
-        $data['excerpt'] = $data['excerpt'] ?: null;
-        $data['meta_title'] = $data['meta_title'] ?: null;
-        $data['meta_description'] = $data['meta_description'] ?: null;
+        $data['brand_color'] = ($data['brand_color'] ?? null) ?: null;
+        $data['excerpt'] = ($data['excerpt'] ?? null) ?: null;
+        $data['meta_title'] = ($data['meta_title'] ?? null) ?: null;
+        $data['meta_description'] = ($data['meta_description'] ?? null) ?: null;
 
         return $data;
     }
