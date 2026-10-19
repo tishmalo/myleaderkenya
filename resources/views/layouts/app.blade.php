@@ -111,15 +111,75 @@ function setButtonLoading(button, label = 'Processing...') {
     button.innerHTML = `<span class="inline-flex items-center justify-center gap-2"><span class="button-loading-spinner" aria-hidden="true"></span><span>${label}</span></span>`;
 }
 
+function restoreDeleteButton(button) {
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+    button.dataset.loading = 'false';
+
+    if (button.dataset.originalHtml) {
+        button.innerHTML = button.dataset.originalHtml;
+    }
+}
+
+function rememberToast(type, message) {
+    try {
+        sessionStorage.setItem('mlk.flash', JSON.stringify({ type: type, message: message }));
+    } catch (error) {
+        // A reload still refreshes the list when storage is unavailable.
+    }
+}
+
 function confirmDelete(button = null) {
     if (!currentDeleteUrl) return;
+
+    const url = currentDeleteUrl;
+    const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
     setButtonLoading(button, button?.dataset.loadingLabel || 'Deleting...');
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = currentDeleteUrl;
-    form.innerHTML = `@csrf @method('DELETE')`;
-    document.body.appendChild(form);
-    form.submit();
+
+    // Submit in the background so the browser never lands on the response
+    // body; a delete endpoint that answers with JSON used to replace the page
+    // with a raw payload.
+    if (typeof window.fetch !== 'function') {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.innerHTML = `<input type="hidden" name="_token" value="${token}"><input type="hidden" name="_method" value="DELETE">`;
+        document.body.appendChild(form);
+        form.submit();
+
+        return;
+    }
+
+    const body = new URLSearchParams();
+    body.append('_token', token);
+    body.append('_method', 'DELETE');
+
+    fetch(url, { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (response) {
+            if (!response.ok && !response.redirected) {
+                throw new Error('Delete failed');
+            }
+
+            // Endpoints that redirect have already flashed their own message.
+            if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
+                window.location.reload();
+
+                return null;
+            }
+
+            return response.json().then(function (data) {
+                rememberToast(data?.success === false ? 'error' : 'success', data?.message || 'Deleted successfully.');
+                window.location.reload();
+            });
+        })
+        .catch(function () {
+            restoreDeleteButton(button);
+            hideDeleteModal();
+            window.alert('That item could not be deleted. Refresh the page and try again.');
+        });
 }
 
 window.showDeleteModal = showDeleteModal;
@@ -200,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
         error:   'border-red-500/40',
     };
 
-    function showToast({ type, message }) {
+    function showToast({ type = 'success', message = '' } = {}) {
         const container = document.getElementById('toastContainer');
         const el = document.createElement('div');
         el.className = 'pointer-events-auto flex items-start gap-3 bg-zinc-900 border ' + (borders[type] ?? 'border-zinc-700') + ' rounded-2xl px-4 py-3 shadow-2xl text-sm text-zinc-200 opacity-0 translate-y-4 transition-all duration-300';
@@ -213,7 +273,30 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     }
 
-    document.addEventListener('DOMContentLoaded', () => toasts.forEach(showToast));
+    window.showToast = showToast;
+
+    function storedToast() {
+        try {
+            const raw = sessionStorage.getItem('mlk.flash');
+            sessionStorage.removeItem('mlk.flash');
+
+            return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        toasts.forEach((toast) => showToast(toast));
+
+        // A delete answered with JSON has no server flash, so it hands its
+        // message over here instead.
+        const pending = storedToast();
+
+        if (pending) {
+            showToast(pending);
+        }
+    });
 })();
 </script>
 </body>

@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\PoliticalPartyUpdateRequest;
 use App\Models\PoliticalParty;
 use App\Services\Admin\PoliticalPartyService;
 use App\Services\Web\ViewTracker;
+use Illuminate\Http\Request;
 
 class PoliticalPartyController extends Controller
 {
@@ -57,13 +58,19 @@ class PoliticalPartyController extends Controller
             ->with('success', 'Political party updated successfully!');
     }
 
-    public function destroy(PoliticalParty $politicalParty)
+    public function destroy(Request $request, PoliticalParty $politicalParty)
     {
         $this->politicalPartyService->deleteParty($politicalParty);
 
+        $message = 'Political party deleted successfully.';
+
+        if (! $request->expectsJson()) {
+            return redirect()->back()->with('success', $message);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Political party deleted successfully.',
+            'message' => $message,
         ]);
     }
 

@@ -156,7 +156,7 @@ class CoalitionAdminAccessTest extends TestCase
         $coalition = $this->coalition();
 
         $this->actingAs($remover)
-            ->delete(route('coalitions.destroy', $coalition))
+            ->deleteJson(route('coalitions.destroy', $coalition))
             ->assertOk();
 
         $this->assertDatabaseMissing('coalitions', ['id' => $coalition->id]);

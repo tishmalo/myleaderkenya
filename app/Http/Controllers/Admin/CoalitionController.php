@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\CoalitionStoreRequest;
 use App\Http\Requests\Admin\CoalitionUpdateRequest;
 use App\Models\Coalition;
 use App\Services\Admin\CoalitionService;
+use Illuminate\Http\Request;
 
 class CoalitionController extends Controller
 {
@@ -58,13 +59,21 @@ class CoalitionController extends Controller
             ->with('success', 'Coalition updated successfully!');
     }
 
-    public function destroy(Coalition $coalition)
+    public function destroy(Request $request, Coalition $coalition)
     {
         $this->coalitionService->deleteCoalition($coalition);
 
+        $message = 'Coalition deleted successfully.';
+
+        // A delete that arrives from a normal form post must not leave the
+        // browser staring at a JSON payload; send the person back to the list.
+        if (! $request->expectsJson()) {
+            return redirect()->back()->with('success', $message);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Coalition deleted successfully.',
+            'message' => $message,
         ]);
     }
 
