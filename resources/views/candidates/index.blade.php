@@ -116,50 +116,7 @@
             </div>
         </div>
     </form>
-    @if($transferRuns->isNotEmpty())
-    <div class="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5" data-transfer-panel>
-        <div class="mb-4 flex items-center gap-2">
-            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
-                <i class="fas fa-clock-rotate-left text-emerald-500"></i> Import / Export Jobs
-            </h2>
-            <span class="rounded-full bg-zinc-800 px-3 py-1 text-xs text-zinc-400">updates automatically</span>
-        </div>
-        <div class="space-y-3">
-            @foreach($transferRuns as $run)
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
-                     data-transfer-run="{{ $run->id }}"
-                     data-transfer-url="{{ route('candidates.transfer.status', $run) }}">
-                    <span class="inline-flex rounded-full bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase text-zinc-300">
-                        {{ $run->type }}
-                    </span>
-                    <span class="text-xs font-semibold uppercase {{ $run->status === 'complete' ? 'text-emerald-400' : ($run->status === 'failed' ? 'text-red-400' : 'text-amber-300') }}"
-                          data-transfer-status>{{ $run->status }}</span>
-                    <span class="text-xs text-zinc-500">{{ $run->created_at->diffForHumans() }}</span>
-                    <span class="ml-auto text-xs text-zinc-400" data-transfer-summary>
-                        @if($run->type === 'import' && $run->status === 'complete')
-                            {{ $run->imported_count }} imported, {{ $run->linked_count }} linked, {{ $run->skipped_count }} skipped
-                        @elseif($run->type === 'export' && $run->status === 'complete')
-                            {{ $run->exported_count }} exported
-                        @elseif(in_array($run->status, ['pending', 'running'], true))
-                            Processing&hellip;
-                        @endif
-                    </span>
-                    @if($run->status === 'complete' && $run->type === 'export' && $run->result_path)
-                        <a href="{{ route('candidates.export.download', $run) }}"
-                           class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-                            <i class="fas fa-download"></i> Download
-                        </a>
-                    @endif
-                    @if($run->status === 'failed' && $run->error_message)
-                        <span class="w-full text-xs text-red-300" title="{{ $run->error_message }}">
-                            <i class="fas fa-circle-exclamation mr-1"></i>{{ \Illuminate\Support\Str::limit($run->error_message, 160) }}
-                        </span>
-                    @endif
-                </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
+
     <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
         <div class="w-full max-w-full overflow-x-auto">
         <table class="min-w-[1320px] w-full">
@@ -461,6 +418,55 @@
     <div class="mt-8 flex justify-center">
         {{ $candidates->appends(request()->query())->links() }}
     </div>
+
+    @if($transferRuns->isNotEmpty())
+    <div class="mt-10 bg-zinc-900 border border-zinc-800 rounded-3xl p-5" data-transfer-panel>
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-clock-rotate-left text-emerald-500"></i> Import / Export Jobs
+            </h2>
+            <span class="rounded-full bg-zinc-800 px-3 py-1 text-xs text-zinc-400">updates automatically</span>
+        </div>
+        <p class="mb-4 text-sm text-zinc-500">
+            The CSV imports and exports started from the buttons at the top of this page. Each job keeps running in the
+            background, so you can leave this screen and come back for the result.
+        </p>
+        <div class="space-y-3">
+            @foreach($transferRuns as $run)
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                     data-transfer-run="{{ $run->id }}"
+                     data-transfer-url="{{ route('candidates.transfer.status', $run) }}">
+                    <span class="inline-flex rounded-full bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase text-zinc-300">
+                        {{ $run->type }}
+                    </span>
+                    <span class="text-xs font-semibold uppercase {{ $run->status === 'complete' ? 'text-emerald-400' : ($run->status === 'failed' ? 'text-red-400' : 'text-amber-300') }}"
+                          data-transfer-status>{{ $run->status }}</span>
+                    <span class="text-xs text-zinc-500">{{ $run->created_at->diffForHumans() }}</span>
+                    <span class="ml-auto text-xs text-zinc-400" data-transfer-summary>
+                        @if($run->type === 'import' && $run->status === 'complete')
+                            {{ $run->imported_count }} imported, {{ $run->linked_count }} linked, {{ $run->skipped_count }} skipped
+                        @elseif($run->type === 'export' && $run->status === 'complete')
+                            {{ $run->exported_count }} exported
+                        @elseif(in_array($run->status, ['pending', 'running'], true))
+                            Processing&hellip;
+                        @endif
+                    </span>
+                    @if($run->status === 'complete' && $run->type === 'export' && $run->result_path)
+                        <a href="{{ route('candidates.export.download', $run) }}"
+                           class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    @endif
+                    @if($run->status === 'failed' && $run->error_message)
+                        <span class="w-full text-xs text-red-300" title="{{ $run->error_message }}">
+                            <i class="fas fa-circle-exclamation mr-1"></i>{{ \Illuminate\Support\Str::limit($run->error_message, 160) }}
+                        </span>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 </div>
 
 {{-- Import Modal --}}
