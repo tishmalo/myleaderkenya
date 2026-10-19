@@ -31,6 +31,7 @@ class DashboardService
             'messages'     => $this->dashboardRepository->getLatestMessages(30),
             'stations'     => $this->dashboardRepository->getLatestStations(),
             'totalVoters'  => $totalVoters,
+            'content'      => $this->dashboardRepository->getContentStats(),
             'voterStats'   => [
                 'confirmedVoters' => $totalVoters,
                 'avgAge'          => $this->dashboardRepository->getAverageVoterAge(),

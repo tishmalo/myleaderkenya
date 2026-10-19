@@ -28,4 +28,11 @@ interface DashboardRepositoryInterface
     public function getTags();
 
     public function getTotalGroupsCount();
+
+    /**
+     * Counts for the aspirant and public content side of the dashboard.
+     *
+     * @return array<string, mixed>
+     */
+    public function getContentStats(): array;
 }
