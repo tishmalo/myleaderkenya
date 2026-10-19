@@ -162,13 +162,14 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 .article-no-img-meta-item i { font-size: 10px; color: var(--green-bright); }
 
 /* ── MAIN LAYOUT ── */
-/* Rail is fixed at 523px so each video card matches the campaign media card
-   on the aspirant page exactly, leaving the article column narrower. */
+/* Same two column split as every other page with a rail
+   (.with-rail in the shared video-rail layer): roughly 70% article, 30% rail,
+   so the story reads comfortably and the videos no longer crowd it out. */
 .article-layout {
     max-width: 1080px; margin: 0 auto;
     padding: 48px 32px 80px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 523px;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
     gap: 28px;
     align-items: start;
 }
@@ -529,6 +530,13 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
 }
 
 /* ── RESPONSIVE ── */
+/* Matches the shared rail layout: below 1180px the rail drops under the story. */
+@media (max-width: 1180px) {
+    .article-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .article-sidebar { position: static; }
+    .article-sidebar .rail-videos { flex-direction: row; flex-wrap: wrap; }
+    .article-sidebar .rail-video { flex: 1 1 260px; }
+}
 @media (max-width: 768px) {
     .article-back-bar { padding: 20px 16px 0; }
     .article-hero { padding: 0 16px; margin-top: 24px; }

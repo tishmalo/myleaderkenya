@@ -49,7 +49,9 @@ class NewsArticle extends Model implements AuditableContract
 
     public function approvedComments()
     {
-        return $this->comments()->approved()->with('user')->oldest();
+        // Newest first, so a fresh comment is the first thing a reader sees.
+        // The poll pages already order their discussion the same way.
+        return $this->comments()->approved()->with('user')->latest('created_at')->latest('id');
     }
     protected static function boot()
     {
