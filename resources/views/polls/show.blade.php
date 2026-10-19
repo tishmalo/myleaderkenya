@@ -118,7 +118,12 @@
         <div class="poll-share-head">
             <div class="section-label">{{ $poll['section_label'] }}</div>
             <h1 class="poll-share-title">{{ $poll['question'] }}</h1>
-            <p class="poll-share-sub">{{ $poll['status_line'] }}</p>
+            <p class="poll-share-sub">
+                {{ $poll['status_line'] }}
+                @if((int) ($poll['views'] ?? 0) > 0)
+                    &middot; <i class="fas fa-eye" aria-hidden="true"></i> {{ number_format((int) $poll['views']) }} views
+                @endif
+            </p>
         </div>
 
         <section class="poll-section" id="poll">

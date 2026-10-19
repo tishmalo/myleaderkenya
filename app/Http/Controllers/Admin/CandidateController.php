@@ -15,6 +15,7 @@ use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
 use App\Services\Web\PublicCountyService;
 use App\Services\Web\UserLinkService;
+use App\Services\Web\ViewTracker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,7 +33,8 @@ class CandidateController extends Controller
     public function __construct(
         private CandidateService $candidateService,
         private UserLinkService $userLinkService,
-        private PublicCountyService $publicCountyService
+        private PublicCountyService $publicCountyService,
+        private ViewTracker $viewTracker,
     ) {}
 
     public function index()
@@ -251,6 +253,8 @@ class CandidateController extends Controller
         }
 
         $candidate = $this->candidateService->getPublicShow($candidate);
+
+        $this->viewTracker->track($candidate, request());
 
         return view('aspirants.public.show', [
             'candidate' => $candidate,

@@ -8,11 +8,13 @@ use App\Http\Requests\Admin\NewsArticleUpdateRequest;
 use App\Models\NewsArticle;
 use App\Models\NewsArticleComment;
 use App\Services\Admin\NewsArticleService;
+use App\Services\Web\ViewTracker;
 
 class NewsArticleController extends Controller
 {
     public function __construct(
-        private NewsArticleService $newsArticleService
+        private NewsArticleService $newsArticleService,
+        private ViewTracker $viewTracker,
     ) {}
 
     public function index()
@@ -97,6 +99,8 @@ class NewsArticleController extends Controller
     public function publicShow($slug)
     {
         $data = $this->newsArticleService->getPublicShowPageData($slug);
+
+        $this->viewTracker->track($data['article'], request());
 
         return view('news.public.show', $data);
     }

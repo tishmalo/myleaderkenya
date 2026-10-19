@@ -38,7 +38,7 @@ class PollController extends Controller
 
     public function show(Request $request, string $slug): View
     {
-        $poll = $this->pollService->presentPollBySlug($slug, $request->user());
+        $poll = $this->pollService->presentPollBySlug($slug, $request->user(), $request);
 
         abort_unless($poll !== null, 404);
 

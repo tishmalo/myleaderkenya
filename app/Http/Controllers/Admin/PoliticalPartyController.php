@@ -7,10 +7,14 @@ use App\Http\Requests\Admin\PoliticalPartyStoreRequest;
 use App\Http\Requests\Admin\PoliticalPartyUpdateRequest;
 use App\Models\PoliticalParty;
 use App\Services\Admin\PoliticalPartyService;
+use App\Services\Web\ViewTracker;
 
 class PoliticalPartyController extends Controller
 {
-    public function __construct(private PoliticalPartyService $politicalPartyService) {}
+    public function __construct(
+        private PoliticalPartyService $politicalPartyService,
+        private ViewTracker $viewTracker,
+    ) {}
 
     public function index()
     {
@@ -72,9 +76,10 @@ class PoliticalPartyController extends Controller
 
     public function publicShow(string $slug)
     {
-        return view(
-            'political-parties.public.show',
-            $this->politicalPartyService->getPublicPageData($slug, 20),
-        );
+        $data = $this->politicalPartyService->getPublicPageData($slug, 20);
+
+        $this->viewTracker->track($data['politicalParty'], request());
+
+        return view('political-parties.public.show', $data);
     }
 }

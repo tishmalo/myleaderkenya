@@ -620,6 +620,9 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <span class="article-no-img-meta-item">
             <i class="fas fa-calendar-alt"></i> {{ $article->created_at->format('d F Y') }}
         </span>
+        <span class="article-no-img-meta-item" title="Views">
+            <i class="fas fa-eye"></i> {{ number_format((int) ($article->views ?? 0)) }} views
+        </span>
     </div>
 </div>
 @endif
@@ -642,6 +645,10 @@ h1,h2,h3,h4 { font-family: 'Oswald', sans-serif; }
         <span class="article-meta-bar-item">
             <i class="fas fa-clock"></i>
             {{ max(1, (int) ceil(str_word_count(strip_tags($article->content)) / 200)) }} min read
+        </span>
+        <div class="article-meta-bar-sep"></div>
+        <span class="article-meta-bar-item" title="Views">
+            <i class="fas fa-eye"></i> {{ number_format((int) ($article->views ?? 0)) }} views
         </span>
     </div>
     @endif

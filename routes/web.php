@@ -49,6 +49,7 @@ use App\Http\Controllers\Admin\SpamFilterController;
 use App\Http\Controllers\Admin\SupportGroupTypeController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\TrackingSettingController;
+use App\Http\Controllers\Admin\PopularContentController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WardController;
@@ -292,6 +293,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/admin/spam-filter/rules/{spamRule}', [SpamFilterController::class, 'destroyRule'])->middleware('permission:settings.update')->name('spam-filter.rules.destroy');
             Route::get('/admin/sitemap', [AdminSitemapController::class, 'index'])->middleware('permission:sitemap.view')->name('sitemap.admin');
             Route::post('/admin/sitemap/regenerate', [AdminSitemapController::class, 'regenerate'])->middleware(['permission:sitemap.regenerate', 'throttle:6,10'])->name('sitemap.regenerate');
+            Route::get('/admin/popular', [PopularContentController::class, 'index'])->middleware('permission:frontend.view')->name('admin.popular');
             Route::get('/notifications/emails', [NotificationEmailController::class, 'index'])->middleware('permission:settings.view')->name('notification-emails.index');
             Route::get('/notifications/emails/{key}/edit', [NotificationEmailController::class, 'edit'])->middleware('permission:settings.view')->name('notification-emails.edit');
             Route::put('/notifications/emails/{key}', [NotificationEmailController::class, 'update'])->middleware('permission:settings.update')->name('notification-emails.update');

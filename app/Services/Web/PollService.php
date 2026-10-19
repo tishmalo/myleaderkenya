@@ -8,6 +8,7 @@ use App\Models\PollComment;
 use App\Models\User;
 use App\Support\HomepageCache;
 use App\Support\PollPresenter;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -146,7 +147,7 @@ class PollService
      *
      * @return array<string, mixed>|null
      */
-    public function presentPollBySlug(string $slug, ?User $viewer): ?array
+    public function presentPollBySlug(string $slug, ?User $viewer, ?Request $request = null): ?array
     {
         $poll = $this->repository->findLivePollBySlug($slug);
 
@@ -154,7 +155,14 @@ class PollService
             return null;
         }
 
-        return $this->present($poll, $viewer);
+        if ($request !== null) {
+            app(ViewTracker::class)->track($poll, $request);
+        }
+
+        $presented = $this->present($poll, $viewer);
+        $presented['views'] = (int) $poll->views;
+
+        return $presented;
     }
 
     /**

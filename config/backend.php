@@ -70,6 +70,7 @@ return [
                     ['label' => 'Add Link/Page', 'route' => 'links.create', 'icon' => 'fas fa-circle-plus', 'active' => ['links.create'], 'permission' => 'links.create'],
                     ['label' => 'Tags', 'route' => 'tags.index', 'icon' => 'fas fa-tags', 'active' => ['tags.*'], 'permission' => 'tags.view'],
                     ['label' => 'Public Pulse', 'route' => 'public-pulse.index', 'icon' => 'fas fa-wave-square', 'active' => ['public-pulse.*'], 'permission' => 'public-pulse.view'],
+                    ['label' => 'Popular Content', 'route' => 'admin.popular', 'icon' => 'fas fa-fire', 'active' => ['admin.popular'], 'permission' => 'frontend.view'],
                 ],
             ],
             [

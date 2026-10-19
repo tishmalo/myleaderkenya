@@ -328,6 +328,7 @@ h1,h2,h3,h4 { font-family:'Oswald', sans-serif; }
                     @if($candidate->ward)<div class="summary-item"><span class="summary-icon"><i class="fas fa-location-dot"></i></span><div><div class="summary-label">Ward</div><div class="summary-value">{{ $candidate->ward }}</div></div></div>@endif
                     @if($maskedPhone)<div class="summary-item"><span class="summary-icon"><i class="fas fa-phone"></i></span><div><div class="summary-label">Phone</div><div class="summary-value">{{ $maskedPhone }}</div></div></div>@endif
                     @if($maskedEmail)<div class="summary-item"><span class="summary-icon"><i class="fas fa-envelope"></i></span><div><div class="summary-label">Email</div><div class="summary-value">{{ $maskedEmail }}</div></div></div>@endif
+                    @if((int) ($candidate->views ?? 0) > 0)<div class="summary-item"><span class="summary-icon"><i class="fas fa-eye"></i></span><div><div class="summary-label">Profile views</div><div class="summary-value">{{ number_format((int) $candidate->views) }}</div></div></div>@endif
                 </div>
                 <div class="summary-videos">
                     <div class="summary-videos-title"><i class="fas fa-circle-play"></i> Campaign Videos</div>
