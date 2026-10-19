@@ -619,7 +619,7 @@ class PollFeatureTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('poll.vote', $poll), ['option_id' => $option->id])
-            ->assertRedirect(route('landing'))
+            ->assertRedirect(route('polls.public'))
             ->assertSessionHas('poll_notice');
 
         $this->assertDatabaseHas('poll_votes', [
@@ -836,7 +836,7 @@ class PollFeatureTest extends TestCase
 
         $this->actingAs($resident)
             ->post(route('poll.vote', $poll), ['option_id' => $option->id])
-            ->assertRedirect(route('landing'))
+            ->assertRedirect(route('polls.public'))
             ->assertSessionHas('poll_notice');
 
         $this->assertDatabaseHas('poll_votes', ['poll_id' => $poll->id, 'user_id' => $resident->id]);
@@ -1214,7 +1214,8 @@ class PollFeatureTest extends TestCase
             ->assertSee('Cast your vote');
 
         $this->post(route('poll.vote', $poll->id), ['option_id' => $poll->options->first()->id])
-            ->assertRedirect(route('landing'));
+            // Back to the poll page the vote was cast from.
+            ->assertRedirect(route('poll.show', $poll->slug));
 
         $this->assertDatabaseHas('poll_votes', [
             'poll_id' => $poll->id,
@@ -1306,7 +1307,7 @@ class PollFeatureTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('poll.vote', $poll), ['option_id' => $options[1]->id])
-            ->assertRedirect(route('landing'));
+            ->assertRedirect(route('polls.public'));
 
         $this->assertDatabaseCount('poll_votes', 1);
         $this->assertDatabaseHas('poll_votes', [

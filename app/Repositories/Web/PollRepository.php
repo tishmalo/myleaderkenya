@@ -16,14 +16,30 @@ class PollRepository implements PollRepositoryInterface
     /**
      * The shells of every open poll, light enough to cache and filter by
      * audience before any full poll is loaded. Returns rows keyed by id, each
-     * exposing the audience columns only.
+     * exposing the audience columns only, in ballot order.
      */
     public function openPollCandidates(): Collection
     {
+        // A poll's position comes from the aspirants it lists, so ordering by
+        // the position's own sort order puts presidential first and MCA last,
+        // the way a ballot paper reads. Within a position the poll with the
+        // most votes leads.
+        $positionRank = '(SELECT MIN(positions.sort_order)
+            FROM poll_options
+            JOIN candidates ON candidates.id = poll_options.candidate_id
+            JOIN positions ON positions.id = candidates.position_id
+            WHERE poll_options.poll_id = polls.id)';
+
         return Poll::query()
             ->where('status', Poll::STATUS_ACTIVE)
+            ->select(['id', 'audience_scope', 'audience_county', 'audience_constituency', 'audience_ward'])
+            ->selectRaw($positionRank.' as position_rank')
+            ->selectRaw('(SELECT COUNT(*) FROM poll_votes WHERE poll_votes.poll_id = polls.id) as vote_total')
+            ->orderByRaw('position_rank IS NULL')
+            ->orderBy('position_rank')
+            ->orderByDesc('vote_total')
             ->orderByDesc('ends_at')
-            ->get(['id', 'audience_scope', 'audience_county', 'audience_constituency', 'audience_ward'])
+            ->get()
             ->mapWithKeys(fn (Poll $poll) => [$poll->id => [
                 'id' => $poll->id,
                 'audience_scope' => $poll->audience_scope,

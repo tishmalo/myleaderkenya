@@ -26,8 +26,10 @@ class PollVoteController extends Controller
 
         $this->pollService->castVote($poll, (int) $validated['option_id'], $request->user());
 
+        // Back where the vote was cast, so a reader on the polls page stays
+        // there instead of being dropped on the landing page.
         return redirect()
-            ->route('landing')
+            ->back(302, [], route('polls.public'))
             ->with('poll_notice', 'Your vote has been recorded. Results unlock when the poll closes.');
     }
 }

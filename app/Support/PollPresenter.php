@@ -46,6 +46,16 @@ class PollPresenter
 
         $byOption = $tallies->keyBy('option_id');
 
+        // Standings order: the aspirant with the most votes leads and anyone on
+        // zero drops to the end. Sorted by display order first, then stably by
+        // the tally, so equal counts keep the admin's own order. When tallies
+        // are hidden for this viewer they are all zero, which leaves that order
+        // untouched - the standing never leaks through the card arrangement.
+        $orderedOptions = $options
+            ->sortBy(fn (PollOption $option): int => (int) $option->display_order)
+            ->sortByDesc(fn (PollOption $option): int => (int) ($byOption->get($option->id)['votes'] ?? 0))
+            ->values();
+
         return [
             'id' => $poll->id,
             'slug' => $poll->slug,
@@ -64,7 +74,7 @@ class PollPresenter
             'confirms_vote' => $hasVoted && $isOpen,
             'total_votes_label' => number_format($totalVotes).' '.Str::plural('vote', $totalVotes).' cast',
             'results_locked' => ! $resultsVisible,
-            'options' => $options->map(fn (PollOption $option) => self::option(
+            'options' => $orderedOptions->map(fn (PollOption $option) => self::option(
                 $option,
                 $byOption,
                 $votedOptionId,

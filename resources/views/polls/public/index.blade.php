@@ -62,7 +62,13 @@
     @vite('resources/css/views/landing.css')
 <style>
 .polls-public-shell { background:#050505; color:#fff; }
-.polls-public-hero { padding: clamp(40px,8vw,90px) 0 0; }
+/* Kept compact on purpose: the polls themselves are the point of the page, so
+   the introduction is a short banner rather than a full-height hero. */
+.polls-public-hero { padding: clamp(16px,3vw,30px) 0 0; }
+.polls-public-hero .section-header { margin-bottom: 20px; }
+.polls-public-hero .section-title { font-size: clamp(28px,3.4vw,40px); }
+.polls-public-hero .section-sub { font-size: 15px; margin-top: 8px; }
+.polls-public-shell .poll-section { padding-top: 34px; }
 .polls-public-empty { padding: clamp(30px,6vw,60px) 0 clamp(60px,10vw,110px); }
 .empty-card { border:1px solid rgba(255,255,255,0.08); border-radius:16px; background:radial-gradient(1200px 400px at 50% 0, rgba(5,150,105,0.18), transparent); padding: clamp(28px,6vw,56px); text-align:center; display:flex; flex-direction:column; align-items:center; gap:12px; }
 .empty-title { margin:0; font-size:clamp(24px,4vw,36px); font-weight:800; }
