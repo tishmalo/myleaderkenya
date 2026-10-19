@@ -254,6 +254,8 @@ class CandidateController extends Controller
 
         return view('aspirants.public.show', [
             'candidate' => $candidate,
+            // Targeting rules stay authoritative: the aspirant's own links plus
+            // any county, constituency, ward or party links that match them.
             'candidateLinks' => $this->userLinkService->forCandidate($candidate),
             'candidateCounty' => $this->publicCountyService->countyFor($candidate),
         ]);
