@@ -45,12 +45,12 @@
     <i class="fas fa-paper-plane"></i> Send New Message (via Mobile App)
 </a> -->
             
-            <!-- Fixed: Removed route('messages.create') since it doesn't exist -->
-            <a href="{{ route('dashboard.messages') }}" 
-               onclick="alert('Public messages are currently sent via the mobile app.\n\nUse the API endpoint: POST /api/send-message')"
-               class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer">
-                <i class="fas fa-paper-plane"></i> Send New Message
-            </a>
+            @if(auth()->user()?->canAccess('messages.create'))
+                <a href="{{ route('messages.create') }}" 
+                   class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Send New Message
+                </a>
+            @endif
         </div>
 
         <!-- Rest of your table remains the same -->
@@ -111,64 +111,6 @@
     </div>
     @endif
 </div>
-
-    <!-- ==================== COUNTY / CONSTITUENCY SECTION ==================== -->
-    <!-- <div id="content-counties" class="tab-content">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-            <div class="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
-                    <i class="fas fa-globe"></i> 
-                    Public Constituency Messages
-                </h2>
-                <a href="{{ route('messages.create') ?? '#' }}" 
-                   class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
-                    <i class="fas fa-paper-plane"></i> Send New Message
-                </a>
-            </div>
-
-            <table class="w-full">
-                <thead class="bg-zinc-950 sticky top-0">
-                    <tr class="border-b border-zinc-800">
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-400">Username</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-400">Message</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-400">Location</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-400">County / Constituency</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-400">Time</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-800">
-                    @forelse($messages ?? [] as $msg)
-                        <tr class="hover:bg-zinc-800/70 transition-colors">
-                            <td class="px-6 py-4 font-medium text-white">{{ $msg->username }}</td>
-                            <td class="px-6 py-4 text-zinc-300 line-clamp-2 max-w-md pr-8">
-                                {{ $msg->message }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-zinc-500 font-mono">
-                                @if($msg->latitude && $msg->longitude)
-                                    {{ number_format($msg->latitude, 5) }}, {{ number_format($msg->longitude, 5) }}
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-sm">
-                                <span class="text-white">{{ $msg->constituency ?? '—' }}</span>
-                                <span class="text-zinc-500 text-xs block">{{ $msg->county ?? '' }}</span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-zinc-500 whitespace-nowrap">
-                                {{ $msg->created_at->diffForHumans() }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-20 text-center text-zinc-500">
-                                No public messages have been sent yet.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div> -->
 
     <!-- ==================== GROUPS SECTION ==================== -->
     <div id="content-groups" class="tab-content hidden">
