@@ -39,6 +39,16 @@
                     {{ $group['candidates']->links() }}
                 </div>
             @endif
+
+            {{-- Pages and links of the aspirants listed above, shown under their list. --}}
+            @if(($group['links'] ?? collect())->isNotEmpty())
+                <div class="position-group-links">
+                    @include('components.pages-links-list', [
+                        'resourceLinks' => $group['links'],
+                        'pagesLinksTitle' => $group['position']->name.' Pages & Links',
+                    ])
+                </div>
+            @endif
         </section>
     @empty
         <div class="position-groups-empty">
@@ -65,6 +75,7 @@
     .position-groups-empty h3 { margin: 0 0 8px; color: rgba(245,245,240,.65); font-size: 24px; }
     .position-groups-empty p { margin: 0; }
     .position-groups-pagination { margin-top: 30px; display: flex; justify-content: center; }
+    .position-group-links { margin-top: 8px; }
     @media (max-width: 768px) { .position-groups { padding: 24px; } .position-groups-head { align-items: start; flex-direction: column; } }
     @media (max-width: 520px) { .position-group-head { align-items: flex-start; flex-direction: column; } }
 </style>

@@ -127,6 +127,15 @@
             </div>
         </section>
 
+        @if(($pollLinks ?? collect())->isNotEmpty())
+            <div class="poll-share-links">
+                @include('components.pages-links-list', [
+                    'resourceLinks' => $pollLinks,
+                    'pagesLinksTitle' => 'Pages & Links for these aspirants',
+                ])
+            </div>
+        @endif
+
         <div class="poll-share-bar" aria-label="Share this poll">
             <span class="poll-share-label"><i class="fas fa-share-alt" aria-hidden="true"></i> Share this poll</span>
             <a class="poll-share-btn is-whatsapp"

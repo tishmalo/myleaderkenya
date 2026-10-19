@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\Web\PollService;
+use App\Services\Web\UserLinkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,7 +16,10 @@ use Illuminate\View\View;
  */
 class PollController extends Controller
 {
-    public function __construct(private readonly PollService $pollService) {}
+    public function __construct(
+        private readonly PollService $pollService,
+        private readonly UserLinkService $userLinkService,
+    ) {}
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -41,6 +45,8 @@ class PollController extends Controller
         return view('polls.show', [
             'poll' => $poll,
             'shareUrl' => route('poll.show', $poll['slug']),
+            // Pages and links of the aspirants named in this poll.
+            'pollLinks' => $this->userLinkService->forCandidates($poll['candidate_ids'] ?? []),
         ]);
     }
 }

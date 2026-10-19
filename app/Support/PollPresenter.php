@@ -70,6 +70,8 @@ class PollPresenter
                 $votedOptionId,
                 $resultsVisible
             ))->all(),
+            // The aspirants named in this poll, so the page can feature their links.
+            'candidate_ids' => $options->pluck('candidate_id')->filter()->unique()->values()->all(),
             'comment_count' => $commentCount,
             'comments' => $comments->map(fn (PollComment $comment) => [
                 'author' => $comment->user?->name ?? 'Member',

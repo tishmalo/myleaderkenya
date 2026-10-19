@@ -128,6 +128,33 @@ class ResourceLinkRepository implements ResourceLinkRepositoryInterface
     }
 
     /**
+     * Approved links attached to any of the given aspirants, for pages that
+     * gather several of them (a county's position list, a poll's options).
+     *
+     * @param  iterable<int|string|null>  $candidateIds
+     */
+    public function approvedForCandidates(iterable $candidateIds, int $limit = 12): Collection
+    {
+        $ids = collect($candidateIds)
+            ->filter()
+            ->map(fn ($id): int => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return $this->approvedQuery()
+            ->whereIn('candidate_id', $ids->all())
+            ->with(['politicalParty:id,name,abbreviation', 'candidate:id,name', 'county:id,name'])
+            ->orderByDesc('followers')
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
      * A link's narrowest geographic scope wins against a candidate's free-text
      * locations: a ward link only reaches that ward's aspirants, a
      * constituency link only its constituency, otherwise the whole county.

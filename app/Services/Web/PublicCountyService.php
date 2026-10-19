@@ -32,10 +32,16 @@ class PublicCountyService
     public function dataFor(County $county, int $perPage = 12): array
     {
         $candidateGroups = $this->positionsWithApprovedCandidates($county)
-            ->map(fn (Position $position): array => [
-                'position' => $position,
-                'candidates' => $this->paginateApprovedCandidatesForPosition($county, $position, $perPage),
-            ]);
+            ->map(function (Position $position) use ($county, $perPage): array {
+                $candidates = $this->paginateApprovedCandidatesForPosition($county, $position, $perPage);
+
+                return [
+                    'position' => $position,
+                    'candidates' => $candidates,
+                    // The pages and links of the aspirants listed in this block.
+                    'links' => $this->links->forCandidates($candidates->pluck('id')),
+                ];
+            });
         $candidateTotal = $candidateGroups->sum(
             fn (array $group): int => $group['candidates']->total(),
         );

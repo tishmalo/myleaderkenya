@@ -94,6 +94,17 @@ class UserLinkService
     }
 
     /**
+     * Approved links attached to any of the given aspirants, for pages that
+     * list several of them (a county's position list, a poll's options).
+     *
+     * @param  iterable<int|string|null>  $candidateIds
+     */
+    public function forCandidates(iterable $candidateIds, int $limit = 12): Collection
+    {
+        return $this->links->approvedForCandidates($candidateIds, $limit);
+    }
+
+    /**
      * Mirrors the payload served by the public aspirant search so the same
      * search component can be reused on the submission form.
      */

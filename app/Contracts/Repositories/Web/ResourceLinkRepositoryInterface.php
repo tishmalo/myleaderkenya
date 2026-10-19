@@ -29,4 +29,9 @@ interface ResourceLinkRepositoryInterface
     public function approvedForCounty(County $county, int $limit = 50): Collection;
 
     public function approvedNational(int $limit = 20): Collection;
+
+    /**
+     * @param  iterable<int|string|null>  $candidateIds
+     */
+    public function approvedForCandidates(iterable $candidateIds, int $limit = 12): Collection;
 }
