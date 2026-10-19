@@ -5,6 +5,7 @@ namespace App\Services\Web;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -16,6 +17,13 @@ use Illuminate\Support\Str;
  */
 class ViewTracker
 {
+    /**
+     * Tables confirmed to have the counter column, checked once per process.
+     *
+     * @var array<string, bool>
+     */
+    private static array $tracksCounts = [];
+
     /**
      * Substrings that identify an automated caller in the user agent.
      *
@@ -35,7 +43,7 @@ class ViewTracker
      */
     public function track(Model $viewable, Request $request): bool
     {
-        if (! $this->shouldCount($viewable, $request)) {
+        if (! $this->hasCounter($viewable) || ! $this->shouldCount($viewable, $request)) {
             return false;
         }
 
@@ -66,6 +74,17 @@ class ViewTracker
         $viewer = $request->user();
 
         return ! ($viewer !== null && $viewer->isAdmin());
+    }
+
+    /**
+     * Deploy safety: the counter column arrives in its own migration, so a
+     * partially deployed app keeps serving pages instead of erroring.
+     */
+    private function hasCounter(Model $viewable): bool
+    {
+        $table = $viewable->getTable();
+
+        return self::$tracksCounts[$table] ??= Schema::hasColumn($table, 'views');
     }
 
     private function isAutomated(Request $request): bool

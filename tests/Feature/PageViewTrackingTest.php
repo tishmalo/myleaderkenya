@@ -95,6 +95,22 @@ class PageViewTrackingTest extends TestCase
         $this->assertSame(1, $article->fresh()->views);
     }
 
+    public function test_the_views_chip_shows_under_a_featured_image_too(): void
+    {
+        $article = $this->article();
+        // Same layout as the live page: hero image, then the meta bar.
+        $article->forceFill(['featured_image' => 'news/hero.jpg'])->saveQuietly();
+
+        $this->visitorFrom('10.1.0.11')
+            ->get(route('news.public.show', $article->slug))
+            ->assertOk()
+            ->assertSee('article-meta-bar')
+            ->assertSee('min read')
+            ->assertSee('1 views');
+
+        $this->assertSame(1, $article->fresh()->views);
+    }
+
     public function test_a_visitor_only_counts_once_a_day(): void
     {
         $article = $this->article();
