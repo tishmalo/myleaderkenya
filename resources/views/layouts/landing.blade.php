@@ -6,28 +6,28 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- SEO Meta Tags -->
-    <title>@yield('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')</title>
-    <meta name="description" content="@yield('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')">
+    <title>{{ $seo->getTitle() !== 'My Leader Kenya | 2027 Kenya Elections' ? $seo->getTitle() : trim($__env->yieldContent('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')) }}</title>
+    <meta name="description" content="{{ $seo->getDescription() !== 'My Leader Kenya – Non-partisan platform for Kenya 2027 aspirants, candidates, voter registration (Niko Kadi), news, polls and campaign tools.' ? $seo->getDescription() : trim($__env->yieldContent('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')) }}">
     <meta name="keywords" content="Kenya elections, 2027 Kenya elections, Niko Kadi, Kenya aspirants, campaign software, election tools, voter registration, Kenya politics, election candidates database">
     <meta name="author" content="My Leader Kenya">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph Meta Tags for Social Media -->
-    <meta property="og:title" content="@yield('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')">
-    <meta property="og:description" content="@yield('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:image" content="@yield('og_image', asset('images/myleader.png'))">
+    <meta property="og:title" content="{{ $seo->getOg()['title'] ?? ($seo->getTitle() !== 'My Leader Kenya | 2027 Kenya Elections' ? $seo->getTitle() : trim($__env->yieldContent('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants'))) }}">
+    <meta property="og:description" content="{{ $seo->getOg()['description'] ?? ($seo->getDescription() !== 'My Leader Kenya – Non-partisan platform for Kenya 2027 aspirants, candidates, voter registration (Niko Kadi), news, polls and campaign tools.' ? $seo->getDescription() : trim($__env->yieldContent('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases'))) }}">
+    <meta property="og:type" content="{{ $seo->getOg()['type'] ?? 'website' }}">
+    <meta property="og:url" content="{{ $seo->getCanonical() }}">
+    <meta property="og:image" content="{{ $seo->getOg()['image'] ?? trim($__env->yieldContent('og_image', asset('images/myleader.png'))) }}">
     <meta property="og:site_name" content="My Leader Kenya">
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants')">
-    <meta name="twitter:description" content="@yield('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases')">
-    <meta name="twitter:image" content="@yield('og_image', asset('images/myleader.png'))">
+    <meta name="twitter:title" content="{{ $seo->getOg()['title'] ?? ($seo->getTitle() !== 'My Leader Kenya | 2027 Kenya Elections' ? $seo->getTitle() : trim($__env->yieldContent('title', 'My Leader Kenya - Niko Kadi, Kenya Election Campaign Software Tools, Aspirants'))) }}">
+    <meta name="twitter:description" content="{{ $seo->getOg()['description'] ?? ($seo->getDescription() !== 'My Leader Kenya – Non-partisan platform for Kenya 2027 aspirants, candidates, voter registration (Niko Kadi), news, polls and campaign tools.' ? $seo->getDescription() : trim($__env->yieldContent('meta_description', 'Find 2027 Kenya Aspirants, Niko Kadi Voters, Campaign Software Tools for Elections Candidates Databases'))) }}">
+    <meta name="twitter:image" content="{{ $seo->getOg()['image'] ?? trim($__env->yieldContent('og_image', asset('images/myleader.png'))) }}">
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="canonical" href="{{ $seo->getCanonical() }}">
 
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('images/myleader.ico') }}" type="image/x-icon">
@@ -91,6 +91,11 @@
 </style>
 
     <x-tracking-scripts area="public" />
+    @if($seo->getSchemasJson())
+    <script type="application/ld+json">
+        {!! $seo->getSchemasJson() !!}
+    </script>
+@endif
 </head>
 <body class="bg-zinc-950 text-white antialiased">
     <div class="site-boot-loader" id="siteBootLoader" aria-hidden="true">
@@ -354,4 +359,3 @@
 @stack('scripts')
 </body>
 </html>
-

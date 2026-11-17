@@ -42,11 +42,27 @@ class PollController extends Controller
 
         abort_unless($poll !== null, 404);
 
+        $seo = app(\App\Services\SeoService::class);
+
+        $title = ($poll['title'] ?? 'Poll') . ' | Kenya 2027 Poll';
+        if (strlen($title) > 60) {
+            $title = Str::limit($poll['title'] ?? 'Poll', 50, '') . ' | 2027';
+        }
+
+        $seo->setTitle($title)
+            ->setDescription("Vote and see results for the Kenya 2027 poll: {$poll['title']}. Share your opinion on My Leader Kenya.")
+            ->setCanonical(route('poll.show', $poll['slug']))
+            ->setOg([
+                'title' => $title,
+                'type' => 'website',
+            ]);
+
         return view('polls.show', [
             'poll' => $poll,
             'shareUrl' => route('poll.show', $poll['slug']),
-            // Pages and links of the aspirants named in this poll.
             'pollLinks' => $this->userLinkService->forCandidates($poll['candidate_ids'] ?? []),
         ]);
     }
+
+
 }

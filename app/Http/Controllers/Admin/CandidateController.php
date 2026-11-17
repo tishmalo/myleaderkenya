@@ -239,6 +239,12 @@ class CandidateController extends Controller
         $data = $this->candidateService->getPublicIndex($request->validated(), 30);
         $data['nationalLinks'] = $this->userLinkService->forNational();
 
+        $seo = app(\App\Services\SeoService::class);
+
+        $seo->setTitle('Kenya 2027 Aspirants & Candidates | My Leader Kenya')
+            ->setDescription('Browse all approved Kenya 2027 aspirants by position: President, Governor, Senator, Women Rep, MP and MCA. Compare profiles and parties on My Leader Kenya.')
+            ->setCanonical(route('aspirants.public'));
+
         return view('aspirants.public.index', $data);
     }
 
@@ -256,10 +262,51 @@ class CandidateController extends Controller
 
         $this->viewTracker->track($candidate, request());
 
+        // SEO
+        $seo = app(\App\Services\SeoService::class);
+
+        $position = $candidate->position->name ?? 'Aspirant';
+        $location = $candidate->display_area ?? $candidate->county?->name ?? 'Kenya';
+
+        $title = "{$candidate->name} – {$position}, {$location} | Kenya 2027";
+        if (strlen($title) > 60) {
+            $title = "{$candidate->name} – {$position} | Kenya 2027 Candidate";
+        }
+
+        $description = "{$candidate->name} is a {$position} aspirant for {$location} in the Kenya 2027 General Election. View profile, manifesto, news and updates on My Leader Kenya.";
+
+        $seo->setTitle($title)
+            ->setDescription($description)
+            ->setCanonical(route('aspirants.show', $candidate))
+            ->setOg([
+                'title' => $title,
+                'description' => $description,
+                'type' => 'profile',
+                'image' => $candidate->profile_picture_url ?? $candidate->cover_photo_url ?? asset('images/myleader.png'),
+            ]);
+
+        // Person schema
+        $seo->addSchema([
+            '@context' => 'https://schema.org',
+            '@type' => 'Person',
+            'name' => $candidate->name,
+            'jobTitle' => $position,
+            'url' => route('aspirants.show', $candidate),
+            'image' => $candidate->profile_picture_url ?? $candidate->cover_photo_url ?? asset('images/myleader.png'),
+            'description' => $description,
+            'affiliation' => $candidate->politicalParty ? [
+                '@type' => 'Organization',
+                'name' => $candidate->politicalParty->name,
+            ] : null,
+            'address' => [
+                '@type' => 'PostalAddress',
+                'addressLocality' => $location,
+                'addressCountry' => 'KE',
+            ],
+        ]);
+
         return view('aspirants.public.show', [
             'candidate' => $candidate,
-            // Targeting rules stay authoritative: the aspirant's own links plus
-            // any county, constituency, ward or party links that match them.
             'candidateLinks' => $this->userLinkService->forCandidate($candidate),
             'candidateCounty' => $this->publicCountyService->countyFor($candidate),
         ]);
@@ -369,4 +416,26 @@ class CandidateController extends Controller
 
         return back()->with('success', $candidate->name.' discarded.');
     }
+
+    private function extractBlocIds(array &$data): array
+{
+    $blocIds = $data['bloc_ids'] ?? [];
+
+    if (! is_array($blocIds)) {
+        $blocIds = [];
+    }
+
+    // Ensure unique integer IDs
+    return array_values(array_unique(array_filter(array_map('intval', $blocIds))));
+}
+
+private function syncBlocs(County $county, array $blocIds): void
+{
+    if (empty($blocIds)) {
+        $county->blocs()->detach();
+        return;
+    }
+
+    $county->blocs()->sync($blocIds);
+}
 }

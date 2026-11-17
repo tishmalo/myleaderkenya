@@ -6,7 +6,14 @@
 <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-semibold flex items-center gap-3 text-white"><i class="fas fa-landmark text-emerald-500"></i> Political Parties</h1>
-        <a href="{{ route('political-parties.create') }}" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"><i class="fas fa-plus"></i> New Political Party</a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('political-parties.export', request()->query()) }}" class="bg-zinc-700 hover:bg-zinc-600 px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a href="{{ route('political-parties.create') }}" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-plus"></i> New Political Party
+            </a>
+        </div>
     </div>
 
     <form method="GET" action="{{ route('political-parties.index') }}" class="mb-6 grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-3">
@@ -55,4 +62,3 @@
 function deletePoliticalParty(slug, name) { showDeleteModal(`/admin/political-parties/${slug}`, `Delete political party <strong>${name}</strong>?`); }
 </script>
 @endpush
-

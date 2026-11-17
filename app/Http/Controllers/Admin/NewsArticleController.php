@@ -9,6 +9,7 @@ use App\Models\NewsArticle;
 use App\Models\NewsArticleComment;
 use App\Services\Admin\NewsArticleService;
 use App\Services\Web\ViewTracker;
+use Illuminate\Support\Str;
 
 class NewsArticleController extends Controller
 {
@@ -37,6 +38,60 @@ class NewsArticleController extends Controller
         $data = $this->newsArticleService->getFormData();
         return view('news.create', $data);
     }
+
+    public function publicShow($slug)
+{
+    $data = $this->newsArticleService->getPublicShowPageData($slug);
+    $article = $data['article'];
+
+    $this->viewTracker->track($article, request());
+
+    $seo = app(\App\Services\SeoService::class);
+
+    $title = $article->title . ' | Kenya 2027 News';
+    if (strlen($title) > 60) {
+        $title = \Illuminate\Support\Str::limit($article->title, 55, '') . ' | 2027';
+    }
+
+    $description = $article->excerpt
+        ?: \Illuminate\Support\Str::limit(strip_tags($article->content ?? ''), 155, '');
+
+    $seo->setTitle($title)
+        ->setDescription($description ?: 'Read the latest Kenya 2027 election news on My Leader Kenya.')
+        ->setCanonical(route('news.public.show', $article->slug))
+        ->setOg([
+            'title' => $title,
+            'description' => $description,
+            'type' => 'article',
+            'image' => $article->featured_image_url ?? asset('images/myleader.png'),
+        ]);
+
+    // NewsArticle schema
+    $seo->addSchema([
+        '@context' => 'https://schema.org',
+        '@type' => 'NewsArticle',
+        'headline' => $article->title,
+        'description' => $description,
+        'url' => route('news.public.show', $article->slug),
+        'datePublished' => $article->published_at?->toIso8601String() ?? $article->created_at->toIso8601String(),
+        'dateModified' => $article->updated_at->toIso8601String(),
+        'image' => $article->featured_image_url ?? asset('images/myleader.png'),
+        'author' => [
+            '@type' => 'Organization',
+            'name' => 'My Leader Kenya',
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => 'My Leader Kenya',
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => asset('images/myleader.png'),
+            ],
+        ],
+    ]);
+
+    return view('news.public.show', $data);
+}
 
     public function store(NewsArticleStoreRequest $request)
     {
@@ -90,20 +145,18 @@ class NewsArticleController extends Controller
         $filters['published_only'] = true;
 
         $articles = $this->newsArticleService->getPaginatedArticles($filters, 12);
-
         ['tags' => $tags] = $this->newsArticleService->getFormData();
+
+        $seo = app(\App\Services\SeoService::class);
+        $seo->setTitle('Kenya 2027 Election News & Updates | My Leader Kenya')
+            ->setDescription('Latest news, analysis and updates on Kenya 2027 aspirants, parties, polls and election developments. Stay informed on My Leader Kenya.')
+            ->setCanonical(route('news.public'));
 
         return view('news.public.index', compact('articles', 'tags'));
     }
 
-    public function publicShow($slug)
-    {
-        $data = $this->newsArticleService->getPublicShowPageData($slug);
 
-        $this->viewTracker->track($data['article'], request());
-
-        return view('news.public.show', $data);
-    }
+    
 }
 
 

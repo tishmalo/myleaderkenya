@@ -83,8 +83,14 @@ class CampaignToolController extends Controller
         $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
         $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
 
+        $seo = app(\App\Services\SeoService::class);
+        $seo->setTitle('Kenya Election Campaign Software Tools | My Leader Kenya')
+            ->setDescription('Powerful campaign tools for Kenya 2027 aspirants: bulk SMS, opinion polls, call center, website builder, support groups and more. Available on My Leader Kenya.')
+            ->setCanonical(route('campaign-tools.public'));
+
         return view('campaign-tools.public.index', compact('campaignTools', 'campaignToolsSeo', 'requestCampaignTools', 'recaptchaSiteKey'));
     }
+
 
     public function publicShow(string $slug)
     {
@@ -92,8 +98,25 @@ class CampaignToolController extends Controller
         $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
         $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
 
+        $seo = app(\App\Services\SeoService::class);
+
+        $title = ($campaignTool->name ?? 'Campaign Tool') . ' | Kenya 2027 Campaign Tool';
+        if (strlen($title) > 60) {
+            $title = Str::limit($campaignTool->name ?? 'Tool', 45, '') . ' | 2027';
+        }
+
+        $seo->setTitle($title)
+            ->setDescription(Str::limit(strip_tags($campaignTool->description ?? ''), 155, '') ?: 'Campaign tool for Kenya 2027 aspirants on My Leader Kenya.')
+            ->setCanonical(route('campaign-tools.show', $campaignTool->slug))
+            ->setOg([
+                'title' => $title,
+                'image' => $campaignTool->featured_image_url ?? asset('images/myleader.png'),
+            ]);
+
         return view('campaign-tools.public.show', compact('campaignTool', 'requestCampaignTools', 'recaptchaSiteKey'));
     }
+
+
 
     public function storeFeatureRequest(StoreCampaignToolFeatureRequest $request, CampaignTool $campaignTool): RedirectResponse
     {

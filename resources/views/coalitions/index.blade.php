@@ -6,12 +6,23 @@
 <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-semibold flex items-center gap-3 text-white"><i class="fas fa-handshake text-emerald-500"></i> Coalitions</h1>
-        <a href="{{ route('coalitions.create') }}" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"><i class="fas fa-plus"></i> New Coalition</a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('coalitions.export', request()->query()) }}" class="bg-zinc-700 hover:bg-zinc-600 px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a href="{{ route('coalitions.create') }}" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-plus"></i> New Coalition
+            </a>
+        </div>
     </div>
 
     <form method="GET" action="{{ route('coalitions.index') }}" class="mb-6 grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-3">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search coalitions" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-emerald-500">
-        <select name="status" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white"><option value="">All Statuses</option><option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option><option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Published</option></select>
+        <select name="status" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white">
+            <option value="">All Statuses</option>
+            <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+            <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Published</option>
+        </select>
         <button type="submit" class="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium">Filter</button>
     </form>
 

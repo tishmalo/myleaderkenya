@@ -147,6 +147,7 @@ use App\Services\Audit\AuditService;
 use App\Services\PublicPulse\DeepSeekMentionToneClassifierService;
 use App\Services\PublicPulse\LocalMentionLanguageDetector;
 use App\Services\PublicPulse\PublicPulseEngineClient;
+use App\Services\SeoService;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -167,6 +168,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // SEO Service (singleton so the same instance is used across the request)
+        $this->app->singleton(SeoService::class);
+
         // Register Admin Repositories
         $this->app->bind(AuditRepositoryInterface::class, AuditRepository::class);
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
@@ -269,6 +273,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Configure rate limiters for API routes
         $this->configureRateLimiting();
+
+        // Share SEO service with all views
+        view()->composer('*', function ($view) {
+            $view->with('seo', app(SeoService::class));
+        });
     }
 
     /**

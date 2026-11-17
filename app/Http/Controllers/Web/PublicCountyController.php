@@ -13,11 +13,27 @@ class PublicCountyController extends Controller
 
     public function index(): View
     {
+        $seo = app(\App\Services\SeoService::class);
+        $seo->setTitle('Kenya Counties – 2027 Aspirants & Election Data | My Leader Kenya')
+            ->setDescription('Explore all 47 Kenya counties. View 2027 aspirants, voter data, events and election information by county on My Leader Kenya.')
+            ->setCanonical(route('counties.public'));
+
         return view('counties.public.index', $this->counties->directoryData());
     }
 
     public function show(County $county): View
     {
+        $seo = app(\App\Services\SeoService::class);
+
+        $title = "{$county->name} County – 2027 Aspirants & Election Data | My Leader Kenya";
+        if (strlen($title) > 60) {
+            $title = "{$county->name} County 2027 Aspirants | My Leader Kenya";
+        }
+
+        $seo->setTitle($title)
+            ->setDescription("View all 2027 aspirants, events, news and election information for {$county->name} County. Complete county-level data on My Leader Kenya.")
+            ->setCanonical(route('county.show', $county));
+
         return view('counties.public.show', $this->counties->dataFor($county));
     }
 }

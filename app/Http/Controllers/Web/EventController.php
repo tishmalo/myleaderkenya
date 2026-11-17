@@ -10,6 +10,7 @@ use App\Services\Api\IpayService;
 use App\Services\Web\EventRegistrationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Throwable;
 
@@ -35,15 +36,69 @@ class EventController extends Controller
             ->take(6)
             ->get();
 
+        $seo = app(\App\Services\SeoService::class);
+        $seo->setTitle('Kenya 2027 Election Events & Campaign Rallies | My Leader Kenya')
+            ->setDescription('Upcoming and past campaign events, rallies and meetings for Kenya 2027 aspirants. Register and follow events on My Leader Kenya.')
+            ->setCanonical(route('events.public'));
+
         return view('events.index', compact('upcomingEvents', 'pastEvents'));
     }
 
-    public function show(string $slug): View
-    {
-        $event = Event::active()->approved()->where('slug', $slug)->firstOrFail();
 
-        return view('events.show', compact('event'));
+    public function show(string $slug): View
+{
+    $event = Event::active()->approved()->where('slug', $slug)->firstOrFail();
+
+    $seo = app(\App\Services\SeoService::class);
+
+    $title = "{$event->title} | Kenya 2027 Event";
+    if (strlen($title) > 60) {
+        $title = Str::limit($event->title, 50, '') . ' | 2027';
     }
+
+    $location = $event->location ?? $event->county?->name ?? 'Kenya';
+
+    $seo->setTitle($title)
+        ->setDescription("Join {$event->title} on " . optional($event->date)->format('d M Y') . " in {$location}. Register for this Kenya 2027 campaign event on My Leader Kenya.")
+        ->setCanonical(route('events.show', $event->slug))
+        ->setOg([
+            'title' => $title,
+            'type' => 'event',
+            'image' => $event->image_url ?? asset('images/myleader.png'),
+        ]);
+
+    // Event schema
+    $seo->addSchema([
+        '@context' => 'https://schema.org',
+        '@type' => 'Event',
+        'name' => $event->title,
+        'description' => strip_tags($event->description ?? "Kenya 2027 campaign event: {$event->title}"),
+        'url' => route('events.show', $event->slug),
+        'startDate' => $event->date?->toIso8601String(),
+        'endDate' => $event->end_date?->toIso8601String() ?? $event->date?->toIso8601String(),
+        'eventStatus' => 'https://schema.org/EventScheduled',
+        'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+        'location' => [
+            '@type' => 'Place',
+            'name' => $location,
+            'address' => [
+                '@type' => 'PostalAddress',
+                'addressLocality' => $location,
+                'addressCountry' => 'KE',
+            ],
+        ],
+        'image' => $event->image_url ?? asset('images/myleader.png'),
+        'organizer' => [
+            '@type' => 'Organization',
+            'name' => 'My Leader Kenya',
+            'url' => url('/'),
+        ],
+    ]);
+
+    return view('events.show', compact('event'));
+}
+
+
 
     public function ticket(string $code): View
     {

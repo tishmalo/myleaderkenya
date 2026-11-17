@@ -13,6 +13,44 @@ class CoalitionController extends Controller
 {
     public function __construct(private CoalitionService $coalitionService) {}
 
+    public function publicIndex()
+{
+    $coalitions = $this->coalitionService->getPublishedCoalitions(12);
+
+    $seo = app(\App\Services\SeoService::class);
+    $seo->setTitle('Kenya Political Coalitions 2027 | My Leader Kenya')
+        ->setDescription('Explore Kenya political coalitions, their member parties and 2027 aspirants. Full coalition directory on My Leader Kenya.')
+        ->setCanonical(route('coalitions.public'));
+
+    return view('coalitions.public.index', compact('coalitions'));
+}
+
+public function publicShow(string $slug)
+{
+    $coalition = $this->coalitionService->getPublicShowData($slug);
+
+    $seo = app(\App\Services\SeoService::class);
+
+    $title = "{$coalition->name} Coalition | Kenya 2027";
+    if (strlen($title) > 60) {
+        $title = "{$coalition->name} | Kenya 2027 Coalition";
+    }
+
+    $description = \Illuminate\Support\Str::limit(strip_tags($coalition->description ?? ''), 155, '')
+        ?: "View {$coalition->name} member parties and 2027 aspirants on My Leader Kenya.";
+
+    $seo->setTitle($title)
+        ->setDescription($description)
+        ->setCanonical(route('coalitions.show', $coalition->slug))
+        ->setOg([
+            'title' => $title,
+            'description' => $description,
+            'image' => $coalition->logo_url ?? asset('images/myleader.png'),
+        ]);
+
+    return view('coalitions.public.show', compact('coalition'));
+}
+
     public function index()
     {
         $filters = request()->only(['status', 'search']);
@@ -77,17 +115,45 @@ class CoalitionController extends Controller
         ]);
     }
 
-    public function publicIndex()
-    {
-        $coalitions = $this->coalitionService->getPublishedCoalitions(12);
+    public function export()
+{
+    $filters = request()->only(['status', 'search']);
+    $coalitions = $this->coalitionService->getPaginatedCoalitions($filters, 10000);
 
-        return view('coalitions.public.index', compact('coalitions'));
-    }
+    $headers = [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="coalitions-' . now()->format('Y-m-d') . '.csv"',
+    ];
 
-    public function publicShow(string $slug)
-    {
-        $coalition = $this->coalitionService->getPublicShowData($slug);
+    $callback = function () use ($coalitions) {
+        $out = fopen('php://output', 'w');
+        fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
 
-        return view('coalitions.public.show', compact('coalition'));
-    }
+        fputcsv($out, [
+            'Name',
+            'Slug',
+            'Status',
+            'Sort Order',
+            'Member Parties',
+            'Excerpt',
+            'Created At',
+        ]);
+
+        foreach ($coalitions as $coalition) {
+            fputcsv($out, [
+                $coalition->name,
+                $coalition->slug,
+                $coalition->status,
+                $coalition->sort_order,
+                $coalition->politicalParties->pluck('name')->join(', '),
+                $coalition->excerpt,
+                $coalition->created_at?->format('Y-m-d H:i'),
+            ]);
+        }
+
+        fclose($out);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 }

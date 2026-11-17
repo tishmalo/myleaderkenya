@@ -23,18 +23,51 @@ class LandingController extends Controller
     ) {}
 
     public function index()
-    {
-        $landingData = $this->landingService->getLandingData();
-        $landingData['recaptchaSiteKey'] = $this->settingService->recaptchaSiteKey();
+{
+    $seo = app(\App\Services\SeoService::class);
 
-        // Resolved outside the cached landing payload: the poll state is
-        // per-visitor (has this person voted?) and time-sensitive (has the
-        // deadline passed?), so it must not sit behind the 2 hour cache.
-        $landingData['polls'] = $this->pollService->homepagePolls(request()->user());
-        $landingData['needsLocationPrompt'] = $this->pollService->needsLocationPrompt(request()->user());
+    $seo->setTitle('Kenya Aspirants & Candidates 2027 | My Leader Kenya')
+        ->setDescription('Discover all 2027 Kenya presidential, governor, senator, MP, Women Rep and MCA aspirants. Register to vote (Niko Kadi), follow polls, news and campaign tools on My Leader Kenya.')
+        ->setCanonical(url('/'));
 
-        return view('landing', $landingData);
-    }
+    // WebSite schema
+    $seo->addSchema([
+        '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        'name' => 'My Leader Kenya',
+        'url' => url('/'),
+        'potentialAction' => [
+            '@type' => 'SearchAction',
+            'target' => url('/aspirants?search={search_term_string}'),
+            'query-input' => 'required name=search_term_string',
+        ],
+    ]);
+
+    // Organization schema
+    $seo->addSchema([
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        'name' => 'My Leader Kenya',
+        'url' => url('/'),
+        'logo' => asset('images/myleader.png'),
+        'sameAs' => [
+            // Add your social links here if you have them
+            // 'https://twitter.com/myleaderkenya',
+            // 'https://facebook.com/myleaderkenya',
+            'https://www.facebook.com/profile.php?id=61593473856631',
+            'https://www.instagram.com/myleaderkenya/',
+            'https://x.com/MyleaderKE'
+        ],
+    ]);
+
+    $landingData = $this->landingService->getLandingData();
+    $landingData['recaptchaSiteKey'] = $this->settingService->recaptchaSiteKey();
+
+    $landingData['polls'] = $this->pollService->homepagePolls(request()->user());
+    $landingData['needsLocationPrompt'] = $this->pollService->needsLocationPrompt(request()->user());
+
+    return view('landing', $landingData);
+}
 
     public function featuredAspirants(Request $request)
     {
