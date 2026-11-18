@@ -23,6 +23,11 @@ class CandidateSmsBalanceRequestRepository implements CandidateSmsBalanceRequest
             ->paginate($perPage);
     }
 
+    public function latestForCandidate(int $candidateId): ?CandidateSmsBalanceRequest
+    {
+        return CandidateSmsBalanceRequest::where('candidate_id', $candidateId)->latest()->first();
+    }
+
     public function create(array $data): CandidateSmsBalanceRequest
     {
         return CandidateSmsBalanceRequest::create($data);

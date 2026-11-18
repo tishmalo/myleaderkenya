@@ -9,6 +9,8 @@ interface CandidateSmsBalanceRequestRepositoryInterface
 {
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
+    public function latestForCandidate(int $candidateId): ?CandidateSmsBalanceRequest;
+
     public function create(array $data): CandidateSmsBalanceRequest;
 
     public function update(CandidateSmsBalanceRequest $request, array $data): bool;
