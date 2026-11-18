@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Contracts\Repositories\Web\PublicPulseSourceAccountRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SavePublicPulseSourceAccountRequest;
 use App\Models\PublicPulseSourceAccount;
 use App\Services\PublicPulse\XSessionHealthCheckService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PublicPulseSourceAccountController extends Controller
@@ -26,9 +26,9 @@ class PublicPulseSourceAccountController extends Controller
         return view('public-pulse.x-sessions', compact('accounts', 'filters'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(SavePublicPulseSourceAccountRequest $request): RedirectResponse
     {
-        $data = $this->validatedData($request);
+        $data = $request->payload();
         $account = $this->accounts->create($data + ['status' => PublicPulseSourceAccount::STATUS_NEEDS_REPLACEMENT]);
         $this->accounts->recordHealth($account, $this->healthCheck->check($account));
 
@@ -37,9 +37,9 @@ class PublicPulseSourceAccountController extends Controller
             ->with('success', 'X session saved and health check completed.');
     }
 
-    public function update(Request $request, PublicPulseSourceAccount $publicPulseSourceAccount): RedirectResponse
+    public function update(SavePublicPulseSourceAccountRequest $request, PublicPulseSourceAccount $publicPulseSourceAccount): RedirectResponse
     {
-        $data = $this->validatedData($request);
+        $data = $request->payload();
         $account = $this->accounts->update($publicPulseSourceAccount, $data + [
             'replaced_at' => null,
             'issue_notified_at' => null,
@@ -70,17 +70,5 @@ class PublicPulseSourceAccountController extends Controller
         return redirect()
             ->route('public-pulse.x-sessions.index')
             ->with('success', 'X session removed from the active pool.');
-    }
-
-    private function validatedData(Request $request): array
-    {
-        return $request->validate([
-            'source_key' => ['nullable', 'string', 'max:80'],
-            'provider' => ['required', 'string', 'max:80', Rule::in(['x_twscrape', 'x_nitter', 'x_snscrape'])],
-            'label' => ['required', 'string', 'max:120'],
-            'username' => ['nullable', 'string', 'max:120'],
-            'encrypted_session_payload' => ['required', 'string', 'min:10'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]) + ['source_key' => 'x'];
     }
 }

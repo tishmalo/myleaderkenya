@@ -19,6 +19,14 @@ class CampaignPriorityCategoryRepository implements CampaignPriorityCategoryRepo
             ->get();
     }
 
+    public function active(): Collection
+    {
+        return CampaignPriorityCategory::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+    }
+
     public function paginateSubmissions(array $filters, int $perPage): LengthAwarePaginator
     {
         return CandidateCampaignPriority::query()
