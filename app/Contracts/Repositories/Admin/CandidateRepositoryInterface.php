@@ -3,6 +3,7 @@
 namespace App\Contracts\Repositories\Admin;
 
 use App\Models\Candidate;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -58,5 +59,11 @@ interface CandidateRepositoryInterface
     public function publicWardGroups(array $filters, int $limit = 5, bool $includeEmpty = false, bool $withCandidates = true): Collection;
 
     public function loadPublicShow(Candidate $candidate): Candidate;
+
+    public function loadForEdit(Candidate $candidate): Candidate;
+
+    public function searchOptions(string $term, int $limit = 20): Collection;
+
+    public function storeClaimToken(Candidate $candidate, string $tokenHash, CarbonInterface $expiresAt): void;
 }
 
