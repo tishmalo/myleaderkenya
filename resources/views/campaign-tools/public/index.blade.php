@@ -1,10 +1,5 @@
 @extends('layouts.landing')
 
-@php($campaignToolsContent = $campaignToolsSeo['content'] ?? [])
-
-@section('title'){{ $campaignToolsContent['meta_title'] ?? 'Campaign Tools - My Leader Kenya' }}@endsection
-@section('meta_description'){{ $campaignToolsContent['meta_description'] ?? 'Explore campaign tools for call centers, bulk SMS, bulk WhatsApp, websites, databases, opinion polls, and aspirant profile management.' }}@endsection
-
 @section('content')
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&display=swap');

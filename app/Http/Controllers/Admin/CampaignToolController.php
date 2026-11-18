@@ -8,9 +8,9 @@ use App\Http\Requests\Admin\CampaignToolUpdateRequest;
 use App\Http\Requests\Web\StoreCampaignToolFeatureRequest;
 use App\Models\CampaignTool;
 use App\Services\Admin\CampaignToolService;
-use App\Services\Admin\SettingService;
 use App\Services\Web\AspirantWorkspaceService;
 use App\Services\Web\CampaignToolFeatureRequestService;
+use App\Services\Web\CampaignToolPublicService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 
@@ -18,9 +18,9 @@ class CampaignToolController extends Controller
 {
     public function __construct(
         private CampaignToolService $campaignToolService,
-        private SettingService $settingService,
         private AspirantWorkspaceService $workspaceService,
-        private CampaignToolFeatureRequestService $featureRequestService
+        private CampaignToolFeatureRequestService $featureRequestService,
+        private CampaignToolPublicService $publicService
     ) {}
 
     public function index()
@@ -78,45 +78,13 @@ class CampaignToolController extends Controller
 
     public function publicIndex()
     {
-        $campaignTools = $this->campaignToolService->getPublishedTools(12);
-        $campaignToolsSeo = $this->settingService->getFrontendPage('campaign-tools');
-        $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
-        $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
-
-        $seo = app(\App\Services\SeoService::class);
-        $seo->setTitle('Kenya Election Campaign Software Tools | My Leader Kenya')
-            ->setDescription('Powerful campaign tools for Kenya 2027 aspirants: bulk SMS, opinion polls, call center, website builder, support groups and more. Available on My Leader Kenya.')
-            ->setCanonical(route('campaign-tools.public'));
-
-        return view('campaign-tools.public.index', compact('campaignTools', 'campaignToolsSeo', 'requestCampaignTools', 'recaptchaSiteKey'));
+        return view('campaign-tools.public.index', $this->publicService->indexData());
     }
-
 
     public function publicShow(string $slug)
     {
-        $campaignTool = $this->campaignToolService->getPublicShowData($slug);
-        $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
-        $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
-
-        $seo = app(\App\Services\SeoService::class);
-
-        $title = ($campaignTool->name ?? 'Campaign Tool') . ' | Kenya 2027 Campaign Tool';
-        if (strlen($title) > 60) {
-            $title = Str::limit($campaignTool->name ?? 'Tool', 45, '') . ' | 2027';
-        }
-
-        $seo->setTitle($title)
-            ->setDescription(Str::limit(strip_tags($campaignTool->description ?? ''), 155, '') ?: 'Campaign tool for Kenya 2027 aspirants on My Leader Kenya.')
-            ->setCanonical(route('campaign-tools.show', $campaignTool->slug))
-            ->setOg([
-                'title' => $title,
-                'image' => $campaignTool->featured_image_url ?? asset('images/myleader.png'),
-            ]);
-
-        return view('campaign-tools.public.show', compact('campaignTool', 'requestCampaignTools', 'recaptchaSiteKey'));
+        return view('campaign-tools.public.show', $this->publicService->showData($slug));
     }
-
-
 
     public function storeFeatureRequest(StoreCampaignToolFeatureRequest $request, CampaignTool $campaignTool): RedirectResponse
     {

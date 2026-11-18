@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\PublicPulseController;
 use App\Http\Controllers\Admin\PublicPulseJobController;
 use App\Http\Controllers\Admin\PublicPulseSourceAccountController;
 use App\Http\Controllers\Admin\RecaptchaSettingController;
+use App\Http\Controllers\Admin\SeoPageController;
 use App\Http\Controllers\Admin\SitemapController as AdminSitemapController;
 use App\Http\Controllers\Admin\SmsBalanceRequestController;
 use App\Http\Controllers\Admin\SmtpController;
@@ -448,6 +449,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->middleware('permission:frontend-pages.view')->name('frontend-pages.index');
             Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->middleware('permission:frontend-pages.update')->name('frontend-pages.edit');
             Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->middleware('permission:frontend-pages.update')->name('frontend-pages.update');
+
+            Route::get('/admin/seo-pages', [SeoPageController::class, 'index'])->middleware('permission:frontend-pages.view')->name('seo-pages.index');
+            Route::get('/admin/seo-pages/{seoPage}/edit', [SeoPageController::class, 'edit'])->middleware('permission:frontend-pages.view')->name('seo-pages.edit');
+            Route::put('/admin/seo-pages/{seoPage}', [SeoPageController::class, 'update'])->middleware('permission:frontend-pages.update')->name('seo-pages.update');
 
             Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods')->except(['show'])->middleware('permission:finance.view');
             Route::resource('donors', DonorController::class)->names('donors')->except(['show'])->middleware('permission:finance.view');

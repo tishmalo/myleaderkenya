@@ -28,6 +28,7 @@ use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
 use App\Contracts\Repositories\Admin\PollRepositoryInterface;
 use App\Contracts\Repositories\Admin\PositionRepositoryInterface;
 use App\Contracts\Repositories\Admin\RoleRepositoryInterface;
+use App\Contracts\Repositories\Admin\SeoPageRepositoryInterface;
 use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Admin\SmtpRepositoryInterface;
 use App\Contracts\Repositories\Admin\SupportGroupTypeRepositoryInterface;
@@ -103,6 +104,7 @@ use App\Repositories\Admin\PoliticalPartyRepository;
 use App\Repositories\Admin\PollRepository;
 use App\Repositories\Admin\PositionRepository;
 use App\Repositories\Admin\RoleRepository;
+use App\Repositories\Admin\SeoPageRepository;
 use App\Repositories\Admin\SettingRepository;
 use App\Repositories\Admin\SmtpRepository;
 use App\Repositories\Admin\SupportGroupTypeRepository;
@@ -206,6 +208,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\Repositories\Admin\GroupRepositoryInterface::class, \App\Repositories\Admin\GroupRepository::class);
         $this->app->bind(\App\Contracts\Repositories\Admin\LocationRepositoryInterface::class, \App\Repositories\Admin\LocationRepository::class);
         $this->app->bind(\App\Contracts\Repositories\Admin\TagRepositoryInterface::class, \App\Repositories\Admin\TagRepository::class);
+        $this->app->bind(SeoPageRepositoryInterface::class, SeoPageRepository::class);
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
         $this->app->bind(PaymentMethodRepositoryInterface::class, PaymentMethodRepository::class);
 

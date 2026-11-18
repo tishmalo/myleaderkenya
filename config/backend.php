@@ -70,6 +70,7 @@ return [
                 'label' => 'Public Content',
                 'items' => [
                     ['label' => 'Frontend Pages', 'route' => 'frontend-pages.index', 'icon' => 'fas fa-file-alt', 'active' => ['frontend-pages.*'], 'permission' => 'frontend-pages.view'],
+                    ['label' => 'SEO Pages', 'route' => 'seo-pages.index', 'icon' => 'fas fa-magnifying-glass-chart', 'active' => ['seo-pages.*'], 'permission' => 'frontend-pages.view'],
                     ['label' => 'News', 'route' => 'news.index', 'icon' => 'fas fa-newspaper', 'active' => ['news.*'], 'permission' => 'news.view'],
                     ['label' => 'Polls', 'route' => 'polls.index', 'icon' => 'fas fa-chart-simple', 'active' => ['polls.*', 'poll-comments.*'], 'permission' => 'polls.view'],
                     ['label' => 'Events', 'route' => 'events.index', 'icon' => 'fas fa-calendar-alt', 'active' => ['events.*'], 'permission' => 'events.view'],
