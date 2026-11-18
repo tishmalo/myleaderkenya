@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\NewsArticleUpdateRequest;
 use App\Models\NewsArticle;
 use App\Models\NewsArticleComment;
 use App\Services\Admin\NewsArticleService;
+use App\Services\SeoService;
 use App\Services\Web\ViewTracker;
 use Illuminate\Support\Str;
 
@@ -16,6 +17,7 @@ class NewsArticleController extends Controller
     public function __construct(
         private NewsArticleService $newsArticleService,
         private ViewTracker $viewTracker,
+        private SeoService $seo,
     ) {}
 
     public function index()
@@ -46,7 +48,6 @@ class NewsArticleController extends Controller
 
     $this->viewTracker->track($article, request());
 
-    $seo = app(\App\Services\SeoService::class);
 
     $title = $article->title . ' | Kenya 2027 News';
     if (strlen($title) > 60) {
@@ -56,7 +57,7 @@ class NewsArticleController extends Controller
     $description = $article->excerpt
         ?: \Illuminate\Support\Str::limit(strip_tags($article->content ?? ''), 155, '');
 
-    $seo->setTitle($title)
+    $this->seo->setTitle($title)
         ->setDescription($description ?: 'Read the latest Kenya 2027 election news on My Leader Kenya.')
         ->setCanonical(route('news.public.show', $article->slug))
         ->setOg([
@@ -67,7 +68,7 @@ class NewsArticleController extends Controller
         ]);
 
     // NewsArticle schema
-    $seo->addSchema([
+    $this->seo->addSchema([
         '@context' => 'https://schema.org',
         '@type' => 'NewsArticle',
         'headline' => $article->title,
@@ -147,8 +148,7 @@ class NewsArticleController extends Controller
         $articles = $this->newsArticleService->getPaginatedArticles($filters, 12);
         ['tags' => $tags] = $this->newsArticleService->getFormData();
 
-        $seo = app(\App\Services\SeoService::class);
-        $seo->setTitle('Kenya 2027 Election News & Updates | My Leader Kenya')
+        $this->seo->setTitle('Kenya 2027 Election News & Updates | My Leader Kenya')
             ->setDescription('Latest news, analysis and updates on Kenya 2027 aspirants, parties, polls and election developments. Stay informed on My Leader Kenya.')
             ->setCanonical(route('news.public'));
 

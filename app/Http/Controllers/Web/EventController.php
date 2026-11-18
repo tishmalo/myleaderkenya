@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\EventTicket;
 use App\Services\Api\IpayService;
+use App\Services\SeoService;
 use App\Services\Web\EventRegistrationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,8 @@ class EventController extends Controller
 {
     public function __construct(
         private IpayService $ipayService,
-        private EventRegistrationService $registrationService
+        private EventRegistrationService $registrationService,
+        private SeoService $seo
     ) {}
 
     public function index(): View
@@ -36,8 +38,7 @@ class EventController extends Controller
             ->take(6)
             ->get();
 
-        $seo = app(\App\Services\SeoService::class);
-        $seo->setTitle('Kenya 2027 Election Events & Campaign Rallies | My Leader Kenya')
+        $this->seo->setTitle('Kenya 2027 Election Events & Campaign Rallies | My Leader Kenya')
             ->setDescription('Upcoming and past campaign events, rallies and meetings for Kenya 2027 aspirants. Register and follow events on My Leader Kenya.')
             ->setCanonical(route('events.public'));
 
@@ -49,7 +50,6 @@ class EventController extends Controller
 {
     $event = Event::active()->approved()->where('slug', $slug)->firstOrFail();
 
-    $seo = app(\App\Services\SeoService::class);
 
     $title = "{$event->title} | Kenya 2027 Event";
     if (strlen($title) > 60) {
@@ -58,7 +58,7 @@ class EventController extends Controller
 
     $location = $event->location ?? $event->county?->name ?? 'Kenya';
 
-    $seo->setTitle($title)
+    $this->seo->setTitle($title)
         ->setDescription("Join {$event->title} on " . optional($event->date)->format('d M Y') . " in {$location}. Register for this Kenya 2027 campaign event on My Leader Kenya.")
         ->setCanonical(route('events.show', $event->slug))
         ->setOg([
@@ -68,7 +68,7 @@ class EventController extends Controller
         ]);
 
     // Event schema
-    $seo->addSchema([
+    $this->seo->addSchema([
         '@context' => 'https://schema.org',
         '@type' => 'Event',
         'name' => $event->title,

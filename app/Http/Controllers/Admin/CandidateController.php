@@ -13,6 +13,7 @@ use App\Models\Candidate;
 use App\Models\CandidateTransferRun;
 use App\Notifications\CandidateClaimLinkNotification;
 use App\Services\Admin\CandidateService;
+use App\Services\SeoService;
 use App\Services\Web\PublicCountyService;
 use App\Services\Web\UserLinkService;
 use App\Services\Web\ViewTracker;
@@ -35,6 +36,7 @@ class CandidateController extends Controller
         private UserLinkService $userLinkService,
         private PublicCountyService $publicCountyService,
         private ViewTracker $viewTracker,
+        private SeoService $seo,
     ) {}
 
     public function index()
@@ -239,9 +241,8 @@ class CandidateController extends Controller
         $data = $this->candidateService->getPublicIndex($request->validated(), 30);
         $data['nationalLinks'] = $this->userLinkService->forNational();
 
-        $seo = app(\App\Services\SeoService::class);
 
-        $seo->setTitle('Kenya 2027 Aspirants & Candidates | My Leader Kenya')
+        $this->seo->setTitle('Kenya 2027 Aspirants & Candidates | My Leader Kenya')
             ->setDescription('Browse all approved Kenya 2027 aspirants by position: President, Governor, Senator, Women Rep, MP and MCA. Compare profiles and parties on My Leader Kenya.')
             ->setCanonical(route('aspirants.public'));
 
@@ -263,7 +264,6 @@ class CandidateController extends Controller
         $this->viewTracker->track($candidate, request());
 
         // SEO
-        $seo = app(\App\Services\SeoService::class);
 
         $position = $candidate->position->name ?? 'Aspirant';
         $location = $candidate->display_area ?? $candidate->county?->name ?? 'Kenya';
@@ -275,7 +275,7 @@ class CandidateController extends Controller
 
         $description = "{$candidate->name} is a {$position} aspirant for {$location} in the Kenya 2027 General Election. View profile, manifesto, news and updates on My Leader Kenya.";
 
-        $seo->setTitle($title)
+        $this->seo->setTitle($title)
             ->setDescription($description)
             ->setCanonical(route('aspirants.show', $candidate))
             ->setOg([
@@ -286,7 +286,7 @@ class CandidateController extends Controller
             ]);
 
         // Person schema
-        $seo->addSchema([
+        $this->seo->addSchema([
             '@context' => 'https://schema.org',
             '@type' => 'Person',
             'name' => $candidate->name,

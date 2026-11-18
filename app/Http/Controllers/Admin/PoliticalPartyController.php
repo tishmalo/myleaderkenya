@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\PoliticalPartyStoreRequest;
 use App\Http\Requests\Admin\PoliticalPartyUpdateRequest;
 use App\Models\PoliticalParty;
 use App\Services\Admin\PoliticalPartyService;
+use App\Services\SeoService;
 use App\Services\Web\ViewTracker;
 use Illuminate\Http\Request;
 
@@ -15,14 +16,14 @@ class PoliticalPartyController extends Controller
     public function __construct(
         private PoliticalPartyService $politicalPartyService,
         private ViewTracker $viewTracker,
+        private SeoService $seo,
     ) {}
 
     public function publicIndex()
 {
     $politicalParties = $this->politicalPartyService->getPublishedParties(12);
 
-    $seo = app(\App\Services\SeoService::class);
-    $seo->setTitle('Kenya Political Parties 2027 | My Leader Kenya')
+    $this->seo->setTitle('Kenya Political Parties 2027 | My Leader Kenya')
         ->setDescription('Browse all Kenya political parties, their aspirants, leadership and 2027 election profiles. Full party directory on My Leader Kenya.')
         ->setCanonical(route('parties.public'));
 
@@ -36,7 +37,6 @@ public function publicShow(string $slug)
 
     $this->viewTracker->track($party, request());
 
-    $seo = app(\App\Services\SeoService::class);
 
     $title = "{$party->name} – Kenya Political Party | 2027";
     if (strlen($title) > 60) {
@@ -46,7 +46,7 @@ public function publicShow(string $slug)
     $description = \Illuminate\Support\Str::limit(strip_tags($party->description ?? ''), 155, '')
         ?: "View {$party->name} aspirants, leadership and 2027 election information on My Leader Kenya.";
 
-    $seo->setTitle($title)
+    $this->seo->setTitle($title)
         ->setDescription($description)
         ->setCanonical(route('parties.show', $party->slug))
         ->setOg([

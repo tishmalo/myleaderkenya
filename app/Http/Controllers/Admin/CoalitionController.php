@@ -7,18 +7,21 @@ use App\Http\Requests\Admin\CoalitionStoreRequest;
 use App\Http\Requests\Admin\CoalitionUpdateRequest;
 use App\Models\Coalition;
 use App\Services\Admin\CoalitionService;
+use App\Services\SeoService;
 use Illuminate\Http\Request;
 
 class CoalitionController extends Controller
 {
-    public function __construct(private CoalitionService $coalitionService) {}
+    public function __construct(
+        private CoalitionService $coalitionService,
+        private SeoService $seo,
+    ) {}
 
     public function publicIndex()
 {
     $coalitions = $this->coalitionService->getPublishedCoalitions(12);
 
-    $seo = app(\App\Services\SeoService::class);
-    $seo->setTitle('Kenya Political Coalitions 2027 | My Leader Kenya')
+    $this->seo->setTitle('Kenya Political Coalitions 2027 | My Leader Kenya')
         ->setDescription('Explore Kenya political coalitions, their member parties and 2027 aspirants. Full coalition directory on My Leader Kenya.')
         ->setCanonical(route('coalitions.public'));
 
@@ -29,7 +32,6 @@ public function publicShow(string $slug)
 {
     $coalition = $this->coalitionService->getPublicShowData($slug);
 
-    $seo = app(\App\Services\SeoService::class);
 
     $title = "{$coalition->name} Coalition | Kenya 2027";
     if (strlen($title) > 60) {
@@ -39,7 +41,7 @@ public function publicShow(string $slug)
     $description = \Illuminate\Support\Str::limit(strip_tags($coalition->description ?? ''), 155, '')
         ?: "View {$coalition->name} member parties and 2027 aspirants on My Leader Kenya.";
 
-    $seo->setTitle($title)
+    $this->seo->setTitle($title)
         ->setDescription($description)
         ->setCanonical(route('coalitions.show', $coalition->slug))
         ->setOg([

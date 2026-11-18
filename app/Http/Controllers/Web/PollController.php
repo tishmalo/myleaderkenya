@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Services\SeoService;
 use App\Services\Web\PollService;
 use App\Services\Web\UserLinkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -19,6 +21,7 @@ class PollController extends Controller
     public function __construct(
         private readonly PollService $pollService,
         private readonly UserLinkService $userLinkService,
+        private readonly SeoService $seo,
     ) {}
 
     public function index(Request $request): View|RedirectResponse
@@ -42,14 +45,13 @@ class PollController extends Controller
 
         abort_unless($poll !== null, 404);
 
-        $seo = app(\App\Services\SeoService::class);
 
         $title = ($poll['title'] ?? 'Poll') . ' | Kenya 2027 Poll';
         if (strlen($title) > 60) {
             $title = Str::limit($poll['title'] ?? 'Poll', 50, '') . ' | 2027';
         }
 
-        $seo->setTitle($title)
+        $this->seo->setTitle($title)
             ->setDescription("Vote and see results for the Kenya 2027 poll: {$poll['title']}. Share your opinion on My Leader Kenya.")
             ->setCanonical(route('poll.show', $poll['slug']))
             ->setOg([

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Services\Admin\SettingService;
+use App\Services\SeoService;
 use App\Services\Web\LandingService;
 use App\Services\Web\PollService;
 use App\Support\HomepageCache;
@@ -19,19 +20,19 @@ class LandingController extends Controller
     public function __construct(
         protected LandingService $landingService,
         private SettingService $settingService,
-        private PollService $pollService
+        private PollService $pollService,
+        private SeoService $seo
     ) {}
 
     public function index()
 {
-    $seo = app(\App\Services\SeoService::class);
 
-    $seo->setTitle('Kenya Aspirants & Candidates 2027 | My Leader Kenya')
+    $this->seo->setTitle('Kenya Aspirants & Candidates 2027 | My Leader Kenya')
         ->setDescription('Discover all 2027 Kenya presidential, governor, senator, MP, Women Rep and MCA aspirants. Register to vote (Niko Kadi), follow polls, news and campaign tools on My Leader Kenya.')
         ->setCanonical(url('/'));
 
     // WebSite schema
-    $seo->addSchema([
+    $this->seo->addSchema([
         '@context' => 'https://schema.org',
         '@type' => 'WebSite',
         'name' => 'My Leader Kenya',
@@ -44,7 +45,7 @@ class LandingController extends Controller
     ]);
 
     // Organization schema
-    $seo->addSchema([
+    $this->seo->addSchema([
         '@context' => 'https://schema.org',
         '@type' => 'Organization',
         'name' => 'My Leader Kenya',
