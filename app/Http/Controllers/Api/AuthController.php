@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api;
 //deploy
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\EmailOtpRequest;
+use App\Http\Requests\Api\EmailRequest;
 use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Requests\Api\RefreshRequest;
 use App\Http\Requests\Api\LoginRequest;
+use App\Http\Requests\Api\ResetPasswordOtpRequest;
+use App\Http\Requests\Api\SavePlayerIdRequest;
 use App\Http\Requests\Api\UpdateProfileRequest;
 use App\Services\Api\AuthService;
 use Illuminate\Http\Request;
@@ -74,15 +78,10 @@ class AuthController extends Controller
         return response()->json($result);
     }
 
-    public function verifyEmail(Request $request)
+    public function verifyEmail(EmailOtpRequest $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'otp'   => 'required|string|size:6',
-        ]);
-
         try {
-            $result = $this->authService->verifyEmail($validated['email'], $validated['otp']);
+            $result = $this->authService->verifyEmail($request->email(), $request->otp());
 
             return response()->json($result);
         } catch (\Exception $e) {
@@ -92,14 +91,10 @@ class AuthController extends Controller
         }
     }
 
-    public function resendEmailVerification(Request $request)
+    public function resendEmailVerification(EmailRequest $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-        ]);
-
         try {
-            $result = $this->authService->resendEmailVerification($validated['email']);
+            $result = $this->authService->resendEmailVerification($request->email());
 
             return response()->json($result);
         } catch (\Exception $e) {
@@ -108,14 +103,10 @@ class AuthController extends Controller
             ], $e->getCode() ?: 400);
         }
     }
-    public function checkEmail(Request $request)
+    public function checkEmail(EmailRequest $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-        ]);
-
         try {
-            $result = $this->authService->sendPasswordResetOtp($validated['email']);
+            $result = $this->authService->sendPasswordResetOtp($request->email());
 
             return response()->json($result);
         } catch (\Exception $e) {
@@ -125,15 +116,10 @@ class AuthController extends Controller
         }
     }
 
-    public function checkOtp(Request $request)
+    public function checkOtp(EmailOtpRequest $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'otp' => 'required|string|size:6',
-        ]);
-
         try {
-            $result = $this->authService->checkPasswordResetOtp($validated['email'], $validated['otp']);
+            $result = $this->authService->checkPasswordResetOtp($request->email(), $request->otp());
 
             return response()->json($result);
         } catch (\Exception $e) {
@@ -143,19 +129,13 @@ class AuthController extends Controller
         }
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordOtpRequest $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'otp' => 'required|string|size:6',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
         try {
             $result = $this->authService->resetPasswordWithOtp(
-                $validated['email'],
-                $validated['otp'],
-                $validated['password']
+                $request->email(),
+                $request->otp(),
+                $request->password()
             );
 
             return response()->json($result);
@@ -166,13 +146,9 @@ class AuthController extends Controller
         }
     }
 
-    public function savePlayerId(Request $request)
+    public function savePlayerId(SavePlayerIdRequest $request)
     {
-        $validated = $request->validate([
-            'player_id' => 'required|string|max:255',
-        ]);
-
-        $result = $this->authService->savePlayerId($request->user(), $validated['player_id']);
+        $result = $this->authService->savePlayerId($request->user(), $request->playerId());
 
         return response()->json($result, $result['success'] ? 200 : 501);
     }

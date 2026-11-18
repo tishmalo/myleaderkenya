@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SpamTextRequest;
+use App\Http\Requests\Admin\StoreSpamRuleRequest;
 use App\Models\SpamRule;
 use App\Models\SpamSample;
 use App\Services\Web\SpamFilterService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
@@ -48,13 +49,9 @@ class SpamFilterController extends Controller
         ));
     }
 
-    public function analyze(Request $request): RedirectResponse
+    public function analyze(SpamTextRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'text' => ['required', 'string', 'max:20000'],
-        ]);
-
-        $text = trim($data['text']);
+        $text = $request->text();
 
         $this->spamFilter->recordSample(
             ['use_case' => $text],
@@ -71,14 +68,10 @@ class SpamFilterController extends Controller
             ->with('success', 'Spam message recorded. Review the suggested patterns below.');
     }
 
-    public function storeSample(Request $request): RedirectResponse
+    public function storeSample(SpamTextRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'text' => ['required', 'string', 'max:20000'],
-        ]);
-
         $this->spamFilter->recordSample(
-            ['use_case' => trim($data['text'])],
+            ['use_case' => $request->text()],
             'admin_pasted',
             null,
             'admin'
@@ -112,23 +105,20 @@ class SpamFilterController extends Controller
         return redirect()->route('spam-filter.index')->with('success', "IP {$ip} added to the blocklist.");
     }
 
-    public function storeRule(Request $request): RedirectResponse
+    public function storeRule(StoreSpamRuleRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'type' => ['required', 'in:keyword,domain,email,phone,ip,regex'],
-            'value' => ['required', 'string', 'max:500'],
-        ]);
+        $type = $request->type();
 
         try {
             SpamRule::firstOrCreate(
-                ['type' => $data['type'], 'value' => trim($data['value'])],
+                ['type' => $type, 'value' => $request->value()],
                 ['enabled' => true, 'source' => 'admin', 'created_by' => auth()->id()]
             );
         } catch (\Throwable $e) {
             return redirect()->route('spam-filter.index')->with('warning', 'That rule already exists.');
         }
 
-        Cache::forget('spam_rules:'.$data['type']);
+        Cache::forget('spam_rules:'.$type);
 
         return redirect()->route('spam-filter.index')->with('success', 'Spam rule added.');
     }
