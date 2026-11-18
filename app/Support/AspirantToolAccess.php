@@ -41,6 +41,17 @@ final readonly class AspirantToolAccess
             : null;
     }
 
+    public function candidateOrFail(): Candidate
+    {
+        $candidate = $this->candidate;
+
+        if ($candidate === null) {
+            abort(404);
+        }
+
+        return $candidate;
+    }
+
     public function voterFacing(): bool
     {
         return (bool) ($this->definition['voter_facing'] ?? false);

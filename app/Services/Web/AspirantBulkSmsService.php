@@ -47,7 +47,7 @@ class AspirantBulkSmsService
         try {
             $reservation = $this->tokens->reserveBulkSms($candidate, $user, $quote);
         } catch (RuntimeException $exception) {
-            return BulkSmsSendResult::warning($exception->getMessage() . ' Buy more tokens to continue.');
+            return BulkSmsSendResult::warning($exception->getMessage() . ' Buy more tokens to continue.', 402);
         }
 
         try {
@@ -57,7 +57,7 @@ class AspirantBulkSmsService
                 'message' => $validated['message'],
                 'recipient_source' => $recipientSource,
                 'support_group_type_id' => $classificationId,
-                'privacy_acknowledged_at' => now(),
+                'privacy_acknowledged_at' => ! empty($validated['privacy_acknowledged']) ? now() : null,
                 'scope_type' => $recipientSource === 'registered_voters' ? $scope['type'] : 'uploaded_contacts',
                 'scope_column' => $recipientSource === 'registered_voters' ? $scope['column'] : null,
                 'scope_value' => $recipientSource === 'registered_voters' ? $scope['value'] : null,
@@ -89,7 +89,13 @@ class AspirantBulkSmsService
             'token_cost' => $quote['tokens_required'],
         ]);
 
-        return BulkSmsSendResult::sent($recipientCount, (int) $quote['tokens_required'], (int) $quote['sms_units']);
+        return BulkSmsSendResult::sent(
+            $recipientCount,
+            (int) $quote['tokens_required'],
+            (int) $quote['sms_units'],
+            $smsMessage,
+            $quote
+        );
     }
 
     /**

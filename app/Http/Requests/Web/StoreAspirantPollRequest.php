@@ -16,7 +16,7 @@ class StoreAspirantPollRequest extends FormRequest
     {
         return [
             'question' => ['required', 'string', 'max:255'],
-            'options' => ['required', 'string'],
+            'options' => ['required'],
             'status' => ['nullable', 'in:draft,published'],
         ];
     }
@@ -31,12 +31,20 @@ class StoreAspirantPollRequest extends FormRequest
     }
 
     /**
+     * Accepts either a newline separated string (web form) or a list (API).
+     *
      * @return array<int, string>
      */
     public function optionLines(): array
     {
-        return collect(preg_split('/\r\n|\r|\n/', (string) $this->input('options')))
-            ->map(fn (string $option): string => trim($option))
+        $options = $this->input('options');
+
+        $lines = is_array($options)
+            ? $options
+            : preg_split('/\r\n|\r|\n/', (string) $options);
+
+        return collect($lines)
+            ->map(fn ($option): string => trim((string) $option))
             ->filter()
             ->values()
             ->all();
