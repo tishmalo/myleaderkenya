@@ -16,6 +16,7 @@ use App\Models\Position;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -831,6 +832,11 @@ class CandidateService
     public function getPublicShow(Candidate $candidate): Candidate
     {
         return $this->candidateRepository->loadPublicShow($candidate);
+    }
+
+    public function publishedArticlesFor(Candidate $candidate, int $limit = 10): Collection
+    {
+        return $this->candidateRepository->publishedArticlesFor((int) $candidate->id, $limit);
     }
 
     public function isPubliclyVisible(Candidate $candidate): bool

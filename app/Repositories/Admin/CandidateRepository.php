@@ -243,6 +243,16 @@ class CandidateRepository implements CandidateRepositoryInterface
         return $query->get();
     }
 
+    public function publishedArticlesFor(int $candidateId, int $limit): Collection
+    {
+        return NewsArticle::with('tags')
+            ->whereHas('candidates', fn ($query) => $query->where('candidates.id', $candidateId))
+            ->where('status', 'published')
+            ->latest('published_at')
+            ->take($limit)
+            ->get();
+    }
+
     public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator
     {
         $query = $this->publicQuery($filters);

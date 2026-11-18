@@ -12,6 +12,8 @@ interface CandidateRepositoryInterface
 {
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
+    public function publishedArticlesFor(int $candidateId, int $limit): Collection;
+
     public function exportQuery(array $filters = []): Builder;
 
     public function find(int $id): ?Candidate;
