@@ -2,487 +2,169 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Contracts\Repositories\Web\CandidateSmsMessageRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Jobs\ImportCandidateSupportContacts;
-use App\Jobs\SendCandidateBulkSms;
 use App\Http\Requests\Web\ImportBulkSmsContactsRequest;
+use App\Http\Requests\Web\ImportSupportContactsRequest;
+use App\Http\Requests\Web\SaveCallScriptRequest;
 use App\Http\Requests\Web\SendBulkSmsRequest;
-use App\Models\AspirantPoll;
-use App\Models\CandidateCallLog;
-use App\Models\CandidateCallScript;
-use App\Models\CampaignWebsiteRequest;
-use App\Models\CampaignWebsiteSample;
-use App\Models\CandidateSmsBalanceRequest;
+use App\Http\Requests\Web\StoreAspirantPollRequest;
+use App\Http\Requests\Web\StoreCallLogRequest;
+use App\Http\Requests\Web\StoreCampaignWebsiteRequest;
+use App\Http\Requests\Web\SupportContactRequest;
 use App\Models\CandidateSupportContact;
-use App\Models\SupportGroupType;
-use App\Models\Group;
-use App\Models\GroupMember;
-use App\Models\GroupMessage;
-use App\Services\Sms\InfobipSmsService;
-use App\Services\Web\AspirantTokenService;
-use App\Services\Web\AspirantWorkspaceService;
+use App\Services\Web\AspirantBulkSmsService;
+use App\Services\Web\AspirantPollService;
+use App\Services\Web\AspirantToolAccessService;
+use App\Services\Web\AspirantToolPageService;
 use App\Services\Web\CandidateBulkSmsContactService;
-use App\Services\Web\CampaignToolCommerceService;
+use App\Services\Web\CandidateCallCenterService;
+use App\Services\Web\CandidateSupportContactService;
+use App\Services\Web\CampaignWebsiteService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
-use RuntimeException;
 
 class AspirantToolController extends Controller
 {
     public function __construct(
-        private AspirantWorkspaceService $workspaceService,
-        private CandidateSmsMessageRepositoryInterface $smsMessageRepository,
-        private AspirantTokenService $tokenService,
-        private InfobipSmsService $smsService,
+        private AspirantToolAccessService $access,
+        private AspirantToolPageService $page,
         private CandidateBulkSmsContactService $bulkSmsContacts,
-        private CampaignToolCommerceService $commerce
+        private AspirantBulkSmsService $bulkSms,
+        private AspirantPollService $polls,
+        private CandidateCallCenterService $callCenter,
+        private CampaignWebsiteService $websites,
+        private CandidateSupportContactService $supportContacts,
     ) {}
 
     public function show(Request $request, string $key): View|RedirectResponse
     {
-        $definitions = $this->workspaceService->toolDefinitions();
+        $tool = $this->access->resolve($request->user(), $key);
 
-        if (! isset($definitions[$key])) {
+        if (! $tool->exists()) {
             abort(404);
         }
 
-        $tool = $this->workspaceService->publishedToolForKey($key);
-
-        if (! $tool) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'That campaign tool is not enabled yet. Ask an admin to publish it first.');
+        if ($message = $tool->denialMessage()) {
+            return $this->dashboardWarning($message);
         }
 
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'No aspirant profile is linked to this account yet.');
-        }
-        $availability = $this->workspaceService->canUseTool($key, $candidate);
-
-        if (! $availability['available']) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', $availability['reason']);
-        }
-
-        $module = array_merge($definitions[$key], [
-            'key' => $key,
-            'tool' => $tool,
-        ]);
-        $scope = $this->workspaceService->scopeForCandidate($candidate);
-        $isBlocked = $module['voter_facing'] && $scope['missing'] && $key !== 'bulk-sms';
-        $voterQuery = $this->workspaceService->registeredVotersQuery($scope);
-        $voterCount = $module['voter_facing'] && ! $scope['missing'] ? (clone $voterQuery)->count() : 0;
-        $recentVoters = $module['voter_facing'] && ! $scope['missing']
-            ? (clone $voterQuery)
-                ->select('name', 'username', 'phone', 'county', 'constituency', 'ward', 'polling_station', 'created_at')
-                ->latest()
-                ->take(8)
-                ->get()
-            : collect();
-        $polls = $key === 'opinion-polls'
-            ? AspirantPoll::with(['group', 'responses'])
-                ->where('candidate_id', $candidate->id)
-                ->latest()
-                ->take(8)
-                ->get()
-            : collect();
-        $websiteRequest = $key === 'campaign-website'
-            ? CampaignWebsiteRequest::where('candidate_id', $candidate->id)->latest()->first()
-            : null;
-        $websiteSamples = $key === 'campaign-website'
-            ? CampaignWebsiteSample::published()->ordered()->take(6)->get()
-            : collect();
-        $callScript = $key === 'call-center'
-            ? CandidateCallScript::where('candidate_id', $candidate->id)->first()
-            : null;
-        $callListActive = $key === 'call-center' && $request->boolean('call_list');
-        $callListContacts = $callListActive
-            ? (clone $voterQuery)
-                ->whereNotNull('phone')
-                ->select('id', 'name', 'username', 'phone', 'county', 'constituency', 'ward', 'polling_station', 'created_at')
-                ->latest()
-                ->paginate(10, ['*'], 'call_page')
-                ->appends(['call_list' => 1])
-                ->fragment('call-list')
-            : collect();
-        $tokenWallet = $this->tokenService->walletForCandidate($candidate);
-        $tokenRates = $this->tokenService->activeRates()->keyBy('action_key');
-        $bulkSmsQuote = $key === 'bulk-sms' && ! $isBlocked
-            ? $this->tokenService->quoteBulkSms((string) old('message', ''), (int) ($voterCount ?? 0))
-            : null;
-        $smsBalanceRequest = $key === 'bulk-sms'
-            ? CandidateSmsBalanceRequest::where('candidate_id', $candidate->id)->latest()->first()
-            : null;
-        $supportGroupTypes = in_array($key, ['support-groups', 'bulk-sms'], true)
-            ? $this->bulkSmsContacts->classifications()
-            : collect();
-        $uploadedContactCount = $key === 'bulk-sms'
-            ? $this->bulkSmsContacts->recipientCount($candidate)
-            : 0;
-        $uploadedContactCounts = $key === 'bulk-sms'
-            ? $this->bulkSmsContacts->countsByClassification($candidate)
-            : collect();
-        $supportContacts = $key === 'support-groups'
-            ? CandidateSupportContact::with('groupType')->where('candidate_id', $candidate->id)->latest()->get()
-            : collect();
-
-        $smsProviderBalance = $key === 'bulk-sms' && $candidate->smsSetting?->isReady()
-            ? $this->smsService->accountBalance($candidate->smsSetting)
-            : null;
-
-        $callLogs = $key === 'call-center'
-            ? CandidateCallLog::with(['caller', 'voter'])
-                ->where('candidate_id', $candidate->id)
-                ->latest('called_at')
-                ->take(12)
-                ->get()
-            : collect();
-
-        return view('aspirants.tools.show', [
-            'candidate' => $candidate,
-            'module' => $module,
-            'scope' => $scope,
-            'isBlocked' => $isBlocked,
-            'voterCount' => $voterCount,
-            'recentVoters' => $recentVoters,
-            'polls' => $polls,
-            'websiteRequest' => $websiteRequest,
-            'websiteSamples' => $websiteSamples,
-            'callScript' => $callScript,
-            'callListActive' => $callListActive,
-            'callListContacts' => $callListContacts,
-            'callLogs' => $callLogs,
-            'tokenWallet' => $tokenWallet,
-            'tokenRates' => $tokenRates,
-            'bulkSmsQuote' => $bulkSmsQuote,
-            'smsBalanceRequest' => $smsBalanceRequest,
-            'smsProviderBalance' => $smsProviderBalance,
-            'supportGroupTypes' => $supportGroupTypes,
-            'supportContacts' => $supportContacts,
-            'uploadedContactCount' => $uploadedContactCount,
-            'uploadedContactCounts' => $uploadedContactCounts,
-        ]);
+        return view('aspirants.tools.show', $this->page->payload($tool, $request));
     }
-
 
     public function importBulkSmsContacts(ImportBulkSmsContactsRequest $request): RedirectResponse
     {
-        $candidate = $this->workspaceService->candidateForUser($request->user());
+        $candidate = $this->access->candidateForUser($request->user());
 
         if (! $candidate) {
-            return redirect('/aspirant/dashboard')->with('warning', 'No aspirant profile is linked to this account yet.');
+            return $this->dashboardWarning('No aspirant profile is linked to this account yet.');
         }
 
-        $validated = $request->validated();
         $this->bulkSmsContacts->queueImport(
             $candidate,
             $request->user(),
             $request->file('contacts_file'),
-            (int) $validated['support_group_type_id']
+            (int) $request->validated()['support_group_type_id']
         );
 
         return redirect()->route('aspirant.tools.show', 'bulk-sms')
             ->with('success', 'Contact import queued. The file will be processed securely in the background.');
     }
+
     public function sendBulkSms(SendBulkSmsRequest $request): RedirectResponse
     {
-        $candidate = $this->workspaceService->candidateForUser($request->user());
+        $tool = $this->access->resolve($request->user(), 'bulk-sms');
 
-        if (! $candidate) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'No aspirant profile is linked to this account yet.');
+        if ($message = $tool->denialMessage()) {
+            return $this->dashboardWarning($message);
         }
 
-        $availability = $this->workspaceService->canUseTool('bulk-sms', $candidate);
+        $result = $this->bulkSms->send($tool->candidate, $request->user(), $request->validated(), $tool->scope);
 
-        if (! $availability['available']) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', $availability['reason']);
-        }
-
-        $scope = $this->workspaceService->scopeForCandidate($candidate);
-
-        $validated = $request->validated();
-        $recipientSource = $validated['recipient_source'];
-        $classificationId = isset($validated['support_group_type_id'])
-            ? (int) $validated['support_group_type_id']
-            : null;
-
-        if ($recipientSource === 'registered_voters' && $scope['missing']) {
+        if ($result->failed()) {
             return redirect()->route('aspirant.tools.show', 'bulk-sms')
                 ->withInput()
-                ->with('warning', $scope['message']);
+                ->with('warning', $result->warning);
         }
-
-        $recipientCount = $recipientSource === 'uploaded_contacts'
-            ? $this->bulkSmsContacts->recipientCount($candidate, $classificationId)
-            : $this->workspaceService->registeredVotersQuery($scope)->whereNotNull('phone')->count();
-
-        $quote = $this->tokenService->quoteBulkSms($validated['message'], $recipientCount);
-
-        if ($quote['sms_units'] <= 0) {
-            return redirect()->route('aspirant.tools.show', 'bulk-sms')
-                ->withInput()
-                ->with('warning', $recipientSource === 'uploaded_contacts'
-                    ? 'No uploaded contacts with valid phone numbers were found in that classification.'
-                    : 'No valid phone numbers were found for your scoped voters.');
-        }
-
-        try {
-            $reservation = $this->tokenService->reserveBulkSms($candidate, $request->user(), $quote);
-        } catch (RuntimeException $exception) {
-            return redirect()->route('aspirant.tools.show', 'bulk-sms')
-                ->withInput()
-                ->with('warning', $exception->getMessage() . ' Buy more tokens to continue.');
-        }
-
-        try {
-            $smsMessage = $this->smsMessageRepository->create([
-                'candidate_id' => $candidate->id,
-                'user_id' => $request->user()->id,
-                'message' => $validated['message'],
-                'recipient_source' => $recipientSource,
-                'support_group_type_id' => $classificationId,
-                'privacy_acknowledged_at' => now(),
-                'scope_type' => $recipientSource === 'registered_voters' ? $scope['type'] : 'uploaded_contacts',
-                'scope_column' => $recipientSource === 'registered_voters' ? $scope['column'] : null,
-                'scope_value' => $recipientSource === 'registered_voters' ? $scope['value'] : null,
-                'recipient_count' => $recipientCount,
-                'status' => 'queued',
-                'token_transaction_id' => $reservation->id,
-                'sms_character_count' => $quote['character_count'],
-                'sms_encoding' => $quote['encoding'],
-                'sms_segment_count' => $quote['segment_count'],
-                'sms_unit_count' => $quote['sms_units'],
-                'token_cost' => $quote['tokens_required'],
-            ]);
-            $this->tokenService->attachReservationToSms($reservation, $smsMessage);
-        } catch (RuntimeException $exception) {
-            $this->tokenService->refundReservation($reservation, 'Bulk SMS could not be queued.');
-
-            return redirect()->route('aspirant.tools.show', 'bulk-sms')
-                ->withInput()
-                ->with('warning', 'Bulk SMS could not be queued. Your reserved tokens were refunded.');
-        }
-
-        SendCandidateBulkSms::dispatch($smsMessage->id);
-
-        Log::info('Bulk SMS queued from aspirant workspace.', [
-            'sms_message_id' => $smsMessage->id,
-            'candidate_id' => $candidate->id,
-            'user_id' => $request->user()->id,
-            'recipient_count' => $recipientCount,
-            'sms_units' => $quote['sms_units'],
-            'token_cost' => $quote['tokens_required'],
-        ]);
 
         return redirect()->route('aspirant.tools.show', 'bulk-sms')
-            ->with('success', 'Bulk SMS queued for ' . number_format($recipientCount) . ' recipients. ' . number_format($quote['tokens_required']) . ' tokens reserved for ' . number_format($quote['sms_units']) . ' SMS units.');
+            ->with('success', 'Bulk SMS queued for ' . number_format($result->recipientCount)
+                . ' recipients. ' . number_format($result->tokensReserved)
+                . ' tokens reserved for ' . number_format($result->smsUnits) . ' SMS units.');
     }
-    public function storePoll(Request $request): RedirectResponse
+
+    public function storePoll(StoreAspirantPollRequest $request): RedirectResponse
     {
-        if (! $this->workspaceService->publishedToolForKey('opinion-polls')) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'Opinion polls are not enabled yet. Ask an admin to publish the tool first.');
+        $tool = $this->access->resolve($request->user(), 'opinion-polls');
+
+        if ($message = $tool->denialMessage()) {
+            return $this->dashboardWarning($message);
         }
 
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'No aspirant profile is linked to this account yet.');
-        }
-        $availability = $this->workspaceService->canUseTool('opinion-polls', $candidate);
-        if (! $availability['available']) return redirect('/aspirant/dashboard')->with('warning', $availability['reason']);
-
-        $scope = $this->workspaceService->scopeForCandidate($candidate);
-
-        if ($scope['missing']) {
+        if ($tool->scopeMissing()) {
             return redirect()->route('aspirant.tools.show', 'opinion-polls')
-                ->with('warning', $scope['message']);
+                ->with('warning', $tool->scopeMessage());
         }
 
-        $validated = $request->validate([
-            'question' => ['required', 'string', 'max:255'],
-            'options' => ['required', 'string'],
-            'status' => ['nullable', 'in:draft,published'],
-        ]);
-
-        $status = $validated['status'] ?? 'draft';
-
-        $options = collect(preg_split('/\r\n|\r|\n/', $validated['options']))
-            ->map(fn (string $option): string => trim($option))
-            ->filter()
-            ->values();
-
-        if ($options->count() < 2) {
-            return redirect()->back()
-                ->withInput()
-                ->with('warning', 'Add at least two poll options.');
-        }
-
-        DB::transaction(function () use ($request, $candidate, $scope, $validated, $options, $status): void {
-            $group = null;
-
-            if ($status === 'published') {
-                $group = $this->scopedPollGroup($request, $scope);
-
-                GroupMember::firstOrCreate([
-                    'group_id' => $group->id,
-                    'user_id' => $request->user()->id,
-                ]);
-
-                $this->workspaceService->registeredVotersQuery($scope)
-                    ->select('id')
-                    ->orderBy('id')
-                    ->chunkById(200, function ($voters) use ($group): void {
-                        foreach ($voters as $voter) {
-                            GroupMember::firstOrCreate([
-                                'group_id' => $group->id,
-                                'user_id' => $voter->id,
-                            ]);
-                        }
-                    });
-            }
-
-            $poll = AspirantPoll::create([
-                'candidate_id' => $candidate->id,
-                'user_id' => $request->user()->id,
-                'group_id' => $group?->id,
-                'question' => $validated['question'],
-                'options' => $options->all(),
-                'scope_type' => $scope['type'],
-                'scope_column' => $scope['column'],
-                'scope_value' => $scope['value'],
-                'status' => $status,
-                'published_at' => $status === 'published' ? now() : null,
-            ]);
-
-            if ($group) {
-                GroupMessage::create([
-                    'group_id' => $group->id,
-                    'username' => $request->user()->username ?? $request->user()->name ?? 'Aspirant',
-                    'message' => $this->pollMessage($poll),
-                    'message_type' => 'poll',
-                    'aspirant_poll_id' => $poll->id,
-                    'latitude' => null,
-                    'longitude' => null,
-                ]);
-            }
-        });
-
-        $message = $status === 'published'
-            ? 'Poll published to the ' . $scope['label'] . ' chat group.'
-            : 'Poll draft saved. Publish it when you are ready to send it to voters.';
-        $this->commerce->consumeEntitlement($candidate->id, 'opinion-polls');
+        $poll = $this->polls->store(
+            $tool->candidate,
+            $request->user(),
+            (string) $request->validated()['question'],
+            $request->optionLines(),
+            $request->status(),
+            $tool->scope
+        );
 
         return redirect()->route('aspirant.tools.show', 'opinion-polls')
-            ->with('success', $message);
+            ->with('success', $this->polls->resultMessage($poll, $tool->scopeLabel()));
     }
 
-
-    public function saveCallScript(Request $request): RedirectResponse
+    public function saveCallScript(SaveCallScriptRequest $request): RedirectResponse
     {
-        if (! $this->workspaceService->canUseTool('call-center', $this->workspaceService->candidateForUser($request->user()))['available']) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'Call Center is not enabled yet. Ask an admin to publish the tool first.');
+        $tool = $this->access->resolve($request->user(), 'call-center');
+
+        if ($message = $tool->denialMessage()) {
+            return $this->dashboardWarning($message);
         }
 
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'No aspirant profile is linked to this account yet.');
-        }
-
-        $scope = $this->workspaceService->scopeForCandidate($candidate);
-
-        if ($scope['missing']) {
+        if ($tool->scopeMissing()) {
             return redirect()->route('aspirant.tools.show', 'call-center')
-                ->with('warning', $scope['message']);
+                ->with('warning', $tool->scopeMessage());
         }
 
-        $validated = $request->validate([
-            'script' => ['required', 'string', 'min:20', 'max:5000'],
-            'callback_priority' => ['required', 'in:undecided,supporters,volunteers'],
-        ]);
+        $validated = $request->validated();
 
-        CandidateCallScript::updateOrCreate(
-                ['candidate_id' => $candidate->id],
-            [
-                'user_id' => $request->user()->id,
-                'script' => $validated['script'],
-                'callback_priority' => $validated['callback_priority'],
-                'scope_type' => $scope['type'],
-                'scope_column' => $scope['column'],
-                'scope_value' => $scope['value'],
-                ]
-            );
-        $this->commerce->consumeEntitlement($candidate->id, 'call-center');
+        $this->callCenter->saveScript(
+            $tool->candidate,
+            $request->user(),
+            (string) $validated['script'],
+            (string) $validated['callback_priority'],
+            $tool->scope
+        );
 
         return redirect()->route('aspirant.tools.show', 'call-center')
             ->with('success', 'Call script saved. You can now start the scoped call list.');
     }
 
-    public function storeCallLog(Request $request): RedirectResponse|JsonResponse
+    public function storeCallLog(StoreCallLogRequest $request): RedirectResponse|JsonResponse
     {
-        $candidate = $this->workspaceService->candidateForUser($request->user());
+        $tool = $this->access->resolve($request->user(), 'call-center');
 
-        if (! $candidate) {
-            return $this->callLogFailure($request, 'No aspirant profile is linked to this account yet.', 403);
-        }
-        $availability = $this->workspaceService->canUseTool('call-center', $candidate);
-        if (! $availability['available']) return $this->callLogFailure($request, $availability['reason'], 403);
-
-        $scope = $this->workspaceService->scopeForCandidate($candidate);
-
-        if ($scope['missing']) {
-            return $this->callLogFailure($request, $scope['message'], 422);
+        if ($message = $tool->denialMessage()) {
+            return $this->callLogFailure($request, $message, 403);
         }
 
-        $validated = $request->validate([
-            'voter_user_id' => ['required', 'integer'],
-            'outcome' => ['required', 'in:reached,no_answer,busy,wrong_number,callback,not_interested,supporter,volunteer'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-            'callback_at' => ['nullable', 'date'],
-        ]);
+        if ($tool->scopeMissing()) {
+            return $this->callLogFailure($request, (string) $tool->scopeMessage(), 422);
+        }
 
-        $voter = $this->workspaceService->registeredVotersQuery($scope)
-            ->whereKey($validated['voter_user_id'])
-            ->whereNotNull('phone')
-            ->first();
+        $callLog = $this->callCenter->recordCall($tool->candidate, $request->user(), $request->validated(), $tool->scope);
 
-        if (! $voter) {
+        if (! $callLog) {
             return $this->callLogFailure($request, 'That voter is not available in your scoped call list.', 404);
         }
 
-        $callLog = DB::transaction(function () use ($candidate, $request, $voter, $validated, $scope): CandidateCallLog {
-                $callLog = CandidateCallLog::create([
-                    'candidate_id' => $candidate->id,
-                    'user_id' => $request->user()->id,
-                    'voter_user_id' => $voter->id,
-                    'voter_name' => $voter->name ?: $voter->username,
-                    'voter_phone' => $voter->phone,
-                    'outcome' => $validated['outcome'],
-                    'notes' => $validated['notes'] ?? null,
-                    'callback_at' => $validated['callback_at'] ?? null,
-                    'scope_type' => $scope['type'],
-                    'scope_column' => $scope['column'],
-                    'scope_value' => $scope['value'],
-                    'called_at' => now(),
-                ]);
-
-                return $callLog;
-            });
-        $this->commerce->consumeEntitlement($candidate->id, 'call-center');
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Call log recorded.',
@@ -500,6 +182,84 @@ class AspirantToolController extends Controller
             ->with('success', 'Call log recorded.');
     }
 
+    public function storeWebsiteRequest(StoreCampaignWebsiteRequest $request): RedirectResponse
+    {
+        $tool = $this->access->resolve($request->user(), 'campaign-website');
+
+        if ($message = $tool->denialMessage()) {
+            return $this->dashboardWarning($message);
+        }
+
+        $this->websites->submit($tool->candidate, $request->user(), $request->validated());
+
+        return redirect()->route('aspirant.tools.show', 'campaign-website')
+            ->with('success', 'Campaign website request submitted. An admin will review it and follow up.');
+    }
+
+    public function storeSupportContact(SupportContactRequest $request): RedirectResponse
+    {
+        $tool = $this->access->resolve($request->user(), 'support-groups');
+
+        if ($message = $tool->denialMessage()) {
+            return $this->dashboardWarning($message);
+        }
+
+        $this->supportContacts->create($tool->candidate, $request->user(), $request->validated());
+
+        return redirect()->route('aspirant.tools.show', 'support-groups')
+            ->with('success', 'Support contact added.');
+    }
+
+    public function importSupportContacts(ImportSupportContactsRequest $request): RedirectResponse
+    {
+        $candidate = $this->access->candidateForUser($request->user());
+
+        if (! $candidate) {
+            return $this->dashboardWarning('No aspirant profile is linked to this account yet.');
+        }
+
+        $this->supportContacts->queueImport(
+            $candidate,
+            $request->user(),
+            $request->file('contacts_file'),
+            $request->defaultGroupId()
+        );
+
+        return redirect()->route('aspirant.tools.show', 'support-groups')
+            ->with('success', 'Support contacts import queued. The file will be processed in the background.');
+    }
+
+    public function updateSupportContact(SupportContactRequest $request, CandidateSupportContact $candidateSupportContact): RedirectResponse
+    {
+        $this->supportContacts->update(
+            $candidateSupportContact,
+            $this->access->candidateForUser($request->user()),
+            $request->user(),
+            $request->validated()
+        );
+
+        return redirect()->route('aspirant.tools.show', 'support-groups')
+            ->with('success', 'Support contact updated.');
+    }
+
+    public function destroySupportContact(Request $request, CandidateSupportContact $candidateSupportContact): RedirectResponse
+    {
+        $this->supportContacts->delete($candidateSupportContact, $this->access->candidateForUser($request->user()));
+
+        return redirect()->route('aspirant.tools.show', 'support-groups')
+            ->with('success', 'Support contact removed.');
+    }
+
+    public function websiteSamples(): View
+    {
+        return view('aspirants.tools.website-samples', ['samples' => $this->websites->samples()]);
+    }
+
+    private function dashboardWarning(string $message): RedirectResponse
+    {
+        return redirect('/aspirant/dashboard')->with('warning', $message);
+    }
+
     private function callLogFailure(Request $request, string $message, int $status): RedirectResponse|JsonResponse
     {
         if ($request->expectsJson()) {
@@ -508,200 +268,5 @@ class AspirantToolController extends Controller
 
         return redirect()->route('aspirant.tools.show', ['key' => 'call-center', 'call_list' => 1])
             ->with('warning', $message);
-    }
-    public function storeWebsiteRequest(Request $request): RedirectResponse
-    {
-
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate) {
-            return redirect('/aspirant/dashboard')
-                ->with('warning', 'No aspirant profile is linked to this account yet.');
-        }
-        $availability = $this->workspaceService->canUseTool('campaign-website', $candidate);
-        if (! $availability['available']) return redirect('/aspirant/dashboard')->with('warning', $availability['reason']);
-
-        $validated = $request->validate([
-            'candidate_name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+() .-]+$/'],
-            'email' => ['nullable', 'email:rfc', 'max:255'],
-            'preferred_domain' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9 ._-]+(\.[a-zA-Z]{2,})?$/'],
-            'website_type' => ['required', 'in:standard,premium,custom'],
-            'reference_url' => ['nullable', 'url', 'max:500'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        CampaignWebsiteRequest::updateOrCreate(
-                ['candidate_id' => $candidate->id],
-                array_merge($validated, [
-                    'user_id' => $request->user()->id,
-                    'status' => 'new',
-                ])
-            );
-        $this->commerce->consumeEntitlement($candidate->id, 'campaign-website');
-
-        return redirect()->route('aspirant.tools.show', 'campaign-website')
-            ->with('success', 'Campaign website request submitted. An admin will review it and follow up.');
-    }
-
-    public function storeSupportContact(Request $request): RedirectResponse
-    {
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate) {
-            return redirect('/aspirant/dashboard')->with('warning', 'No aspirant profile is linked to this account yet.');
-        }
-        $availability = $this->workspaceService->canUseTool('support-groups', $candidate);
-        if (! $availability['available']) return redirect('/aspirant/dashboard')->with('warning', $availability['reason']);
-
-        $validated = $this->validateSupportContact($request);
-        $candidate->supportContacts()->create($validated + [
-            'created_by' => $request->user()->id,
-            'updated_by' => $request->user()->id,
-        ]);
-        $this->commerce->consumeEntitlement($candidate->id, 'support-groups');
-
-        return redirect()->route('aspirant.tools.show', 'support-groups')->with('success', 'Support contact added.');
-    }
-
-    public function importSupportContacts(Request $request): RedirectResponse
-    {
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate) {
-            return redirect('/aspirant/dashboard')->with('warning', 'No aspirant profile is linked to this account yet.');
-        }
-
-        $validated = $request->validate([
-            'support_group_type_id' => ['nullable', 'exists:support_group_types,id'],
-            'contacts_file' => ['required', 'file', 'max:5120', 'mimes:xlsx,xls,csv,txt'],
-        ]);
-
-        $defaultGroupId = $validated['support_group_type_id'] ?? null;
-        if ($defaultGroupId && ! SupportGroupType::active()->whereKey($defaultGroupId)->exists()) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'support_group_type_id' => 'Choose an active default support group.',
-            ]);
-        }
-
-        $file = $request->file('contacts_file');
-        $extension = Str::lower($file->getClientOriginalExtension());
-
-        if ($extension === 'xls') {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'contacts_file' => 'Legacy XLS files are not supported. Save the file as XLSX or CSV, then upload again.',
-            ]);
-        }
-
-        $storedPath = $file->storeAs(
-            'support-contact-imports/' . $candidate->id,
-            Str::uuid() . '.' . $extension
-        );
-
-        ImportCandidateSupportContacts::dispatch(
-            $storedPath,
-            $extension,
-            $candidate->id,
-            $request->user()->id,
-            $defaultGroupId ? (int) $defaultGroupId : null
-        );
-
-        return redirect()->route('aspirant.tools.show', 'support-groups')
-            ->with('success', 'Support contacts import queued. The file will be processed in the background.');
-    }
-    public function updateSupportContact(Request $request, CandidateSupportContact $candidateSupportContact): RedirectResponse
-    {
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate || (int) $candidateSupportContact->candidate_id !== (int) $candidate->id) {
-            abort(403);
-        }
-
-        $candidateSupportContact->update($this->validateSupportContact($request) + [
-            'updated_by' => $request->user()->id,
-        ]);
-
-        return redirect()->route('aspirant.tools.show', 'support-groups')->with('success', 'Support contact updated.');
-    }
-
-    public function destroySupportContact(Request $request, CandidateSupportContact $candidateSupportContact): RedirectResponse
-    {
-        $candidate = $this->workspaceService->candidateForUser($request->user());
-
-        if (! $candidate || (int) $candidateSupportContact->candidate_id !== (int) $candidate->id) {
-            abort(403);
-        }
-
-        $candidateSupportContact->delete();
-
-        return redirect()->route('aspirant.tools.show', 'support-groups')->with('success', 'Support contact removed.');
-    }
-
-    private function validateSupportContact(Request $request): array
-    {
-        $validated = $request->validate([
-            'support_group_type_id' => ['required', 'exists:support_group_types,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+() .-]+$/'],
-        ]);
-
-        if (blank($validated['email'] ?? null) && blank($validated['phone'] ?? null)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'phone' => 'Enter an email or phone for the support contact.',
-            ]);
-        }
-
-        $groupIsActive = SupportGroupType::active()->whereKey($validated['support_group_type_id'])->exists();
-        if (! $groupIsActive) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'support_group_type_id' => 'Choose an active support group.',
-            ]);
-        }
-
-        return $validated;
-    }
-    public function websiteSamples(): View
-    {
-        $samples = CampaignWebsiteSample::published()->ordered()->get();
-
-        return view('aspirants.tools.website-samples', compact('samples'));
-    }
-    private function scopedPollGroup(Request $request, array $scope): Group
-    {
-        $name = $scope['label'] . ' Opinion Polls';
-
-        $group = Group::where('name', $name)
-            ->where('created_by', $request->user()->id)
-            ->first();
-
-        if ($group) {
-            return $group;
-        }
-
-        return Group::create([
-            'name' => $name,
-            'description' => 'Opinion polls for voters in ' . $scope['label'] . '.',
-            'created_by' => $request->user()->id,
-            'invite_code' => $this->uniqueInviteCode(),
-        ]);
-    }
-
-    private function uniqueInviteCode(): string
-    {
-        do {
-            $code = strtoupper(Str::random(8));
-        } while (Group::where('invite_code', $code)->exists());
-
-        return $code;
-    }
-
-    private function pollMessage(AspirantPoll $poll): string
-    {
-        $options = collect($poll->options)
-            ->map(fn (string $option, int $index): string => ($index + 1) . '. ' . $option)
-            ->implode("\n");
-
-        return "[POLL #{$poll->id}]\n{$poll->question}\n{$options}";
     }
 }

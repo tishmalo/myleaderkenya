@@ -10,6 +10,7 @@ use App\Contracts\Repositories\Admin\CandidateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsBalanceRequestRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateSmsSettingRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateTokenPackageRepositoryInterface;
+use App\Contracts\Repositories\Admin\CandidateTransferRunRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateTokenPurchaseRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateTokenRateRepositoryInterface;
 use App\Contracts\Repositories\Admin\CandidateTokenTransactionRepositoryInterface;
@@ -28,6 +29,7 @@ use App\Contracts\Repositories\Admin\PoliticalPartyRepositoryInterface;
 use App\Contracts\Repositories\Admin\PollRepositoryInterface;
 use App\Contracts\Repositories\Admin\PositionRepositoryInterface;
 use App\Contracts\Repositories\Admin\RoleRepositoryInterface;
+use App\Contracts\Repositories\Admin\SeoPageRepositoryInterface;
 use App\Contracts\Repositories\Admin\SettingRepositoryInterface;
 use App\Contracts\Repositories\Admin\SmtpRepositoryInterface;
 use App\Contracts\Repositories\Admin\SupportGroupTypeRepositoryInterface;
@@ -45,6 +47,10 @@ use App\Contracts\Repositories\Api\UserRepositoryInterface;
 use App\Contracts\Repositories\Audit\AuditRepositoryInterface;
 use App\Contracts\Repositories\Kenya\CountyRepositoryInterface as KenyaCountyRepositoryInterface;
 use App\Contracts\Repositories\Web\AspirantEventRepositoryInterface;
+use App\Contracts\Repositories\Web\AspirantPollRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateCallCenterRepositoryInterface;
+use App\Contracts\Repositories\Web\CandidateSupportContactRepositoryInterface;
+use App\Contracts\Repositories\Web\CampaignWebsiteRepositoryInterface;
 use App\Contracts\Repositories\Web\AspirantSupportRepositoryInterface;
 use App\Contracts\Repositories\Web\CampaignToolCommerceRepositoryInterface;
 use App\Contracts\Repositories\Web\CampaignToolRequestRepositoryInterface;
@@ -59,6 +65,7 @@ use App\Contracts\Repositories\Web\PoliticalPartyManagementRepositoryInterface;
 use App\Contracts\Repositories\Web\PoliticalPartyTokenRepositoryInterface;
 use App\Contracts\Repositories\Web\PollRepositoryInterface as WebPollRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicApprovalRepositoryInterface;
+use App\Contracts\Repositories\Web\PublicEventRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseHomepageRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseJobRepositoryInterface;
 use App\Contracts\Repositories\Web\PublicPulseMentionRepositoryInterface;
@@ -83,6 +90,7 @@ use App\Repositories\Admin\CampaignToolRepository;
 use App\Repositories\Admin\CampaignToolRequestRepository as AdminCampaignToolRequestRepository;
 use App\Repositories\Admin\CandidateRepository;
 use App\Repositories\Admin\CandidateSmsBalanceRequestRepository;
+use App\Repositories\Admin\CandidateTransferRunRepository;
 use App\Repositories\Admin\CandidateSmsSettingRepository;
 use App\Repositories\Admin\CandidateTokenPackageRepository;
 use App\Repositories\Admin\CandidateTokenPurchaseRepository;
@@ -103,6 +111,7 @@ use App\Repositories\Admin\PoliticalPartyRepository;
 use App\Repositories\Admin\PollRepository;
 use App\Repositories\Admin\PositionRepository;
 use App\Repositories\Admin\RoleRepository;
+use App\Repositories\Admin\SeoPageRepository;
 use App\Repositories\Admin\SettingRepository;
 use App\Repositories\Admin\SmtpRepository;
 use App\Repositories\Admin\SupportGroupTypeRepository;
@@ -120,6 +129,10 @@ use App\Repositories\Api\UserRepository;
 use App\Repositories\Audit\AuditRepository;
 use App\Repositories\Kenya\KenyaDataRepository;
 use App\Repositories\Web\AspirantEventRepository;
+use App\Repositories\Web\AspirantPollRepository;
+use App\Repositories\Web\CandidateCallCenterRepository;
+use App\Repositories\Web\CandidateSupportContactRepository;
+use App\Repositories\Web\CampaignWebsiteRepository;
 use App\Repositories\Web\AspirantSupportRepository;
 use App\Repositories\Web\CampaignToolCommerceRepository;
 use App\Repositories\Web\CampaignToolRequestRepository;
@@ -134,6 +147,7 @@ use App\Repositories\Web\PoliticalPartyManagementRepository;
 use App\Repositories\Web\PoliticalPartyTokenRepository;
 use App\Repositories\Web\PollRepository as WebPollRepository;
 use App\Repositories\Web\PublicApprovalRepository;
+use App\Repositories\Web\PublicEventRepository;
 use App\Repositories\Web\PublicPulseHomepageRepository;
 use App\Repositories\Web\PublicPulseJobRepository;
 use App\Repositories\Web\PublicPulseMentionRepository;
@@ -147,6 +161,7 @@ use App\Services\Audit\AuditService;
 use App\Services\PublicPulse\DeepSeekMentionToneClassifierService;
 use App\Services\PublicPulse\LocalMentionLanguageDetector;
 use App\Services\PublicPulse\PublicPulseEngineClient;
+use App\Services\SeoService;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -167,10 +182,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // SEO Service (singleton so the same instance is used across the request)
+        $this->app->singleton(SeoService::class);
+
         // Register Admin Repositories
         $this->app->bind(AuditRepositoryInterface::class, AuditRepository::class);
         $this->app->bind(BlocRepositoryInterface::class, BlocRepository::class);
         $this->app->bind(CandidateRepositoryInterface::class, CandidateRepository::class);
+        $this->app->bind(CandidateTransferRunRepositoryInterface::class, CandidateTransferRunRepository::class);
         $this->app->bind(CandidateSmsBalanceRequestRepositoryInterface::class, CandidateSmsBalanceRequestRepository::class);
         $this->app->bind(CandidateTokenPackageRepositoryInterface::class, CandidateTokenPackageRepository::class);
         $this->app->bind(CandidateTokenPurchaseRepositoryInterface::class, CandidateTokenPurchaseRepository::class);
@@ -202,6 +221,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\Repositories\Admin\GroupRepositoryInterface::class, \App\Repositories\Admin\GroupRepository::class);
         $this->app->bind(\App\Contracts\Repositories\Admin\LocationRepositoryInterface::class, \App\Repositories\Admin\LocationRepository::class);
         $this->app->bind(\App\Contracts\Repositories\Admin\TagRepositoryInterface::class, \App\Repositories\Admin\TagRepository::class);
+        $this->app->bind(SeoPageRepositoryInterface::class, SeoPageRepository::class);
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
         $this->app->bind(PaymentMethodRepositoryInterface::class, PaymentMethodRepository::class);
 
@@ -224,6 +244,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(LandingRepositoryInterface::class, LandingRepository::class);
         $this->app->bind(WebPollRepositoryInterface::class, WebPollRepository::class);
         $this->app->bind(PublicApprovalRepositoryInterface::class, PublicApprovalRepository::class);
+        $this->app->bind(PublicEventRepositoryInterface::class, PublicEventRepository::class);
         $this->app->bind(StoredPublicApprovalRepositoryInterface::class, StoredPublicApprovalRepository::class);
         $this->app->bind(PublicPulseMentionRepositoryInterface::class, PublicPulseMentionRepository::class);
         $this->app->bind(PublicPulseHomepageRepositoryInterface::class, PublicPulseHomepageRepository::class);
@@ -232,6 +253,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PublicPulseSourceAccountRepositoryInterface::class, PublicPulseSourceAccountRepository::class);
         $this->app->bind(UserNewsArticleRepositoryInterface::class, UserNewsArticleRepository::class);
         $this->app->bind(AspirantEventRepositoryInterface::class, AspirantEventRepository::class);
+        $this->app->bind(AspirantPollRepositoryInterface::class, AspirantPollRepository::class);
+        $this->app->bind(CandidateCallCenterRepositoryInterface::class, CandidateCallCenterRepository::class);
+        $this->app->bind(CandidateSupportContactRepositoryInterface::class, CandidateSupportContactRepository::class);
+        $this->app->bind(CampaignWebsiteRepositoryInterface::class, CampaignWebsiteRepository::class);
         $this->app->bind(ResourceLinkRepositoryInterface::class, ResourceLinkRepository::class);
         $this->app->bind(UserProfileRepositoryInterface::class, UserProfileRepository::class);
         $this->app->bind(MentionClassificationCacheRepositoryInterface::class, MentionClassificationCacheRepository::class);
@@ -269,6 +294,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Configure rate limiters for API routes
         $this->configureRateLimiting();
+
+        // Share SEO service with all views
+        view()->composer('*', function ($view) {
+            $view->with('seo', app(SeoService::class));
+        });
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UpdateLinkApprovalRequest;
 use App\Http\Requests\Web\StoreUserLinkRequest;
 use App\Models\ResourceLink;
 use App\Services\Admin\LinkService;
@@ -73,15 +74,13 @@ class LinkController extends Controller
             ->with('success', 'Link updated successfully.');
     }
 
-    public function updateApproval(Request $request, ResourceLink $resourceLink): RedirectResponse
+    public function updateApproval(UpdateLinkApprovalRequest $request, ResourceLink $resourceLink): RedirectResponse
     {
-        $validated = $request->validate([
-            'status' => ['required', 'in:approved,rejected'],
-        ]);
+        $status = $request->status();
 
-        $this->links->review($resourceLink, $validated['status'], $request->user()->getKey());
+        $this->links->review($resourceLink, $status, $request->user()->getKey());
 
-        return redirect()->back()->with('success', $validated['status'] === 'approved'
+        return redirect()->back()->with('success', $status === 'approved'
             ? 'Link approved and published.'
             : 'Link rejected.');
     }

@@ -53,9 +53,14 @@ class CandidateUpdateRequest extends FormRequest
         ];
     }
 
-    protected function getRedirectUrl(): string
+    /**
+     * The edit screen tab to return to, falling back to the first tab.
+     */
+    public function activeTab(): string
     {
-        $activeTab = in_array($this->input('active_tab'), [
+        $tab = (string) $this->input('active_tab');
+
+        return in_array($tab, [
             'profile-basic',
             'profile-political',
             'profile-social',
@@ -63,10 +68,14 @@ class CandidateUpdateRequest extends FormRequest
             'profile-support',
             'tools',
             'priorities',
+            'donations',
             'parliament',
-        ], true) ? $this->input('active_tab') : 'profile-basic';
+        ], true) ? $tab : 'profile-basic';
+    }
 
-        return preg_replace('/#.*$/', '', parent::getRedirectUrl()) . '#' . $activeTab;
+    protected function getRedirectUrl(): string
+    {
+        return preg_replace('/#.*$/', '', parent::getRedirectUrl()) . '#' . $this->activeTab();
     }
     public function withValidator(Validator $validator): void
     {

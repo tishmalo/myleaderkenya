@@ -10,6 +10,7 @@ use App\Models\NewsArticle;
 use App\Models\PoliticalParty;
 use App\Models\Position;
 use App\Models\Ward;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -240,6 +241,16 @@ class CandidateRepository implements CandidateRepositoryInterface
             ->limit($limit);
 
         return $query->get();
+    }
+
+    public function publishedArticlesFor(int $candidateId, int $limit): Collection
+    {
+        return NewsArticle::with('tags')
+            ->whereHas('candidates', fn ($query) => $query->where('candidates.id', $candidateId))
+            ->where('status', 'published')
+            ->latest('published_at')
+            ->take($limit)
+            ->get();
     }
 
     public function paginateApprovedForApi(array $filters, int $perPage = 12): LengthAwarePaginator
@@ -634,5 +645,37 @@ class CandidateRepository implements CandidateRepositoryInterface
         );
 
         return $candidate;
+    }
+
+    public function loadForEdit(Candidate $candidate): Candidate
+    {
+        return $candidate->load(['campaignPriorities.category', 'parliamentMember']);
+    }
+
+    /**
+     * Candidate options for the admin typeahead widgets.
+     */
+    public function searchOptions(string $term, int $limit = 20): Collection
+    {
+        return Candidate::query()
+            ->select(['id', 'name', 'nick_name'])
+            ->when($term !== '', function ($query) use ($term): void {
+                $query->where(function ($query) use ($term): void {
+                    $query->where('name', 'like', "%{$term}%")
+                        ->orWhere('nick_name', 'like', "%{$term}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function storeClaimToken(Candidate $candidate, string $tokenHash, CarbonInterface $expiresAt): void
+    {
+        $candidate->forceFill([
+            'claim_token_hash' => $tokenHash,
+            'claim_token_expires_at' => $expiresAt,
+            'claim_sent_at' => now(),
+        ])->save();
     }
 }

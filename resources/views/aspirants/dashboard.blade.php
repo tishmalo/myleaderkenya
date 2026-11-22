@@ -154,6 +154,45 @@ body { background:#080808; color:#f5f5f0; }
 .asp-priority-state.approved { background:rgba(34,197,94,.12); color:#86efac; }
 .asp-priority-state.pending { background:rgba(245,158,11,.12); color:#fbbf24; }
 .asp-priority-state.rejected { background:rgba(239,68,68,.12); color:#fca5a5; }
+.asp-cta-banner {
+    margin-top: 20px;
+    border: 3px solid #d60000;
+    border-radius: 8px;
+    background: #0a0a0a;
+    padding: 28px 24px;
+    text-align: center;
+}
+.asp-cta-banner h3 {
+    margin: 0 0 8px;
+    color: #ff2a2a;
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.15;
+}
+.asp-cta-banner p {
+    margin: 0 0 16px;
+    color: #ff2a2a;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+.asp-cta-banner a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 22px;
+    background: #d60000;
+    color: #fff;
+    font-weight: 900;
+    font-size: 15px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+.asp-cta-banner a:hover {
+    background: #b80000;
+}
 .asp-priority-submit { margin-top:16px; min-height:44px; border:0; border-radius:8px; padding:0 20px; background:#006600; color:white; font-weight:900; cursor:pointer; }@media (max-width:1100px) { .asp-layout { grid-template-columns:1fr; } .asp-sidebar { position:static; max-height:none; } .asp-sidebar-nav { display:flex; overflow-x:auto; padding-bottom:4px; } .asp-sidebar-link { flex:0 0 auto; } .asp-sidebar-footer { margin-top:12px; } .asp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .asp-profile-grid { grid-template-columns:1fr; } }
 @media (max-width:760px) { .asp-priority-grid { grid-template-columns:1fr; } .asp-layout { padding:22px 16px 64px; } .asp-top { flex-direction:column; } .asp-actions { justify-content:flex-start; } .asp-kpis { grid-template-columns:1fr; } .asp-tool-row { grid-template-columns:44px 1fr; } .asp-tool-summary { grid-column:2; } .asp-tool-action,.asp-tool-request { grid-column:2; justify-self:start; } .asp-meta-row { grid-template-columns:1fr; gap:5px; } .asp-activity-row { grid-template-columns:36px 1fr; } .asp-activity-time { grid-column:2; } .asp-team-row { grid-template-columns:1fr; } .asp-social-grid { grid-template-columns:1fr; } }
 </style>
@@ -259,6 +298,12 @@ body { background:#080808; color:#f5f5f0; }
                     <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-square-poll-vertical"></i></div><div><span>Active polls</span><strong>{{ number_format($dashboardStats['active_polls'] ?? 0) }}</strong></div></div>
                     <div class="asp-kpi"><div class="asp-kpi-icon"><i class="fas fa-coins"></i></div><div><span>Token balance</span><strong>{{ number_format($tokenWallet?->balance ?? 0) }}</strong></div></div>
                 </div>
+                {{-- Paste this right after the closing </div> of .asp-kpis (still inside the analytics section) --}}
+<div class="asp-cta-banner">
+    <h3>Start consolidating your votes</h3>
+    <p>Quickly Boost your campaign Now</p>
+    <a href="{{ route('aspirant.tokens.index') }}">Click here to pick a package</a>
+</div>
             </section>
 
             <section id="campaign-tools" class="asp-section" data-dashboard-section="campaign-tools" hidden>

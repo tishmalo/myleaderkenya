@@ -112,5 +112,26 @@ class CountyRepository implements CountyRepositoryInterface
     {
         return County::with(['bloc', 'blocs'])->orderBy('name')->get();
     }
+
+    private function extractBlocIds(array &$data): array
+{
+    $blocIds = $data['bloc_ids'] ?? [];
+
+    if (! is_array($blocIds)) {
+        $blocIds = [];
+    }
+
+    return array_values(array_unique(array_filter(array_map('intval', $blocIds))));
+}
+
+private function syncBlocs(County $county, array $blocIds): void
+{
+    if (empty($blocIds)) {
+        $county->blocs()->detach();
+        return;
+    }
+
+    $county->blocs()->sync($blocIds);
+}
 }
 

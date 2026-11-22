@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Web\BotVerifyRequest;
 use App\Services\Web\RecaptchaService;
 use App\Services\Web\SpamFilterService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class BotVerifyController extends Controller
 {
@@ -15,16 +15,11 @@ class BotVerifyController extends Controller
         private SpamFilterService $spamFilter
     ) {}
 
-    public function verify(Request $request): RedirectResponse
+    public function verify(BotVerifyRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'g-recaptcha-response' => ['required', 'string'],
-            'intended' => ['nullable', 'string', 'max:1000'],
-        ]);
-
         $ip = $request->ip();
 
-        if (! $this->recaptcha->verify($data['g-recaptcha-response'])) {
+        if (! $this->recaptcha->verify($request->token())) {
             return back()->withErrors(['g-recaptcha-response' => 'Verification failed. Please try again.']);
         }
 
@@ -32,7 +27,7 @@ class BotVerifyController extends Controller
             $this->spamFilter->unblockIp($ip);
         }
 
-        $intended = $data['intended'] ?? '';
+        $intended = $request->intended();
 
         if ($intended !== '' && str_starts_with($intended, '/')) {
             return redirect($intended);

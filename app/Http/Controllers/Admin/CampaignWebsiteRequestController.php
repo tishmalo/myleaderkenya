@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReviewCampaignWebsiteRequest;
 use App\Models\CampaignWebsiteRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CampaignWebsiteRequestController extends Controller
@@ -20,14 +20,9 @@ class CampaignWebsiteRequestController extends Controller
         return view('campaign-websites.requests.index', compact('requests'));
     }
 
-    public function update(Request $request, CampaignWebsiteRequest $campaignWebsiteRequest): RedirectResponse
+    public function update(ReviewCampaignWebsiteRequest $request, CampaignWebsiteRequest $campaignWebsiteRequest): RedirectResponse
     {
-        $validated = $request->validate([
-            'status' => ['required', 'in:new,in_progress,completed,cancelled'],
-            'admin_notes' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        $campaignWebsiteRequest->update($validated);
+        $campaignWebsiteRequest->update($request->validated());
 
         return redirect()->route('campaign-website-requests.index')
             ->with('success', 'Website request updated.');

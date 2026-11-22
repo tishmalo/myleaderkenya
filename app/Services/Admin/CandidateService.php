@@ -13,8 +13,10 @@ use App\Models\County;
 use App\Models\Ward;
 use App\Models\PoliticalParty;
 use App\Models\Position;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -40,6 +42,28 @@ class CandidateService
         return $this->candidateRepository->paginate($perPage, $filters);
     }
 
+    /**
+     * Candidate options for the admin typeahead widgets.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function searchOptions(string $term, int $limit = 20): array
+    {
+        return $this->candidateRepository
+            ->searchOptions(trim($term), $limit)
+            ->map(fn (Candidate $candidate): array => [
+                'id' => $candidate->id,
+                'name' => $candidate->name,
+                'nickname' => $candidate->nick_name,
+                'text' => trim($candidate->name.($candidate->nick_name ? ' ('.$candidate->nick_name.')' : '')),
+                'image_url' => null,
+                'position' => null,
+                'party' => null,
+                'jurisdiction' => null,
+            ])
+            ->all();
+    }
+
     public function getApprovedAspirantsForApi(array $filters, int $perPage = 12): LengthAwarePaginator
     {
         $perPage = min(max($perPage, 1), 50);
@@ -53,6 +77,55 @@ class CandidateService
             'donations' => $this->aspirantSupports->forCandidateAdmin((int) $candidate->id),
             'donationTotals' => $this->aspirantSupports->adminTotalsForCandidate((int) $candidate->id),
         ];
+    }
+
+    /**
+     * Every variable the admin edit screen needs.
+     */
+    public function getEditData(Candidate $candidate): array
+    {
+        return array_merge(
+            $this->getFormData(),
+            $this->getAdminDonationData($candidate),
+            ['candidate' => $this->candidateRepository->loadForEdit($candidate)]
+        );
+    }
+
+    /**
+     * Drop the support contacts the actor is not allowed to create, update or delete.
+     */
+    public function withPermittedSupportContacts(array $data, ?Candidate $candidate, ?User $user): array
+    {
+        if (! array_key_exists('support_contacts', $data)) {
+            return $data;
+        }
+
+        $contacts = collect($data['support_contacts'] ?? []);
+
+        if (! $candidate) {
+            if (! $user?->canAccess('support-groups.create')) {
+                unset($data['support_contacts']);
+            }
+
+            return $data;
+        }
+
+        $existingIds = $candidate->supportContacts()->pluck('id')->map(fn ($id) => (string) $id);
+        $submittedIds = $contacts->pluck('id')->filter()->map(fn ($id) => (string) $id);
+
+        $requiresCreate = $contacts->contains(fn (array $contact) => empty($contact['id']));
+        $requiresUpdate = $submittedIds->intersect($existingIds)->isNotEmpty();
+        $requiresDelete = $existingIds->diff($submittedIds)->isNotEmpty();
+
+        $allowed = (! $requiresCreate || $user?->canAccess('support-groups.create'))
+            && (! $requiresUpdate || $user?->canAccess('support-groups.update'))
+            && (! $requiresDelete || $user?->canAccess('support-groups.delete'));
+
+        if (! $allowed) {
+            unset($data['support_contacts']);
+        }
+
+        return $data;
     }
 
     public function createCandidate(array $data, ?UploadedFile $picture = null, ?UploadedFile $coverPhoto = null, ?UploadedFile $campaignPoster = null, ?UploadedFile $campaignVideo = null, ?UploadedFile $campaignSkizaAudio = null): Candidate
@@ -191,6 +264,12 @@ class CandidateService
             'approval_status' => $status,
         ]);
     }
+
+    public function setFeatured(Candidate $candidate, bool $featured): bool
+    {
+        return $this->candidateRepository->update($candidate, ['featured' => $featured]);
+    }
+
     private function storeCandidateImage(UploadedFile $picture, string $directoryName): string
     {
         $directory = storage_path('app/public/' . trim($directoryName, '/'));
@@ -753,6 +832,22 @@ class CandidateService
     public function getPublicShow(Candidate $candidate): Candidate
     {
         return $this->candidateRepository->loadPublicShow($candidate);
+    }
+
+    public function publishedArticlesFor(Candidate $candidate, int $limit = 10): Collection
+    {
+        return $this->candidateRepository->publishedArticlesFor((int) $candidate->id, $limit);
+    }
+
+    public function isPubliclyVisible(Candidate $candidate): bool
+    {
+        return ! Schema::hasColumn('candidates', 'approval_status')
+            || $candidate->approval_status === 'approved';
+    }
+
+    public function hasStaleSlug(Candidate $candidate, ?string $requestedSlug): bool
+    {
+        return filled($candidate->slug) && $requestedSlug !== $candidate->slug;
     }
 
     /**

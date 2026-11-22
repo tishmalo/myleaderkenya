@@ -3,26 +3,26 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\CandidateFilterRequest;
+use App\Http\Requests\Admin\CandidateSearchRequest;
 use App\Http\Requests\Admin\CandidateStoreRequest;
 use App\Http\Requests\Admin\CandidateUpdateRequest;
+use App\Http\Requests\Admin\ImportCandidatesRequest;
 use App\Http\Requests\Admin\UpdateCandidateApprovalRequest;
+use App\Http\Requests\Admin\UpdateCandidateFeaturedRequest;
 use App\Http\Requests\Web\PublicAspirantFilterRequest;
-use App\Jobs\ExportCandidates;
-use App\Jobs\ImportCandidates;
 use App\Models\Candidate;
 use App\Models\CandidateTransferRun;
-use App\Notifications\CandidateClaimLinkNotification;
+use App\Services\Admin\CandidateClaimLinkService;
 use App\Services\Admin\CandidateService;
+use App\Services\Admin\CandidateTransferService;
+use App\Services\Web\CandidateSeoService;
 use App\Services\Web\PublicCountyService;
 use App\Services\Web\UserLinkService;
 use App\Services\Web\ViewTracker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -32,59 +32,39 @@ class CandidateController extends Controller
 {
     public function __construct(
         private CandidateService $candidateService,
+        private CandidateTransferService $candidateTransferService,
+        private CandidateClaimLinkService $claimLinkService,
+        private CandidateSeoService $candidateSeo,
         private UserLinkService $userLinkService,
         private PublicCountyService $publicCountyService,
         private ViewTracker $viewTracker,
     ) {}
 
-    public function index()
+    public function index(CandidateFilterRequest $request): View
     {
-        $filters = request()->only(['candidate', 'position', 'political_party', 'approval_status', 'account_claim', 'import_filter']);
-        $candidates = $this->candidateService->getPaginatedCandidates(15, $filters);
-        $formData = $this->candidateService->getFormData();
-        $transferRuns = CandidateTransferRun::latest()->limit(10)->get();
-
-        return view('candidates.index', array_merge($formData, compact('candidates', 'transferRuns')));
+        return view('candidates.index', [
+            ...$this->candidateService->getFormData(),
+            'candidates' => $this->candidateService->getPaginatedCandidates(15, $request->filters()),
+            'transferRuns' => $this->candidateTransferService->recentRuns(),
+        ]);
     }
 
-    public function search(Request $request)
+    public function search(CandidateSearchRequest $request): JsonResponse
     {
-        $term = trim((string) $request->query('q', ''));
-
-        $candidates = Candidate::query()
-            ->select(['id', 'name', 'nick_name'])
-            ->when($term !== '', function ($query) use ($term) {
-                $query->where(function ($query) use ($term) {
-                    $query->where('name', 'like', "%{$term}%")
-                        ->orWhere('nick_name', 'like', "%{$term}%");
-                });
-            })
-            ->orderBy('name')
-            ->limit(20)
-            ->get()
-            ->map(fn (Candidate $candidate) => [
-                'id' => $candidate->id,
-                'name' => $candidate->name,
-                'nickname' => $candidate->nick_name,
-                'text' => trim($candidate->name.($candidate->nick_name ? ' ('.$candidate->nick_name.')' : '')),
-                'image_url' => null,
-                'position' => null,
-                'party' => null,
-                'jurisdiction' => null,
-            ]);
-
-        return response()->json(['results' => $candidates]);
+        return response()->json([
+            'results' => $this->candidateService->searchOptions($request->term()),
+        ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('candidates.create', $this->candidateService->getFormData());
     }
 
-    public function store(CandidateStoreRequest $request)
+    public function store(CandidateStoreRequest $request): RedirectResponse
     {
         $this->candidateService->createCandidate(
-            $this->filterSupportContactsData($request->validated(), $request, null),
+            $this->candidateService->withPermittedSupportContacts($request->validated(), null, $request->user()),
             $request->file('profile_picture'),
             $request->file('cover_photo'),
             $request->file('campaign_poster'),
@@ -96,22 +76,16 @@ class CandidateController extends Controller
             ->with('success', 'Aspirant added successfully.');
     }
 
-    public function edit(Candidate $candidate)
+    public function edit(Candidate $candidate): View
     {
-        $candidate->load(['campaignPriorities.category', 'parliamentMember']);
-
-        return view('candidates.edit', array_merge(
-            $this->candidateService->getFormData(),
-            $this->candidateService->getAdminDonationData($candidate),
-            compact('candidate')
-        ));
+        return view('candidates.edit', $this->candidateService->getEditData($candidate));
     }
 
-    public function update(CandidateUpdateRequest $request, Candidate $candidate)
+    public function update(CandidateUpdateRequest $request, Candidate $candidate): RedirectResponse
     {
         $this->candidateService->updateCandidate(
             $candidate,
-            $this->filterSupportContactsData($request->validated(), $request, $candidate),
+            $this->candidateService->withPermittedSupportContacts($request->validated(), $candidate, $request->user()),
             $request->file('profile_picture'),
             $request->file('cover_photo'),
             $request->file('campaign_poster'),
@@ -119,29 +93,13 @@ class CandidateController extends Controller
             $request->file('campaign_skiza_audio')
         );
 
-        $activeTab = in_array($request->input('active_tab'), [
-            'profile-basic',
-            'profile-political',
-            'profile-social',
-            'profile-media',
-            'profile-support',
-            'tools',
-            'priorities',
-            'donations',
-            'parliament',
-        ], true) ? $request->input('active_tab') : 'profile-basic';
-
-        return redirect(route('candidates.edit', $candidate).'#'.$activeTab)
+        return redirect(route('candidates.edit', $candidate).'#'.$request->activeTab())
             ->with('success', 'Aspirant updated successfully.');
     }
 
-    public function toggleFeatured(Request $request, Candidate $candidate)
+    public function toggleFeatured(UpdateCandidateFeaturedRequest $request, Candidate $candidate): JsonResponse
     {
-        $data = $request->validate([
-            'featured' => ['required', 'boolean'],
-        ]);
-
-        $candidate->update(['featured' => $data['featured']]);
+        $this->candidateService->setFeatured($candidate, $request->boolean('featured'));
 
         return response()->json([
             'success' => true,
@@ -157,66 +115,15 @@ class CandidateController extends Controller
         return back()->with('success', 'Aspirant '.$status.' successfully.');
     }
 
-    public function sendClaimLink(Candidate $candidate)
+    public function sendClaimLink(Candidate $candidate): RedirectResponse
     {
-        if ($candidate->user_id || $candidate->claimed_at) {
-            return back()->with('warning', 'This aspirant account has already been claimed.');
+        $warning = $this->claimLinkService->send($candidate);
+
+        if ($warning !== null) {
+            return back()->with('warning', $warning);
         }
-
-        if (blank($candidate->email)) {
-            return back()->with('warning', 'Add an email address before sending a claim link.');
-        }
-
-        $token = Str::random(64);
-        $expiresAt = now()->addDays(7);
-
-        $candidate->forceFill([
-            'claim_token_hash' => hash('sha256', $token),
-            'claim_token_expires_at' => $expiresAt,
-            'claim_sent_at' => now(),
-        ])->save();
-
-        $claimUrl = route('aspirants.claim.show', [$candidate, $token]);
-
-        Notification::route('mail', $candidate->email)
-            ->notify(new CandidateClaimLinkNotification($candidate->name, $claimUrl, $expiresAt));
 
         return back()->with('success', 'Claim link queued for '.$candidate->email.'.');
-    }
-
-    private function filterSupportContactsData(array $data, Request $request, ?Candidate $candidate): array
-    {
-        if (! array_key_exists('support_contacts', $data)) {
-            return $data;
-        }
-
-        $user = $request->user();
-        $contacts = collect($data['support_contacts'] ?? []);
-
-        if (! $candidate) {
-            if (! $user?->canAccess('support-groups.create')) {
-                unset($data['support_contacts']);
-            }
-
-            return $data;
-        }
-
-        $existingIds = $candidate->supportContacts()->pluck('id')->map(fn ($id) => (string) $id);
-        $submittedIds = $contacts->pluck('id')->filter()->map(fn ($id) => (string) $id);
-
-        $requiresCreate = $contacts->contains(fn (array $contact) => empty($contact['id']));
-        $requiresUpdate = $submittedIds->intersect($existingIds)->isNotEmpty();
-        $requiresDelete = $existingIds->diff($submittedIds)->isNotEmpty();
-
-        $allowed = (! $requiresCreate || $user?->canAccess('support-groups.create'))
-            && (! $requiresUpdate || $user?->canAccess('support-groups.update'))
-            && (! $requiresDelete || $user?->canAccess('support-groups.delete'));
-
-        if (! $allowed) {
-            unset($data['support_contacts']);
-        }
-
-        return $data;
     }
 
     public function destroy(Request $request, Candidate $candidate): RedirectResponse|JsonResponse
@@ -234,32 +141,31 @@ class CandidateController extends Controller
             ->with('success', 'Aspirant deleted successfully.');
     }
 
-    public function publicIndex(PublicAspirantFilterRequest $request)
+    public function publicIndex(PublicAspirantFilterRequest $request): View
     {
         $data = $this->candidateService->getPublicIndex($request->validated(), 30);
         $data['nationalLinks'] = $this->userLinkService->forNational();
 
+        $this->candidateSeo->applyForIndex();
+
         return view('aspirants.public.index', $data);
     }
 
-    public function publicShow(Candidate $candidate): RedirectResponse|View
+    public function publicShow(Request $request, Candidate $candidate): RedirectResponse|View
     {
-        if (Schema::hasColumn('candidates', 'approval_status') && $candidate->approval_status !== 'approved') {
-            abort(404);
-        }
+        abort_unless($this->candidateService->isPubliclyVisible($candidate), 404);
 
-        if ($candidate->slug && request()->segment(2) !== $candidate->slug) {
+        if ($this->candidateService->hasStaleSlug($candidate, $request->segment(2))) {
             return redirect()->route('aspirants.show', $candidate, 301);
         }
 
         $candidate = $this->candidateService->getPublicShow($candidate);
 
-        $this->viewTracker->track($candidate, request());
+        $this->viewTracker->track($candidate, $request);
+        $this->candidateSeo->applyForShow($candidate);
 
         return view('aspirants.public.show', [
             'candidate' => $candidate,
-            // Targeting rules stay authoritative: the aspirant's own links plus
-            // any county, constituency, ward or party links that match them.
             'candidateLinks' => $this->userLinkService->forCandidate($candidate),
             'candidateCounty' => $this->publicCountyService->countyFor($candidate),
         ]);
@@ -267,106 +173,61 @@ class CandidateController extends Controller
 
     public function importTemplate(): StreamedResponse
     {
-        $headers = [
-            'name', 'nick_name', 'phone', 'email', 'political_party',
-            'position', 'county', 'constituency', 'ward', 'about',
-        ];
-
-        return response()->streamDownload(function () use ($headers) {
-            $out = fopen('php://output', 'w');
-            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($out, $headers);
-            fputcsv($out, [
-                'Jane Doe', 'JD', '0712345678', 'jane@example.com', 'UDA',
-                'Governor', 'Nairobi', '', '', 'About text',
-            ]);
-            fclose($out);
-        }, 'candidates_import_template.csv', [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+        return $this->candidateTransferService->importTemplateResponse();
     }
 
-    public function import(Request $request): RedirectResponse
+    public function import(ImportCandidatesRequest $request): RedirectResponse
     {
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:10240'],
-        ]);
-
-        $path = $request->file('file')->store('imports');
-
-        $run = CandidateTransferRun::create([
-            'type' => 'import',
-            'status' => 'pending',
-            'source_path' => $path,
-            'requested_by' => $request->user()->id,
-        ]);
-
-        ImportCandidates::dispatch($run->id);
+        $this->candidateTransferService->queueImport($request->file('file'), $request->user()->getKey());
 
         return redirect()->route('candidates.index')
             ->with('success', 'The aspirant CSV import has been queued. Results will appear in the Import / Export panel below.');
     }
 
-    public function export(Request $request): RedirectResponse
+    public function export(CandidateFilterRequest $request): RedirectResponse
     {
-        $filters = $request->only(['candidate', 'position', 'political_party', 'approval_status', 'account_claim', 'import_filter']);
-
-        $run = CandidateTransferRun::create([
-            'type' => 'export',
-            'status' => 'pending',
-            'filters' => $filters,
-            'requested_by' => $request->user()->id,
-        ]);
-
-        ExportCandidates::dispatch($run->id);
+        $this->candidateTransferService->queueExport($request->filters(), $request->user()->getKey());
 
         return back()->with('success', 'The aspirant export has been queued. The download link will appear in the Import / Export panel below.');
     }
 
     public function exportDownload(CandidateTransferRun $run): StreamedResponse|BinaryFileResponse
     {
-        abort_unless($run->type === 'export' && $run->status === 'complete' && $run->result_path, 404);
-
-        return Storage::disk('local')->download($run->result_path, $run->download_name ?? 'candidates.csv');
+        return $this->candidateTransferService->downloadResponse($run);
     }
 
     public function transferStatus(CandidateTransferRun $run): JsonResponse
     {
-        return response()->json([
-            'id' => $run->id,
-            'type' => $run->type,
-            'status' => $run->status,
-            'imported_count' => $run->imported_count,
-            'linked_count' => $run->linked_count,
-            'skipped_count' => $run->skipped_count,
-            'exported_count' => $run->exported_count,
-            'error_message' => $run->error_message,
-            'errors' => $run->errors,
-            'download_url' => ($run->type === 'export' && $run->status === 'complete' && $run->result_path)
-                ? route('candidates.export.download', $run)
-                : null,
-        ]);
+        return response()->json($this->candidateTransferService->statusPayload($run));
     }
 
     public function publishImport(Candidate $candidate): RedirectResponse
     {
-        try {
-            $this->candidateService->publishImportedCandidate($candidate);
-        } catch (ValidationException $e) {
-            return back()->with('warning', collect($e->errors())->flatten()->first());
-        }
-
-        return back()->with('success', $candidate->name.' published.');
+        return $this->reviewImport(
+            fn () => $this->candidateService->publishImportedCandidate($candidate),
+            $candidate->name.' published.'
+        );
     }
 
     public function discardImport(Candidate $candidate): RedirectResponse
     {
+        return $this->reviewImport(
+            fn () => $this->candidateService->discardImportedCandidate($candidate),
+            $candidate->name.' discarded.'
+        );
+    }
+
+    /**
+     * Flash the first validation message when an import review action is refused.
+     */
+    private function reviewImport(callable $action, string $success): RedirectResponse
+    {
         try {
-            $this->candidateService->discardImportedCandidate($candidate);
+            $action();
         } catch (ValidationException $e) {
             return back()->with('warning', collect($e->errors())->flatten()->first());
         }
 
-        return back()->with('success', $candidate->name.' discarded.');
+        return back()->with('success', $success);
     }
 }

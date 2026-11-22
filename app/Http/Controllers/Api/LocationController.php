@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\UploadLocationRequest;
 use App\Services\Api\LocationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -69,17 +70,12 @@ class LocationController extends Controller
     /**
      * POST /api/upload_location (Protected – requires Bearer token)
      */
-    public function upload(Request $request): JsonResponse
+    public function upload(UploadLocationRequest $request): JsonResponse
     {
-        $request->validate([
-            'latitude'  => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-        ]);
-
         $this->locationService->uploadLocation(
             $request->user(),
-            (float) $request->latitude,
-            (float) $request->longitude
+            $request->latitude(),
+            $request->longitude()
         );
 
         return response()->json([

@@ -10,6 +10,8 @@ interface CampaignPriorityCategoryRepositoryInterface
 {
     public function categoriesWithUsageCount(): Collection;
 
+    public function active(): Collection;
+
     public function paginateSubmissions(array $filters, int $perPage): LengthAwarePaginator;
 
     public function create(array $data): CampaignPriorityCategory;

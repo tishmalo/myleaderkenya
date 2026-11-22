@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LinkParliamentMemberRequest;
+use App\Http\Requests\Admin\PublishParliamentMemberRequest;
 use App\Jobs\FetchParliamentMemberDetail;
 use App\Jobs\ImportParliamentMembers;
 use App\Models\Candidate;
@@ -52,12 +54,11 @@ class ParliamentMemberController extends Controller
         return back()->with('success','The one-time parliamentary members import was queued.');
     }
 
-    public function link(Request $request, ParliamentMember $parliamentMember): RedirectResponse
+    public function link(LinkParliamentMemberRequest $request, ParliamentMember $parliamentMember): RedirectResponse
     {
-        $data=$request->validate(['candidate_id'=>['nullable','integer','exists:candidates,id']]);
-        DB::transaction(function()use($data,$request,$parliamentMember):void{
+        $candidateId=$request->candidateId();
+        DB::transaction(function()use($candidateId,$request,$parliamentMember):void{
             $member=ParliamentMember::lockForUpdate()->findOrFail($parliamentMember->id);
-            $candidateId=$data['candidate_id']??null;
             if ($candidateId) Candidate::lockForUpdate()->findOrFail($candidateId);
             if($candidateId && ParliamentMember::where('candidate_id',$candidateId)->whereKeyNot($member->id)->exists()) throw ValidationException::withMessages(['candidate_id'=>'That candidate is already linked to another member.']);
             $member->update(['candidate_id'=>$candidateId,'match_method'=>$candidateId?'manual':null,'matched_token_count'=>0,'linked_by'=>$candidateId?$request->user()->id:null,'linked_at'=>$candidateId?now():null,'is_published'=>false,'published_by'=>null,'published_at'=>null]);
@@ -65,12 +66,12 @@ class ParliamentMemberController extends Controller
         return back()->with('success','The member link was updated. Publication was reset for review.');
     }
 
-    public function publish(Request $request, ParliamentMember $parliamentMember): RedirectResponse
+    public function publish(PublishParliamentMemberRequest $request, ParliamentMember $parliamentMember): RedirectResponse
     {
-        $data=$request->validate(['is_published'=>['required','boolean']]);
-        if($data['is_published'] && (!$parliamentMember->candidate_id || $parliamentMember->detail_status!=='complete')) throw ValidationException::withMessages(['is_published'=>'Link a candidate and complete the detail import before publishing.']);
-        $parliamentMember->update(['is_published'=>$data['is_published'],'published_by'=>$data['is_published']?$request->user()->id:null,'published_at'=>$data['is_published']?now():null]);
-        return back()->with('success',$data['is_published']?'Parliamentary information published.':'Parliamentary information unpublished.');
+        $isPublished=$request->isPublished();
+        if($isPublished && (!$parliamentMember->candidate_id || $parliamentMember->detail_status!=='complete')) throw ValidationException::withMessages(['is_published'=>'Link a candidate and complete the detail import before publishing.']);
+        $parliamentMember->update(['is_published'=>$isPublished,'published_by'=>$isPublished?$request->user()->id:null,'published_at'=>$isPublished?now():null]);
+        return back()->with('success',$isPublished?'Parliamentary information published.':'Parliamentary information unpublished.');
     }
 
     public function retry(ParliamentMember $parliamentMember): RedirectResponse

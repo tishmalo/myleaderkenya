@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(CandidateTokenSeeder::class);
+        $this->call(SeoPageSeeder::class);
     }
 }
 

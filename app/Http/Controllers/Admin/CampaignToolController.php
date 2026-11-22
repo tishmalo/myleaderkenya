@@ -8,9 +8,9 @@ use App\Http\Requests\Admin\CampaignToolUpdateRequest;
 use App\Http\Requests\Web\StoreCampaignToolFeatureRequest;
 use App\Models\CampaignTool;
 use App\Services\Admin\CampaignToolService;
-use App\Services\Admin\SettingService;
 use App\Services\Web\AspirantWorkspaceService;
 use App\Services\Web\CampaignToolFeatureRequestService;
+use App\Services\Web\CampaignToolPublicService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 
@@ -18,9 +18,9 @@ class CampaignToolController extends Controller
 {
     public function __construct(
         private CampaignToolService $campaignToolService,
-        private SettingService $settingService,
         private AspirantWorkspaceService $workspaceService,
-        private CampaignToolFeatureRequestService $featureRequestService
+        private CampaignToolFeatureRequestService $featureRequestService,
+        private CampaignToolPublicService $publicService
     ) {}
 
     public function index()
@@ -78,21 +78,12 @@ class CampaignToolController extends Controller
 
     public function publicIndex()
     {
-        $campaignTools = $this->campaignToolService->getPublishedTools(12);
-        $campaignToolsSeo = $this->settingService->getFrontendPage('campaign-tools');
-        $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
-        $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
-
-        return view('campaign-tools.public.index', compact('campaignTools', 'campaignToolsSeo', 'requestCampaignTools', 'recaptchaSiteKey'));
+        return view('campaign-tools.public.index', $this->publicService->indexData());
     }
 
     public function publicShow(string $slug)
     {
-        $campaignTool = $this->campaignToolService->getPublicShowData($slug);
-        $requestCampaignTools = $this->campaignToolService->getRequestToolOptions();
-        $recaptchaSiteKey = $this->settingService->recaptchaSiteKey();
-
-        return view('campaign-tools.public.show', compact('campaignTool', 'requestCampaignTools', 'recaptchaSiteKey'));
+        return view('campaign-tools.public.show', $this->publicService->showData($slug));
     }
 
     public function storeFeatureRequest(StoreCampaignToolFeatureRequest $request, CampaignTool $campaignTool): RedirectResponse

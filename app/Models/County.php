@@ -37,8 +37,6 @@ class County extends Model implements AuditableContract
 
     protected static function booted(): void
     {
-        // The public county page is addressed by slug, so every county needs
-        // one whether it arrives through the admin form or an import.
         static::saving(function (self $county): void {
             if (blank($county->slug)) {
                 $county->slug = static::uniqueSlug($county->name);
@@ -71,11 +69,6 @@ class County extends Model implements AuditableContract
 
     public function pollingStations()
     {
-        return $this->hasMany(PollingStation::class, 'county', 'name');   // 'county' column in polling_stations = 'name' in counties
+        return $this->hasMany(PollingStation::class, 'county', 'name');
     }
-
-    //     public function pollingStations()
-    // {
-    //     return $this->hasMany(\App\Models\PollingStation::class);
-    // }
 }

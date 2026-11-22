@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\PublicPulseController;
 use App\Http\Controllers\Admin\PublicPulseJobController;
 use App\Http\Controllers\Admin\PublicPulseSourceAccountController;
 use App\Http\Controllers\Admin\RecaptchaSettingController;
+use App\Http\Controllers\Admin\SeoPageController;
 use App\Http\Controllers\Admin\SitemapController as AdminSitemapController;
 use App\Http\Controllers\Admin\SmsBalanceRequestController;
 use App\Http\Controllers\Admin\SmtpController;
@@ -82,7 +83,7 @@ use App\Http\Controllers\Web\PoliticalPartyDashboardController;
 use App\Http\Controllers\Web\PollCommentController;
 use App\Http\Controllers\Web\PollController as WebPollController;
 use App\Http\Controllers\Web\PollVoteController;
-use App\Http\Controllers\Web\PublicCountyController;
+use App\Http\Controllers\Web\PublicCountyController;   
 use App\Http\Controllers\Web\SitemapController as WebSitemapController;
 use App\Http\Controllers\Web\UserEventController;
 use App\Http\Controllers\Web\UserLinkController;
@@ -242,6 +243,12 @@ Route::middleware('auth')->group(function () {
         Route::middleware(['admin', 'superadmin'])->group(function () {
             Route::get('/admin/audits', [AuditController::class, 'index'])->name('audits.index');
             Route::get('/admin/audits/{audit}', [AuditController::class, 'show'])->name('audits.show');
+            Route::get('/admin/political-parties/export', [PoliticalPartyController::class, 'export'])
+                        ->middleware('permission:parties.view')
+                        ->name('political-parties.export');
+            Route::get('/admin/coalitions/export', [CoalitionController::class, 'export'])
+                        ->middleware('permission:parties.view')
+                        ->name('coalitions.export');
         });
         Route::middleware('admin')->group(function () {
             Route::get('candidates/import/template', [CandidateController::class, 'importTemplate'])
@@ -442,6 +449,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/frontend-pages', [AdminFrontendPageController::class, 'index'])->middleware('permission:frontend-pages.view')->name('frontend-pages.index');
             Route::get('/admin/frontend-pages/{page}/edit', [AdminFrontendPageController::class, 'edit'])->middleware('permission:frontend-pages.update')->name('frontend-pages.edit');
             Route::put('/admin/frontend-pages/{page}', [AdminFrontendPageController::class, 'update'])->middleware('permission:frontend-pages.update')->name('frontend-pages.update');
+
+            Route::get('/admin/seo-pages', [SeoPageController::class, 'index'])->middleware('permission:frontend-pages.view')->name('seo-pages.index');
+            Route::get('/admin/seo-pages/{seoPage}/edit', [SeoPageController::class, 'edit'])->middleware('permission:frontend-pages.view')->name('seo-pages.edit');
+            Route::put('/admin/seo-pages/{seoPage}', [SeoPageController::class, 'update'])->middleware('permission:frontend-pages.update')->name('seo-pages.update');
 
             Route::resource('payment-methods', PaymentMethodController::class)->names('payment-methods')->except(['show'])->middleware('permission:finance.view');
             Route::resource('donors', DonorController::class)->names('donors')->except(['show'])->middleware('permission:finance.view');
