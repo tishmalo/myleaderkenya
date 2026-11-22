@@ -50,6 +50,7 @@ class AuditRepository implements AuditRepositoryInterface
             ->where('audits.auditable_type', $candidateMorph)
             ->whereNotNull('audits.user_id')
             ->whereNotNull('audits.candidate_id')
+            ->when($filters['actor'] ?? null, fn ($q, $value) => $q->where('users.name', 'like', '%'.$value.'%'))
             ->when($filters['date_from'] ?? null, fn ($q, $value) => $q->whereDate('audits.created_at', '>=', $value))
             ->when($filters['date_to'] ?? null, fn ($q, $value) => $q->whereDate('audits.created_at', '<=', $value))
             ->groupBy('audits.user_id', 'users.name')

@@ -13,9 +13,26 @@ class AuditController extends Controller {
     {
          $filters = $request->validated();
 
+         // The contributor card keeps its own range so the audit list above can
+         // stay on a different period.
+         $contributorFilters = array_filter([
+             'actor' => $filters['contributor_actor'] ?? null,
+             'date_from' => $filters['contributor_from'] ?? null,
+             'date_to' => $filters['contributor_to'] ?? null,
+         ]);
+
+         $candidateCreatorSummary = $this->audits->candidateCreatorSummary($contributorFilters);
+
          return view('admin.audits.index',[
              'audits' => $this->audits->paginate($filters),
-             'candidateCreatorSummary' => $this->audits->candidateCreatorSummary($filters),
+             'candidateCreatorSummary' => $candidateCreatorSummary,
+             'contributorFilters' => $contributorFilters,
+             'contributorTotals' => [
+                 'contributors' => $candidateCreatorSummary->count(),
+                 'live' => (int) $candidateCreatorSummary->sum('live_candidates'),
+                 'deleted' => (int) $candidateCreatorSummary->sum('deleted_candidates'),
+                 'links' => (int) $candidateCreatorSummary->sum('links_added'),
+             ],
          ]);
 
      }

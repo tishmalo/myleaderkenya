@@ -184,6 +184,42 @@ class AuditContributorLinksTest extends TestCase
         $this->assertStringContainsString('>1<', $bobRow);
     }
 
+    public function test_the_contributor_card_filters_by_date_range_and_shows_cumulative_totals(): void
+    {
+        $admin = $this->superAdmin();
+        $alice = $this->actor('Alice Actor', 'alice-actor');
+        $bob = $this->actor('Bob Actor', 'bob-actor');
+        $county = $this->county();
+
+        $this->candidate('Alice aspirant', $alice);
+        $this->candidate('Bob aspirant', $bob);
+        $this->link('alice-one', $alice, $county);
+        $this->link('bob-one', $bob, $county);
+
+        // Bob's activity happened ten days ago, outside the range below.
+        Audit::query()->where('user_id', $bob->id)->update(['created_at' => now()->subDays(10)]);
+
+        $today = now()->toDateString();
+
+        $response = $this->actingAs($admin)->get(route('audits.index', [
+            'contributor_from' => $today,
+            'contributor_to' => $today,
+        ]))->assertOk();
+
+        $table = $this->contributorTable((string) $response->getContent());
+
+        $this->assertStringContainsString('Alice Actor', $table);
+        $this->assertStringNotContainsString('Bob Actor', $table);
+        $this->assertStringContainsString('Cumulative total', $table);
+        $this->assertStringContainsString('1 contributor', $table);
+
+        $named = $this->actingAs($admin)->get(route('audits.index', ['contributor_actor' => 'Bob']))->assertOk();
+        $namedTable = $this->contributorTable((string) $named->getContent());
+
+        $this->assertStringContainsString('Bob Actor', $namedTable);
+        $this->assertStringNotContainsString('Alice Actor', $namedTable);
+    }
+
     private function contributorTable(string $html): string
     {
         $start = strpos($html, 'candidate-contributors-title');
