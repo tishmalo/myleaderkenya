@@ -72,6 +72,7 @@ use App\Http\Controllers\Web\CampaignToolPaymentController;
 use App\Http\Controllers\Web\CandidateCampaignPriorityController;
 use App\Http\Controllers\Web\CandidateClaimController;
 use App\Http\Controllers\Web\CandidateClaimRequestController;
+use App\Http\Controllers\Web\CoordinatorsGuideController as PublicCoordinatorsGuideController;
 use App\Http\Controllers\Web\DonorToolboxController;
 use App\Http\Controllers\Web\EventController as WebEventController;
 use App\Http\Controllers\Web\FrontendPageController as PublicFrontendPageController;
@@ -98,6 +99,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/live-stats', [PublicFrontendPageController::class, 'liveStats'])->name('live-stats.public');
     Route::get('/download-app', [PublicFrontendPageController::class, 'downloadApp'])->name('download-app.public');
     Route::get('/contact-us', [PublicFrontendPageController::class, 'contact'])->name('contact.public');
+    Route::get('/coordinators-guide', [PublicCoordinatorsGuideController::class, 'index'])->name('coordinators-guide.public');
 
     Route::get('/privacy', function () {
         return view('privacy');

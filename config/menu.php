@@ -13,6 +13,7 @@ return [
                 ['label' => 'Counties', 'route' => 'counties.public', 'active' => ['counties.public', 'county.show']],
                 ['label' => 'Live stats', 'route' => 'live-stats.public', 'active' => ['live-stats.public']],
                 ['label' => 'Download App', 'route' => 'download-app.public', 'active' => ['download-app.public']],
+                ['label' => 'Coordinators Guide', 'route' => 'coordinators-guide.public', 'active' => ['coordinators-guide.public']],
             ],
         ],
         [

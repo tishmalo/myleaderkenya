@@ -179,6 +179,24 @@ class CoordinatorsGuideTest extends TestCase
             ->assertRedirect(route('coordinators-guide.index'));
     }
 
+    public function test_the_public_can_read_the_guide_from_the_voter_menu(): void
+    {
+        $voterMenu = collect(config('menu.frontend'))->firstWhere('label', 'Voter');
+        $this->assertContains(
+            'coordinators-guide.public',
+            collect($voterMenu['children'])->pluck('route')->all()
+        );
+
+        $this->get(route('coordinators-guide.public'))
+            ->assertOk()
+            ->assertSee('Coordinators Guide')
+            ->assertSee(route('coordinators-guide.public'), false)
+            ->assertSee('<h2 id="what-this-guide-is-for">', false)
+            // The public page is read only: no editor and no built-in draft notice.
+            ->assertDontSee('Save guide')
+            ->assertDontSee('You are reading the built-in guide');
+    }
+
     public function test_the_built_in_guide_describes_the_modules_people_run(): void
     {
         $guide = CoordinatorsGuide::defaultDocument();
